@@ -1,0 +1,3 @@
+docs/superpowers/** export-ignore
+docs/reports/** export-ignore
+.flake8 export-ignore

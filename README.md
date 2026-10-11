@@ -9,7 +9,6 @@ peaks; each type has its own weight, service time limit and expiry. The drone ca
 up, where to deliver, and when and where to recharge. This repository contains the Gymnasium
 environment (milestone 1); learning agents follow in later milestones.
 
-Design document: `docs/superpowers/specs/2026-10-10-medical-uav-design.md`.
 
 ## Installation
 
@@ -86,7 +85,6 @@ scripts/
   demo.py            run an episode, print metrics, save an animation
   calibrate.py       load calibration, map statistics, throughput
 tests/               pytest suite
-docs/                design spec, implementation plan, report material
 ```
 
 ## Environment summary
