@@ -26,7 +26,8 @@ def test_pick_valid_for_simple_order(line_map):
 
 
 def test_box_limit(line_map):
-    orders = [make_order(i, 1, M, 1, 0.4, 0.0) for i in range(3)] + [make_order(3, 2, 2, M, 0.3, 0.0)]
+    orders = [make_order(i, 1, M, 1, 0.4, 0.0) for i in range(3)]
+    orders.append(make_order(3, 2, 2, M, 0.3, 0.0))
     sim = make_sim(line_map, orders)
     for o in orders[:3]:
         sim.do_pick(o)  # 3 boxes, 1.2 kg: only the box limit binds

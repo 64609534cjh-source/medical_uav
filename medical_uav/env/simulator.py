@@ -93,7 +93,8 @@ class Simulator:
         """Battery must always cover the reserve plus the flight to the nearest charger."""
         _, to_charger = self.nearest_charger(self.location, self.load_kg())
         need = self.cfg.reserve + to_charger
-        assert self.battery >= need - 1e-6, f"battery {self.battery:.3f} < {need:.3f} at t={self.t:.2f}"
+        assert self.battery >= need - 1e-6, \
+            f"battery {self.battery:.3f} < {need:.3f} at t={self.t:.2f}"
 
     # ------------------------------------------------------------------ events
 
@@ -202,7 +203,8 @@ class Simulator:
     def do_deliver(self, node: int) -> None:
         """Unload every box for node, most urgent first; each box is rewarded when unloaded."""
         self.fly_to(node)
-        boxes = sorted([o for o in self.onboard if o.dest == node], key=lambda o: (o.deadline, o.id))
+        boxes = [o for o in self.onboard if o.dest == node]
+        boxes.sort(key=lambda o: (o.deadline, o.id))
         for o in boxes:
             if o.status == "expired":
                 self._handle_box("dispose", o)

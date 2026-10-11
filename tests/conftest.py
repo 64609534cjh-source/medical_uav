@@ -17,7 +17,8 @@ def line_map():
 
 def make_order(oid, type_idx, origin, dest, weight, release):
     limits = [30.0, 90.0, 60.0, 75.0]
-    return Order(oid, type_idx, origin, dest, weight, release, limits[type_idx], 2 * limits[type_idx])
+    limit = limits[type_idx]
+    return Order(oid, type_idx, origin, dest, weight, release, limit, 2 * limit)
 
 
 def make_sim(city_map, orders, cfg=None):
