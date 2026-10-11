@@ -35,3 +35,7 @@ def test_env_rejects_unknown_load_and_render_mode():
         env.reset(options={"lam": math.nan})
     with pytest.raises(ValueError):
         env.reset(options={"load": "extreme"})
+
+
+def test_default_loads():
+    assert EnvConfig().loads == {"low": 0.04, "medium": 0.08, "high": 0.12}

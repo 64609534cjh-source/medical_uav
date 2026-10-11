@@ -35,7 +35,7 @@ def test_demand_seed_and_load_options():
     env = MedicalUAVEnv()
     env.reset(options={"demand_seed": 7, "load": "high"})
     n_high = len(env.sim.orders)
-    assert env.lam == pytest.approx(0.10)
+    assert env.lam == pytest.approx(0.12)
     env.reset(options={"demand_seed": 7, "load": "low"})
     assert env.lam == pytest.approx(0.04) and len(env.sim.orders) < n_high
 
@@ -60,7 +60,8 @@ def test_info_events_report_delivery():
     kinds = []
     while "deliver" not in kinds:
         mask = info["action_mask"]
-        a = next((a for a in range(12, 18) if mask[a]), next((a for a in range(12) if mask[a]), WAIT))
+        first_pick = next((a for a in range(12) if mask[a]), WAIT)
+        a = next((a for a in range(12, 18) if mask[a]), first_pick)
         obs, r, term, trunc, info = env.step(a)
         kinds += [k for (_, k, _) in info["events"]]
         assert not term
@@ -88,7 +89,8 @@ def test_reward_equals_sum_of_order_outcomes():
     expected = 0.0
     for o in env.sim.orders:
         if o.status == "delivered":
-            expected += delivery_reward(o.end_time - o.release, o.limit, o.expiry_after, env.sim.cfg)
+            age = o.end_time - o.release
+            expected += delivery_reward(age, o.limit, o.expiry_after, env.sim.cfg)
         else:
             expected -= 0.5
     expected -= 0.001 * env.sim.energy_used

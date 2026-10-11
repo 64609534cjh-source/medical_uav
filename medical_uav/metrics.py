@@ -1,5 +1,7 @@
 """Per-episode business metrics."""
-from medical_uav.env.config import EPS
+import math
+
+from medical_uav.env.config import EPS, ORDER_TYPES
 from medical_uav.env.simulator import Simulator
 
 BUSY_KINDS = ("fly", "load", "unload", "dispose")
@@ -19,6 +21,7 @@ def episode_metrics(sim: Simulator) -> dict:
 
     return {
         "n_orders": n,
+        "delivered": len(delivered),
         "on_time": len(on_time),
         "on_time_rate": rate(len(on_time)),
         "served_rate": rate(len(delivered)),
@@ -31,4 +34,15 @@ def episode_metrics(sim: Simulator) -> dict:
         "episode_minutes": sim.t,
         "charge_share": sim.charging_time / duration,
         "busy_share": busy / duration,
+        "on_time_by_type": _on_time_by_type(orders, on_time),
     }
+
+
+def _on_time_by_type(orders, on_time) -> dict:
+    """On-time rate per order type; NaN when a type had no orders that day."""
+    result = {}
+    for k, order_type in enumerate(ORDER_TYPES):
+        n_type = sum(1 for o in orders if o.type_idx == k)
+        n_ok = sum(1 for o in on_time if o.type_idx == k)
+        result[order_type.name] = n_ok / n_type if n_type else math.nan
+    return result

@@ -121,6 +121,23 @@ def test_slack_aware_only_valid_actions(lam):
 def test_slack_aware_beats_edf_on_medium():
     env = MedicalUAVEnv()
     opts = {"lam": 0.08}
-    slack = np.mean([run_episode(env, slack_aware_policy, s, opts)["on_time_rate"] for s in range(10)])
-    edf = np.mean([run_episode(env, edf_policy, s, opts)["on_time_rate"] for s in range(10)])
+    def on_time(policy):
+        return np.mean([run_episode(env, policy, s, opts)["on_time_rate"] for s in range(10)])
+
+    slack, edf = on_time(slack_aware_policy), on_time(edf_policy)
     assert slack > edf + 0.1
+
+
+def test_metrics_by_type_and_delivered():
+    m = run_episode(MedicalUAVEnv(), slack_aware_policy, 0)
+    assert m["delivered"] == round(m["served_rate"] * m["n_orders"])
+    assert set(m["on_time_by_type"]) == {"plasma", "medicine", "sample", "supplies"}
+
+
+def test_splits_disjoint():
+    from medical_uav import splits
+
+    lo, hi = splits.TRAIN_SEED_RANGE
+    for seed in list(splits.DEV_SEEDS) + list(splits.TEST_SEEDS):
+        assert not lo <= seed < hi
+    assert not set(splits.DEV_SEEDS) & set(splits.TEST_SEEDS)

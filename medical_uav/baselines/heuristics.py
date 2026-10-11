@@ -45,8 +45,8 @@ def edf_policy(env, theta: float = 40.0) -> int:
     return min(candidates)[2] if candidates else WAIT
 
 
-def slack_aware_policy(env, theta: float = 30.0) -> int:
-    """Strong heuristic: deliver here, batch, charge if needed, then EDF that skips hopeless work."""
+def slack_aware_policy(env, theta: float = 20.0) -> int:
+    """Deliver here, batch, charge if needed, then EDF that puts hopeless work last."""
     sim, mask = env.sim, env.action_masks()
     h = sim.cfg.handling_min
 

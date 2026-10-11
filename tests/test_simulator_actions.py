@@ -83,7 +83,8 @@ def test_unload_expiry_release_same_instant_with_full_pool(line_map):
     sim.do_pick(a)  # t = 2
     sim.advance_to(119.0)
     sim.do_deliver(1)  # arrive 121, unload done 123
-    assert [(k, i) for (_, k, i) in sim.events[-3:]] == [("deliver", 0), ("expire", 1), ("release", 2)]
+    last_three = [(k, i) for (_, k, i) in sim.events[-3:]]
+    assert last_three == [("deliver", 0), ("expire", 1), ("release", 2)]
     assert d.status == "pending"
 
 

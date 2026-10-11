@@ -93,7 +93,8 @@ tests/               pytest suite
   charger C1), H1–H5, and a standalone charger C2. A* routes between all nodes are computed once.
   The main experiments use `map_seed = 0`.
 - **Episode:** orders are released during 480 minutes (two peaks), then the day continues until every
-  order is delivered, expired or rejected. Base rates: low 0.04, medium 0.06, high 0.10 orders/min.
+  order is delivered, expired or rejected. Base rates: low 0.04, medium 0.08, high 0.12 orders/min
+  (calibrated so that the Slack-aware heuristic scores about 1.00 / 0.83 / 0.65 on time).
 - **Actions (`Discrete(26)`) with a mask:**
 
   | index | action |

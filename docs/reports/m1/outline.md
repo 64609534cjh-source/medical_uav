@@ -33,8 +33,10 @@ points below are facts to draw from.
 - The policy sees the 12 most relevant pending orders (on-time-feasible first) instead of all of
   them, so the observation has a fixed size.
 - One fixed map for the main experiments; random maps are kept for a later generalization test.
-- Calibration (`calibration.md`): medium load set to λ = 0.06 (EDF on-time 0.75), low 0.04 (0.99),
-  high 0.10 (0.27). The environment runs ~9,650 decisions/s per process, ~100 decisions per day.
-- Observed baseline weakness to address in M2: EDF charges at the center before unloading a box
-  destined for the center.
+- Calibration (`calibration.md`): EDF turned out to be a weak reference — it keeps chasing orders
+  that can no longer be on time and collapses at moderate load (0.42 on time at λ 0.08). A Slack-aware
+  heuristic (deliver at the current node first, batch same-destination orders, put hopeless work
+  last) scores 1.00 / 0.83 / 0.65 at λ 0.04 / 0.08 / 0.12, so the load levels are defined against it.
+  Triage of hopeless orders is the largest single effect, batching the second.
+- The environment runs ~9,100 decisions/s per process, ~90–110 decisions per day.
 - Next: stronger heuristic baselines, neural network, masked PPO.
