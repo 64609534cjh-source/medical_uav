@@ -35,6 +35,7 @@ class MedicalUAVEnv(gym.Env):
 
         self.lam = self.cfg.loads[load]
         self.demand_seed = None
+        self.decision_log: list[tuple[float, str, float]] = []  # (time, action, reward)
         self.sim: Simulator | None = None
         self.slots = []
         self._mask = np.zeros(N_ACTIONS, dtype=bool)
@@ -58,6 +59,7 @@ class MedicalUAVEnv(gym.Env):
         orders = generate_orders(self.demand_seed, self.lam, self.cfg)
         self.sim = Simulator(self.cfg, self.city_map, orders, self.lam)
         self._done = False
+        self.decision_log = []
         self._update_view()
         return self._obs.copy(), self._info(0.0, False, "RESET", [])
 
@@ -75,6 +77,7 @@ class MedicalUAVEnv(gym.Env):
         t0, r0, n_events = sim.t, sim.total_reward, len(sim.events)
         self._execute(action)
         reward = sim.total_reward - r0
+        self.decision_log.append((t0, action_name(action), reward))
         self._done = sim.is_done()
         self._update_view()
         info = self._info(sim.t - t0, invalid, action_name(action), sim.events[n_events:])

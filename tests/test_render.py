@@ -51,3 +51,20 @@ def test_frame_times_cover_interval_without_repeating_start():
     assert frame_times(0.0, 3.0, 1.0) == pytest.approx([1.0, 2.0, 3.0])
     assert frame_times(2.5, 4.0, 1.0) == pytest.approx([3.0, 4.0])
     assert frame_times(5.0, 5.0, 1.0) == []
+
+
+def test_save_animation_streams_generator(tmp_path):
+    import imageio.v2 as imageio
+
+    from medical_uav.env.render import save_animation
+
+    # distinct frames: GIF encoders merge identical consecutive frames
+    frames = (np.full((20, 30, 3), 40 * i, dtype=np.uint8) for i in range(5))
+    assert save_animation(frames, str(tmp_path / "a.gif"), fps=5) == 5
+    assert len(imageio.mimread(tmp_path / "a.gif")) == 5
+
+
+def test_draw_accepts_header(line_map):
+    sim = make_sim(line_map, [make_order(0, 1, M, 2, 0.5, 0.0)])
+    frame = Renderer(line_map, sim.cfg).draw(sim, 0.0, header="slack | load medium | seed 0")
+    assert frame.ndim == 3

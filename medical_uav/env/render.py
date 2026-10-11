@@ -70,11 +70,14 @@ class Renderer:
         self.cfg = cfg
         self.fig = Figure(figsize=(12, 6.5), dpi=80)
         FigureCanvasAgg(self.fig)
-        self.ax_map = self.fig.add_axes([0.03, 0.05, 0.55, 0.9])
-        self.ax_panel = self.fig.add_axes([0.61, 0.05, 0.37, 0.9])
+        self.ax_map = self.fig.add_axes([0.03, 0.03, 0.55, 0.88])
+        self.ax_panel = self.fig.add_axes([0.61, 0.03, 0.37, 0.88])
+        self.header = self.fig.text(0.01, 0.955, "", fontsize=12, weight="bold")
 
-    def draw(self, sim, t: float) -> np.ndarray:
+    def draw(self, sim, t: float, header: str = "") -> np.ndarray:
+        """RGB frame of the day at time t; header is a one-line caption on top."""
         state = drone_state_at(sim, t)
+        self.header.set_text(header)
         self._draw_map(sim, state)
         self._draw_panel(sim, t, state)
         self.fig.canvas.draw()
@@ -144,14 +147,24 @@ class Renderer:
             else:
                 ax.text(0.02, y, "[ empty ]", fontsize=10, family="monospace", color="#999999")
 
+        x = 0.0
+        for k, order_type in enumerate(ORDER_TYPES):
+            ax.text(x, 0.595, "\u25a0 " + order_type.name, fontsize=9, color=TYPE_COLORS[k])
+            x += 0.24
+
         pending = sorted(state["pending"], key=lambda o: o.deadline)
-        ax.text(0, 0.57, f"pending orders ({len(pending)})", fontsize=11, weight="bold")
-        for k, o in enumerate(pending[:12]):
+        ax.text(0, 0.545, f"pending orders ({len(pending)}, by deadline; min left)",
+                fontsize=11, weight="bold")
+        shown = pending if len(pending) <= 12 else pending[:11]
+        for k, o in enumerate(shown):
             left = o.deadline - t
             color = "#2ca02c" if left > 10 else ("#ff7f0e" if left > 0 else "#d62728")
             text = (f"{ORDER_TYPES[o.type_idx].name:8s} {NODE_NAMES[o.origin]:>2s}->"
                     f"{NODE_NAMES[o.dest]:2s} {left:+5.0f} min")
-            ax.text(0.02, 0.52 - 0.04 * k, text, fontsize=9.5, family="monospace", color=color)
+            ax.text(0.02, 0.50 - 0.04 * k, text, fontsize=9.5, family="monospace", color=color)
+        if len(pending) > len(shown):
+            ax.text(0.02, 0.50 - 0.04 * 11, f"+{len(pending) - len(shown)} more", fontsize=9.5,
+                    family="monospace", color="#555555")
 
         done = [o for o in sim.orders if o.status == "delivered" and o.end_time <= t + EPS]
         on_time = sum(1 for o in done if o.end_time - o.release <= o.limit + EPS)
@@ -172,9 +185,15 @@ def frame_times(t0: float, t1: float, step: float) -> list[float]:
     return times
 
 
-def save_animation(frames: list, path: str, fps: int) -> None:
-    """Save frames as .gif or .mp4."""
+def save_animation(frames, path: str, fps: int) -> int:
+    """Write frames (any iterable) to .gif or .mp4 one by one; returns the frame count."""
     if path.endswith(".gif"):
-        imageio.mimsave(path, frames, duration=1000 / fps, loop=0)
+        writer = imageio.get_writer(path, mode="I", duration=1000 / fps, loop=0)
     else:
-        imageio.mimsave(path, frames, fps=fps)
+        writer = imageio.get_writer(path, fps=fps)
+    count = 0
+    with writer:
+        for frame in frames:
+            writer.append_data(frame)
+            count += 1
+    return count

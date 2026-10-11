@@ -14,7 +14,8 @@ points below are facts to draw from.
 - Safety invariant: after every action, battery >= 15 % + energy to the nearest charger. The mask
   preserves it, so the drone can never be stranded; asserted in code and tested.
 - Determinism: map from `map_seed`, orders from `demand_seed`, so every policy sees the same day.
-- Figures: `figures/snapshot_edf_medium_3_t*.png` (EDF baseline, medium load, demand seed 3).
+- Figures: `figures/snapshot_slack_medium_3_t*.png` (Slack-aware baseline, medium load, demand seed 3;
+  the header shows the action being executed).
 
 ## 2. Existing code / libraries
 

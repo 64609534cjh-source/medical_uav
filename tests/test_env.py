@@ -117,3 +117,13 @@ def test_same_seed_gives_identical_event_log():
     rollout(a, 5)
     rollout(b, 5)
     assert a.sim.events == b.sim.events
+
+
+def test_decision_log_records_actions():
+    env = MedicalUAVEnv()
+    env.reset(seed=0)
+    env.step(WAIT)
+    t0, name, reward = env.decision_log[0]
+    assert t0 == 0.0 and name == "WAIT"
+    env.reset(seed=1)
+    assert env.decision_log == []
