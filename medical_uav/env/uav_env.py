@@ -70,6 +70,22 @@ class MedicalUAVEnv(gym.Env):
         return self._mask.copy()
 
     def render(self):
+        if self.render_mode is None or self.sim is None:
+            return None
+        from medical_uav.env.render import Renderer
+
+        if self._renderer is None:
+            self._renderer = Renderer(self.city_map, self.cfg)
+        frame = self._renderer.draw(self.sim, self.sim.t)
+        if self.render_mode == "rgb_array":
+            return frame
+        import matplotlib.pyplot as plt
+
+        plt.figure("MedicalUAVEnv")
+        plt.clf()
+        plt.imshow(frame)
+        plt.axis("off")
+        plt.pause(1 / self.metadata["render_fps"])
         return None
 
     def _execute(self, action: int) -> None:
