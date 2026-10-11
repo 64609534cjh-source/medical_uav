@@ -66,3 +66,9 @@ def test_events_log_release_and_expiry(line_map):
     sim = make_sim(line_map, [make_order(0, 0, M, 1, 0.7, 5.0)])
     sim.advance_to(65.0)
     assert [(k, i) for (_, k, i) in sim.events] == [("release", 0), ("expire", 0)]
+
+
+def test_unsorted_orders_rejected(line_map):
+    orders = [make_order(0, 1, M, 1, 0.5, 10.0), make_order(1, 1, M, 2, 0.5, 5.0)]
+    with pytest.raises(ValueError):
+        make_sim(line_map, orders)

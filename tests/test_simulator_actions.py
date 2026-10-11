@@ -70,3 +70,32 @@ def test_segments_cover_timeline(line_map):
     sim.do_deliver(1)
     assert [s.kind for s in sim.segments] == ["load", "fly", "unload"]
     assert all(a.t1 == pytest.approx(b.t0) for a, b in zip(sim.segments, sim.segments[1:]))
+
+
+def test_unload_expiry_release_same_instant_with_full_pool(line_map):
+    from medical_uav.env.config import EnvConfig
+
+    cfg = EnvConfig(pool_cap=1)
+    a = make_order(0, 1, M, 1, 0.5, 0.0)  # medicine to H1
+    c = make_order(1, 2, 5, M, 0.3, 3.0)  # sample at H5, expires at 123, fills the pool
+    d = make_order(2, 1, M, 2, 0.5, 123.0)  # released exactly when c expires
+    sim = make_sim(line_map, [a, c, d], cfg)
+    sim.do_pick(a)  # t = 2
+    sim.advance_to(119.0)
+    sim.do_deliver(1)  # arrive 121, unload done 123
+    assert [(k, i) for (_, k, i) in sim.events[-3:]] == [("deliver", 0), ("expire", 1), ("release", 2)]
+    assert d.status == "pending"
+
+
+def test_box_expiring_during_other_unload_is_disposed(line_map):
+    a = make_order(0, 1, M, 2, 0.5, 0.0)  # medicine, deadline 90
+    b = make_order(1, 0, M, 2, 0.6, 61.0)  # plasma, deadline 91, expiry 121
+    sim = make_sim(line_map, [a, b])
+    sim.do_pick(a)
+    sim.advance_to(61.0)
+    sim.do_pick(b)
+    sim.advance_to(117.0)
+    sim.do_deliver(2)  # arrive 120: a unloaded 120-122, b expired at 121
+    assert a.status == "delivered" and a.end_time == pytest.approx(122.0)
+    assert b.status == "expired" and b.disposed_time == pytest.approx(124.0)
+    assert sim.onboard == []

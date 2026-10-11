@@ -108,3 +108,10 @@ def test_default_demand_seed_in_training_range():
     for seed in range(20):
         env.reset(seed=seed)
         assert 0 <= env.demand_seed < 100_000
+
+
+def test_same_seed_gives_identical_event_log():
+    a, b = MedicalUAVEnv(), MedicalUAVEnv()
+    rollout(a, 5)
+    rollout(b, 5)
+    assert a.sim.events == b.sim.events

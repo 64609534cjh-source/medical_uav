@@ -28,6 +28,8 @@ class Segment:
 
 class Simulator:
     def __init__(self, cfg: EnvConfig, city_map: CityMap, orders: list[Order], lam: float):
+        if any(a.release > b.release for a, b in zip(orders, orders[1:])):
+            raise ValueError("orders must be sorted by release time")
         self.cfg = cfg
         self.city_map = city_map
         self.orders = orders
@@ -50,7 +52,6 @@ class Simulator:
         self._next_release = 0  # index of the next order to be released
         self.advance_to(0.0)
 
-
     def load_kg(self) -> float:
         return sum(o.weight for o in self.onboard)
 
@@ -71,15 +72,17 @@ class Simulator:
 
     def next_event_time(self) -> float:
         """Next order release or expiry, inf if nothing is left to happen."""
-        t_next = math.inf
+        return min(self._next_release_time(), self._next_expiry_time())
+
+    def _next_release_time(self) -> float:
         if self._next_release < len(self.orders):
-            t_next = self.orders[self._next_release].release
-        for o in self.pending:
-            t_next = min(t_next, o.expiry)
-        for o in self.onboard:
-            if o.status == "onboard":
-                t_next = min(t_next, o.expiry)
-        return t_next
+            return self.orders[self._next_release].release
+        return math.inf
+
+    def _next_expiry_time(self) -> float:
+        times = [o.expiry for o in self.pending]
+        times += [o.expiry for o in self.onboard if o.status == "onboard"]
+        return min(times, default=math.inf)
 
     def is_done(self) -> bool:
         if self.t < self.cfg.release_window - EPS:
@@ -95,7 +98,6 @@ class Simulator:
         assert self.battery >= need - 1e-6, \
             f"battery {self.battery:.3f} < {need:.3f} at t={self.t:.2f}"
 
-
     def advance_to(self, t_target: float, strict: bool = False) -> None:
         """Process releases and expiries up to t_target, then move the clock there.
 
@@ -104,12 +106,8 @@ class Simulator:
         At equal times expiries are processed before releases.
         """
         while True:
-            t_release = math.inf
-            if self._next_release < len(self.orders):
-                t_release = self.orders[self._next_release].release
-            t_expiry = min([o.expiry for o in self.pending]
-                           + [o.expiry for o in self.onboard if o.status == "onboard"],
-                           default=math.inf)
+            t_release = self._next_release_time()
+            t_expiry = self._next_expiry_time()
             t_next = min(t_release, t_expiry)
             if strict and t_next >= t_target - EPS:
                 break
@@ -152,7 +150,6 @@ class Simulator:
             self.pending.append(o)
             self.events.append((o.release, "release", o.id))
 
-
     def fly_to(self, node: int) -> None:
         """Fly to node; at a facility, expired cargo is unloaded on arrival."""
         if node != self.location:
@@ -172,9 +169,13 @@ class Simulator:
     def dispose_expired_cargo(self) -> None:
         for o in [o for o in self.onboard if o.status == "expired"]:
             self._handle_box("dispose", o)
-            o.disposed_time = self.t
-            self.onboard.remove(o)
-            self.events.append((self.t, "dispose", o.id))
+            self._dispose(o)
+
+    def _dispose(self, o: Order) -> None:
+        """Expired cargo o leaves the drone (its handling time is already spent)."""
+        o.disposed_time = self.t
+        self.onboard.remove(o)
+        self.events.append((self.t, "dispose", o.id))
 
     def _handle_box(self, kind: str, o: Order, strict: bool = False) -> None:
         """Spend handling_min on the ground for one box (load/unload/dispose)."""
@@ -182,7 +183,6 @@ class Simulator:
         self.segments.append(Segment(kind, self.t, t_end, self.location, self.location,
                                      self.battery, self.battery, o.id))
         self.advance_to(t_end, strict=strict)
-
 
     def do_pick(self, order: Order) -> None:
         self.fly_to(order.origin)
@@ -204,21 +204,18 @@ class Simulator:
         for o in boxes:
             if o.status == "expired":
                 self._handle_box("dispose", o)
-                o.disposed_time = self.t
-                self.events.append((self.t, "dispose", o.id))
-            else:
-                # strict: an unload ending exactly at expiry counts as a delivery
-                self._handle_box("unload", o, strict=True)
-                if o.status == "expired":  # expired during the unload
-                    o.disposed_time = self.t
-                    self.events.append((self.t, "dispose", o.id))
-                else:
-                    o.status = "delivered"
-                    o.end_time = self.t
-                    self.total_reward += delivery_reward(o.age(self.t), o.limit, o.expiry_after,
-                                                         self.cfg)
-                    self.events.append((self.t, "deliver", o.id))
+                self._dispose(o)
+                continue
+            # strict: an unload ending exactly at expiry counts as a delivery
+            self._handle_box("unload", o, strict=True)
+            if o.status == "expired":  # expired during the unload
+                self._dispose(o)
+                continue
+            o.status = "delivered"
+            o.end_time = self.t
+            self.total_reward += delivery_reward(o.age(self.t), o.limit, o.expiry_after, self.cfg)
             self.onboard.remove(o)
+            self.events.append((self.t, "deliver", o.id))
         self.advance_to(self.t)  # events at this exact time
         self.check_invariant()
 
