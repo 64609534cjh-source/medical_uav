@@ -13,39 +13,39 @@ environment (milestone 1); learning agents follow in later milestones.
 ## Installation
 
 ```bash
-conda env create -f environment.yml
+conda create -n medical-uav-rl --override-channels -c conda-forge python=3.11 pip
 conda activate medical-uav-rl
+pip install -r requirements.txt
 pip install -e .
 ```
 
-Tested on Linux with Python 3.11. If conda stops with a Terms-of-Service message about the
-Anaconda `defaults` channel, either accept those terms (`conda tos accept ...`) or use conda-forge
-only:
-
-```bash
-conda create -n medical-uav-rl --override-channels -c conda-forge python=3.11 pip
-conda activate medical-uav-rl
-pip install -r requirements.txt && pip install -e .
-```
+Alternatively `conda env create -f environment.yml` (same pinned versions; a test checks that both
+files agree). On machines where conda's `defaults` channel asks for its Terms of Service, use the
+conda-forge commands above. Tested on Linux with Python 3.11.
 
 ## Quick start
 
 ```bash
-# watch one day live in a window (EDF baseline); without a display it saves a gif instead
-python scripts/demo.py --policy edf --load medium --seed 0 --live
+# watch one day live in a window (Slack-aware baseline, medium load, demand seed 0);
+# without a display it saves a gif instead
+python scripts/demo.py --live
 
-# same day, saved to outputs/demo_edf_medium_0.gif
-python scripts/demo.py --policy edf --load medium --seed 0
+# the same day saved to outputs/demo_slack_medium_0.gif
+python scripts/demo.py
 
-# random valid actions on a low-load day
+# other policies and loads: --policy {slack,edf,random} --load {low,medium,high} --seed N
 python scripts/demo.py --policy random --load low --seed 1
 
 # metrics only / PNG snapshots at chosen minutes
-python scripts/demo.py --policy edf --no-video --snapshots 0 100 160
+python scripts/demo.py --no-video --snapshots 0 100 160
 
-# calibration table (load levels, map statistics, throughput)
-python scripts/calibrate.py --map-check 200 --benchmark
+# calibration table on the dev seeds (load levels, map statistics, throughput)
+python scripts/calibrate.py --tune-theta --map-check 200 --benchmark
 ```
+
+Every frame shows the policy, load, demand seed, simulated time and the action being executed;
+the side panel shows the battery (with the 15 % reserve mark), the three cargo slots and the
+pending orders sorted by deadline.
 
 Using the environment directly:
 
@@ -79,8 +79,9 @@ medical_uav/
     uav_env.py       MedicalUAVEnv (Gymnasium wrapper)
     render.py        matplotlib rendering replayed from the simulation history
   baselines/
-    heuristics.py    random and EDF policies, shared charging rule
-  metrics.py         per-episode metrics
+    heuristics.py    Random, EDF and Slack-aware policies, shared charging rule
+  metrics.py         per-episode metrics (on-time rate overall and per order type, energy, ...)
+  splits.py          which demand seeds are used for training, development and testing
 scripts/
   demo.py            run an episode, print metrics, save an animation
   calibrate.py       load calibration, map statistics, throughput
@@ -116,6 +117,9 @@ tests/               pytest suite
   `demand_seed` fixes the day's orders; without it, `reset(seed=s)` draws one from [0, 100000).
   `scripts/demo.py --seed` and `run_episode(env, policy, demand_seed)` take the demand seed.
 - **`info` keys:** `action_mask`, `t`, `elapsed`, `invalid_action`, `action_name`, `events`.
+- **Baselines:** Random (valid actions), EDF (earliest deadline first) and Slack-aware (deliver at
+  the current node first, batch orders going where cargo already goes, charge below 20 %, then
+  earliest deadline among orders that can still be on time before hopeless ones).
 
 ## Tests
 
