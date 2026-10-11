@@ -1,8 +1,8 @@
 # Dynamic Medical Pickup-and-Delivery with a Single UAV — Design
 
-Group 17 (Jihang Cai, Yu Liu, Yufeng Zhang) · NUS robotics RL module · design date 2026-10-10
+Group 17 (Jihang Cai, Yu Liu, Yufeng Zhang) · NUS robotics RL module · design date 2026-10-10 · **revised 2026-10-11 after the M1 review (v2)**
 
-This document is the agreed design for the whole project. It was produced in a three-way discussion (student, Claude, Codex) and replaces the earlier AI-drafted proposal details where they differ. Section 14 records what changed from the proposal and why.
+This document is the agreed design for the whole project. It was produced in a three-way discussion (student, Claude, Codex) and replaces the earlier AI-drafted proposal details where they differ. Section 14 records what changed from the proposal and why; section 15 records the decisions taken in the discussion, including the v2 revision.
 
 ---
 
@@ -18,7 +18,7 @@ The agent decides, at every decision point, **which order to pick up next, where
 
 **Goals**
 - A Gymnasium environment that is correct (tested), deterministic under seeds, readable, and visualised.
-- Conventional baselines from simple (FCFS/EDF) to strong (rolling-horizon planner).
+- Conventional baselines from simple (FCFS/EDF) to strong (Slack-aware heuristic, rollout planner).
 - A self-written PPO agent with action masking that learns a sensible policy.
 - Paired evaluation, behavioural analysis, a side-by-side video, and per-milestone reports.
 
@@ -40,7 +40,8 @@ The agent decides, at every decision point, **which order to pick up next, where
 - Readable, commented, student-level Python. Target ≈ 2.5–3.5k lines total.
 - All code, comments and documents in English.
 - Hardware: 1× RTX A5000 (24 GB), 24 CPU cores.
-- Own conda environment `medical-uav` (Python 3.11; the system Python is 3.14). Libraries: numpy, gymnasium, torch, matplotlib, imageio(+ffmpeg), pytest. No RL library in the main pipeline (Stable-Baselines3 may be used only as an optional cross-check and must be disclosed).
+- Own conda environment `medical-uav-rl` (Python 3.11, conda-forge only; the system Python is 3.14). Libraries: numpy, gymnasium, torch (from M2), matplotlib, imageio(+ffmpeg), pytest. No RL library in the main pipeline (Stable-Baselines3 may be used only as an optional cross-check and must be disclosed).
+- The physical and demand parameters define a **synthetic benchmark**, not a validated delivery system; reports say so.
 
 ---
 
@@ -51,7 +52,7 @@ The agent decides, at every decision point, **which order to pick up next, where
 - 7 nodes: center **M** (also charging station **C1**), hospitals **H1–H5**, standalone charging station **C2**. Nodes sit on free cells, minimum spacing 0.75 km; C2 at least 1 km from M.
 - 8-connected A* (diagonal cost √2, no corner cutting) between all node pairs at map creation → 7 × 7 matrices of distance (km) and flight time, plus the cell path for rendering.
 - **Validity check** (regenerate with next sub-seed if it fails, max 100 tries; the regeneration success rate is logged and re-checked after any map-size change): all pairs connected; from 100 % battery at either charger, flying with 2 kg to any node i, then to any node j, then to the nearest charger leaves ≥ 15 %.
-- Main experiments use **one fixed map** (`map_seed` chosen once in M1, then frozen). Random maps are a stretch experiment (§11).
+- Main experiments use **one fixed map: `map_seed = 0`** (frozen in M1; its largest A*/straight-line ratio is 2.04, so no-fly zones clearly matter; 200/200 map seeds generate). Random maps are a stretch experiment (§11).
 
 ### 4.2 Drone
 | parameter | value |
@@ -77,10 +78,10 @@ The agent decides, at every decision point, **which order to pick up next, where
 - Hospitals sampled uniformly. Weights chosen so that heavy mixes hit the 2 kg limit (3 plasma ≥ 1.8 kg) while light mixes hit the 3-box limit.
 - An order's age starts at release. Picking up does not reset it.
 - **Arrivals:** non-homogeneous Poisson over the 480-min release window, rate λ·m(t), with m(t) = 2.0 in [60, 180) and [300, 390) (two peaks) and 0.6 elsewhere. Expected orders per day = 582·λ.
-- Initial load levels (to be calibrated in M1, §12 gate G1): low λ = 0.04 (≈ 23 orders), medium λ = 0.07 (≈ 41), high λ = 0.10 (≈ 58).
+- **Load levels (v2, calibrated against the Slack-aware heuristic, gate G1):** low λ = 0.04 (≈ 23 orders/day), medium λ = 0.08 (≈ 47), high λ = 0.12 (≈ 70). λ = 0.10 is kept as a diagnostic point; λ = 0.14 (≈ 81) only as a labelled stress appendix (it hides on-time-feasible orders beyond the 12 slots in 16 % of decisions). Measured on 40 dev seeds with a prototype of Slack-aware: on-time ≈ 0.82 at 0.08, 0.71 at 0.10, 0.63 at 0.12; EDF only 0.26 at 0.10. The v1 choice (0.04/0.06/0.10 from EDF) is superseded: EDF chases hopeless late orders and is a strawman for calibration.
 - The full day's orders are generated from `demand_seed` at `reset()` and revealed only at their release times. They never depend on the agent's actions, so every method sees exactly the same order stream for a given seed.
 - **Pending pool cap** 30 (orders released but not picked up). An arrival that finds the pool full is rejected.
-- **Expected regime (back-of-envelope, to be verified in M1):** without batching a single order costs ≈ 4–6 km of flight (≈ 5 min), 4 min handling and ≈ 4 min of charging, so roughly 35–47 orders per day is the unbatched capacity and charging takes ≈ 25–30 % of busy time. Peaks at medium load (≈ 8 orders/hour) therefore exceed unbatched capacity: batching and triage matter exactly when demand peaks.
+- **Measured regime (M1):** ≈ 90–110 decisions per day; charging ≈ 23 % of the day; ≈ 5 km flown per delivered order; mean / p95 / max pending pool ≈ 1.7/6/11 at λ 0.06, 5.1/13/23 at 0.10, 7.4/17/25 at 0.12. Medium-load peaks (≈ 9.6 orders/hour) exceed unbatched capacity, so triage and batching matter exactly when demand peaks.
 
 ### 4.4 Order life cycle and events
 States: `pending → onboard → delivered`, or `pending/onboard → expired`, or `rejected` at arrival.
@@ -117,11 +118,11 @@ Whenever the drone arrives at a facility, expired cargo is unloaded first (see �
 
 **Safety invariant** (asserted in code and tested): after every action, battery ≥ 15 + E(here→nearest charger, load). It holds at the start and every mask rule preserves it, so the drone can never be stranded. By the map validity check, from a full battery every delivery is feasible, so charging always restores progress.
 
-Masks are returned as `info["action_mask"]` (bool array of length 26) and via `env.action_masks()`. Baselines and the agent use the same masks. If a masked action is passed to `step` anyway (e.g. by `check_env`'s random sampling), it is executed as WAIT and `info["invalid_action"] = True`; agents and baselines never do this.
+Masks are returned as `info["action_mask"]` (bool array of length 26) and via `env.action_masks()`. Baselines and the agent use the same masks. If a masked action is passed to `step` anyway (e.g. by `check_env`'s random sampling), it is executed as WAIT and `info["invalid_action"] = True`; agents and baselines never do this, and the PPO code asserts it. An action outside `Discrete(26)` raises `ValueError`.
 
 ## 6. Observation — `Box(shape=(415,))`, float32, roughly normalised
 
-**Pending slots.** 12 pending orders chosen by a two-tier ranking: first the orders that can still be delivered on time (direct completion ≤ deadline), sorted by time-to-deadline; then the late but not yet expired ones, sorted by time-to-expiry (ties: release time, then order id). This keeps a backlog of late orders from hiding fresh orders that can still be on time. Fewer than 12 → zero-padded with `valid = 0`. Orders beyond the 12 stay in the environment and appear as soon as they rank in the top 12. Calibration logs how often an on-time-feasible order is hidden beyond slot 12.
+**Pending slots.** 12 pending orders chosen by a two-tier ranking: first the orders that can still be delivered on time (direct completion ≤ deadline), sorted by time-to-deadline; then the late but not yet expired ones, sorted by time-to-expiry (ties: release time, then order id). This keeps a backlog of late orders from hiding fresh orders that can still be on time. Fewer than 12 → zero-padded with `valid = 0`. Orders beyond the 12 stay in the environment and appear as soon as they rank in the top 12. Calibration logs how often an on-time-feasible order is hidden beyond slot 12: 0 % of decisions at λ 0.06, 2.1 % at 0.10, 6.6 % at 0.12 (Slack-aware). "Feasible" is optimistic (direct timing, ignoring other cargo and recharging). Every method sees the same 12 slots.
 
 | block | features (count) |
 |---|---|
@@ -147,31 +148,34 @@ Total = 31 + 12 × 28 + 3 × 16 = **415**.
 - No pickup bonus, no holding cost, no terminal penalty. Each order contributes exactly once.
 - The step reward is the sum of all event rewards that occur during the macro action. `info` also returns `elapsed` (minutes) and an event log for metrics and rendering.
 - P/R sweep {0.2, 0.5, 1.0} and expiry multiplier {1.5, 2, 3} are optional sensitivity studies (§11).
+- **Reward vs headline metric.** A late delivery still earns reward (e.g. +0.85 at 1.1 L) but does not count as on time, so return and on-time rate can disagree. The reward stays as designed; checkpoints are selected and headline results stated by on-time rate, and return, served rate, lateness, per-type results and energy are always reported alongside.
 
 ---
 
 ## 8. Learning agent
 
 ### 8.1 Algorithm: PPO with action masking (written by us in PyTorch)
-- Masked categorical: invalid logits set to −1e9 before softmax, both when sampling and when computing log-probs/entropy in the update.
-- γ = 1 (finite episodes, ≈ 100–250 decisions). GAE λ = 0.95, applied **per decision**.
-- 16 environments (gymnasium `AsyncVectorEnv` if profiling shows it is needed). Rollout of 128 decisions per env = 2048 per update; 4 epochs; minibatch 512; clip 0.2; Adam 3e-4 with linear decay; entropy 0.01 decaying to 0.001; value coefficient 0.5; gradient clip 0.5; advantages normalised per batch; returns scaled (e.g. ÷10, or running normalisation; builder's call).
-- Budget: 2–5 M decisions per run. Throughput target ≥ 2,000 decisions/s aggregate (measured in M1), i.e. ≤ 45 min per run. Three training seeds for headline results.
-- Checkpoints are selected on dev seeds only (§10). Evaluation uses the greedy (argmax over valid actions) policy.
-- One policy covers all three load levels (λ is part of the observation); no per-load models.
-- **Curriculum:** stage 1 low load → stage 2 medium → stage 3 mixed (λ drawn from {low, medium, high} per episode). Stage switch is triggered by a dev-score plateau or a fixed decision budget, decided in M3.
+- Masked categorical: invalid logits set to −1e9 before softmax, both when sampling and when computing log-probs/entropy in the update. The mask seen at sampling time is stored in the rollout buffer and reused in the update; the code asserts that no invalid action is ever sent to the environment.
+- γ = 1 (finite episodes, ≈ 100 decisions). GAE λ = 0.95, applied **per decision**. Bootstrap from V(s) at a rollout cut-off, zero at true termination, and never propagate GAE across an episode reset.
+- 16 environments × 128 decisions = 2048 transitions per update; 4 epochs; minibatch 512; clip 0.2; Adam 3e-4 with linear decay; entropy 0.01 decaying to 0.001; value coefficient 0.5; gradient clip 0.5; advantages normalised per batch. The learner trains on reward / 10 (critic in the same units); evaluation always reports raw rewards. Observations keep the environment's fixed scaling (no running normalisation of one-hots or slots).
+- Collection: start with a synchronous list of environments on the CPU (the environment alone runs ≈ 9,600 decisions/s); benchmark against `AsyncVectorEnv` with 8/16 workers and CPU vs GPU inference, end-to-end including updates, before choosing. Never run three 16-worker jobs at once.
+- Tests before any long run: unchanged policy gives probability ratio ≈ 1, hand-computed GAE on a toy trajectory, zero probability on masked actions, correct reset/terminal boundaries.
+- Budget: a 2 M-decision pilot, at most two targeted alternatives, then **3 independent runs × 5 M decisions** of the chosen configuration. Curriculum: 0.25 M decisions at low load, 0.75 M at medium, then 4 M with λ drawn uniformly from {low, medium, high} per episode. Evaluate on dev seeds every 250 k decisions.
+- Checkpoints are selected on dev seeds only, by on-time rate (§7). Evaluation uses the greedy (argmax over valid actions) policy.
+- One policy covers all load levels (λ is part of the observation); no per-load models.
 
-### 8.2 Networks
-- **(a) MLP baseline:** separate actor and critic, each 415 → 256 → 256 (ReLU) → 26 logits / 1 value.
-- **(b) Set network (main):** shared pending-slot encoder MLP(28→64→64); onboard encoder MLP(16→64); global encoder MLP(31→64); one multi-head attention layer (4 heads) in which the global embedding queries the valid slot embeddings plus one learned always-valid "null" token (so the attention is well-defined when no slot is valid) → attention output. **Context = [global embedding, attention output]**, so battery/time/location always reach the heads directly, even with zero or one valid slot. PICK(k) logits come from a shared scorer applied to [slot_k embedding, context]; the other 14 logits come from an MLP on the context; the value head is an MLP on [context, masked mean-pool of slot embeddings]. Tests: empty and single-slot observations give finite outputs; permuting pending slots permutes the PICK logits accordingly (§10.4).
-- **Behaviour cloning (NN milestone sanity check):** supervised training of both networks to imitate the slack-aware heuristic (§9) on recorded decisions. Report accuracy and rollout performance to show the network can represent a sensible policy. Optional warm start for PPO, reported as an ablation. It becomes part of the main pipeline only if gate G2 or G3 triggers that fallback, and is then named explicitly in every report.
+### 8.2 Networks and behaviour cloning
+- **(a) MLP:** separate actor and critic, each 415 → 256 → 256 (ReLU) → 26 logits / 1 value.
+- **(b) Set network:** shared pending-slot encoder MLP(28→64→64); onboard encoder MLP(16→64); global encoder MLP(31→64); one 4-head attention layer in which the global embedding queries the valid slot embeddings plus one learned always-valid "null" token → attention output. **Context = [global embedding, attention output]**, so battery/time/location always reach the heads, even with zero or one valid slot. PICK(k) logits come from a shared scorer on [slot_k embedding, context]; the other 14 logits from an MLP on the context; the value head is an MLP on [context, masked mean-pool of slot embeddings]. Attention masks absent slots only (not battery-infeasible pickups; those are handled by the action mask). Tests: empty and single-slot observations give finite outputs; permuting pending slots permutes the PICK logits accordingly.
+- **Behaviour cloning (BC):** ≈ 1,000 Slack-aware episodes on training demand seeds across the three loads, split by whole episodes into train/validation. Report action-family accuracy, closed-loop performance against the teacher, a tiny-dataset overfit check, and MLP vs set network.
+- **Two learning variants, both reported and clearly labelled:** (1) **PPO from scratch** — the primary scientific question; (2) **BC → PPO** — the BC policy as initialisation, then the same PPO budget. BC → PPO is never described as learning from scratch, and its extra cost (demonstration collection + supervised epochs) is reported.
 
 ---
 
 ## 9. Baselines (same environment, masks, information and physics)
 
 **Shared charging rule** for all heuristics (only ever picks valid actions):
-1. Charging is *wanted* if battery < θ, or if no service action (PICK/DELIVER) is valid and battery < 80 %. θ ∈ {30, 40, 50} % is tuned per heuristic on dev seeds.
+1. Charging is *wanted* if battery < θ, or if no service action (PICK/DELIVER) is valid and battery < 80 %. θ is tuned per heuristic on dev seeds from {20, 30, 40} % (Slack-aware: 30 % in the prototype).
 2. If charging is wanted, try in order: CHARGE(nearest station, 80), CHARGE(nearest station, 100), CHARGE(other station, 80), CHARGE(other station, 100). Take the first valid one.
 3. Otherwise, or if none is valid: the heuristic's service choice if one exists, else WAIT (always valid).
 
@@ -179,44 +183,35 @@ Total = 31 + 12 × 28 + 3 × 16 = **415**.
 |---|---|
 | Random | uniform over valid actions |
 | FCFS | serve the oldest order (deliveries and pickups ranked together by release time) |
-| EDF | serve the earliest deadline |
+| EDF | serve the earliest deadline (calibration and demo reference; a weak baseline) |
 | Nearest | serve the action with the smallest travel + handling time; ties broken by deadline |
-| Slack-aware (strong heuristic) | EDF, but skip orders that can no longer be on time while any on-time-feasible order exists; at an origin with spare capacity, also load pending orders whose destination matches an onboard box or another loaded order |
-| Rolling-horizon planner (final milestone; "state-of-the-art conventional" reference) | see below |
+| **Slack-aware (strong heuristic)** | in this order: (1) if boxes for the current node are on board, DELIVER here; (2) load a pending order at the current node whose destination matches onboard cargo (batching); (3) the shared charging rule; (4) among valid PICK/DELIVER, prefer those that can still be on time (direct timing) over hopeless ones, then earliest deadline, deliveries before pickups on ties; (5) WAIT |
+| **Rollout planner** (final milestone; strongest conventional reference, not claimed state of the art) | see below |
 
-**Rolling-horizon planner.**
-- **Candidates:** onboard boxes plus the top 6 pick-feasible orders by slack, chosen from the same 12 visible slots the agent sees. The planner gets exactly the agent's information.
-- **Plans:** an ordered pickup subset up to the free capacity (≤ 157, including the empty subset) × an order for visiting the resulting destinations (≤ 3! = 6), so ≤ 942 plans. Plans are naturally short (≤ 3 pickups + ≤ 3 delivery stops), so no separate time horizon is needed.
-- **Simulation:** each plan is simulated deterministically with the environment's own travel, handling, disposal and energy functions. If the plan would violate the safety rule, a charge to 80 % at the nearest station is inserted before the first leg that would break it; plans that are still infeasible are discarded.
-- **Score:** every candidate is valued exactly once. If it is delivered in the plan, it gets its delivery reward at the predicted time. If not, it gets a terminal estimate: the reward it would earn if served directly right after the plan ends, from the plan's end location (which is −0.5 if it would expire first). Flight energy cost is subtracted. Ties go to the shorter plan.
-- **Execution:** execute the plan's first action (PICK, DELIVER or the inserted CHARGE), then replan at the next decision. If there are no candidates, apply the shared charging rule, else WAIT.
-- **Budget:** ≤ 100 ms per decision; runtime is measured and reported.
-
-The exact enumeration and scoring code is the builder's call within these constraints. Its runtime is measured and reported.
+**Rollout planner** (one-step lookahead over the Slack-aware heuristic):
+- At each decision, for every valid action a: copy the simulator **with only the already released orders** (no future arrivals), execute a, then let Slack-aware act until every known order is resolved (delivered or expired; at most 180 simulated minutes). Score = total simulated reward. Execute the best a; ties go to the Slack-aware choice. With deterministic dynamics this can only match or improve on the base heuristic for the known orders.
+- Uses exactly the agent's information (released orders, same masks). Budget ≤ 1 s per decision; evaluation is parallelised over CPU cores; measured decision time is reported. If too slow, restrict a to PICK/DELIVER of the top-6 slots plus the Slack-aware action.
 
 ## 10. Evaluation protocol
 
-### 10.1 Seeds and splits
-- **Map:** fixed `map_seed` (frozen in M1).
-- **Train:** demand seeds drawn at random from [0, 99,999].
-- **Dev** (calibration, θ tuning, checkpoint choice): seeds 100,000–100,029 × 3 loads.
-- **Test** (final numbers only, touched once per method): seeds 200,000–200,099 × 3 loads.
+### 10.1 Seeds and splits (one manifest file records them)
+- **Map:** `map_seed = 0`.
+- **Train:** demand seeds in [0, 99,999] (the environment's default draw).
+- **Dev** (calibration, θ tuning, checkpoint choice): seeds 100,000–100,039 per load.
+- **Test** (final numbers only, used once at the end): seeds 200,000–200,099 per load, for every method and all three PPO training seeds.
 - **Generalization (stretch):** maps 300,000–300,019 × demand seeds 400,000–400,009.
 
 Every method runs on exactly the same (map, demand seed, load) cases.
 
-### 10.2 Metrics (per episode, then aggregated)
+### 10.2 Metrics (per episode, saved per day, then aggregated)
 - **Primary:** on-time rate = on-time deliveries / all released orders (rejected ones included).
-- Served rate; expiry rate; rejections; mean and 90th-percentile lateness of late deliveries; on-time rate per order type.
+- Return; served rate; expiry rate; rejections; mean and 90th-percentile lateness of late deliveries; on-time rate **per order type** (no type may be starved).
 - Energy used; charging minutes; charging share = charging minutes / episode duration; number of charges; battery level when charging starts.
-- Mean boxes per loaded trip (batching); share of WAIT and RETURN actions; decision time per step.
-- **Stall diagnostics** (these detect the previous failure better than raw WAIT share):
-  - *harmful WAIT*: WAIT chosen while some PICK/DELIVER that would finish on time was valid;
-  - *idle expiries*: orders that expired while a PICK/DELIVER for them was valid at a decision where the agent chose WAIT or RETURN;
-  - *energy-blocked decisions*: decisions where every PICK/DELIVER was masked only because of battery while pending/onboard work existed (frequent → the agent is not charging early enough).
+- Mean boxes per delivery stop (batching); share of WAIT and RETURN actions; decision time per step; % of decisions with a hidden on-time-feasible order.
+- **Stall diagnostics:** *harmful WAIT* (WAIT while a PICK/DELIVER that would finish on time was valid); *idle expiries* (expired while serving it was valid and the agent chose WAIT or RETURN); *energy-blocked decisions* (all PICK/DELIVER masked only by battery while work existed).
 
 ### 10.3 Statistics
-Paired per seed. Report the mean ± 95 % bootstrap CI over test seeds; the paired difference vs each baseline with CI; win/tie/loss counts; and for PPO, mean and spread over 3 training seeds. Report results separately per load level, never only averaged.
+Paired per demand day. Report the mean ± 95 % bootstrap CI over test days; the paired difference vs each baseline with its bootstrap CI over days; win/tie/loss counts; for PPO, the spread over the 3 training seeds reported separately from day-to-day variation. Results per load level, never only averaged.
 
 ### 10.4 Probes (deterministic hand-built scenarios, pass/fail)
 Each probe is a fixed state built by a helper in `tests/probes.py`, checked against the greedy (argmax) policy.
@@ -227,80 +222,87 @@ Each probe is a fixed state built by a helper in `tests/probes.py`, checked agai
 | P2 | battery too low for the only pending order, charger reachable | CHARGE, then serve (no WAIT loop) | G2 |
 | P3 | three compatible orders at M, same destination | loads ≥ 2 before leaving | G3 |
 | P4 | pending slots permuted | the same order is chosen (set network) | G3 |
-| P5 | moderate battery shortly before a peak, nothing pending | charges before the peak | report only (no gate) |
+| P5 | moderate battery shortly before a peak, nothing pending | charges before the peak | report only |
 | P6 | long random rollouts | safety invariant never breaks | M1 (env test) |
 
 ### 10.5 Behavioural analysis
-Timeline plots (actions, battery, onboard boxes, pool size) for typical days; batching vs time of day; charge timing and level; action distribution in peak vs off-peak; a case study where RL and the best baseline differ.
+Timeline plots (actions, battery, onboard boxes, pool size) for typical days; batching vs time of day; charge timing and level; action distribution in peak vs off-peak; a case study where RL and Slack-aware differ.
+
+### 10.6 Success targets (pre-registered)
+- **Competitive:** PPO within 3 percentage points of Slack-aware on-time at medium and high load.
+- **Stretch:** ≥ 3 points better than Slack-aware on one pre-registered load (medium) with the paired 95 % CI above zero, and no more than 2 points worse elsewhere.
+- **Acceptable outcome:** correct learning, a reproducible fair comparison, and an explained gap. The observation contains engineered hints (slack, compatibility, insertion time), so results are described as learning dispatch from engineered features.
 
 ---
 
 ## 11. Scope tiers
 
-- **Must** (needed for a complete project): environment + rendering + tests; Random/FCFS/EDF/Slack-aware baselines; PPO (MLP or set network) trained on the fixed map with **3 training seeds** for the headline configuration (runs are independent and fit in parallel on 24 cores); probes P1–P2; paired test evaluation on 3 loads; side-by-side video; all milestone reports.
-- **Should:** set network vs MLP comparison; rolling-horizon planner; probes P3–P5; capacity ablation 1/2/3 boxes (retrained).
-- **Could:** random-map generalization; BC warm-start study; P/R and expiry sweeps; RETURN action ablation; hint-feature ablation.
+- **Must:** environment + rendering + tests; Random / EDF / **Slack-aware**; PPO from scratch (MLP or set network) with **3 training seeds**; probes P1–P2; paired test evaluation on 3 loads; side-by-side video; all milestone reports.
+- **Should:** BC → PPO variant; set network vs MLP; rollout planner; FCFS / Nearest; probes P3–P5; capacity ablation 1/2/3 boxes (retrained).
+- **Could:** random-map generalization; stress load 0.14 with a slot-count ablation; P/R and expiry sweeps; RETURN action ablation; hint-feature ablation; interactive HTML replay built from logged events.
 
-Rule: a Could item starts only if all Should items for that milestone are done.
+Rule: a Could item starts only if all Should items for that milestone are done. Capacity retrains and random maps are dropped before planner validation or reports are sacrificed.
 
 ---
 
 ## 12. Milestone plan, acceptance criteria and gates
 
-### M1 — Gym environment (10/11 → 10/16)
-| day | work |
-|---|---|
-| 10/11 | repo skeleton, `config.py`, map generation + A* + validity check, order generator |
-| 10/12 | event engine (actions, events, expiry, termination) |
-| 10/13 | masks, reward, observation; unit tests (event semantics, masks, invariant, determinism) |
-| 10/14 | matplotlib renderer (map, no-fly zones, A* paths, drone interpolated along path, side panel: clock, battery, 3 cargo slots, pending list coloured by urgency); `demo.py` (random + EDF, saves gif/mp4) |
-| 10/15 | `calibrate.py`: EDF and random over a λ grid → orders/day, km/order, charging share, utilisation, on-time; choose loads and freeze the map; throughput benchmark |
-| 10/16 | README, `environment.yml` verified in a fresh env, 2-page report |
+### M1 — Gym environment (10/11 → 10/16) — status 10/11: implemented, 91 tests, reviewed
+Remaining before the M1 report (plan: `docs/superpowers/plans/2026-10-11-m1-finalization.md`):
+1. Repository hygiene: untrack `.vscode/`; stage explicit paths only; `.gitattributes` export-ignore for `docs/superpowers/` and `docs/reports/`; README must not link excluded files.
+2. Configuration validation and cleanup: `EnvConfig.validate()` (positive durations/rates, `wait_max > 0`, `max_boxes ≤ 3`, `n_slots == 12`, finite λ, known load names); remove unused `charge_targets`; derive the time scale 660 = release window + longest expiry; name observation scales; rename `feasible` → `pick_allowed`; drop decorative separators and § references from code comments.
+3. Simulator cleanup with regression tests: one dispose helper; shared next-event helpers; assert orders are sorted; tests for unload + expiry + release at one instant with a full pool, a box expiring during another box's unload, and determinism over the full event log.
+4. **Slack-aware heuristic** (§9) with tests; θ tuned on dev seeds.
+5. Metrics and calibration: per-type on-time and delivered counts; calibration with Slack-aware / EDF / Random reporting hidden-slot % of decisions, mean hidden count, pool p95/max, rejections, with denominators; seed manifest; set loads 0.04/0.08/0.12 (**amended gate G1: medium is "contested" for Slack-aware, on-time ≈ 0.70–0.85; high clearly lower; low ≈ 0.95+**).
+6. Demo: stream frames to the writer (no in-memory frame list); validate CLI arguments; detect non-interactive backends for `--live` and fall back; mark a live run closed early as partial; every frame shows policy, load, demand seed and the current action; order-type legend; "+N more" and "sorted by deadline" on the pending list.
+7. Installation: README's primary path = conda-forge with `--override-channels` + `requirements.txt`; `environment.yml` keeps explicit pins and a test checks both files list identical pins.
+8. Verification: full tests; fresh conda-forge environment; extracted-archive test; Codex review of the changes; student review of the code and a real-screen check of `--live`.
+9. After the student's review: fast-forward `main`; at actual submission create the annotated, never-moved tag `m1-submission-v1` and build the zip from it (code + README + install files + tests + scripts + the student's report PDF).
 
-**Acceptance:** `gymnasium.utils.env_checker.check_env` passes; all tests pass; same seeds → identical trajectories; the demo runs from a fresh conda env; calibration table produced.
+**Acceptance:** `check_env` passes; all tests pass; same seeds → identical event logs; demo runs from a fresh environment; calibration table on the amended G1.
 
-**Gate G1 (10/15):** medium load should be "contested", with EDF on-time roughly 55–85 % and charging share 15–35 %. If not, adjust knobs in this order: λ values → charge rate → map size. Record every change in the change log.
+### M2 — Neural network (start right after M1 fixes → 10/30)
+- FCFS / Nearest; `evaluate.py` (paired evaluation over the seed manifest, per-day CSV, bootstrap CIs, plots).
+- torch added to the environment files (CPU default; CUDA optional).
+- MLP and set networks with the §8.2 tests; BC on ≈ 1,000 Slack-aware episodes; learning curves; closed-loop comparison with the teacher.
+- **Masked PPO with the MLP running end-to-end by 10/23** on low load, with the §8.1 tests and an end-to-end throughput benchmark.
+- Start a small rollout-planner prototype before M2 closes.
+- Report (NN C&R): architecture with tensor shapes and parameter counts, losses and optimiser, dataset provenance and episode-level split, train/validation curves, MLP vs set network, action-family errors, closed-loop results, checkpoint + inference command, tests, preliminary PPO, limitations, AI disclosure.
 
-### M2 — Neural network (10/17 → 10/30)
-- FCFS / EDF / Nearest / Slack-aware baselines with the shared charging rule; `evaluate.py` (paired evaluation, CSV, plots).
-- MLP and set networks; behaviour cloning on Slack-aware demonstrations.
-- **Minimal masked PPO with the MLP running end-to-end** on low load: learning curve, comparison with Random and EDF, measured throughput, mask tests in the update.
-- Report.
-
-**Gate G2 (10/30), measured on low-load dev seeds:** PPO-MLP mean on-time rate ≥ Random + 20 percentage points **and** ≥ 80 % of EDF's; probes P1 and P2 pass; masked-PPO unit tests pass. If not → no new features; up to 3 days (to 11/2) of debugging with the probes, stall diagnostics and mask/advantage tests. If it still fails on 11/2, switch to the fallback pipeline "BC warm start (Slack-aware) + PPO fine-tuning", and name it as such in every report.
+**Gate G2 (10/30), low-load dev seeds (debugging floor):** PPO-MLP on-time ≥ Random + 20 points and ≥ 0.80 (aim 0.90); P1 and P2 pass; masked-PPO tests pass; zero invalid actions. If not → no new features; up to 3 days (to 11/2) of debugging with probes, stall diagnostics and mask/advantage tests; if still failing, BC → PPO becomes the main pipeline, named as such everywhere.
 
 ### M3 — Learning agent (10/31 → 11/6)
-- Set network + PPO, curriculum, 3 seeds on medium load; probes; first paired dev comparison vs EDF and Slack-aware.
-- **Drop date for the set network: 11/4.** If it is not at least on par with the MLP on medium-load dev by then, the MLP becomes the main agent and the set network becomes an ablation.
+- 2 M pilot → at most two alternatives → 3 × 5 M runs (curriculum §8.1) for PPO from scratch; BC → PPO with the same PPO budget; probes P3–P5; dev comparison against Slack-aware.
+- **Drop date for the set network: 11/4** — if it trails the MLP on medium dev, the MLP is the main agent.
 - **Freeze environment and features on 11/6.** Report.
 
-**Gate G3 (11/6), measured on medium-load dev seeds:** a "wide margin" means PPO's mean on-time rate is more than 10 percentage points below Slack-aware's. In that case pick exactly one fallback with a fixed budget: (a) BC warm start + PPO fine-tuning (≤ 3 runs × 5 M decisions); or (b) one longer run of the best configuration (≤ 15 M decisions); or (c) keep the result and make the final report an analysis of why. No new environment features after this gate.
+**Gate G3 (11/6), dev seeds:** "competitive" = within 5 points of Slack-aware on medium and high (≈ 0.77 / 0.58). If more than 10 points behind, pick exactly one bounded fallback: (a) more BC → PPO runs (≤ 3 × 5 M); (b) one longer run of the best configuration (≤ 15 M); or (c) keep the result and make the final report an analysis of why. No new environment features after this gate.
 
 ### Final (11/7 → 11/20)
 | dates | work |
 |---|---|
-| 11/7–11/11 | rolling-horizon planner (**drop date 11/11**: if not working, Slack-aware becomes the strongest baseline); full test evaluation of all methods |
-| 11/11–11/14 | capacity ablation 1/2/3 (3 short retrains), then at most one Could item; ablations stop on 11/14 regardless |
-| 11/12–11/14 | stretch: random-map generalization, only if G3 passed without fallback by 11/8 |
-| 11/15–11/17 | figures; side-by-side video (PPO vs best baseline, same seed) |
-| 11/18–11/20 | individual reports (each member writes their own); final zip; fresh-env check; buffer |
+| 11/7–11/11 | rollout planner validated and timed (**drop date 11/11**: otherwise Slack-aware is the strongest baseline); configurations frozen; test evaluation (100 untouched days per load, all methods, all 3 PPO seeds) |
+| 11/11–11/14 | capacity ablation 1/2/3 (3 short retrains), then at most one Could item; **all experiments end 11/14** |
+| 11/15–11/17 | figures; side-by-side video (learned policy vs Slack-aware on the same day, synchronised by simulated time) paired with the aggregate test results |
+| 11/18–11/20 | individual reports (each member writes their own; drafts start earlier); final zip with the trained model; fresh-environment check; buffer |
 
-**Throughput** is measured twice in M1/M2: environment-only steps/s and end-to-end decisions/s including PPO updates. Training budgets above assume the end-to-end figure.
-
-**Authorship and walkthroughs.** Code is written with AI assistance (Claude, with Codex as reviewer), declared in every report as the course requires. Plagiarism concerns online and other groups' code; none is copied. After each module lands, there is a walkthrough so the students can explain every line, plus a short entry in `docs/CHANGELOG.md` on what changed and why. Milestone reports are written by the students; AI helps with figures, tables and proofreading. Decided 2026-10-10: Claude implements all code step by step with Jihang Cai (who reviews and must be able to explain each module); the other members do not write code.
+**Authorship and walkthroughs.** Claude implements the code step by step with Jihang Cai, who reviews it and must be able to explain every module; Codex reviews; the other members do not write code. AI use is declared in every report as the course requires. Because the ≥ 50 %-from-scratch rule is written about copied online code, the student confirms with the instructor that declared AI-assisted code is acceptable under it; git history is the provenance record. Milestone reports are written by the students.
 
 ## 13. Risk register
 
 | risk | early signal | mitigation / fallback |
 |---|---|---|
-| PPO stalls in WAIT or never charges (previous failure) | harmful-WAIT / idle-expiry / energy-blocked diagnostics rising; probes P1/P2 fail | macro actions, γ = 1, finite WAIT, no terminal penalty; probes gate G2; BC warm-start fallback |
-| PPO does not beat strong heuristics | dev gap at G3 | honest reporting; analyse niche cases (peaks, charge timing); planner as the reference; the result is still valid |
-| Event/energy bugs | test failures, invariant asserts | unit tests per rule, determinism tests, invariant assertion in `step` |
-| Training too slow | benchmark < 2k decisions/s | precomputed matrices, `AsyncVectorEnv`, profiling |
-| Load regime uninteresting | G1 numbers out of range | knob order in G1 |
+| Data loss (single machine, no remote) | — | private remote + independent backup as soon as the student provides an account; push branches and tags |
+| PPO stalls in WAIT or never charges (previous failure) | harmful-WAIT / idle-expiry / energy-blocked diagnostics rising; P1/P2 fail | macro actions, γ = 1, finite WAIT, no terminal penalty; probes gate G2; BC → PPO |
+| PPO does not beat Slack-aware | dev gap at G3 | report against the pre-registered targets (§10.6); analyse where decisions differ; rollout planner as the reference; an explained loss is acceptable |
+| Return improves but on-time rate does not | dev curves diverge | select checkpoints by on-time rate; report both (§7) |
+| Broken masks hidden by the WAIT fallback | invalid-action counter > 0 | stored sampling masks; assertion in the PPO loop |
+| Partial observability at high load | hidden-slot % rising | disclosed per load; slot ablation only at the stress load |
+| Event/energy bugs | test failures, invariant asserts | unit tests per rule, event-log determinism tests, invariant assertion |
+| Training too slow | end-to-end benchmark < 2k decisions/s | synchronous vs async benchmark, CPU vs GPU inference, profiling |
 | Schedule slip | milestone acceptance not met | scope tiers; Could items dropped first |
-| Report rules (no copy-paste, "what changed") | — | keep `docs/CHANGELOG.md` per milestone; each member writes their own final report |
-| AI-use disclosure | — | AI declaration paragraph in every report |
+| Authorship interpretation | — | student confirms with the instructor; AI declaration in every report |
+| Report rules (no copy-paste, "what changed") | — | the spec's decision log and git history record changes; each member writes their own final report |
 
 ## 14. Changes from the original proposal, and why
 
@@ -312,7 +314,8 @@ Rule: a Could item starts only if all Should items for that milestone are done.
 | all orders visible (unbounded) | top-12 pending slots + aggregate counts; pool cap 30 | fixed Gymnasium shapes; overflow counted as failure |
 | PPO + attention from the start | MLP first, set/attention network in M3 | de-risk: get learning working before adding architecture |
 | random maps as the main setting | one fixed map; random maps as a stretch | learning first, generalization second |
-| insertion heuristic + rolling horizon | slack-aware heuristic + bounded rolling-horizon planner | one strong heuristic plus one planner, both fully specified |
+| insertion heuristic + rolling horizon | Slack-aware heuristic + rollout planner | one strong heuristic plus one planner, both fully specified |
+| load levels from EDF | load levels from Slack-aware (0.04/0.08/0.12) | EDF is a strawman; a fair challenge must be defined by the strong baseline |
 
 ## 15. Decision log (Claude ↔ Codex)
 
@@ -321,21 +324,32 @@ Rule: a Could item starts only if all Should items for that milestone are done.
 - **Discount.** Claude proposed γ = 0.998/min. Codex argued for γ = 1 because episodes are finite and nothing distorts preferences between near and far deliveries. **Agreed: γ = 1**, GAE per decision. This also removes within-action discounting.
 - **WAIT masking.** Both agreed not to mask WAIT when work exists: waiting can enable batching, and masking would hide reward bugs.
 - **Late reward.** Claude's first version dropped to 0.5R at L. Codex pointed out the jump and the "last-second rescue" incentive at expiry. **Agreed:** linear from +1 to −0.5 between L and H.
-- **Schedule.** Codex warned that integrating PPO only in November is risky. **Agreed:** minimal masked PPO end-to-end by 10/30.
+- **Schedule.** Codex warned that integrating PPO only in November is risky. **Agreed:** minimal masked PPO end-to-end by 10/30 (v2: by 10/23).
+- **v2 — load calibration.** Claude's probe showed a 4-rule heuristic beats EDF by 34–45 points (triage of hopeless orders contributes most, batching second). Claude proposed 0.06/0.10/0.14 with 16 slots; Codex proposed 0.04/0.08/0.12 keeping the 12-slot layout. **Agreed: 0.04/0.08/0.12**, 0.10 diagnostic, 0.14 stress only.
+- **v2 — planner.** Codex found that the v1 plan scoring rewarded doing nothing (the empty plan valued every order as if served later). **Agreed:** a planner whose candidate actions are completed by the base heuristic on known orders. Claude chose the simplest member of that family, the one-step rollout over all valid actions until all known orders resolve (no horizon cap, so no unresolved-order estimate is needed). *To be confirmed by Codex (its round-11 reply was cut off by its usage limit).*
+- **v2 — reward vs metric.** Codex flagged that return and on-time rate can disagree. **Agreed:** keep the reward, select and headline by on-time rate, report both.
+- **v2 — BC.** Claude wanted BC → PPO as a first-class variant; Codex had treated it as a fallback that does not show independent learning. **Decision (Claude, pending Codex confirmation):** both variants are trained and reported, clearly labelled, with PPO from scratch as the primary question and BC's extra cost reported.
+- **v2 — environment files.** Codex suggested `-r requirements.txt` inside `environment.yml`; Claude kept explicit pins in both (the course asks for an exact `environment.yml`) plus a test that they match. *Pending Codex confirmation.*
+- **v2 — repository and demo.** Agreed: private remote backup (needs the student's account), immutable annotated submission tags, export-ignore for design/report drafts, streamed animation writing, labelled frames, CLI validation, real-screen check by the student.
 
 ## 16. Left to the builder
 
-Exact network widths within the stated ranges; return-scaling method; plotting style; file-internal structure; rolling-planner enumeration details within §9; curriculum switch criterion (decided in M3); the specific `map_seed` (chosen in M1).
+Exact network widths within the stated ranges; plotting style; file-internal structure; rollout-planner speed-ups within §9; curriculum switch details (decided in M3).
 
-## 17. Repository layout
+## 17. Repository and submission layout
 
 ```
 medical_uav/
-  env/        config.py, map_gen.py, astar.py, orders.py, uav_env.py, render.py
-  baselines/  heuristics.py, rolling_planner.py
+  env/        config.py, physics.py, astar.py, map_gen.py, orders.py, simulator.py,
+              actions.py, masks.py, observation.py, uav_env.py, render.py
+  baselines/  heuristics.py, rollout_planner.py
   agents/     networks.py, ppo.py, bc.py
+  metrics.py
 scripts/      demo.py, calibrate.py, train.py, evaluate.py, make_video.py
-tests/        test_map.py, test_events.py, test_masks.py, test_determinism.py, test_ppo_masking.py
-docs/         CHANGELOG.md, reports/, superpowers/specs/
-environment.yml, README.md
+tests/        one test file per module, probes.py
+models/       selected trained checkpoints (small; committed) with config + seed + checksum
+docs/         superpowers/ (spec, plans) and reports/ — kept in git, export-ignored from zips
+environment.yml, requirements.txt, README.md, .gitattributes
 ```
+
+Each milestone is developed on its own branch, merged into `main` after the student's review, and submitted from an annotated tag that is never moved. Submission zips are built from the tag with `git archive` (so editor files, outputs and drafts are excluded) and checked by extracting and running the tests. Videos and large outputs stay out of git and are attached to the final zip.

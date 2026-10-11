@@ -956,10 +956,8 @@ Expected: all tests pass and the gif is written.
 
 ---
 
-## Roadmap for later milestones (separate plans, written when each starts)
+## Roadmap for later milestones
 
-| plan | written on | main tasks |
-|---|---|---|
-| M2 Neural network (due 10/30) | 10/17 | FCFS / Nearest / Slack-aware baselines; `evaluate.py` (paired eval, bootstrap CI, CSV/plots); torch added to the env; MLP and set networks (`agents/networks.py`) with empty/single-slot/permutation tests; behaviour cloning on Slack-aware; minimal masked PPO (`agents/ppo.py`) end-to-end on low load; probes P1–P2; end-to-end throughput; gate G2 |
-| M3 Learning agent (due 11/6) | 10/31 | set-network PPO; curriculum low → medium → mixed; 3 seeds; probes P3–P5; stall diagnostics in evaluation; dev comparison vs EDF/Slack-aware; set-net drop date 11/4; freeze on 11/6; gate G3 |
-| Final (due 11/20) | 11/7 | rolling-horizon planner (drop date 11/11); full paired test evaluation; capacity ablation 1/2/3; optional stretch items; side-by-side video; figures; final zip with trained model |
+Superseded on 2026-10-11 by the v2 milestone plan in the spec (§12) and by
+`docs/superpowers/plans/2026-10-11-m1-finalization.md` (M1 follow-up work). Later milestones get their
+own plans when they start: M2 right after the M1 finalization, M3 on 10/31, Final on 11/7.
