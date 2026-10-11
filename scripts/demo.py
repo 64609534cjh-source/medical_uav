@@ -6,6 +6,7 @@ Example:
 import argparse
 import os
 
+import imageio.v2 as imageio
 import numpy as np
 
 from medical_uav.baselines.heuristics import edf_policy, random_policy, run_episode
@@ -22,6 +23,8 @@ def main():
     parser.add_argument("--fps", type=int, default=12)
     parser.add_argument("--minutes-per-frame", type=float, default=1.0)
     parser.add_argument("--no-video", action="store_true")
+    parser.add_argument("--snapshots", type=float, nargs="*", default=[],
+                        help="also save PNG frames at these times (minutes)")
     args = parser.parse_args()
 
     env = MedicalUAVEnv(load=args.load)
@@ -36,11 +39,16 @@ def main():
     for key, value in metrics.items():
         print(f"  {key:15s} {value:.3f}" if isinstance(value, float) else f"  {key:15s} {value}")
 
+    renderer = Renderer(env.city_map, env.cfg)
+    for t in args.snapshots:
+        path = f"outputs/snapshot_{args.policy}_{args.load}_{args.seed}_t{t:.0f}.png"
+        os.makedirs("outputs", exist_ok=True)
+        imageio.imwrite(path, renderer.draw(env.sim, min(t, env.sim.t)))
+        print(f"saved {path}")
     if args.no_video:
         return
     out = args.out or f"outputs/demo_{args.policy}_{args.load}_{args.seed}.gif"
     os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
-    renderer = Renderer(env.city_map, env.cfg)
     times = np.arange(0.0, env.sim.t + 1e-9, args.minutes_per_frame)
     frames = [renderer.draw(env.sim, t) for t in times]
     save_animation(frames, out, args.fps)
