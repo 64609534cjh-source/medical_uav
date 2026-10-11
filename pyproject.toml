@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "medical_uav"
+version = "0.1.0"
+description = "Dynamic medical pickup-and-delivery with a single UAV: a Gymnasium environment and RL agents."
+requires-python = ">=3.11"
+
+[tool.setuptools.packages.find]
+include = ["medical_uav*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
