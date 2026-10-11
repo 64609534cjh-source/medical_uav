@@ -62,13 +62,20 @@ class Captions:
         return f"{self.prefix} | t = {t:5.1f} min | {action}"
 
 
-def run_live(env, policy, args) -> None:
-    """Step the policy and play the day in a window as it unfolds."""
+def live_window_problem() -> str | None:
+    """Why a live window cannot open here, or None if it can."""
+    if not has_display():
+        return "no display found (e.g. remote session)"
     import matplotlib
-    import matplotlib.pyplot as plt
 
     if matplotlib.get_backend().lower() in NON_INTERACTIVE_BACKENDS:
-        raise RuntimeError(f"matplotlib backend {matplotlib.get_backend()} cannot open a window")
+        return f"matplotlib backend {matplotlib.get_backend()} cannot open a window"
+    return None
+
+
+def run_live(env, policy, args) -> None:
+    """Step the policy and play the day in a window as it unfolds."""
+    import matplotlib.pyplot as plt
 
     renderer = Renderer(env.city_map, env.cfg)
     captions = Captions(env, args)
@@ -78,22 +85,22 @@ def run_live(env, policy, args) -> None:
     ax.axis("off")
     image = ax.imshow(renderer.draw(env.sim, 0.0, captions.at(0.0)))
 
-    done, t_prev, closed = False, 0.0, False
-    while not done and not closed:
+    done, t_prev = False, 0.0
+    while not done and plt.fignum_exists(fig.number):
         _, _, done, _, _ = env.step(policy(env))
         for t in frame_times(t_prev, env.sim.t, args.minutes_per_frame):
             if not plt.fignum_exists(fig.number):
-                closed = True
                 break
             image.set_data(renderer.draw(env.sim, t, captions.at(t)))
             plt.pause(1.0 / args.fps)
         t_prev = env.sim.t
 
-    if closed:
+    if not done:
         print(f"partial run: window closed at t = {env.sim.t:.1f} min "
-              "(metrics cover the partial day)")
+              "(metrics cover the orders released so far)")
     print_metrics(episode_metrics(env.sim))
-    if not closed:
+    if done and plt.fignum_exists(fig.number):
+        ax.set_title("day finished - close the window to exit", fontsize=12)
         plt.show()
 
 
@@ -114,6 +121,8 @@ def main():
         parser.error("--fps must be > 0")
     if args.minutes_per_frame <= 0:
         parser.error("--minutes-per-frame must be > 0")
+    if args.out is not None and not args.out.endswith((".gif", ".mp4")):
+        parser.error("--out must end with .gif or .mp4")
 
     env = MedicalUAVEnv(load=args.load)
     policy = make_policy(args.policy, args.seed)
@@ -121,14 +130,11 @@ def main():
           f"map_seed={env.cfg.map_seed}")
 
     if args.live:
-        if has_display():
-            try:
-                run_live(env, policy, args)
-                return
-            except RuntimeError as err:
-                print(f"{err} - saving an animation instead")
-        else:
-            print("no display found (e.g. remote session) - saving an animation instead")
+        problem = live_window_problem()
+        if problem is None:
+            run_live(env, policy, args)
+            return
+        print(f"{problem} - saving an animation instead")
 
     print_metrics(run_episode(env, policy, args.seed))
     renderer = Renderer(env.city_map, env.cfg)

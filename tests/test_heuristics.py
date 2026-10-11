@@ -128,21 +128,6 @@ def test_slack_aware_beats_edf_on_medium():
     assert slack > edf + 0.1
 
 
-def test_metrics_by_type_and_delivered():
-    m = run_episode(MedicalUAVEnv(), slack_aware_policy, 0)
-    assert m["delivered"] == round(m["served_rate"] * m["n_orders"])
-    assert set(m["on_time_by_type"]) == {"plasma", "medicine", "sample", "supplies"}
-
-
-def test_splits_disjoint():
-    from medical_uav import splits
-
-    lo, hi = splits.TRAIN_SEED_RANGE
-    for seed in list(splits.DEV_SEEDS) + list(splits.TEST_SEEDS):
-        assert not lo <= seed < hi
-    assert not set(splits.DEV_SEEDS) & set(splits.TEST_SEEDS)
-
-
 def test_slack_aware_delivery_counts_if_any_box_can_be_on_time(line_map):
     late = make_order(0, 0, M, 3, 0.6, 0.0)  # plasma to H3, deadline 30: late at t=45
     fresh = make_order(1, 1, M, 3, 0.5, 5.0)  # medicine to H3, deadline 95

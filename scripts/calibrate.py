@@ -92,6 +92,21 @@ def benchmark(cfg, episodes=20):
 
 
 TUNABLE = {"edf": edf_policy, "slack": slack_aware_policy}
+DEFAULT_THETAS = {"edf": 20.0, "slack": 20.0}
+
+
+def make_policy(name: str, demand_seed: int, thetas: dict):
+    """Policy for one day; Random gets its own seed so a row never depends on run order."""
+    if name == "random":
+        rng = np.random.default_rng(demand_seed)
+        return lambda e: random_policy(e, rng)
+    fn, theta = TUNABLE[name], thetas[name]
+    return lambda e: fn(e, theta)
+
+
+def select_thetas(results: dict) -> dict:
+    """Best charging threshold per heuristic from tune_thetas() results."""
+    return {name: max(by_theta, key=by_theta.get) for name, by_theta in results.items()}
 
 
 def tune_thetas(env, seeds, lam, thetas=THETAS) -> dict:
@@ -106,26 +121,27 @@ def tune_thetas(env, seeds, lam, thetas=THETAS) -> dict:
     return results
 
 
-def write_tables(rows, out_dir, cfg, seeds):
+def write_tables(rows, out_dir, cfg, seeds, thetas):
     os.makedirs(out_dir, exist_ok=True)
     with open(os.path.join(out_dir, "calibration.csv"), "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
         writer.writeheader()
         writer.writerows(rows)
-    lines = ["| λ | policy | orders | on-time | served | expired | rejected | km/deliv | charge | "
-             "busy | pool mean/p95/max | hidden % | hidden mean |",
-             "|" + "---|" * 13]
+    lines = ["| λ | policy | orders | on-time (mean ± day SD) | served | expired | rejected | "
+             "km/deliv | charge | busy | decisions | pool mean/p95/max | hidden % | hidden mean |",
+             "|" + "---|" * 14]
     for r in rows:
         lines.append(
             f"| {r['lambda']:.2f} | {r['policy']} | {r['orders']:.1f} | "
             f"{r['on_time_rate']:.2f} ± {r['on_time_rate_std']:.2f} | {r['served_rate']:.2f} | "
             f"{r['expiry_rate']:.2f} | {r['rejected']:.1f} | {r['km_per_delivery']:.2f} | "
-            f"{r['charge_share']:.2f} | {r['busy_share']:.2f} | "
+            f"{r['charge_share']:.2f} | {r['busy_share']:.2f} | {r['decisions']} | "
             f"{r['pool_mean']:.1f}/{r['pool_p95']:.0f}/{r['pool_max']} | "
             f"{r['hidden_pct']:.1f} | {r['hidden_mean']:.2f} |")
     header = (f"Command: python scripts/calibrate.py {' '.join(sys.argv[1:])}\n\n"
               f"map_seed = {cfg.map_seed}; dev seeds {seeds[0]}..{seeds[-1]} "
-              f"({len(seeds)} days per row); {rows[0]['decisions']} decisions in the first row\n\n")
+              f"({len(seeds)} days per row); charging threshold θ "
+              f"edf {thetas['edf']:.0f} %, slack {thetas['slack']:.0f} %\n\n")
     table = "\n".join(lines)
     with open(os.path.join(out_dir, "calibration.md"), "w") as f:
         f.write(header + table + "\n")
@@ -148,23 +164,23 @@ def main():
     if args.benchmark:
         benchmark(cfg)
     env = MedicalUAVEnv(config=cfg)
+    thetas = dict(DEFAULT_THETAS)
     if args.tune_theta:
         lam = cfg.loads["medium"]
-        for name, by_theta in tune_thetas(env, args.seeds, lam).items():
-            best = max(by_theta, key=by_theta.get)
+        results = tune_thetas(env, args.seeds, lam)
+        thetas = select_thetas(results)
+        for name, by_theta in results.items():
             rates = ", ".join(f"θ {th:.0f}: {r:.3f}" for th, r in by_theta.items())
-            print(f"{name} on dev seeds at λ={lam}: {rates} -> best θ {best:.0f}")
+            print(f"{name} on dev seeds at λ={lam}: {rates} -> θ {thetas[name]:.0f} used below")
     if not args.lambdas:
         return
 
-    rng = np.random.default_rng(0)
-    policies = {"slack": slack_aware_policy, "edf": edf_policy,
-                "random": lambda e: random_policy(e, rng)}
     rows = []
     for lam in args.lambdas:
-        for name, policy in policies.items():
-            rows.append(summarize([run_day(env, policy, s, lam) for s in args.seeds], lam, name))
-    write_tables(rows, args.out, cfg, args.seeds)
+        for name in ["slack", "edf", "random"]:
+            days = [run_day(env, make_policy(name, s, thetas), s, lam) for s in args.seeds]
+            rows.append(summarize(days, lam, name))
+    write_tables(rows, args.out, cfg, args.seeds, thetas)
 
 
 if __name__ == "__main__":

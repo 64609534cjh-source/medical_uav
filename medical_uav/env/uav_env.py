@@ -6,12 +6,13 @@ import numpy as np
 from gymnasium import spaces
 
 from medical_uav.env.actions import N_ACTIONS, WAIT, action_name, decode
-from medical_uav.env.config import EnvConfig
+from medical_uav.env.config import NODE_NAMES, ORDER_TYPES, EnvConfig
 from medical_uav.env.map_gen import generate_map
 from medical_uav.env.masks import compute_action_mask
 from medical_uav.env.observation import OBS_BOUND, OBS_DIM, build_observation, rank_pending
 from medical_uav.env.orders import generate_orders
 from medical_uav.env.simulator import Simulator
+from medical_uav.splits import TRAIN_SEED_RANGE
 
 
 class MedicalUAVEnv(gym.Env):
@@ -53,8 +54,9 @@ class MedicalUAVEnv(gym.Env):
         self.lam = float(options.get("lam", self.cfg.loads[load]))
         if not (math.isfinite(self.lam) and self.lam >= 0):
             raise ValueError(f"lam must be a finite rate >= 0, got {self.lam}")
-        # default demand seeds come from the training range [0, 100000)
-        self.demand_seed = options.get("demand_seed", int(self.np_random.integers(100_000)))
+        self.demand_seed = options.get("demand_seed")
+        if self.demand_seed is None:  # default: a training-range seed
+            self.demand_seed = int(self.np_random.integers(*TRAIN_SEED_RANGE))
 
         orders = generate_orders(self.demand_seed, self.lam, self.cfg)
         self.sim = Simulator(self.cfg, self.city_map, orders, self.lam)
@@ -74,10 +76,11 @@ class MedicalUAVEnv(gym.Env):
             action = WAIT
 
         sim = self.sim
+        label = self.describe(action)
         t0, r0, n_events = sim.t, sim.total_reward, len(sim.events)
         self._execute(action)
         reward = sim.total_reward - r0
-        self.decision_log.append((t0, action_name(action), reward))
+        self.decision_log.append((t0, label, reward))
         self._done = sim.is_done()
         self._update_view()
         info = self._info(sim.t - t0, invalid, action_name(action), sim.events[n_events:])
@@ -85,6 +88,15 @@ class MedicalUAVEnv(gym.Env):
 
     def action_masks(self) -> np.ndarray:
         return self._mask.copy()
+
+    def describe(self, action: int) -> str:
+        """Readable action name; a PICK names the order instead of its slot."""
+        kind, arg = decode(action)
+        if kind == "pick" and arg < len(self.slots):
+            o = self.slots[arg]
+            route = f"{NODE_NAMES[o.origin]}->{NODE_NAMES[o.dest]}"
+            return f"PICK {ORDER_TYPES[o.type_idx].name} {route}"
+        return action_name(action)
 
     def render(self):
         if self.render_mode is None or self.sim is None:

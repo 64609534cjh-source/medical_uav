@@ -127,3 +127,17 @@ def test_decision_log_records_actions():
     assert t0 == 0.0 and name == "WAIT"
     env.reset(seed=1)
     assert env.decision_log == []
+
+
+def test_decision_log_names_the_picked_order():
+    env = MedicalUAVEnv()
+    obs, info = env.reset(options={"demand_seed": 3})
+    while not info["action_mask"][:12].any():
+        obs, r, done, _, info = env.step(WAIT)
+    order = env.slots[0]
+    env.step(0)
+    from medical_uav.env.config import NODE_NAMES, ORDER_TYPES
+
+    expected = (f"PICK {ORDER_TYPES[order.type_idx].name} "
+                f"{NODE_NAMES[order.origin]}->{NODE_NAMES[order.dest]}")
+    assert env.decision_log[-1][1] == expected

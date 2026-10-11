@@ -8,7 +8,8 @@ BUSY_KINDS = ("fly", "load", "unload", "dispose")
 
 
 def episode_metrics(sim: Simulator) -> dict:
-    orders = sim.orders
+    """Metrics over the orders released so far (all of them once the day is over)."""
+    orders = [o for o in sim.orders if o.status != "future"]
     n = len(orders)
     delivered = [o for o in orders if o.status == "delivered"]
     on_time = [o for o in delivered if o.end_time - o.release <= o.limit + EPS]

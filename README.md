@@ -9,6 +9,8 @@ peaks; each type has its own weight, service time limit and expiry. The drone ca
 up, where to deliver, and when and where to recharge. This repository contains the Gymnasium
 environment (milestone 1); learning agents follow in later milestones.
 
+The design keeps a plain-Python event simulator separate from a thin Gymnasium wrapper, so the
+agent, the rule-based baselines and the renderer all run on the same physics.
 
 ## Installation
 

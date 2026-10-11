@@ -1,7 +1,8 @@
 # M1 report outline (2 pages)
 
-Material for writing the "OpenAI Gym Code and Report" submission. Write the text yourselves; the
-points below are facts to draw from.
+Facts behind the "OpenAI Gym Code and Report" submission. The report draft (AI-assisted, declared)
+lives in Claude Docs: https://claude.ai/code/artifact/85f1f0ef-8cc2-4709-85e4-d323808d8c81 —
+export it to PDF and add the PDF to the submission zip next to the code archive.
 
 ## 1. Code explanation
 

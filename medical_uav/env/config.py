@@ -71,15 +71,22 @@ class EnvConfig:
 
     def validate(self) -> None:
         """Raise ValueError for settings the environment cannot run with."""
+        for name in ["grid_size", "map_seed", "max_map_tries", "max_boxes", "pool_cap", "n_slots"]:
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, int):
+                raise ValueError(f"{name} must be an integer, got {value!r}")
         positive = ["grid_size", "cell_km", "speed_km_per_min", "energy_per_km", "charge_rate",
-                    "handling_min", "max_weight", "release_window", "wait_max"]
+                    "handling_min", "max_weight", "release_window", "wait_max", "max_map_tries"]
         for name in positive:
-            if not getattr(self, name) > 0:
-                raise ValueError(f"{name} must be > 0, got {getattr(self, name)}")
-        if not 0 <= self.reserve < 100:
+            value = getattr(self, name)
+            if not (math.isfinite(value) and value > 0):
+                raise ValueError(f"{name} must be a finite number > 0, got {value}")
+        for name in ["payload_factor", "expiry_penalty", "energy_cost", "reward_on_time"]:
+            value = getattr(self, name)
+            if not (math.isfinite(value) and value >= 0):
+                raise ValueError(f"{name} must be a finite number >= 0, got {value}")
+        if not (math.isfinite(self.reserve) and 0 <= self.reserve < 100):
             raise ValueError(f"reserve must be in [0, 100), got {self.reserve}")
-        if self.payload_factor < 0 or self.expiry_penalty < 0:
-            raise ValueError("payload_factor and expiry_penalty must be >= 0")
         if not 1 <= self.max_boxes <= 3:
             raise ValueError(f"max_boxes must be 1..3 (3 onboard slots), got {self.max_boxes}")
         if self.n_slots != 12:
@@ -89,7 +96,8 @@ class EnvConfig:
         for name, lam in self.loads.items():
             if not (math.isfinite(lam) and lam >= 0):
                 raise ValueError(f"load {name!r} must be a finite rate >= 0, got {lam}")
-
+        if not self.loads.get("high", 0) > 0:
+            raise ValueError("loads must include 'high' > 0 (it scales the load feature)")
 
 def day_length(cfg: EnvConfig) -> float:
     """Latest time an order can still be open: release window + longest expiry."""

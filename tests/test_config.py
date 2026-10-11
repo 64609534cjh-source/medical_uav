@@ -39,3 +39,17 @@ def test_env_rejects_unknown_load_and_render_mode():
 
 def test_default_loads():
     assert EnvConfig().loads == {"low": 0.04, "medium": 0.08, "high": 0.12}
+
+
+@pytest.mark.parametrize("loads", [{"low": 0.04, "medium": 0.08}, {"low": 0.0, "high": 0.0}])
+def test_loads_need_a_positive_high_level(loads):
+    with pytest.raises(ValueError):
+        EnvConfig(loads=loads).validate()
+
+
+@pytest.mark.parametrize("field,value", [("payload_factor", math.nan), ("expiry_penalty", math.nan),
+                                         ("cell_km", math.inf), ("grid_size", 16.5),
+                                         ("max_boxes", 2.5), ("pool_cap", 30.0)])
+def test_non_finite_or_fractional_values_rejected(field, value):
+    with pytest.raises(ValueError):
+        EnvConfig(**{field: value}).validate()

@@ -160,15 +160,15 @@ Total = 31 + 12 × 28 + 3 × 16 = **415**.
 - 16 environments × 128 decisions = 2048 transitions per update; 4 epochs; minibatch 512; clip 0.2; Adam 3e-4 with linear decay; entropy 0.01 decaying to 0.001; value coefficient 0.5; gradient clip 0.5; advantages normalised per batch. The learner trains on reward / 10 (critic in the same units); evaluation always reports raw rewards. Observations keep the environment's fixed scaling (no running normalisation of one-hots or slots).
 - Collection: start with a synchronous list of environments on the CPU (the environment alone runs ≈ 9,600 decisions/s); benchmark against `AsyncVectorEnv` with 8/16 workers and CPU vs GPU inference, end-to-end including updates, before choosing. Never run three 16-worker jobs at once.
 - Tests before any long run: unchanged policy gives probability ratio ≈ 1, hand-computed GAE on a toy trajectory, zero probability on masked actions, correct reset/terminal boundaries.
-- Budget: a 2 M-decision pilot, at most two targeted alternatives, then **3 independent runs × 5 M decisions** of the chosen configuration. Curriculum: 0.25 M decisions at low load, 0.75 M at medium, then 4 M with λ drawn uniformly from {low, medium, high} per episode. Evaluate on dev seeds every 250 k decisions.
-- Checkpoints are selected on dev seeds only, by on-time rate (§7). Evaluation uses the greedy (argmax over valid actions) policy.
+- Budget (hard caps): a 2 M-decision pilot, at most two targeted alternatives of 2 M decisions each, then **3 independent runs × 5 M decisions** of the chosen configuration. Curriculum: 0.25 M decisions at low load, 0.75 M at medium, then 4 M with λ drawn uniformly from {low, medium, high} per episode. Evaluate on dev seeds every 250 k decisions. A G2/G3 fallback replaces the ordinary schedule; it never adds to it.
+- **Checkpoint selection (frozen before training):** one checkpoint per training seed, chosen by the equal-weight mean of dev on-time rate over the three loads, and that same checkpoint is used for every load. Evaluation uses the greedy (argmax over valid actions) policy.
 - One policy covers all load levels (λ is part of the observation); no per-load models.
 
 ### 8.2 Networks and behaviour cloning
 - **(a) MLP:** separate actor and critic, each 415 → 256 → 256 (ReLU) → 26 logits / 1 value.
-- **(b) Set network:** shared pending-slot encoder MLP(28→64→64); onboard encoder MLP(16→64); global encoder MLP(31→64); one 4-head attention layer in which the global embedding queries the valid slot embeddings plus one learned always-valid "null" token → attention output. **Context = [global embedding, attention output]**, so battery/time/location always reach the heads, even with zero or one valid slot. PICK(k) logits come from a shared scorer on [slot_k embedding, context]; the other 14 logits from an MLP on the context; the value head is an MLP on [context, masked mean-pool of slot embeddings]. Attention masks absent slots only (not battery-infeasible pickups; those are handled by the action mask). Tests: empty and single-slot observations give finite outputs; permuting pending slots permutes the PICK logits accordingly.
+- **(b) Set network:** shared pending-slot encoder MLP(28→64→64); onboard encoder MLP(16→64); global encoder MLP(31→64); one 4-head attention layer in which the global embedding queries the valid slot embeddings plus one learned always-valid "null" token → attention output. **Context = [global embedding, attention output]**, so battery/time/location always reach the heads, even with zero or one valid slot. Both pending and onboard embeddings are keys of the attention (with the null token), so an empty pool and an empty drone are both well-defined. PICK(k) logits come from a shared scorer on [slot_k embedding, context]; the other 14 logits from an MLP on the context; the value head is an MLP on [context, masked mean-pool of slot embeddings]. Attention masks absent slots only (not battery-infeasible pickups; those are handled by the action mask). Tests: empty and single-slot observations give finite outputs; permuting pending slots permutes the PICK logits accordingly.
 - **Behaviour cloning (BC):** ≈ 1,000 Slack-aware episodes on training demand seeds across the three loads, split by whole episodes into train/validation. Report action-family accuracy, closed-loop performance against the teacher, a tiny-dataset overfit check, and MLP vs set network.
-- **Two learning variants, both reported and clearly labelled:** (1) **PPO from scratch** — the primary scientific question; (2) **BC → PPO** — the BC policy as initialisation, then the same PPO budget. BC → PPO is never described as learning from scratch, and its extra cost (demonstration collection + supervised epochs) is reported.
+- **Two learning variants, clearly labelled:** (1) **PPO from scratch** — the primary question, Must; (2) **BC → PPO** — the BC policy (20 supervised epochs on the ≈ 1,000 episodes) as initialisation, then the same 3 × 5 M PPO budget. BC → PPO is a Should item: trained in M3 after the scratch pilot if the schedule holds, dropped first otherwise. It is never described as learning from scratch, and its extra cost (demonstration collection + supervised epochs) is reported.
 
 ---
 
@@ -189,8 +189,9 @@ Total = 31 + 12 × 28 + 3 × 16 = **415**.
 | **Rollout planner** (final milestone; strongest conventional reference, not claimed state of the art) | see below |
 
 **Rollout planner** (one-step lookahead over the Slack-aware heuristic):
-- At each decision, for every valid action a: copy the simulator **with only the already released orders** (no future arrivals), execute a, then let Slack-aware act until every known order is resolved (delivered or expired; at most 180 simulated minutes). Score = total simulated reward. Execute the best a; ties go to the Slack-aware choice. With deterministic dynamics this can only match or improve on the base heuristic for the known orders.
-- Uses exactly the agent's information (released orders, same masks). Budget ≤ 1 s per decision; evaluation is parallelised over CPU cores; measured decision time is reported. If too slow, restrict a to PICK/DELIVER of the top-6 slots plus the Slack-aware action.
+- At each decision, for every valid action a: copy the simulator holding **only what the agent can observe** — the onboard boxes and the 12 visible pending orders, no hidden backlog and no future arrivals — execute a, then let Slack-aware act until every order in the copy is resolved (delivered or expired; a separate known-orders stopping test, not the environment's end-of-day test; about 180 simulated minutes at most, plus the action in progress). Score = total simulated reward. Execute the best a; ties go to the Slack-aware choice. The improvement over the base heuristic holds for this surrogate (visible orders, no arrivals), not as a guarantee for the real online day.
+- Same information and masks as the agent. Budget ≤ 1 s per decision (a prototype measured ≤ 0.03 s); evaluation is parallelised over CPU cores; measured decision time is reported. If too slow, restrict a to PICK/DELIVER of the top-6 slots plus the Slack-aware action.
+- Tests: the copy is isolated from the real simulator; no hidden or future order can influence the choice; the rollout stops; the chosen action scores at least the Slack-aware action.
 
 ## 10. Evaluation protocol
 
@@ -208,10 +209,10 @@ Every method runs on exactly the same (map, demand seed, load) cases.
 - Return; served rate; expiry rate; rejections; mean and 90th-percentile lateness of late deliveries; on-time rate **per order type** (no type may be starved).
 - Energy used; charging minutes; charging share = charging minutes / episode duration; number of charges; battery level when charging starts.
 - Mean boxes per delivery stop (batching); share of WAIT and RETURN actions; decision time per step; % of decisions with a hidden on-time-feasible order.
-- **Stall diagnostics:** *harmful WAIT* (WAIT while a PICK/DELIVER that would finish on time was valid); *idle expiries* (expired while serving it was valid and the agent chose WAIT or RETURN); *energy-blocked decisions* (all PICK/DELIVER masked only by battery while work existed).
+- **Stall diagnostics:** *WAIT with work available* (WAIT while a PICK/DELIVER that would finish on time was valid — an opportunity count, since strategic waiting can be right); *idle expiries* (expired while serving it was valid and the agent chose WAIT or RETURN); *energy-blocked decisions* (decisions where a mask computed without the battery rule would allow some PICK/DELIVER that the real mask forbids).
 
 ### 10.3 Statistics
-Paired per demand day. Report the mean ± 95 % bootstrap CI over test days; the paired difference vs each baseline with its bootstrap CI over days; win/tie/loss counts; for PPO, the spread over the 3 training seeds reported separately from day-to-day variation. Results per load level, never only averaged.
+Paired per demand day: the bootstrap resamples test days, and every method (and every PPO training seed, averaged per day) is evaluated on the same resampled days — three models on 100 days are 100 paired days, not 300. Report the mean ± 95 % bootstrap CI, the paired difference vs each baseline with its CI, and win/tie/loss counts; report the spread over the 3 training seeds separately. Results per load level, never only averaged; calibration tables report the day-to-day standard deviation and say so.
 
 ### 10.4 Probes (deterministic hand-built scenarios, pass/fail)
 Each probe is a fixed state built by a helper in `tests/probes.py`, checked against the greedy (argmax) policy.
@@ -247,7 +248,7 @@ Rule: a Could item starts only if all Should items for that milestone are done. 
 
 ## 12. Milestone plan, acceptance criteria and gates
 
-### M1 — Gym environment (10/11 → 10/16) — status 10/11: implemented and finalized, 123 tests, reviewed
+### M1 — Gym environment (10/11 → 10/16) — status 10/11: implemented, finalized and reviewed (Claude and Codex), 142 tests; report drafted
 Remaining before the M1 report (plan: `docs/superpowers/plans/2026-10-11-m1-finalization.md`):
 1. Repository hygiene: untrack `.vscode/`; stage explicit paths only; `.gitattributes` export-ignore for `docs/superpowers/` and `docs/reports/`; README must not link excluded files.
 2. Configuration validation and cleanup: `EnvConfig.validate()` (positive durations/rates, `wait_max > 0`, `max_boxes ≤ 3`, `n_slots == 12`, finite λ, known load names); remove unused `charge_targets`; derive the time scale 660 = release window + longest expiry; name observation scales; rename `feasible` → `pick_allowed`; drop decorative separators and § references from code comments.
@@ -286,7 +287,7 @@ Remaining before the M1 report (plan: `docs/superpowers/plans/2026-10-11-m1-fina
 | 11/15–11/17 | figures; side-by-side video (learned policy vs Slack-aware on the same day, synchronised by simulated time) paired with the aggregate test results |
 | 11/18–11/20 | individual reports (each member writes their own; drafts start earlier); final zip with the trained model; fresh-environment check; buffer |
 
-**Authorship and walkthroughs.** Claude implements the code step by step with Jihang Cai, who reviews it and must be able to explain every module; Codex reviews; the other members do not write code. AI use is declared in every report as the course requires. Because the ≥ 50 %-from-scratch rule is written about copied online code, the student confirms with the instructor that declared AI-assisted code is acceptable under it; git history is the provenance record. Milestone reports are written by the students.
+**Authorship and walkthroughs.** Claude implements the code step by step with Jihang Cai, who reviews it and must be able to explain every module; Codex reviews; the other members do not write code. AI use is declared in every report as the course requires. The ≥ 50 %-from-scratch rule is written about copied online code; the course permits AI tools when declared. Decided by the student on 2026-10-11: AI-assisted code is used with a clear declaration, without asking the instructor for a separate ruling (Codex recommended a written ruling; that residual risk is accepted). Milestone reports are written by the students.
 
 ## 13. Risk register
 
@@ -301,7 +302,7 @@ Remaining before the M1 report (plan: `docs/superpowers/plans/2026-10-11-m1-fina
 | Event/energy bugs | test failures, invariant asserts | unit tests per rule, event-log determinism tests, invariant assertion |
 | Training too slow | end-to-end benchmark < 2k decisions/s | synchronous vs async benchmark, CPU vs GPU inference, profiling |
 | Schedule slip | milestone acceptance not met | scope tiers; Could items dropped first |
-| Authorship interpretation | — | student confirms with the instructor; AI declaration in every report |
+| Authorship interpretation | — | student decision 2026-10-11: declared AI-assisted code, no separate instructor ruling (residual risk accepted); AI declaration in every report |
 | Report rules (no copy-paste, "what changed") | — | the spec's decision log and git history record changes; each member writes their own final report |
 
 ## 14. Changes from the original proposal, and why
