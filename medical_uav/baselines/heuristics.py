@@ -1,0 +1,58 @@
+"""Rule-based baselines (§9). Policies take the env and return a valid action index."""
+import numpy as np
+
+from medical_uav.env.actions import CHARGE0, CHARGE_TABLE, DELIVER0, PICK0, WAIT
+from medical_uav.env.config import C2, FACILITIES, M
+from medical_uav.metrics import episode_metrics
+
+
+def random_policy(env, rng: np.random.Generator) -> int:
+    return int(rng.choice(np.flatnonzero(env.action_masks())))
+
+
+def charging_rule(env, theta: float) -> int | None:
+    """Shared charging rule: charge to 80 (else 100) at the nearest station when wanted."""
+    sim, mask = env.sim, env.action_masks()
+    has_service = mask[PICK0:CHARGE0].any()
+    wanted = sim.battery < theta or (not has_service and sim.battery < 80.0)
+    if not wanted:
+        return None
+    nearest, _ = sim.nearest_charger(sim.location, sim.load_kg())
+    other = C2 if nearest == M else M
+    for station in (nearest, other):
+        for target in (80.0, 100.0):
+            a = CHARGE0 + CHARGE_TABLE.index((station, target))
+            if mask[a]:
+                return a
+    return None
+
+
+def edf_policy(env, theta: float = 40.0) -> int:
+    """Earliest deadline first over valid pickups and deliveries."""
+    a = charging_rule(env, theta)
+    if a is not None:
+        return a
+    sim, mask = env.sim, env.action_masks()
+    candidates = []  # (deadline, deliver-before-pick, action)
+    for k, order in enumerate(env.slots):
+        if mask[PICK0 + k]:
+            candidates.append((order.deadline, 1, PICK0 + k))
+    for n in FACILITIES:
+        if mask[DELIVER0 + n]:
+            deadline = min(o.deadline for o in sim.onboard if o.dest == n and o.status == "onboard")
+            candidates.append((deadline, 0, DELIVER0 + n))
+    return min(candidates)[2] if candidates else WAIT
+
+
+def run_episode(env, policy, seed: int, options: dict | None = None) -> dict:
+    """Run one episode with policy(env) -> action; returns metrics plus return and decisions."""
+    env.reset(seed=seed, options=options)
+    total, decisions, done = 0.0, 0, False
+    while not done:
+        _, reward, done, _, _ = env.step(policy(env))
+        total += reward
+        decisions += 1
+    result = episode_metrics(env.sim)
+    result["return"] = total
+    result["decisions"] = decisions
+    return result
