@@ -40,7 +40,8 @@ def astar(blocked: np.ndarray, start: Cell, goal: Cell) -> list[Cell] | None:
             if new_cost < best_cost.get((r, c), math.inf):
                 best_cost[(r, c)] = new_cost
                 came_from[(r, c)] = cell
-                heapq.heappush(open_heap, (new_cost + octile_distance((r, c), goal), new_cost, (r, c)))
+                priority = new_cost + octile_distance((r, c), goal)
+                heapq.heappush(open_heap, (priority, new_cost, (r, c)))
 
     if goal not in best_cost:
         return None
