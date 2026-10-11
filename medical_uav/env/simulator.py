@@ -6,10 +6,10 @@ wrapper translates actions into the do_* commands below.
 import math
 from dataclasses import dataclass
 
-from medical_uav.env.config import CHARGERS, EPS, M, EnvConfig
+from medical_uav.env.config import CHARGERS, EPS, FACILITIES, M, EnvConfig
 from medical_uav.env.map_gen import CityMap
 from medical_uav.env.orders import Order
-from medical_uav.env.physics import flight_energy, flight_time
+from medical_uav.env.physics import charge_minutes, delivery_reward, flight_energy, flight_time
 
 
 @dataclass
@@ -153,7 +153,90 @@ class Simulator:
             self.pending.append(o)
             self.events.append((o.release, "release", o.id))
 
+    # ------------------------------------------------------------------ movement
+
+    def fly_to(self, node: int) -> None:
+        """Fly to node; at a facility, expired cargo is unloaded on arrival (§4.4)."""
+        if node != self.location:
+            e = self.energy(self.location, node, self.load_kg())
+            t_arrive = self.t + self.travel_time(self.location, node)
+            self.segments.append(Segment("fly", self.t, t_arrive, self.location, node,
+                                         self.battery, self.battery - e))
+            self.battery -= e
+            self.energy_used += e
+            self.km_flown += self.city_map.dist_km[self.location, node]
+            self.total_reward -= self.cfg.energy_cost * e
+            self.advance_to(t_arrive)
+            self.location = node
+        if node in FACILITIES:
+            self.dispose_expired_cargo()
+
+    def dispose_expired_cargo(self) -> None:
+        for o in [o for o in self.onboard if o.status == "expired"]:
+            self._handle_box("dispose", o)
+            o.disposed_time = self.t
+            self.onboard.remove(o)
+            self.events.append((self.t, "dispose", o.id))
+
+    def _handle_box(self, kind: str, o: Order, strict: bool = False) -> None:
+        """Spend handling_min on the ground for one box (load/unload/dispose)."""
+        t_end = self.t + self.cfg.handling_min
+        self.segments.append(Segment(kind, self.t, t_end, self.location, self.location,
+                                     self.battery, self.battery, o.id))
+        self.advance_to(t_end, strict=strict)
+
     # ------------------------------------------------------------------ commands
+
+    def do_pick(self, order: Order) -> None:
+        self.fly_to(order.origin)
+        assert order.status == "pending", f"order {order.id} is {order.status}"
+        self._handle_box("load", order)
+        assert order.status == "pending", f"order {order.id} expired while loading"
+        order.status = "onboard"
+        order.pickup_time = self.t
+        self.pending.remove(order)
+        self.onboard.append(order)
+        self.events.append((self.t, "pickup", order.id))
+        self.check_invariant()
+
+    def do_deliver(self, node: int) -> None:
+        """Unload every box for node, most urgent first; each box is rewarded when unloaded."""
+        self.fly_to(node)
+        boxes = sorted([o for o in self.onboard if o.dest == node], key=lambda o: (o.deadline, o.id))
+        for o in boxes:
+            if o.status == "expired":
+                self._handle_box("dispose", o)
+                o.disposed_time = self.t
+                self.events.append((self.t, "dispose", o.id))
+            else:
+                # strict: an unload ending exactly at expiry counts as a delivery (§4.4)
+                self._handle_box("unload", o, strict=True)
+                if o.status == "expired":  # expired during the unload
+                    o.disposed_time = self.t
+                    self.events.append((self.t, "dispose", o.id))
+                else:
+                    o.status = "delivered"
+                    o.end_time = self.t
+                    self.total_reward += delivery_reward(o.age(self.t), o.limit, o.expiry_after,
+                                                         self.cfg)
+                    self.events.append((self.t, "deliver", o.id))
+            self.onboard.remove(o)
+        self.advance_to(self.t)  # events at this exact time
+        self.check_invariant()
+
+    def do_charge(self, station: int, target: float) -> None:
+        self.fly_to(station)
+        t_end = self.t + charge_minutes(self.battery, target, self.cfg)
+        self.segments.append(Segment("charge", self.t, t_end, station, station,
+                                     self.battery, target))
+        self.charging_time += t_end - self.t
+        self.advance_to(t_end)
+        self.battery = target
+        self.check_invariant()
+
+    def do_return(self) -> None:
+        self.fly_to(M)
+        self.check_invariant()
 
     def do_wait(self) -> None:
         """Wait until the next release/expiry, at most wait_max minutes."""
