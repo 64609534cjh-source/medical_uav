@@ -78,7 +78,7 @@ The agent decides, at every decision point, **which order to pick up next, where
 - Hospitals sampled uniformly. Weights chosen so that heavy mixes hit the 2 kg limit (3 plasma ≥ 1.8 kg) while light mixes hit the 3-box limit.
 - An order's age starts at release. Picking up does not reset it.
 - **Arrivals:** non-homogeneous Poisson over the 480-min release window, rate λ·m(t), with m(t) = 2.0 in [60, 180) and [300, 390) (two peaks) and 0.6 elsewhere. Expected orders per day = 582·λ.
-- **Load levels (v2, calibrated against the Slack-aware heuristic, gate G1):** low λ = 0.04 (≈ 23 orders/day), medium λ = 0.08 (≈ 47), high λ = 0.12 (≈ 70). λ = 0.10 is kept as a diagnostic point; λ = 0.14 (≈ 81) only as a labelled stress appendix (it hides on-time-feasible orders beyond the 12 slots in 16 % of decisions). Measured on 40 dev seeds with a prototype of Slack-aware: on-time ≈ 0.82 at 0.08, 0.71 at 0.10, 0.63 at 0.12; EDF only 0.26 at 0.10. The v1 choice (0.04/0.06/0.10 from EDF) is superseded: EDF chases hopeless late orders and is a strawman for calibration.
+- **Load levels (v2, calibrated against the Slack-aware heuristic, gate G1):** low λ = 0.04 (≈ 23 orders/day), medium λ = 0.08 (≈ 47), high λ = 0.12 (≈ 70). λ = 0.10 is kept as a diagnostic point; λ = 0.14 (≈ 81) only as a labelled stress appendix (it hides on-time-feasible orders beyond the 12 slots in 13 % of decisions). Measured on 40 dev seeds (M1 final calibration, both heuristics with tuned θ): Slack-aware on-time 1.00 / 0.84 / 0.65 at 0.04 / 0.08 / 0.12 (0.72 at 0.10); EDF 1.00 / 0.51 / 0.26 (0.30 at 0.10). The v1 choice (0.04/0.06/0.10 from EDF) is superseded: EDF chases hopeless late orders and is a strawman for calibration.
 - The full day's orders are generated from `demand_seed` at `reset()` and revealed only at their release times. They never depend on the agent's actions, so every method sees exactly the same order stream for a given seed.
 - **Pending pool cap** 30 (orders released but not picked up). An arrival that finds the pool full is rejected.
 - **Measured regime (M1):** ≈ 90–110 decisions per day; charging ≈ 23 % of the day; ≈ 5 km flown per delivered order; mean / p95 / max pending pool ≈ 1.7/6/11 at λ 0.06, 5.1/13/23 at 0.10, 7.4/17/25 at 0.12. Medium-load peaks (≈ 9.6 orders/hour) exceed unbatched capacity, so triage and batching matter exactly when demand peaks.
@@ -122,7 +122,7 @@ Masks are returned as `info["action_mask"]` (bool array of length 26) and via `e
 
 ## 6. Observation — `Box(shape=(415,))`, float32, roughly normalised
 
-**Pending slots.** 12 pending orders chosen by a two-tier ranking: first the orders that can still be delivered on time (direct completion ≤ deadline), sorted by time-to-deadline; then the late but not yet expired ones, sorted by time-to-expiry (ties: release time, then order id). This keeps a backlog of late orders from hiding fresh orders that can still be on time. Fewer than 12 → zero-padded with `valid = 0`. Orders beyond the 12 stay in the environment and appear as soon as they rank in the top 12. Calibration logs how often an on-time-feasible order is hidden beyond slot 12: 0 % of decisions at λ 0.06, 2.1 % at 0.10, 6.6 % at 0.12 (Slack-aware). "Feasible" is optimistic (direct timing, ignoring other cargo and recharging). Every method sees the same 12 slots.
+**Pending slots.** 12 pending orders chosen by a two-tier ranking: first the orders that can still be delivered on time (direct completion ≤ deadline), sorted by time-to-deadline; then the late but not yet expired ones, sorted by time-to-expiry (ties: release time, then order id). This keeps a backlog of late orders from hiding fresh orders that can still be on time. Fewer than 12 → zero-padded with `valid = 0`. Orders beyond the 12 stay in the environment and appear as soon as they rank in the top 12. Calibration logs how often an on-time-feasible order is hidden beyond slot 12: 0 % of decisions at λ 0.06, 0.4 % at 0.08, 3.5 % at 0.10, 5.9 % at 0.12 (Slack-aware). "Feasible" is optimistic (direct timing, ignoring other cargo and recharging). Every method sees the same 12 slots.
 
 | block | features (count) |
 |---|---|
@@ -175,7 +175,7 @@ Total = 31 + 12 × 28 + 3 × 16 = **415**.
 ## 9. Baselines (same environment, masks, information and physics)
 
 **Shared charging rule** for all heuristics (only ever picks valid actions):
-1. Charging is *wanted* if battery < θ, or if no service action (PICK/DELIVER) is valid and battery < 80 %. θ is tuned per heuristic on dev seeds from {20, 30, 40} % (Slack-aware: 30 % in the prototype).
+1. Charging is *wanted* if battery < θ, or if no service action (PICK/DELIVER) is valid and battery < 80 %. θ is tuned per heuristic on dev seeds from {20, 30, 40} % (M1: 20 % for both EDF and Slack-aware).
 2. If charging is wanted, try in order: CHARGE(nearest station, 80), CHARGE(nearest station, 100), CHARGE(other station, 80), CHARGE(other station, 100). Take the first valid one.
 3. Otherwise, or if none is valid: the heuristic's service choice if one exists, else WAIT (always valid).
 
@@ -185,7 +185,7 @@ Total = 31 + 12 × 28 + 3 × 16 = **415**.
 | FCFS | serve the oldest order (deliveries and pickups ranked together by release time) |
 | EDF | serve the earliest deadline (calibration and demo reference; a weak baseline) |
 | Nearest | serve the action with the smallest travel + handling time; ties broken by deadline |
-| **Slack-aware (strong heuristic)** | in this order: (1) if boxes for the current node are on board, DELIVER here; (2) load a pending order at the current node whose destination matches onboard cargo (batching); (3) the shared charging rule; (4) among valid PICK/DELIVER, prefer those that can still be on time (direct timing) over hopeless ones, then earliest deadline, deliveries before pickups on ties; (5) WAIT |
+| **Slack-aware (strong heuristic)** | in this order: (1) if boxes for the current node are on board, DELIVER here; (2) load a pending order at the current node whose destination matches onboard cargo (batching); (3) the shared charging rule; (4) among valid PICK/DELIVER, prefer those that can still be on time over hopeless ones (a PICK by direct timing; a DELIVER if at least one of its boxes would be on time when unloaded one by one after any expired cargo), then earliest deadline, deliveries before pickups on ties; (5) WAIT |
 | **Rollout planner** (final milestone; strongest conventional reference, not claimed state of the art) | see below |
 
 **Rollout planner** (one-step lookahead over the Slack-aware heuristic):
@@ -247,7 +247,7 @@ Rule: a Could item starts only if all Should items for that milestone are done. 
 
 ## 12. Milestone plan, acceptance criteria and gates
 
-### M1 — Gym environment (10/11 → 10/16) — status 10/11: implemented, 91 tests, reviewed
+### M1 — Gym environment (10/11 → 10/16) — status 10/11: implemented and finalized, 123 tests, reviewed
 Remaining before the M1 report (plan: `docs/superpowers/plans/2026-10-11-m1-finalization.md`):
 1. Repository hygiene: untrack `.vscode/`; stage explicit paths only; `.gitattributes` export-ignore for `docs/superpowers/` and `docs/reports/`; README must not link excluded files.
 2. Configuration validation and cleanup: `EnvConfig.validate()` (positive durations/rates, `wait_max > 0`, `max_boxes ≤ 3`, `n_slots == 12`, finite λ, known load names); remove unused `charge_targets`; derive the time scale 660 = release window + longest expiry; name observation scales; rename `feasible` → `pick_allowed`; drop decorative separators and § references from code comments.

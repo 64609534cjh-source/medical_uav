@@ -35,9 +35,10 @@ points below are facts to draw from.
   them, so the observation has a fixed size.
 - One fixed map for the main experiments; random maps are kept for a later generalization test.
 - Calibration (`calibration.md`): EDF turned out to be a weak reference — it keeps chasing orders
-  that can no longer be on time and collapses at moderate load (0.42 on time at λ 0.08). A Slack-aware
-  heuristic (deliver at the current node first, batch same-destination orders, put hopeless work
-  last) scores 1.00 / 0.83 / 0.65 at λ 0.04 / 0.08 / 0.12, so the load levels are defined against it.
+  that can no longer be on time and falls far behind at moderate load (0.51 on time at λ 0.08, with
+  its charging threshold tuned). A Slack-aware heuristic (deliver at the current node first, batch
+  same-destination orders, put hopeless work last) scores 1.00 / 0.84 / 0.65 at λ 0.04 / 0.08 / 0.12,
+  so the load levels are defined against it.
   Triage of hopeless orders is the largest single effect, batching the second.
 - The environment runs ~9,100 decisions/s per process, ~90–110 decisions per day.
 - Next: stronger heuristic baselines, neural network, masked PPO.

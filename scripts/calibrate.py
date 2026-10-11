@@ -7,6 +7,7 @@ Examples:
 import argparse
 import csv
 import os
+import sys
 import time
 
 import numpy as np
@@ -90,12 +91,19 @@ def benchmark(cfg, episodes=20):
     print(f"throughput: {rate:.0f} decisions/s (single process, random policy, {steps} steps)")
 
 
-def tune_theta(env, seeds, lam):
-    print(f"Slack-aware theta on dev seeds at λ={lam}:")
-    for theta in THETAS:
-        policy = lambda e, th=theta: slack_aware_policy(e, th)  # noqa: E731
-        rate = np.mean([run_day(env, policy, s, lam)["on_time_rate"] for s in seeds])
-        print(f"  theta {theta:4.0f}: on-time {rate:.3f}")
+TUNABLE = {"edf": edf_policy, "slack": slack_aware_policy}
+
+
+def tune_thetas(env, seeds, lam, thetas=THETAS) -> dict:
+    """Mean on-time rate for every heuristic and charging threshold: {name: {theta: rate}}."""
+    results = {}
+    for name, policy_fn in TUNABLE.items():
+        results[name] = {}
+        for theta in thetas:
+            policy = lambda e, fn=policy_fn, th=theta: fn(e, th)  # noqa: E731
+            rates = [run_day(env, policy, s, lam)["on_time_rate"] for s in seeds]
+            results[name][theta] = float(np.mean(rates))
+    return results
 
 
 def write_tables(rows, out_dir, cfg, seeds):
@@ -115,7 +123,8 @@ def write_tables(rows, out_dir, cfg, seeds):
             f"{r['charge_share']:.2f} | {r['busy_share']:.2f} | "
             f"{r['pool_mean']:.1f}/{r['pool_p95']:.0f}/{r['pool_max']} | "
             f"{r['hidden_pct']:.1f} | {r['hidden_mean']:.2f} |")
-    header = (f"map_seed = {cfg.map_seed}; dev seeds {seeds[0]}..{seeds[-1]} "
+    header = (f"Command: python scripts/calibrate.py {' '.join(sys.argv[1:])}\n\n"
+              f"map_seed = {cfg.map_seed}; dev seeds {seeds[0]}..{seeds[-1]} "
               f"({len(seeds)} days per row); {rows[0]['decisions']} decisions in the first row\n\n")
     table = "\n".join(lines)
     with open(os.path.join(out_dir, "calibration.md"), "w") as f:
@@ -127,8 +136,6 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--lambdas", type=float, nargs="*", default=DEFAULT_LAMBDAS)
     parser.add_argument("--seeds", type=int, nargs="*", default=list(DEV_SEEDS))
-    parser.add_argument("--theta", type=float, default=20.0,
-                        help="Slack-aware charging threshold")
     parser.add_argument("--tune-theta", action="store_true")
     parser.add_argument("--map-check", type=int, default=0)
     parser.add_argument("--benchmark", action="store_true")
@@ -142,12 +149,16 @@ def main():
         benchmark(cfg)
     env = MedicalUAVEnv(config=cfg)
     if args.tune_theta:
-        tune_theta(env, args.seeds, cfg.loads["medium"])
+        lam = cfg.loads["medium"]
+        for name, by_theta in tune_thetas(env, args.seeds, lam).items():
+            best = max(by_theta, key=by_theta.get)
+            rates = ", ".join(f"θ {th:.0f}: {r:.3f}" for th, r in by_theta.items())
+            print(f"{name} on dev seeds at λ={lam}: {rates} -> best θ {best:.0f}")
     if not args.lambdas:
         return
 
     rng = np.random.default_rng(0)
-    policies = {"slack": lambda e: slack_aware_policy(e, args.theta), "edf": edf_policy,
+    policies = {"slack": slack_aware_policy, "edf": edf_policy,
                 "random": lambda e: random_policy(e, rng)}
     rows = []
     for lam in args.lambdas:

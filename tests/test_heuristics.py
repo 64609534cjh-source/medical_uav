@@ -141,3 +141,16 @@ def test_splits_disjoint():
     for seed in list(splits.DEV_SEEDS) + list(splits.TEST_SEEDS):
         assert not lo <= seed < hi
     assert not set(splits.DEV_SEEDS) & set(splits.TEST_SEEDS)
+
+
+def test_slack_aware_delivery_counts_if_any_box_can_be_on_time(line_map):
+    late = make_order(0, 0, M, 3, 0.6, 0.0)  # plasma to H3, deadline 30: late at t=45
+    fresh = make_order(1, 1, M, 3, 0.5, 5.0)  # medicine to H3, deadline 95
+    other = make_order(2, 1, M, 1, 0.4, 10.0)  # waiting at M for H1, deadline 100
+    sim = make_sim(line_map, [late, fresh, other])
+    sim.do_pick(late)
+    sim.advance_to(5.0)
+    sim.do_pick(fresh)
+    sim.advance_to(45.0)
+    # DELIVER(H3): arrive 49, late box 49-51, fresh box 51-53 <= 95 -> still worth it now
+    assert slack_aware_policy(SimEnv(sim)) == DELIVER0 + 3

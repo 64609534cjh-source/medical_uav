@@ -95,7 +95,7 @@ tests/               pytest suite
   The main experiments use `map_seed = 0`.
 - **Episode:** orders are released during 480 minutes (two peaks), then the day continues until every
   order is delivered, expired or rejected. Base rates: low 0.04, medium 0.08, high 0.12 orders/min
-  (calibrated so that the Slack-aware heuristic scores about 1.00 / 0.83 / 0.65 on time).
+  (calibrated so that the Slack-aware heuristic scores about 1.00 / 0.84 / 0.65 on time).
 - **Actions (`Discrete(26)`) with a mask:**
 
   | index | action |
@@ -118,8 +118,8 @@ tests/               pytest suite
   `scripts/demo.py --seed` and `run_episode(env, policy, demand_seed)` take the demand seed.
 - **`info` keys:** `action_mask`, `t`, `elapsed`, `invalid_action`, `action_name`, `events`.
 - **Baselines:** Random (valid actions), EDF (earliest deadline first) and Slack-aware (deliver at
-  the current node first, batch orders going where cargo already goes, charge below 20 %, then
-  earliest deadline among orders that can still be on time before hopeless ones).
+  the current node first, batch orders going where cargo already goes, then earliest deadline among
+  work that can still be on time before hopeless work). Both heuristics charge below 20 %.
 
 ## Tests
 

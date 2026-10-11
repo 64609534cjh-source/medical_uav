@@ -3,6 +3,7 @@ import numpy as np
 
 from medical_uav.env.actions import CHARGE0, CHARGE_TABLE, DELIVER0, PICK0, WAIT
 from medical_uav.env.config import C2, EPS, FACILITIES, M
+from medical_uav.env.masks import predict_arrival
 from medical_uav.env.observation import direct_completion_time
 from medical_uav.metrics import episode_metrics
 
@@ -28,7 +29,7 @@ def charging_rule(env, theta: float) -> int | None:
     return None
 
 
-def edf_policy(env, theta: float = 40.0) -> int:
+def edf_policy(env, theta: float = 20.0) -> int:
     """Earliest deadline first over valid pickups and deliveries."""
     a = charging_rule(env, theta)
     if a is not None:
@@ -48,7 +49,6 @@ def edf_policy(env, theta: float = 40.0) -> int:
 def slack_aware_policy(env, theta: float = 20.0) -> int:
     """Deliver here, batch, charge if needed, then EDF that puts hopeless work last."""
     sim, mask = env.sim, env.action_masks()
-    h = sim.cfg.handling_min
 
     # 1) boxes for the current node: unload them now (no flight needed)
     if sim.location in FACILITIES and mask[DELIVER0 + sim.location]:
@@ -74,9 +74,21 @@ def slack_aware_policy(env, theta: float = 20.0) -> int:
     for n in FACILITIES:
         if mask[DELIVER0 + n]:
             deadline = min(o.deadline for o in sim.onboard if o.dest == n and o.status == "onboard")
-            hopeless = sim.t + sim.travel_time(sim.location, n) + h > deadline + EPS
+            hopeless = not _delivery_can_be_on_time(sim, n)
             candidates.append((hopeless, deadline, 0, DELIVER0 + n))
     return min(candidates)[3] if candidates else WAIT
+
+
+def _delivery_can_be_on_time(sim, n: int) -> bool:
+    """True if at least one box for n would still be on time when unloaded there."""
+    t, expired = predict_arrival(sim, n)
+    t += sim.cfg.handling_min * len(expired)  # expired cargo is unloaded first
+    boxes = [o for o in sim.onboard if o.dest == n and o not in expired]
+    for o in sorted(boxes, key=lambda o: (o.deadline, o.id)):
+        t += sim.cfg.handling_min
+        if t <= o.deadline + EPS:
+            return True
+    return False
 
 
 def run_episode(env, policy, demand_seed: int, options: dict | None = None) -> dict:
