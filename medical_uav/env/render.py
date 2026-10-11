@@ -1,8 +1,11 @@
 """Matplotlib rendering. Frames are rebuilt from the simulator history, so any
 time t <= sim.t can be drawn (used for smooth replays and videos)."""
 import math
+import os
+import subprocess
 
 import imageio.v2 as imageio
+import imageio_ffmpeg
 import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
@@ -185,15 +188,49 @@ def frame_times(t0: float, t1: float, step: float) -> list[float]:
     return times
 
 
-def save_animation(frames, path: str, fps: int) -> int:
-    """Write frames (any iterable) to .gif or .mp4 one by one; returns the frame count."""
+class GifWriter:
+    """Streams frames into a temporary MP4 and converts it to a GIF on close.
+
+    Pillow's GIF writer keeps every frame in memory until it closes; going through
+    ffmpeg keeps memory flat however long the day is.
+    """
+
+    def __init__(self, path: str, fps: int):
+        self.path = path
+        self.tmp_path = path + ".tmp.mp4"
+        self.writer = imageio.get_writer(self.tmp_path, fps=fps)
+
+    def append_data(self, frame) -> None:
+        self.writer.append_data(frame)
+
+    def close(self) -> None:
+        self.writer.close()
+        palette = "split[a][b];[a]palettegen[p];[b][p]paletteuse"
+        cmd = [imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-i", self.tmp_path,
+               "-vf", palette, "-loop", "0", self.path]
+        try:
+            subprocess.run(cmd, check=True, capture_output=True)
+        finally:
+            os.remove(self.tmp_path)
+
+
+def open_animation_writer(path: str, fps: int):
+    """Frame-by-frame writer for .mp4 or .gif (both keep memory flat)."""
+    if path.endswith(".mp4"):
+        return imageio.get_writer(path, fps=fps)
     if path.endswith(".gif"):
-        writer = imageio.get_writer(path, mode="I", duration=1000 / fps, loop=0)
-    else:
-        writer = imageio.get_writer(path, fps=fps)
+        return GifWriter(path, fps)
+    raise ValueError(f"animation must be .gif or .mp4, got {path!r}")
+
+
+def save_animation(frames, path: str, fps: int) -> int:
+    """Write frames (any iterable) one by one; returns the frame count."""
+    writer = open_animation_writer(path, fps)
     count = 0
-    with writer:
+    try:
         for frame in frames:
             writer.append_data(frame)
             count += 1
+    finally:
+        writer.close()
     return count

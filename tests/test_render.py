@@ -59,7 +59,7 @@ def test_save_animation_streams_generator(tmp_path):
     from medical_uav.env.render import save_animation
 
     # distinct frames: GIF encoders merge identical consecutive frames
-    frames = (np.full((20, 30, 3), 40 * i, dtype=np.uint8) for i in range(5))
+    frames = (np.full((32, 48, 3), 40 * i, dtype=np.uint8) for i in range(5))
     assert save_animation(frames, str(tmp_path / "a.gif"), fps=5) == 5
     assert len(imageio.mimread(tmp_path / "a.gif")) == 5
 
@@ -68,3 +68,36 @@ def test_draw_accepts_header(line_map):
     sim = make_sim(line_map, [make_order(0, 1, M, 2, 0.5, 0.0)])
     frame = Renderer(line_map, sim.cfg).draw(sim, 0.0, header="slack | load medium | seed 0")
     assert frame.ndim == 3
+
+
+@pytest.mark.parametrize("ext", ["gif", "mp4"])
+def test_animation_memory_does_not_grow_with_frames(tmp_path, ext):
+    import tracemalloc
+
+    from medical_uav.env.render import save_animation
+
+    frame_mb = 208 * 304 * 3 / 1e6
+    rng = np.random.default_rng(0)  # noisy frames: encoders cannot shrink them to almost nothing
+    frames = (rng.integers(0, 256, (208, 304, 3), dtype=np.uint8) for _ in range(120))
+    tracemalloc.start()
+    save_animation(frames, str(tmp_path / f"m.{ext}"), fps=10)
+    _, peak = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+    assert peak / 1e6 < 8 * frame_mb  # a buffering writer would hold all 120 frames
+
+
+def test_save_animation_mp4(tmp_path):
+    import imageio.v2 as imageio
+
+    from medical_uav.env.render import save_animation
+
+    frames = (np.full((32, 48, 3), 40 * i, dtype=np.uint8) for i in range(4))
+    assert save_animation(frames, str(tmp_path / "c.mp4"), fps=4) == 4
+    assert imageio.get_reader(tmp_path / "c.mp4").count_frames() == 4
+
+
+def test_save_animation_rejects_other_extensions(tmp_path):
+    from medical_uav.env.render import save_animation
+
+    with pytest.raises(ValueError):
+        save_animation([np.zeros((8, 8, 3), dtype=np.uint8)], str(tmp_path / "d.png"), fps=4)
