@@ -32,7 +32,10 @@ pip install -r requirements.txt && pip install -e .
 ## Quick start
 
 ```bash
-# one day with the EDF baseline, prints metrics and saves outputs/demo_edf_medium_0.gif
+# watch one day live in a window (EDF baseline); without a display it saves a gif instead
+python scripts/demo.py --policy edf --load medium --seed 0 --live
+
+# same day, saved to outputs/demo_edf_medium_0.gif
 python scripts/demo.py --policy edf --load medium --seed 0
 
 # random valid actions on a low-load day

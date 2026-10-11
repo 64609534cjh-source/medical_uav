@@ -1,5 +1,7 @@
 """Matplotlib rendering. Frames are rebuilt from the simulator history, so any
 time t <= sim.t can be drawn (used for smooth replays and videos)."""
+import math
+
 import imageio.v2 as imageio
 import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg
@@ -156,6 +158,18 @@ class Renderer:
         lost = sum(1 for o in sim.orders
                    if o.status in ("expired", "rejected") and o.end_time <= t + EPS)
         ax.text(0, 0.0, f"delivered {len(done)} (on time {on_time})   lost {lost}", fontsize=11)
+
+
+def frame_times(t0: float, t1: float, step: float) -> list[float]:
+    """Frame times in (t0, t1] on a grid of `step` minutes, always ending at t1."""
+    times = []
+    k = math.floor(t0 / step + EPS) + 1
+    while k * step <= t1 + EPS:
+        times.append(k * step)
+        k += 1
+    if t1 > t0 + EPS and (not times or times[-1] < t1 - EPS):
+        times.append(t1)
+    return times
 
 
 def save_animation(frames: list, path: str, fps: int) -> None:

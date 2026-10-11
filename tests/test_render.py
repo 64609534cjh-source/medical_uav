@@ -43,3 +43,11 @@ def test_env_render_rgb_array():
     env.step(25)
     frame = env.render()
     assert frame.ndim == 3 and frame.shape[2] == 3
+
+
+def test_frame_times_cover_interval_without_repeating_start():
+    from medical_uav.env.render import frame_times
+
+    assert frame_times(0.0, 3.0, 1.0) == pytest.approx([1.0, 2.0, 3.0])
+    assert frame_times(2.5, 4.0, 1.0) == pytest.approx([3.0, 4.0])
+    assert frame_times(5.0, 5.0, 1.0) == []
