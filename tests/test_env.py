@@ -93,3 +93,18 @@ def test_reward_equals_sum_of_order_outcomes():
             expected -= 0.5
     expected -= 0.001 * env.sim.energy_used
     assert total == pytest.approx(expected, abs=1e-6)
+
+
+@pytest.mark.parametrize("action", [-1, 26])
+def test_out_of_range_action_raises(action):
+    env = MedicalUAVEnv()
+    env.reset(seed=0)
+    with pytest.raises(ValueError):
+        env.step(action)
+
+
+def test_default_demand_seed_in_training_range():
+    env = MedicalUAVEnv()
+    for seed in range(20):
+        env.reset(seed=seed)
+        assert 0 <= env.demand_seed < 100_000

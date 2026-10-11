@@ -82,7 +82,7 @@ medical_uav/
 scripts/
   demo.py            run an episode, print metrics, save an animation
   calibrate.py       load calibration, map statistics, throughput
-tests/               pytest suite (86 tests)
+tests/               pytest suite
 docs/                design spec, implementation plan, report material
 ```
 
@@ -111,6 +111,8 @@ docs/                design spec, implementation plan, report material
 - **Reward:** +1 per on-time delivery, decreasing linearly to −0.5 at expiry for late deliveries,
   −0.5 per expired or rejected order, −0.001 per % of battery used.
 - **`reset` options:** `demand_seed`, `load` (`"low"`/`"medium"`/`"high"`) or `lam` (float).
+  `demand_seed` fixes the day's orders; without it, `reset(seed=s)` draws one from [0, 100000).
+  `scripts/demo.py --seed` and `run_episode(env, policy, demand_seed)` take the demand seed.
 - **`info` keys:** `action_mask`, `t`, `elapsed`, `invalid_action`, `action_name`, `events`.
 
 ## Tests

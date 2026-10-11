@@ -41,7 +41,7 @@ def test_charging_rule_low_battery_charges():
 
 
 def test_metrics_account_for_every_order():
-    m = run_episode(MedicalUAVEnv(), edf_policy, seed=0)
+    m = run_episode(MedicalUAVEnv(), edf_policy, 0)
     assert 0.0 <= m["on_time_rate"] <= m["served_rate"] <= 1.0
     total = m["served_rate"] + m["expiry_rate"] + m["rejected"] / max(m["n_orders"], 1)
     assert total == pytest.approx(1.0)
@@ -55,3 +55,9 @@ def test_edf_beats_random_on_low_load():
     rnd = np.mean([run_episode(env, lambda e: random_policy(e, rng), s)["on_time_rate"]
                    for s in range(5)])
     assert edf > rnd
+
+
+def test_run_episode_seed_is_the_demand_seed():
+    env = MedicalUAVEnv()
+    run_episode(env, edf_policy, 3)
+    assert env.demand_seed == 3

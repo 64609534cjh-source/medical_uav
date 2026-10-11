@@ -44,9 +44,9 @@ def edf_policy(env, theta: float = 40.0) -> int:
     return min(candidates)[2] if candidates else WAIT
 
 
-def run_episode(env, policy, seed: int, options: dict | None = None) -> dict:
-    """Run one episode with policy(env) -> action; returns metrics plus return and decisions."""
-    env.reset(seed=seed, options=options)
+def run_episode(env, policy, demand_seed: int, options: dict | None = None) -> dict:
+    """Run one day with policy(env) -> action; returns metrics plus return and decisions."""
+    env.reset(options={**(options or {}), "demand_seed": demand_seed})
     total, decisions, done = 0.0, 0, False
     while not done:
         _, reward, done, _, _ = env.step(policy(env))

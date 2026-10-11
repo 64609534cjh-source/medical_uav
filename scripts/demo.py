@@ -18,7 +18,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy", choices=["random", "edf"], default="edf")
     parser.add_argument("--load", choices=["low", "medium", "high"], default="medium")
-    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--seed", type=int, default=0, help="demand seed (which day of orders)")
     parser.add_argument("--out", default=None, help="output .gif or .mp4")
     parser.add_argument("--fps", type=int, default=12)
     parser.add_argument("--minutes-per-frame", type=float, default=1.0)
@@ -34,8 +34,9 @@ def main():
         rng = np.random.default_rng(args.seed)
         policy = lambda e: random_policy(e, rng)  # noqa: E731
 
-    metrics = run_episode(env, policy, seed=args.seed)
-    print(f"policy={args.policy} load={args.load} seed={args.seed} map_seed={env.cfg.map_seed}")
+    metrics = run_episode(env, policy, args.seed)
+    print(f"policy={args.policy} load={args.load} demand_seed={args.seed} "
+          f"map_seed={env.cfg.map_seed}")
     for key, value in metrics.items():
         print(f"  {key:15s} {value:.3f}" if isinstance(value, float) else f"  {key:15s} {value}")
 

@@ -41,7 +41,8 @@ class MedicalUAVEnv(gym.Env):
         options = options or {}
         load = options.get("load", self.load)
         self.lam = options.get("lam", self.cfg.loads[load])
-        self.demand_seed = options.get("demand_seed", int(self.np_random.integers(2**31 - 1)))
+        # default demand seeds come from the training range [0, 100000) (§10.1)
+        self.demand_seed = options.get("demand_seed", int(self.np_random.integers(100_000)))
 
         orders = generate_orders(self.demand_seed, self.lam, self.cfg)
         self.sim = Simulator(self.cfg, self.city_map, orders, self.lam)
@@ -52,6 +53,8 @@ class MedicalUAVEnv(gym.Env):
     def step(self, action):
         if self.sim is None or self._done:
             raise RuntimeError("episode is over, call reset()")
+        if not self.action_space.contains(action):
+            raise ValueError(f"action {action} is not in Discrete({N_ACTIONS})")
         action = int(action)
         invalid = not self._mask[action]
         if invalid:
