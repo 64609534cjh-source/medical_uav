@@ -1,4 +1,4 @@
-"""Tests for grid A* (spec §4.1: 8-connected, diagonal cost sqrt(2), no corner cutting)."""
+"""Tests for grid A* (spec: 8-connected, diagonal cost sqrt(2), no corner cutting)."""
 import math
 
 import numpy as np
