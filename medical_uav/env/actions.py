@@ -1,4 +1,4 @@
-"""Discrete action table (§5)."""
+"""Discrete action table."""
 from medical_uav.env.config import C2, M, NODE_NAMES
 
 N_ACTIONS = 26

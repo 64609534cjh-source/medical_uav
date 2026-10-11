@@ -1,4 +1,4 @@
-"""Random city map: no-fly zones, 7 nodes and A* routes between them (§4.1)."""
+"""Random city map: no-fly zones, 7 nodes and A* routes between them."""
 from dataclasses import dataclass, field
 
 import numpy as np

@@ -1,4 +1,4 @@
-"""Orders and the seeded daily order stream (§4.3)."""
+"""Orders and the seeded daily order stream."""
 from dataclasses import dataclass
 
 import numpy as np

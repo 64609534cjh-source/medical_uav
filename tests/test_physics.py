@@ -1,4 +1,4 @@
-"""Tests for configuration constants (spec §4.2, §4.3) and physics helpers (§4.2, §7)."""
+"""Tests for configuration constants and physics helpers."""
 import pytest
 
 from medical_uav.env import physics

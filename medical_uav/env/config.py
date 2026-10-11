@@ -1,7 +1,8 @@
-"""Environment constants. Values follow the design spec (section numbers in comments)."""
+"""Environment constants and their validation."""
+import math
 from dataclasses import dataclass, field
 
-# Node indices (§4.1). C1 is the charger at the center M.
+# Node indices. C1 is the charger at the center M.
 M, H1, H2, H3, H4, H5, C2 = 0, 1, 2, 3, 4, 5, 6
 NODE_NAMES = ("M", "H1", "H2", "H3", "H4", "H5", "C2")
 N_NODES = 7
@@ -22,7 +23,6 @@ class OrderType:
     share: float
 
 
-# §4.3
 ORDER_TYPES = (
     OrderType("plasma", "center_to_hospital", (0.6, 0.9), limit=30.0, expiry=60.0, share=0.20),
     OrderType("medicine", "center_to_hospital", (0.3, 0.6), limit=90.0, expiry=180.0, share=0.30),
@@ -33,7 +33,7 @@ ORDER_TYPES = (
 
 @dataclass
 class EnvConfig:
-    # map (§4.1)
+    # map
     grid_size: int = 16
     cell_km: float = 0.25
     n_zones_range: tuple[int, int] = (2, 4)
@@ -42,7 +42,7 @@ class EnvConfig:
     map_seed: int = 0
     max_map_tries: int = 100
 
-    # drone (§4.2)
+    # drone
     speed_km_per_min: float = 1.0
     energy_per_km: float = 3.5  # battery % per km, empty
     payload_factor: float = 0.25  # +25% energy per kg
@@ -52,7 +52,7 @@ class EnvConfig:
     max_boxes: int = 3
     max_weight: float = 2.0
 
-    # demand (§4.3)
+    # demand
     release_window: float = 480.0
     peak_windows: tuple[tuple[float, float], ...] = ((60.0, 180.0), (300.0, 390.0))
     peak_multiplier: float = 2.0
@@ -60,12 +60,37 @@ class EnvConfig:
     loads: dict = field(default_factory=lambda: {"low": 0.04, "medium": 0.06, "high": 0.10})
     pool_cap: int = 30
 
-    # actions / observation (§5, §6)
+    # actions / observation
     n_slots: int = 12
     wait_max: float = 10.0
-    charge_targets: tuple[float, ...] = (60.0, 80.0, 100.0)
 
-    # reward (§7)
+    # reward
     reward_on_time: float = 1.0  # R
     expiry_penalty: float = 0.5  # P
     energy_cost: float = 0.001  # per % battery
+
+    def validate(self) -> None:
+        """Raise ValueError for settings the environment cannot run with."""
+        positive = ["grid_size", "cell_km", "speed_km_per_min", "energy_per_km", "charge_rate",
+                    "handling_min", "max_weight", "release_window", "wait_max"]
+        for name in positive:
+            if not getattr(self, name) > 0:
+                raise ValueError(f"{name} must be > 0, got {getattr(self, name)}")
+        if not 0 <= self.reserve < 100:
+            raise ValueError(f"reserve must be in [0, 100), got {self.reserve}")
+        if self.payload_factor < 0 or self.expiry_penalty < 0:
+            raise ValueError("payload_factor and expiry_penalty must be >= 0")
+        if not 1 <= self.max_boxes <= 3:
+            raise ValueError(f"max_boxes must be 1..3 (3 onboard slots), got {self.max_boxes}")
+        if self.n_slots != 12:
+            raise ValueError(f"n_slots must be 12 (fixed observation layout), got {self.n_slots}")
+        if self.pool_cap < 1:
+            raise ValueError(f"pool_cap must be >= 1, got {self.pool_cap}")
+        for name, lam in self.loads.items():
+            if not (math.isfinite(lam) and lam >= 0):
+                raise ValueError(f"load {name!r} must be a finite rate >= 0, got {lam}")
+
+
+def day_length(cfg: EnvConfig) -> float:
+    """Latest time an order can still be open: release window + longest expiry."""
+    return cfg.release_window + max(t.expiry for t in ORDER_TYPES)

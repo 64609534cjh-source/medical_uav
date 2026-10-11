@@ -16,7 +16,7 @@ def charge_minutes(battery: float, target: float, cfg: EnvConfig) -> float:
 
 
 def delivery_reward(age: float, limit: float, expiry: float, cfg: EnvConfig) -> float:
-    """+R if on time, then linear from +R at L down to -P at H (§7)."""
+    """+R if on time, then linear from +R at L down to -P at H."""
     if age <= limit + EPS:
         return cfg.reward_on_time
     late_fraction = (age - limit) / (expiry - limit)

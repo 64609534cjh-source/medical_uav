@@ -1,4 +1,4 @@
-"""Per-episode business metrics (§10.2)."""
+"""Per-episode business metrics."""
 from medical_uav.env.config import EPS
 from medical_uav.env.simulator import Simulator
 

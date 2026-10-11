@@ -1,4 +1,4 @@
-"""Action mask (§5). Every rule keeps the safety invariant of the simulator."""
+"""Action mask. Every rule keeps the safety invariant of the simulator."""
 import numpy as np
 
 from medical_uav.env.actions import CHARGE0, CHARGE_TABLE, DELIVER0, N_ACTIONS, PICK0, RETURN, WAIT

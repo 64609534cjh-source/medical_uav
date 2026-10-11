@@ -1,4 +1,4 @@
-"""Rule-based baselines (§9). Policies take the env and return a valid action index."""
+"""Rule-based baselines. Policies take the env and return a valid action index."""
 import numpy as np
 
 from medical_uav.env.actions import CHARGE0, CHARGE_TABLE, DELIVER0, PICK0, WAIT

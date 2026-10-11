@@ -1,4 +1,6 @@
-"""Gymnasium wrapper around the simulator (§5, §6, §7)."""
+"""Gymnasium wrapper around the simulator."""
+import math
+
 import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
@@ -18,6 +20,11 @@ class MedicalUAVEnv(gym.Env):
     def __init__(self, config: EnvConfig | None = None, load: str = "medium",
                  render_mode: str | None = None):
         self.cfg = config or EnvConfig()
+        self.cfg.validate()
+        if load not in self.cfg.loads:
+            raise ValueError(f"unknown load {load!r}, expected one of {list(self.cfg.loads)}")
+        if render_mode is not None and render_mode not in self.metadata["render_modes"]:
+            raise ValueError(f"unknown render_mode {render_mode!r}")
         self.load = load
         self.render_mode = render_mode
         self.city_map = generate_map(self.cfg.map_seed, self.cfg)
@@ -40,8 +47,12 @@ class MedicalUAVEnv(gym.Env):
         super().reset(seed=seed)
         options = options or {}
         load = options.get("load", self.load)
-        self.lam = options.get("lam", self.cfg.loads[load])
-        # default demand seeds come from the training range [0, 100000) (§10.1)
+        if load not in self.cfg.loads:
+            raise ValueError(f"unknown load {load!r}, expected one of {list(self.cfg.loads)}")
+        self.lam = float(options.get("lam", self.cfg.loads[load]))
+        if not (math.isfinite(self.lam) and self.lam >= 0):
+            raise ValueError(f"lam must be a finite rate >= 0, got {self.lam}")
+        # default demand seeds come from the training range [0, 100000)
         self.demand_seed = options.get("demand_seed", int(self.np_random.integers(100_000)))
 
         orders = generate_orders(self.demand_seed, self.lam, self.cfg)

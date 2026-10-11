@@ -1,4 +1,4 @@
-"""Event-driven simulation of one operating day (§4.4, §4.5).
+"""Event-driven simulation of one operating day.
 
 The simulator has no notion of action indices or observations; the Gym
 wrapper translates actions into the do_* commands below.
@@ -50,7 +50,6 @@ class Simulator:
         self._next_release = 0  # index of the next order to be released
         self.advance_to(0.0)
 
-    # ------------------------------------------------------------------ queries
 
     def load_kg(self) -> float:
         return sum(o.weight for o in self.onboard)
@@ -96,7 +95,6 @@ class Simulator:
         assert self.battery >= need - 1e-6, \
             f"battery {self.battery:.3f} < {need:.3f} at t={self.t:.2f}"
 
-    # ------------------------------------------------------------------ events
 
     def advance_to(self, t_target: float, strict: bool = False) -> None:
         """Process releases and expiries up to t_target, then move the clock there.
@@ -154,10 +152,9 @@ class Simulator:
             self.pending.append(o)
             self.events.append((o.release, "release", o.id))
 
-    # ------------------------------------------------------------------ movement
 
     def fly_to(self, node: int) -> None:
-        """Fly to node; at a facility, expired cargo is unloaded on arrival (§4.4)."""
+        """Fly to node; at a facility, expired cargo is unloaded on arrival."""
         if node != self.location:
             e = self.energy(self.location, node, self.load_kg())
             t_arrive = self.t + self.travel_time(self.location, node)
@@ -186,7 +183,6 @@ class Simulator:
                                      self.battery, self.battery, o.id))
         self.advance_to(t_end, strict=strict)
 
-    # ------------------------------------------------------------------ commands
 
     def do_pick(self, order: Order) -> None:
         self.fly_to(order.origin)
@@ -211,7 +207,7 @@ class Simulator:
                 o.disposed_time = self.t
                 self.events.append((self.t, "dispose", o.id))
             else:
-                # strict: an unload ending exactly at expiry counts as a delivery (§4.4)
+                # strict: an unload ending exactly at expiry counts as a delivery
                 self._handle_box("unload", o, strict=True)
                 if o.status == "expired":  # expired during the unload
                     o.disposed_time = self.t

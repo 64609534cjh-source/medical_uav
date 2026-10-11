@@ -1,4 +1,4 @@
-"""8-connected A* on the occupancy grid, no corner cutting (§4.1)."""
+"""8-connected A* on the occupancy grid, no corner cutting."""
 import heapq
 import math
 

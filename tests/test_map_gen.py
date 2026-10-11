@@ -1,4 +1,4 @@
-"""Tests for random city maps (spec §4.1)."""
+"""Tests for random city maps."""
 import numpy as np
 
 from medical_uav.env.config import C2, M, EnvConfig

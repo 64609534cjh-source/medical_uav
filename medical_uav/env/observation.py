@@ -1,7 +1,7 @@
-"""415-dim observation (§6): global block, 12 pending slots, 3 onboard slots."""
+"""415-dim observation: global block, 12 pending slots, 3 onboard slots."""
 import numpy as np
 
-from medical_uav.env.config import EPS, FACILITIES, N_NODES, ORDER_TYPES
+from medical_uav.env.config import EPS, FACILITIES, N_NODES, ORDER_TYPES, day_length
 from medical_uav.env.orders import Order, demand_multiplier
 from medical_uav.env.simulator import Simulator
 
@@ -12,8 +12,15 @@ N_SLOTS = 12
 N_ONBOARD = 3
 OBS_DIM = GLOBAL_DIM + N_SLOTS * PENDING_DIM + N_ONBOARD * ONBOARD_DIM
 
-T_SCALE = 30.0  # minutes, for durations
 OBS_BOUND = 10.0  # features are clipped to [-OBS_BOUND, OBS_BOUND]
+
+# feature scales
+DURATION_SCALE = 30.0  # minutes, for durations and slack
+TRAVEL_SCALE = 10.0  # minutes, for travel times to nodes
+COUNT_SCALE = 10.0  # orders, for per-type and recent counts
+SAME_DEST_SCALE = 5.0
+RECENT_WINDOW = 30.0  # minutes, for 'releases in the last 30 min'
+FORECAST_STEPS = (30.0, 60.0)  # minutes ahead for the demand profile
 
 
 def direct_completion_time(sim: Simulator, order: Order) -> float:
@@ -73,30 +80,30 @@ def _global_features(sim: Simulator, n_visible: int) -> list[float]:
     cfg, t = sim.cfg, sim.t
     load = sim.load_kg()
     _, to_charger = sim.nearest_charger(sim.location, load)
-    per_type = [sum(1 for o in sim.pending if o.type_idx == k) / 10.0
+    per_type = [sum(1 for o in sim.pending if o.type_idx == k) / COUNT_SCALE
                 for k in range(len(ORDER_TYPES))]
-    recent = sum(1 for r in sim.release_times_log if r > t - 30.0)
+    recent = sum(1 for r in sim.release_times_log if r > t - RECENT_WINDOW)
     return [
-        t / 660.0,
+        t / day_length(cfg),
         max(0.0, cfg.release_window - t) / cfg.release_window,
         demand_multiplier(t, cfg) / 2.0,
-        demand_multiplier(t + 30.0, cfg) / 2.0,
-        demand_multiplier(t + 60.0, cfg) / 2.0,
+        demand_multiplier(t + FORECAST_STEPS[0], cfg) / 2.0,
+        demand_multiplier(t + FORECAST_STEPS[1], cfg) / 2.0,
         sim.lam / cfg.loads["high"],
         sim.battery / 100.0,
         load / cfg.max_weight,
         len(sim.onboard) / cfg.max_boxes,
         *_one_hot(sim.location, N_NODES),
-        *[sim.travel_time(sim.location, n) / 10.0 for n in range(N_NODES)],
+        *[sim.travel_time(sim.location, n) / TRAVEL_SCALE for n in range(N_NODES)],
         to_charger / 100.0,
         len(sim.pending) / cfg.pool_cap,
         (len(sim.pending) - n_visible) / cfg.pool_cap,
         *per_type,
-        recent / 10.0,
+        recent / COUNT_SCALE,
     ]
 
 
-def _pending_features(sim: Simulator, o: Order, feasible: bool) -> list[float]:
+def _pending_features(sim: Simulator, o: Order, pick_allowed: bool) -> list[float]:
     t = sim.t
     direct = direct_completion_time(sim, o)
     onboard_dests = {b.dest for b in sim.onboard if b.status == "onboard"}
@@ -110,13 +117,13 @@ def _pending_features(sim: Simulator, o: Order, feasible: bool) -> list[float]:
         (o.deadline - t) / o.limit,
         (o.expiry - t) / o.limit,
         o.age(t) / o.limit,
-        direct / T_SCALE,
-        (o.deadline - t - direct) / T_SCALE,
+        direct / DURATION_SCALE,
+        (o.deadline - t - direct) / DURATION_SCALE,
         float(o.dest in onboard_dests),
-        same_dest / 5.0,
+        same_dest / SAME_DEST_SCALE,
         float(o.origin == sim.location),
-        insertion_extra_time(sim, o) / T_SCALE,
-        float(feasible),
+        insertion_extra_time(sim, o) / DURATION_SCALE,
+        float(pick_allowed),
     ]
 
 
@@ -130,7 +137,7 @@ def _onboard_features(sim: Simulator, o: Order) -> list[float]:
         (o.deadline - t) / o.limit,
         (o.expiry - t) / o.limit,
         float(o.status == "expired"),
-        direct_completion_time(sim, o) / T_SCALE,
+        direct_completion_time(sim, o) / DURATION_SCALE,
     ]
 
 
