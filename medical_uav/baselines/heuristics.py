@@ -2,7 +2,8 @@
 import numpy as np
 
 from medical_uav.env.actions import CHARGE0, CHARGE_TABLE, DELIVER0, PICK0, WAIT
-from medical_uav.env.config import C2, FACILITIES, M
+from medical_uav.env.config import C2, EPS, FACILITIES, M
+from medical_uav.env.observation import direct_completion_time
 from medical_uav.metrics import episode_metrics
 
 
@@ -42,6 +43,40 @@ def edf_policy(env, theta: float = 40.0) -> int:
             deadline = min(o.deadline for o in sim.onboard if o.dest == n and o.status == "onboard")
             candidates.append((deadline, 0, DELIVER0 + n))
     return min(candidates)[2] if candidates else WAIT
+
+
+def slack_aware_policy(env, theta: float = 30.0) -> int:
+    """Strong heuristic: deliver here, batch, charge if needed, then EDF that skips hopeless work."""
+    sim, mask = env.sim, env.action_masks()
+    h = sim.cfg.handling_min
+
+    # 1) boxes for the current node: unload them now (no flight needed)
+    if sim.location in FACILITIES and mask[DELIVER0 + sim.location]:
+        return DELIVER0 + sim.location
+
+    # 2) batching: load an order waiting here that goes where cargo already goes
+    onboard_dests = {o.dest for o in sim.onboard if o.status == "onboard"}
+    for k, order in enumerate(env.slots):
+        if mask[PICK0 + k] and order.origin == sim.location and order.dest in onboard_dests:
+            return PICK0 + k
+
+    # 3) shared charging rule
+    a = charging_rule(env, theta)
+    if a is not None:
+        return a
+
+    # 4) work that can still be on time first, then earliest deadline
+    candidates = []  # (hopeless, deadline, deliver-before-pick, action)
+    for k, order in enumerate(env.slots):
+        if mask[PICK0 + k]:
+            hopeless = sim.t + direct_completion_time(sim, order) > order.deadline + EPS
+            candidates.append((hopeless, order.deadline, 1, PICK0 + k))
+    for n in FACILITIES:
+        if mask[DELIVER0 + n]:
+            deadline = min(o.deadline for o in sim.onboard if o.dest == n and o.status == "onboard")
+            hopeless = sim.t + sim.travel_time(sim.location, n) + h > deadline + EPS
+            candidates.append((hopeless, deadline, 0, DELIVER0 + n))
+    return min(candidates)[3] if candidates else WAIT
 
 
 def run_episode(env, policy, demand_seed: int, options: dict | None = None) -> dict:

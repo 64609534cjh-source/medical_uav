@@ -1,9 +1,14 @@
 import numpy as np
 import pytest
 
-from medical_uav.baselines.heuristics import charging_rule, edf_policy, random_policy, run_episode
+from medical_uav.baselines.heuristics import (charging_rule, edf_policy, random_policy, run_episode,
+                                              slack_aware_policy)
 from medical_uav.env import MedicalUAVEnv
-from medical_uav.env.actions import CHARGE0, DELIVER0, WAIT
+from medical_uav.env.actions import CHARGE0, DELIVER0, PICK0, WAIT
+from medical_uav.env.config import M
+from medical_uav.env.masks import compute_action_mask
+from medical_uav.env.observation import rank_pending
+from tests.conftest import make_order, make_sim
 
 
 def test_edf_picks_earliest_deadline():
@@ -61,3 +66,61 @@ def test_run_episode_seed_is_the_demand_seed():
     env = MedicalUAVEnv()
     run_episode(env, edf_policy, 3)
     assert env.demand_seed == 3
+
+
+class SimEnv:
+    """Minimal env-like wrapper around a hand-built simulator."""
+
+    def __init__(self, sim):
+        self.sim = sim
+        self.slots = rank_pending(sim)
+
+    def action_masks(self):
+        return compute_action_mask(self.sim, self.slots)
+
+
+def test_slack_aware_delivers_here_first(line_map):
+    a = make_order(0, 0, M, 2, 0.6, 0.0)
+    sim = make_sim(line_map, [a])
+    sim.do_pick(a)
+    sim.fly_to(2)  # at H2 with the box for H2 still on board
+    sim.battery = 35.0  # below theta=40: charging would be wanted
+    assert slack_aware_policy(SimEnv(sim), theta=40.0) == DELIVER0 + 2
+
+
+def test_slack_aware_batches_same_destination(line_map):
+    a, c = make_order(0, 1, M, 2, 0.5, 0.0), make_order(1, 1, M, 2, 0.5, 0.0)
+    sim = make_sim(line_map, [a, c])
+    sim.do_pick(a)  # at M, box for H2 on board, c waits at M for H2
+    env = SimEnv(sim)
+    assert slack_aware_policy(env) == PICK0 + env.slots.index(c)
+    assert edf_policy(env) == DELIVER0 + 2  # EDF delivers first on the deadline tie
+
+
+def test_slack_aware_prefers_feasible_over_hopeless(line_map):
+    late = make_order(0, 0, M, 1, 0.7, 0.0)  # deadline 30: hopeless at t=45
+    fresh = make_order(1, 1, M, 2, 0.5, 40.0)  # deadline 130
+    sim = make_sim(line_map, [late, fresh])
+    sim.advance_to(45.0)
+    env = SimEnv(sim)
+    assert slack_aware_policy(env) == PICK0 + env.slots.index(fresh)
+    assert edf_policy(env) == PICK0 + env.slots.index(late)
+
+
+@pytest.mark.parametrize("lam", [0.04, 0.08, 0.12, 0.4])
+def test_slack_aware_only_valid_actions(lam):
+    env = MedicalUAVEnv()
+    obs, info = env.reset(options={"demand_seed": 1, "lam": lam})
+    done = False
+    while not done:
+        a = slack_aware_policy(env)
+        assert info["action_mask"][a]
+        obs, r, done, _, info = env.step(a)
+
+
+def test_slack_aware_beats_edf_on_medium():
+    env = MedicalUAVEnv()
+    opts = {"lam": 0.08}
+    slack = np.mean([run_episode(env, slack_aware_policy, s, opts)["on_time_rate"] for s in range(10)])
+    edf = np.mean([run_episode(env, edf_policy, s, opts)["on_time_rate"] for s in range(10)])
+    assert slack > edf + 0.1
