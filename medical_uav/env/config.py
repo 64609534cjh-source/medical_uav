@@ -57,7 +57,7 @@ class EnvConfig:
     peak_windows: tuple[tuple[float, float], ...] = ((60.0, 180.0), (300.0, 390.0))
     peak_multiplier: float = 2.0
     offpeak_multiplier: float = 0.6
-    loads: dict = field(default_factory=lambda: {"low": 0.04, "medium": 0.07, "high": 0.10})
+    loads: dict = field(default_factory=lambda: {"low": 0.04, "medium": 0.06, "high": 0.10})
     pool_cap: int = 30
 
     # actions / observation (§5, §6)
