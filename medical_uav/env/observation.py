@@ -13,6 +13,7 @@ N_ONBOARD = 3
 OBS_DIM = GLOBAL_DIM + N_SLOTS * PENDING_DIM + N_ONBOARD * ONBOARD_DIM
 
 T_SCALE = 30.0  # minutes, for durations
+OBS_BOUND = 10.0  # features are clipped to [-OBS_BOUND, OBS_BOUND]
 
 
 def direct_completion_time(sim: Simulator, order: Order) -> float:
@@ -146,6 +147,6 @@ def build_observation(sim: Simulator, slots: list[Order], mask: np.ndarray) -> n
             features += _onboard_features(sim, onboard[k])
         else:
             features += [0.0] * ONBOARD_DIM
-    obs = np.array(features, dtype=np.float32)
+    obs = np.clip(np.array(features, dtype=np.float32), -OBS_BOUND, OBS_BOUND)
     assert obs.shape == (OBS_DIM,)
     return obs
