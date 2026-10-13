@@ -12,7 +12,7 @@ def test_default_config_is_valid():
 
 
 @pytest.mark.parametrize("field,value", [("wait_max", 0.0), ("charge_rate", 0.0), ("max_boxes", 4),
-                                         ("n_slots", 16), ("speed_km_per_min", -1.0),
+                                         ("speed_km_per_min", -1.0),
                                          ("reserve", 100.0)])
 def test_invalid_config_rejected(field, value):
     cfg = EnvConfig(**{field: value})

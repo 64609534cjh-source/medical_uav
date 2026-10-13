@@ -66,8 +66,7 @@ class EnvConfig:
     loads: dict = field(default_factory=lambda: {"low": 0.04, "medium": 0.08, "high": 0.12})
     pool_cap: int = 30  # max orders waiting to be picked up; further arrivals are rejected
 
-    # actions / observation
-    n_slots: int = 12  # pending orders the agent can see (and PICK); fixed by the observation size
+    # actions
     wait_max: float = 10.0  # WAIT ends at the next release or expiry, at the latest after this
 
     # reward
@@ -77,7 +76,7 @@ class EnvConfig:
 
     def validate(self) -> None:
         """Raise ValueError for settings the environment cannot run with."""
-        for name in ["grid_size", "map_seed", "max_map_tries", "max_boxes", "pool_cap", "n_slots"]:
+        for name in ["grid_size", "map_seed", "max_map_tries", "max_boxes", "pool_cap"]:
             value = getattr(self, name)
             if isinstance(value, bool) or not isinstance(value, int):
                 raise ValueError(f"{name} must be an integer, got {value!r}")
@@ -95,8 +94,6 @@ class EnvConfig:
             raise ValueError(f"reserve must be in [0, 100), got {self.reserve}")
         if not 1 <= self.max_boxes <= 3:
             raise ValueError(f"max_boxes must be 1..3 (3 onboard slots), got {self.max_boxes}")
-        if self.n_slots != 12:
-            raise ValueError(f"n_slots must be 12 (fixed observation layout), got {self.n_slots}")
         if self.pool_cap < 1:
             raise ValueError(f"pool_cap must be >= 1, got {self.pool_cap}")
         for name, lam in self.loads.items():

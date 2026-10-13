@@ -131,7 +131,7 @@ class MedicalUAVEnv(gym.Env):
             self.sim.do_wait()
 
     def _update_view(self) -> None:
-        self.slots = rank_pending(self.sim, self.cfg.n_slots)
+        self.slots = rank_pending(self.sim)
         self._mask = compute_action_mask(self.sim, self.slots)
         self._obs = build_observation(self.sim, self.slots, self._mask)
 
