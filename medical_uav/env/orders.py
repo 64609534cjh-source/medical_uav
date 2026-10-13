@@ -12,21 +12,21 @@ class Order:
     type_idx: int
     origin: int
     dest: int
-    weight: float
-    release: float
-    limit: float  # L
-    expiry_after: float  # H
+    weight: float  # kg
+    release: float  # minute the order appears
+    limit: float  # L: minutes after release to be on time
+    expiry_after: float  # H: minutes after release until the order is lost
     status: str = "future"  # future / pending / onboard / delivered / expired / rejected
     pickup_time: float | None = None
     end_time: float | None = None  # when delivered, expired or rejected
     disposed_time: float | None = None  # expired cargo unloaded
 
     @property
-    def deadline(self) -> float:
+    def deadline(self) -> float:  # absolute time, minutes
         return self.release + self.limit
 
     @property
-    def expiry(self) -> float:
+    def expiry(self) -> float:  # absolute time, minutes
         return self.release + self.expiry_after
 
     def age(self, t: float) -> float:
