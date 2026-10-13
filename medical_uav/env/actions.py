@@ -3,10 +3,12 @@
 Index layout: PICK(slot) x N_SLOTS | DELIVER(facility) | CHARGE(station, target) | RETURN | WAIT.
 How long each action takes is decided by the simulator and EnvConfig, not here.
 """
-from medical_uav.env.config import CHARGERS, FACILITIES, M, NODE_NAMES
+import numbers
+
+from medical_uav.env.config import CHARGERS, FACILITIES, FULL_BATTERY, M, NODE_NAMES
 
 N_SLOTS = 12  # pending orders the agent can see and PICK (also sizes the observation)
-CHARGE_TARGETS = (60.0, 80.0, 100.0)  # battery % a CHARGE action fills up to
+CHARGE_TARGETS = (60.0, 80.0, FULL_BATTERY)  # battery % a CHARGE action fills up to
 CHARGE_TABLE = tuple((station, target) for station in CHARGERS for target in CHARGE_TARGETS)
 
 # DELIVER(n) uses the facility index n as its offset, so facilities must be 0..5 in order
@@ -27,8 +29,9 @@ def charge_action(station: int, target: float) -> int:
 
 def decode(a: int):
     """Action index -> (kind, argument)."""
-    if isinstance(a, bool) or not isinstance(a, int) or not 0 <= a < N_ACTIONS:
+    if isinstance(a, bool) or not isinstance(a, numbers.Integral) or not 0 <= a < N_ACTIONS:
         raise ValueError(f"action must be an integer in 0..{N_ACTIONS - 1}, got {a!r}")
+    a = int(a)
     if a < DELIVER0:
         return "pick", a - PICK0
     if a < CHARGE0:

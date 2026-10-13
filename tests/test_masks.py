@@ -112,3 +112,26 @@ def test_charge_action_lookup():
 def test_decode_rejects_invalid_indices(bad):
     with pytest.raises(ValueError):
         decode(bad)
+
+
+def test_decode_accepts_numpy_integers():
+    import numpy as np
+
+    assert decode(np.int64(25)) == ("wait", None)
+
+
+def test_arrival_disposal_uses_the_arrival_snapshot(line_map):
+    from medical_uav.env.masks import predict_arrival
+
+    a = make_order(0, 0, M, 5, 0.6, 0.0)  # plasma, expires at 60
+    b = make_order(1, 0, M, 5, 0.6, 1.5)  # plasma, expires at 61.5
+    sim = make_sim(line_map, [a, b])
+    sim.do_pick(a)
+    sim.do_pick(b)
+    sim.do_charge(C2, 100.0)
+    sim.advance_to(57.0)
+    _, predicted = predict_arrival(sim, M)  # arrive at 60.5
+    assert predicted == [a]
+    sim.fly_to(M)  # a is disposed 60.5-62.5; b expires at 61.5, during that disposal
+    assert a.disposed_time == pytest.approx(62.5)
+    assert b.status == "expired" and b in sim.onboard  # left for the next facility stop

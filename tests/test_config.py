@@ -76,3 +76,14 @@ def test_zero_zones_and_short_release_window_are_allowed():
 def test_named_rules_have_their_defaults():
     cfg = EnvConfig()
     assert cfg.min_charge_gain == 5.0 and cfg.zone_size_range == (2, 5)
+
+
+def test_zone_size_is_irrelevant_without_zones():
+    EnvConfig(grid_size=4, n_zones_range=(0, 0)).validate()
+
+
+@pytest.mark.parametrize("field,value", [("peak_windows", (None,)), ("n_zones_range", None),
+                                         ("zone_size_range", (2,)), ("peak_windows", ((1.0,),))])
+def test_malformed_structures_raise_value_error(field, value):
+    with pytest.raises(ValueError):
+        EnvConfig(**{field: value}).validate()

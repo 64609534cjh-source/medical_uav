@@ -6,6 +6,7 @@ Two parts:
 - EnvConfig: tunable numbers; changing them keeps the layout and only changes the results.
 """
 import math
+import numbers
 from dataclasses import dataclass, field
 
 # Fixed structure
@@ -114,11 +115,17 @@ class EnvConfig:
 
         _check_int_range("n_zones_range", self.n_zones_range, minimum=0)
         _check_int_range("zone_size_range", self.zone_size_range, minimum=1)
-        if self.zone_size_range[1] > self.grid_size:
+        if self.n_zones_range[1] > 0 and self.zone_size_range[1] > self.grid_size:
             raise ValueError(f"zone_size_range {self.zone_size_range} does not fit the grid")
-        for start, end in self.peak_windows:
-            if not (math.isfinite(start) and math.isfinite(end) and 0 <= start < end):
-                raise ValueError(f"peak window ({start}, {end}) must satisfy 0 <= start < end")
+        if not isinstance(self.peak_windows, (tuple, list)):
+            raise ValueError(f"peak_windows must be a sequence of (start, end) pairs, "
+                             f"got {self.peak_windows!r}")
+        for window in self.peak_windows:
+            start, end = _pair("peak window", window)
+            _check_number("peak window start", start, positive=False)
+            _check_number("peak window end", end, positive=True)
+            if not start < end:
+                raise ValueError(f"peak window {window} must have start < end")
 
         for name, lam in self.loads.items():
             _check_number(f"load {name!r}", lam, positive=False)
@@ -131,14 +138,21 @@ def _check_int(name: str, value) -> None:
         raise ValueError(f"{name} must be an integer, got {value!r}")
 
 
+def _pair(name: str, value):
+    if not (isinstance(value, (tuple, list)) and len(value) == 2):
+        raise ValueError(f"{name} must be a (min, max) pair, got {value!r}")
+    return value
+
+
 def _check_number(name: str, value, positive: bool) -> None:
-    if not (math.isfinite(value) and (value > 0 if positive else value >= 0)):
+    is_number = isinstance(value, numbers.Real) and not isinstance(value, bool)
+    if not (is_number and math.isfinite(value) and (value > 0 if positive else value >= 0)):
         bound = "> 0" if positive else ">= 0"
         raise ValueError(f"{name} must be a finite number {bound}, got {value}")
 
 
 def _check_int_range(name: str, pair, minimum: int) -> None:
-    low, high = pair
+    low, high = _pair(name, pair)
     _check_int(name, low)
     _check_int(name, high)
     if not minimum <= low <= high:

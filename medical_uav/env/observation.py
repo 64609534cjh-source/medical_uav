@@ -100,13 +100,13 @@ def _global_features(sim: Simulator, n_visible: int) -> list[float]:
         sim.battery / FULL_BATTERY,  # battery level
         load / cfg.max_weight,  # cargo weight / capacity
         len(sim.onboard) / cfg.max_boxes,  # boxes on board / capacity
-        *_one_hot(sim.location, N_NODES),  # where the drone is (N_NODES values)
-        # minutes to each node (N_NODES values)
+        *_one_hot(sim.location, N_NODES),  # where the drone is, in NODE_NAMES order
+        # travel time to each node / TRAVEL_SCALE, in NODE_NAMES order
         *[sim.travel_time(sim.location, n) / TRAVEL_SCALE for n in range(N_NODES)],
         to_charger / FULL_BATTERY,  # battery needed to reach the nearest charger
         len(sim.pending) / cfg.pool_cap,  # pending orders / pool capacity
         (len(sim.pending) - n_visible) / cfg.pool_cap,  # pending orders not shown in the slots
-        *per_type,  # pending orders of each type (N_TYPES values)
+        *per_type,  # pending orders of each type, in ORDER_TYPES order
         recent / COUNT_SCALE,  # orders released in the last 30 min
     ]
 
@@ -118,9 +118,9 @@ def _pending_features(sim: Simulator, o: Order, pick_allowed: bool) -> list[floa
     same_dest = sum(1 for p in sim.pending if p.dest == o.dest and p is not o)
     return [
         1.0,  # slot is used
-        *_one_hot(o.type_idx, N_TYPES),  # order type
-        *_one_hot(o.origin, N_FACILITIES),  # pickup facility
-        *_one_hot(o.dest, N_FACILITIES),  # destination facility
+        *_one_hot(o.type_idx, N_TYPES),  # order type, in ORDER_TYPES order
+        *_one_hot(o.origin, N_FACILITIES),  # pickup facility, in FACILITIES order
+        *_one_hot(o.dest, N_FACILITIES),  # destination facility, in FACILITIES order
         o.weight,  # kg
         (o.deadline - t) / o.limit,  # time to deadline, in units of L (negative when late)
         (o.expiry - t) / o.limit,  # time to expiry, in units of L
@@ -139,8 +139,8 @@ def _onboard_features(sim: Simulator, o: Order) -> list[float]:
     t = sim.t
     return [
         1.0,  # slot is used
-        *_one_hot(o.type_idx, N_TYPES),  # order type
-        *_one_hot(o.dest, N_FACILITIES),  # destination facility
+        *_one_hot(o.type_idx, N_TYPES),  # order type, in ORDER_TYPES order
+        *_one_hot(o.dest, N_FACILITIES),  # destination facility, in FACILITIES order
         o.weight,  # kg
         (o.deadline - t) / o.limit,  # time to deadline, in units of L
         (o.expiry - t) / o.limit,  # time to expiry, in units of L

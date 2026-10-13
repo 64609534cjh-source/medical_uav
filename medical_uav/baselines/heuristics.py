@@ -9,8 +9,8 @@ from medical_uav.metrics import episode_metrics
 
 DEFAULT_THETA = 20.0  # charge when battery < this % (best of 20/30/40 on dev days)
 IDLE_CHARGE_BELOW = 80.0  # with no PICK/DELIVER possible, top up when battery < this %
-CHARGE_PREFERENCE = (80.0, 100.0)  # charge targets tried in this order
-assert set(CHARGE_PREFERENCE) <= set(CHARGE_TARGETS)
+# charge targets tried in order: those at or above the idle threshold (80 %, then 100 %)
+CHARGE_PREFERENCE = tuple(t for t in CHARGE_TARGETS if t >= IDLE_CHARGE_BELOW)
 
 
 def random_policy(env, rng: np.random.Generator) -> int:
