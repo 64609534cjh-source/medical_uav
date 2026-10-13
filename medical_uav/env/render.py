@@ -1,4 +1,4 @@
-"""Matplotlib rendering; draws any past time t <= sim.t from the recorded history."""
+"""Matplotlib rendering of the map, drone and orders at any time up to the current one."""
 import math
 import os
 import subprocess
@@ -16,7 +16,7 @@ from medical_uav.env.map_gen import CityMap
 
 TYPE_COLORS = {"plasma": "#d62728", "medicine": "#1f77b4", "sample": "#9467bd",
                "supplies": "#ff7f0e"}
-DAY_START_HOUR = 8  # t = 0 is 08:00 on the clock
+DAY_START_HOUR = 8  # clock hour at simulation time 0
 PANEL_ROWS = 12  # pending orders listed in the side panel
 
 
@@ -25,7 +25,7 @@ def _color(o) -> str:
 
 
 def _point_along(path: np.ndarray, fraction: float) -> np.ndarray:
-    """Point at the given fraction of the polyline's arc length."""
+    """Return the point at the given fraction of the polyline's length."""
     if len(path) == 1:
         return path[0]
     seg_len = np.linalg.norm(np.diff(path, axis=0), axis=1)
@@ -43,7 +43,7 @@ def _leave_time(o):
 
 
 def drone_state_at(sim, t: float) -> dict:
-    """Drone position, battery, cargo and pending orders at time t (from the history)."""
+    """Reconstruct the drone position, battery, cargo and pending orders at time t."""
     seg = None
     for s in sim.segments:
         if s.t0 - EPS <= t <= s.t1 + EPS:
@@ -84,7 +84,7 @@ class Renderer:
         self.header = self.fig.text(0.01, 0.955, "", fontsize=12, weight="bold")
 
     def draw(self, sim, t: float, header: str = "") -> np.ndarray:
-        """RGB frame of the day at time t; header is a one-line caption on top."""
+        """Return an RGB image of the day at time t with `header` as a caption."""
         state = drone_state_at(sim, t)
         self.header.set_text(header)
         self._draw_map(sim, state)
@@ -184,7 +184,7 @@ class Renderer:
 
 
 def frame_times(t0: float, t1: float, step: float) -> list[float]:
-    """Frame times in (t0, t1] on a grid of `step` minutes, always ending at t1."""
+    """Return frame times after t0 up to t1, every `step` minutes, always including t1."""
     times = []
     k = math.floor(t0 / step + EPS) + 1
     while k * step <= t1 + EPS:
@@ -196,7 +196,7 @@ def frame_times(t0: float, t1: float, step: float) -> list[float]:
 
 
 class GifWriter:
-    """Writes a temporary MP4, converted to GIF on close (low memory)."""
+    """Write frames to a temporary MP4 and convert it to a GIF on close, keeping memory low."""
 
     def __init__(self, path: str, fps: int):
         self.path = path
@@ -218,7 +218,7 @@ class GifWriter:
 
 
 def open_animation_writer(path: str, fps: int):
-    """Frame-by-frame writer for .mp4 or .gif (both keep memory flat)."""
+    """Return a frame writer for an .mp4 or .gif path."""
     if path.endswith(".mp4"):
         return imageio.get_writer(path, fps=fps)
     if path.endswith(".gif"):
@@ -227,7 +227,7 @@ def open_animation_writer(path: str, fps: int):
 
 
 def save_animation(frames, path: str, fps: int) -> int:
-    """Write frames (any iterable) one by one; returns the frame count."""
+    """Write frames one at a time and return how many were written."""
     writer = open_animation_writer(path, fps)
     count = 0
     try:

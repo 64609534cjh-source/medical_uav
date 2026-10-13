@@ -1,14 +1,20 @@
-"""Action indices, in order: PICK(slot) x N_SLOTS, DELIVER(facility), CHARGE(station, target),
-RETURN, WAIT."""
+"""Discrete actions. Indices follow the order below.
+
+PICK(k): fly to the order in pending slot k and load it.
+DELIVER(f): fly to facility f and unload every box for it.
+CHARGE(s, x): fly to charger s and charge up to x % battery.
+RETURN: fly back to the medical center.
+WAIT: stay until the next order arrives or expires, for at most wait_max minutes.
+"""
 import numbers
 
 from medical_uav.env.config import CHARGERS, FACILITIES, FULL_BATTERY, M, NODE_NAMES
 
-N_SLOTS = 12  # pending orders shown to the agent
-CHARGE_TARGETS = (60.0, 80.0, FULL_BATTERY)  # charge up to this battery %
+N_SLOTS = 12  # pending orders visible to the agent
+CHARGE_TARGETS = (60.0, 80.0, FULL_BATTERY)  # battery % levels a CHARGE action can reach
 CHARGE_TABLE = tuple((station, target) for station in CHARGERS for target in CHARGE_TARGETS)
 
-# DELIVER index = DELIVER0 + facility, so facilities must be numbered 0..5
+# DELIVER uses the facility number as its offset, so facilities must be numbered from 0.
 assert FACILITIES == tuple(range(len(FACILITIES)))
 
 PICK0 = 0
@@ -16,16 +22,16 @@ DELIVER0 = PICK0 + N_SLOTS
 CHARGE0 = DELIVER0 + len(FACILITIES)
 RETURN = CHARGE0 + len(CHARGE_TABLE)
 WAIT = RETURN + 1
-N_ACTIONS = WAIT + 1  # 12 + 6 + 6 + 1 + 1 = 26
+N_ACTIONS = WAIT + 1
 
 
 def charge_action(station: int, target: float) -> int:
-    """Index of CHARGE(station, target)."""
+    """Return the index of CHARGE(station, target)."""
     return CHARGE0 + CHARGE_TABLE.index((station, target))
 
 
 def decode(a: int):
-    """Action index -> (kind, argument)."""
+    """Return (kind, argument) for an action index."""
     if isinstance(a, bool) or not isinstance(a, numbers.Integral) or not 0 <= a < N_ACTIONS:
         raise ValueError(f"action must be an integer in 0..{N_ACTIONS - 1}, got {a!r}")
     a = int(a)
@@ -41,6 +47,7 @@ def decode(a: int):
 
 
 def action_name(a: int) -> str:
+    """Return a readable name for an action index."""
     kind, arg = decode(a)
     if kind == "pick":
         return f"PICK({arg})"

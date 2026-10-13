@@ -17,11 +17,16 @@ from medical_uav.splits import TRAIN_SEED_RANGE
 
 
 class MedicalUAVEnv(gym.Env):
+    """One day of medical pickup and delivery with a single drone.
+
+    Each step runs one action to completion. An action the mask forbids is replaced by WAIT.
+    """
+
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 10}
 
     def __init__(self, config: EnvConfig | None = None, load: str = "medium",
                  render_mode: str | None = None):
-        self.cfg = copy.deepcopy(config) if config is not None else EnvConfig()  # own copy
+        self.cfg = copy.deepcopy(config) if config is not None else EnvConfig()  # private copy
         self.cfg.validate()
         if load not in self.cfg.loads:
             raise ValueError(f"unknown load {load!r}, expected one of {list(self.cfg.loads)}")
@@ -46,7 +51,13 @@ class MedicalUAVEnv(gym.Env):
         self._renderer = None
 
     def reset(self, seed=None, options=None):
-        """options: demand_seed (int), load ("low"/"medium"/"high") or lam (float)."""
+        """Start a new day.
+
+        Options:
+            demand_seed: seed for the day's orders; a random training seed if omitted.
+            load: load level name; defaults to the one given at construction.
+            lam: base arrival rate in orders per minute; overrides load.
+        """
         super().reset(seed=seed)
         options = options or {}
         load = options.get("load", self.load)
@@ -56,7 +67,7 @@ class MedicalUAVEnv(gym.Env):
         if not (math.isfinite(self.lam) and self.lam >= 0):
             raise ValueError(f"lam must be a finite rate >= 0, got {self.lam}")
         self.demand_seed = options.get("demand_seed")
-        if self.demand_seed is None:  # default: a training-range seed
+        if self.demand_seed is None:
             self.demand_seed = int(self.np_random.integers(*TRAIN_SEED_RANGE))
 
         orders = generate_orders(self.demand_seed, self.lam, self.cfg)
@@ -67,6 +78,7 @@ class MedicalUAVEnv(gym.Env):
         return self._obs.copy(), self._info(0.0, False, "RESET", [])
 
     def step(self, action):
+        """Run one action and return (obs, reward, terminated, truncated, info)."""
         if self.sim is None or self._done:
             raise RuntimeError("episode is over, call reset()")
         if not self.action_space.contains(action):
@@ -88,10 +100,11 @@ class MedicalUAVEnv(gym.Env):
         return self._obs.copy(), float(reward), self._done, False, info
 
     def action_masks(self) -> np.ndarray:
+        """Return the mask of valid actions."""
         return self._mask.copy()
 
     def describe(self, action: int) -> str:
-        """Readable action name; a PICK names the order instead of its slot."""
+        """Return a readable action name; PICK shows the order instead of the slot number."""
         kind, arg = decode(action)
         if kind == "pick" and arg < len(self.slots):
             o = self.slots[arg]

@@ -1,4 +1,4 @@
-"""Event-driven simulation of one day. uav_env turns action indices into do_* calls."""
+"""Event-driven simulation of one day; each do_* method carries out one action."""
 import math
 from dataclasses import dataclass
 
@@ -7,12 +7,12 @@ from medical_uav.env.map_gen import CityMap
 from medical_uav.env.orders import Order
 from medical_uav.env.physics import charge_minutes, delivery_reward, flight_energy, flight_time
 
-INVARIANT_TOL = 1e-6  # battery %, rounding tolerance in check_invariant
+INVARIANT_TOL = 1e-6  # rounding tolerance for check_invariant, battery %
 
 
 @dataclass
 class Segment:
-    """One piece of the drone's timeline, recorded for metrics and rendering."""
+    """One interval of the drone's activity, recorded for metrics and rendering."""
 
     kind: str  # fly / load / unload / dispose / charge / wait
     t0: float
@@ -25,6 +25,8 @@ class Segment:
 
 
 class Simulator:
+    """State of the drone and all orders, advanced one action at a time."""
+
     def __init__(self, cfg: EnvConfig, city_map: CityMap, orders: list[Order], lam: float):
         if any(a.release > b.release for a, b in zip(orders, orders[1:])):
             raise ValueError("orders must be sorted by release time")
@@ -36,7 +38,7 @@ class Simulator:
         self.t = 0.0
         self.location = M
         self.battery = FULL_BATTERY
-        self.onboard: list[Order] = []  # also expired boxes not yet unloaded
+        self.onboard: list[Order] = []  # includes expired boxes not yet unloaded
         self.pending: list[Order] = []
 
         self.segments: list[Segment] = []
@@ -60,7 +62,7 @@ class Simulator:
         return flight_time(self.city_map.dist_km[a, b], self.cfg)
 
     def nearest_charger(self, node: int, load: float) -> tuple[int, float]:
-        """(charger, energy to reach it) with the lowest energy; ties go to M."""
+        """Return the charger cheapest to reach from node and the battery % needed; ties go to M."""
         best, best_energy = None, math.inf
         for c in CHARGERS:
             e = self.energy(node, c, load)
@@ -69,7 +71,7 @@ class Simulator:
         return best, best_energy
 
     def next_event_time(self) -> float:
-        """Next order release or expiry, inf if nothing is left to happen."""
+        """Return the time of the next release or expiry, or inf if none is left."""
         return min(self._next_release_time(), self._next_expiry_time())
 
     def _next_release_time(self) -> float:
@@ -83,6 +85,7 @@ class Simulator:
         return min(times, default=math.inf)
 
     def is_done(self) -> bool:
+        """Return True once no more orders can arrive and every order is closed."""
         if self.t < self.cfg.release_window - EPS:
             return False
         if self._next_release < len(self.orders) or self.pending:
@@ -90,16 +93,17 @@ class Simulator:
         return all(o.status != "onboard" for o in self.onboard)
 
     def check_invariant(self) -> None:
-        """Battery must always cover the reserve plus the flight to the nearest charger."""
+        """Assert that the battery covers the reserve plus the flight to the nearest charger."""
         _, to_charger = self.nearest_charger(self.location, self.load_kg())
         need = self.cfg.reserve + to_charger
         assert self.battery >= need - INVARIANT_TOL, \
             f"battery {self.battery:.3f} < {need:.3f} at t={self.t:.2f}"
 
     def advance_to(self, t_target: float, strict: bool = False) -> None:
-        """Process releases and expiries up to t_target, then set the clock to it.
+        """Process releases and expiries up to t_target, then move the clock to t_target.
 
-        strict: leave events at exactly t_target for later. Ties: expiry before release.
+        With strict=True, events at exactly t_target are left unprocessed. An expiry and a
+        release at the same time are processed expiry first.
         """
         while True:
             t_release = self._next_release_time()
@@ -163,24 +167,26 @@ class Simulator:
             self.dispose_expired_cargo()
 
     def dispose_expired_cargo(self) -> None:
+        """Unload all expired boxes at the current node."""
         for o in [o for o in self.onboard if o.status == "expired"]:
             self._handle_box("dispose", o)
             self._dispose(o)
 
     def _dispose(self, o: Order) -> None:
-        """Remove expired box o (handling time already spent)."""
+        """Remove expired box o from the drone; its handling time is already counted."""
         o.disposed_time = self.t
         self.onboard.remove(o)
         self.events.append((self.t, "dispose", o.id))
 
     def _handle_box(self, kind: str, o: Order, strict: bool = False) -> None:
-        """Spend handling_min on the ground for one box (load/unload/dispose)."""
+        """Spend the handling time for one box on the ground."""
         t_end = self.t + self.cfg.handling_min
         self.segments.append(Segment(kind, self.t, t_end, self.location, self.location,
                                      self.battery, self.battery, o.id))
         self.advance_to(t_end, strict=strict)
 
     def do_pick(self, order: Order) -> None:
+        """Fly to the order's origin and load it."""
         self.fly_to(order.origin)
         assert order.status == "pending", f"order {order.id} is {order.status}"
         self._handle_box("load", order)
@@ -193,7 +199,7 @@ class Simulator:
         self.check_invariant()
 
     def do_deliver(self, node: int) -> None:
-        """Unload all boxes for node, earliest deadline first."""
+        """Fly to node and unload every box for it, earliest deadline first."""
         self.fly_to(node)
         boxes = [o for o in self.onboard if o.dest == node]
         boxes.sort(key=lambda o: (o.deadline, o.id))
@@ -212,10 +218,11 @@ class Simulator:
             self.total_reward += delivery_reward(o.age(self.t), o.limit, o.expiry_after, self.cfg)
             self.onboard.remove(o)
             self.events.append((self.t, "deliver", o.id))
-        self.advance_to(self.t)  # events at this exact time
+        self.advance_to(self.t)  # process events due now
         self.check_invariant()
 
     def do_charge(self, station: int, target: float) -> None:
+        """Fly to station and charge up to target battery %."""
         self.fly_to(station)
         t_end = self.t + charge_minutes(self.battery, target, self.cfg)
         self.segments.append(Segment("charge", self.t, t_end, station, station,
@@ -226,11 +233,12 @@ class Simulator:
         self.check_invariant()
 
     def do_return(self) -> None:
+        """Fly back to the medical center."""
         self.fly_to(M)
         self.check_invariant()
 
     def do_wait(self) -> None:
-        """Wait until the next release/expiry, at most wait_max minutes."""
+        """Wait until the next release or expiry, for at most wait_max minutes."""
         t_end = min(self.next_event_time(), self.t + self.cfg.wait_max)
         self.segments.append(Segment("wait", self.t, t_end, self.location, self.location,
                                      self.battery, self.battery))

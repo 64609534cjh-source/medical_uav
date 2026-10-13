@@ -1,14 +1,17 @@
-"""Per-episode business metrics."""
+"""Operational metrics for one simulated day."""
 import math
 
 from medical_uav.env.config import EPS, ORDER_TYPES
 from medical_uav.env.simulator import Simulator
 
-BUSY_KINDS = ("fly", "load", "unload", "dispose")
+BUSY_KINDS = ("fly", "load", "unload", "dispose")  # segment kinds counted as busy time
 
 
 def episode_metrics(sim: Simulator) -> dict:
-    """Metrics over the orders released so far (all of them once the day is over)."""
+    """Return metrics over the orders released so far (all orders once the day is over).
+
+    Mean lateness averages over late deliveries only.
+    """
     orders = [o for o in sim.orders if o.status != "future"]
     n = len(orders)
     delivered = [o for o in orders if o.status == "delivered"]
@@ -40,7 +43,7 @@ def episode_metrics(sim: Simulator) -> dict:
 
 
 def _on_time_by_type(orders, on_time) -> dict:
-    """On-time rate per order type; NaN when a type had no orders that day."""
+    """Return the on-time rate per order type; NaN for a type with no orders."""
     result = {}
     for k, order_type in enumerate(ORDER_TYPES):
         n_type = sum(1 for o in orders if o.type_idx == k)

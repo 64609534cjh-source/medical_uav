@@ -1,4 +1,4 @@
-"""Random city map: no-fly zones, 7 nodes and A* routes between them."""
+"""Random city map generation: no-fly zones, node positions and routes between nodes."""
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -12,17 +12,19 @@ MAX_PLACEMENT_TRIES = 500
 
 @dataclass
 class CityMap:
-    node_xy: np.ndarray  # (7, 2) km
-    dist_km: np.ndarray  # (7, 7) A* route lengths
-    paths: dict  # (i, j) -> (k, 2) km polyline, for rendering
-    blocked: np.ndarray | None = None  # (G, G) occupancy grid
-    zones: list = field(default_factory=list)  # (row, col, height, width)
-    seed: int = -1
-    tries: int = 0
+    """A city: node positions, routes between nodes and no-fly zones."""
+
+    node_xy: np.ndarray  # node positions in km, shape (N_NODES, 2)
+    dist_km: np.ndarray  # route length between each pair of nodes
+    paths: dict  # route polyline in km for each node pair (i, j), used for drawing
+    blocked: np.ndarray | None = None  # True for grid cells inside a no-fly zone
+    zones: list = field(default_factory=list)  # (row, col, height, width) of each zone
+    seed: int = -1  # seed the map was generated from
+    tries: int = 0  # attempts generation needed
 
     @classmethod
     def from_positions(cls, node_xy: np.ndarray) -> "CityMap":
-        """Obstacle-free map with straight routes (used in tests)."""
+        """Build an obstacle-free map with straight routes (used in tests)."""
         node_xy = np.asarray(node_xy, dtype=float)
         dist = np.linalg.norm(node_xy[:, None, :] - node_xy[None, :, :], axis=2)
         paths = {(i, j): np.array([node_xy[i], node_xy[j]])
@@ -31,7 +33,8 @@ class CityMap:
 
 
 def is_valid_map(dist_km: np.ndarray, cfg: EnvConfig) -> bool:
-    """Charger -> i -> j -> nearest charger with a full load must keep the reserve."""
+    """Return True if a fully loaded drone can fly from any charger to any node i, then to any
+    node j, then to the nearest charger, without using the reserve."""
     load = cfg.max_weight
     for c in CHARGERS:
         for i in range(N_NODES):
@@ -66,7 +69,7 @@ def _sample_zones(rng, cfg: EnvConfig):
 
 
 def _place_nodes(rng, blocked: np.ndarray, cfg: EnvConfig):
-    """Free cells for M, H1..H5, C2 with the spacing rules, or None."""
+    """Choose a free cell for each node that satisfies the spacing rules, or return None."""
     g = cfg.grid_size
     cells = []
     for node in range(N_NODES):
@@ -90,6 +93,7 @@ def _place_nodes(rng, blocked: np.ndarray, cfg: EnvConfig):
 
 
 def _route_all_pairs(blocked: np.ndarray, cells, cfg: EnvConfig):
+    """Route every pair of nodes with A*, or return None if a pair is unreachable."""
     dist = np.zeros((N_NODES, N_NODES))
     paths = {}
     for i in range(N_NODES):
@@ -106,7 +110,7 @@ def _route_all_pairs(blocked: np.ndarray, cells, cfg: EnvConfig):
 
 
 def generate_map(seed: int, cfg: EnvConfig) -> CityMap:
-    """Same seed -> same map. Failed attempts retry with the same rng."""
+    """Generate a valid map; the same seed always produces the same map."""
     rng = np.random.default_rng(seed)
     for attempt in range(1, cfg.max_map_tries + 1):
         blocked, zones = _sample_zones(rng, cfg)

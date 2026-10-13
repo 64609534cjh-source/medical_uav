@@ -1,7 +1,7 @@
-"""Calibration for gate G1: load levels against the baselines, map statistics, throughput.
+"""Calibrate load levels against the baselines and report map statistics and throughput.
 
-Examples:
-    python scripts/calibrate.py                                   # λ grid on the dev seeds
+Usage:
+    python scripts/calibrate.py
     python scripts/calibrate.py --tune-theta --map-check 200 --benchmark
 """
 import argparse
@@ -21,14 +21,15 @@ from medical_uav.env.observation import direct_completion_time
 from medical_uav.metrics import episode_metrics
 from medical_uav.splits import DEV_SEEDS
 
-DEFAULT_LAMBDAS = [0.04, 0.06, 0.08, 0.10, 0.12, 0.14]  # base rates to sweep (orders/min)
+DEFAULT_LAMBDAS = [0.04, 0.06, 0.08, 0.10, 0.12, 0.14]  # base rates to sweep, orders per minute
 THETAS = [20.0, 30.0, 40.0]  # charging thresholds tried by --tune-theta
 TUNABLE = {"edf": edf_policy, "slack": slack_aware_policy}  # heuristics with a threshold
 DEFAULT_THETAS = {name: DEFAULT_THETA for name in TUNABLE}
 
 
 def run_day(env, policy, demand_seed, lam):
-    """One day; also tracks pool size and hidden on-time-feasible orders at every decision."""
+    """Run one day and return its metrics plus, at every decision, the pending-pool size and
+    the number of orders that could be on time but are not shown in the slots."""
     env.reset(options={"demand_seed": demand_seed, "lam": lam})
     pool_sizes, hidden_counts, done = [], [], False
     while not done:
@@ -95,7 +96,7 @@ def benchmark(cfg, episodes=20):
 
 
 def make_policy(name: str, demand_seed: int, thetas: dict):
-    """Policy for one day; Random gets its own seed so a row never depends on run order."""
+    """Return the policy for one day; Random is seeded per day so results ignore run order."""
     if name == "random":
         rng = np.random.default_rng(demand_seed)
         return lambda e: random_policy(e, rng)
@@ -104,12 +105,12 @@ def make_policy(name: str, demand_seed: int, thetas: dict):
 
 
 def select_thetas(results: dict) -> dict:
-    """Best charging threshold per heuristic from tune_thetas() results."""
+    """Return the best charging threshold per heuristic from tune_thetas results."""
     return {name: max(by_theta, key=by_theta.get) for name, by_theta in results.items()}
 
 
 def tune_thetas(env, seeds, lam, thetas=THETAS) -> dict:
-    """Mean on-time rate for every heuristic and charging threshold: {name: {theta: rate}}."""
+    """Return the mean on-time rate for each heuristic and threshold as {name: {theta: rate}}."""
     results = {}
     for name, policy_fn in TUNABLE.items():
         results[name] = {}

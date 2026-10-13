@@ -1,4 +1,4 @@
-"""Rule-based baselines. Policies take the env and return a valid action index."""
+"""Rule-based baseline policies. Each takes the env and returns a valid action index."""
 import numpy as np
 
 from medical_uav.env.actions import CHARGE0, CHARGE_TARGETS, DELIVER0, PICK0, WAIT, charge_action
@@ -7,18 +7,19 @@ from medical_uav.env.masks import predict_arrival
 from medical_uav.env.observation import direct_completion_time
 from medical_uav.metrics import episode_metrics
 
-DEFAULT_THETA = 20.0  # charge when battery < this % (best of 20/30/40 on dev days)
-IDLE_CHARGE_BELOW = 80.0  # when idle, charge if battery < this %
-# charge to 80 %, else 100 %
+DEFAULT_THETA = 20.0  # battery % below which a policy goes to charge; tuned on dev seeds
+IDLE_CHARGE_BELOW = 80.0  # battery % below which an idle drone tops up
+# charge targets in order of preference
 CHARGE_PREFERENCE = tuple(t for t in CHARGE_TARGETS if t >= IDLE_CHARGE_BELOW)
 
 
 def random_policy(env, rng: np.random.Generator) -> int:
+    """Choose a valid action uniformly at random."""
     return int(rng.choice(np.flatnonzero(env.action_masks())))
 
 
 def charging_rule(env, theta: float) -> int | None:
-    """Charge action if the battery is low, else None. Nearest station first."""
+    """Return a CHARGE action if charging is due, else None; the nearest station is preferred."""
     sim, mask = env.sim, env.action_masks()
     has_service = mask[PICK0:CHARGE0].any()
     wanted = sim.battery < theta or (not has_service and sim.battery < IDLE_CHARGE_BELOW)
@@ -35,12 +36,12 @@ def charging_rule(env, theta: float) -> int | None:
 
 
 def edf_policy(env, theta: float = DEFAULT_THETA) -> int:
-    """Earliest deadline first over valid pickups and deliveries."""
+    """Earliest deadline first: take the valid pickup or delivery with the earliest deadline."""
     a = charging_rule(env, theta)
     if a is not None:
         return a
     sim, mask = env.sim, env.action_masks()
-    candidates = []  # sorted by (deadline, deliver before pick)
+    candidates = []  # sorted by deadline, then deliveries before pickups
     for k, order in enumerate(env.slots):
         if mask[PICK0 + k]:
             candidates.append((order.deadline, 1, PICK0 + k))
@@ -52,8 +53,12 @@ def edf_policy(env, theta: float = DEFAULT_THETA) -> int:
 
 
 def slack_aware_policy(env, theta: float = DEFAULT_THETA) -> int:
-    """In order: deliver here, pick here for a shared destination, charge, then EDF
-    with orders that are already too late moved to the end."""
+    """Earliest deadline first with three extra rules, checked in order.
+
+    Unload at the current node; pick up an order here whose destination is already on board;
+    charge if due. Otherwise use earliest deadline first, with work that cannot be on time
+    by the direct estimate moved to the end.
+    """
     sim, mask = env.sim, env.action_masks()
 
     # 1) unload boxes for the current node
@@ -71,8 +76,8 @@ def slack_aware_policy(env, theta: float = DEFAULT_THETA) -> int:
     if a is not None:
         return a
 
-    # 4) EDF, too-late work last
-    candidates = []  # sorted by (too late, deadline, deliver before pick)
+    # 4) earliest deadline first, work that cannot be on time last
+    candidates = []  # sorted by lateness, then deadline, then deliveries first
     for k, order in enumerate(env.slots):
         if mask[PICK0 + k]:
             hopeless = sim.t + direct_completion_time(sim, order) > order.deadline + EPS
@@ -86,7 +91,7 @@ def slack_aware_policy(env, theta: float = DEFAULT_THETA) -> int:
 
 
 def _delivery_can_be_on_time(sim, n: int) -> bool:
-    """Would at least one box for n still arrive on time?"""
+    """Return True if at least one box for n would be unloaded on time."""
     t, expired = predict_arrival(sim, n)
     t += sim.cfg.handling_min * len(expired)  # expired cargo is unloaded first
     boxes = [o for o in sim.onboard if o.dest == n and o not in expired]
@@ -98,7 +103,7 @@ def _delivery_can_be_on_time(sim, n: int) -> bool:
 
 
 def run_episode(env, policy, demand_seed: int, options: dict | None = None) -> dict:
-    """Run one day with policy(env) -> action; returns metrics plus return and decisions."""
+    """Run one day with the policy and return its metrics, total reward and decision count."""
     env.reset(options={**(options or {}), "demand_seed": demand_seed})
     total, decisions, done = 0.0, 0, False
     while not done:

@@ -1,4 +1,4 @@
-"""Orders and the seeded daily order stream."""
+"""Order records and generation of a day's orders."""
 from dataclasses import dataclass
 
 import numpy as np
@@ -8,25 +8,27 @@ from medical_uav.env.config import HOSPITALS, M, ORDER_TYPES, EnvConfig
 
 @dataclass
 class Order:
+    """One delivery request and its progress."""
+
     id: int
-    type_idx: int
-    origin: int
-    dest: int
+    type_idx: int  # index into ORDER_TYPES
+    origin: int  # pickup node
+    dest: int  # delivery node
     weight: float  # kg
-    release: float  # minute the order appears
-    limit: float  # L: minutes after release to be on time
-    expiry_after: float  # H: minutes after release until the order is lost
+    release: float  # time the order appears, minutes
+    limit: float  # minutes after release within which delivery is on time
+    expiry_after: float  # minutes after release at which the order expires
     status: str = "future"  # future / pending / onboard / delivered / expired / rejected
     pickup_time: float | None = None
-    end_time: float | None = None  # when delivered, expired or rejected
-    disposed_time: float | None = None  # expired cargo unloaded
+    end_time: float | None = None  # time the order was delivered, expired or rejected
+    disposed_time: float | None = None  # time expired cargo was unloaded
 
     @property
-    def deadline(self) -> float:  # absolute time, minutes
+    def deadline(self) -> float:  # latest on-time delivery time
         return self.release + self.limit
 
     @property
-    def expiry(self) -> float:  # absolute time, minutes
+    def expiry(self) -> float:  # time the order expires
         return self.release + self.expiry_after
 
     def age(self, t: float) -> float:
@@ -34,7 +36,7 @@ class Order:
 
 
 def demand_multiplier(t: float, cfg: EnvConfig) -> float:
-    """Arrival-rate multiplier m(t): peak / off-peak, zero after the release window."""
+    """Return the arrival-rate multiplier at time t; zero outside the release window."""
     if t < 0 or t >= cfg.release_window:
         return 0.0
     for start, end in cfg.peak_windows:
@@ -44,7 +46,7 @@ def demand_multiplier(t: float, cfg: EnvConfig) -> float:
 
 
 def _segments(cfg: EnvConfig):
-    """Split [0, release_window) into pieces with a constant multiplier."""
+    """Split the release window into intervals with a constant multiplier."""
     bounds = {0.0, cfg.release_window}
     for start, end in cfg.peak_windows:
         bounds.update((start, end))
@@ -53,6 +55,7 @@ def _segments(cfg: EnvConfig):
 
 
 def _sample_route(rng, route: str) -> tuple[int, int]:
+    """Draw an (origin, destination) pair for a route category."""
     hospitals = list(HOSPITALS)
     if route == "center_to_hospital":
         return M, int(rng.choice(hospitals))
@@ -64,10 +67,10 @@ def _sample_route(rng, route: str) -> tuple[int, int]:
 
 
 def generate_orders(demand_seed: int, lam: float, cfg: EnvConfig) -> list[Order]:
-    """All orders of one day, sorted by release time. lam is the base rate (orders/min)."""
+    """Generate one day's orders sorted by release time; lam is the base rate per minute."""
     rng = np.random.default_rng(demand_seed)
 
-    # piecewise-constant Poisson process: count per segment, uniform times inside it
+    # Poisson arrivals: draw a count for each interval, then spread the times uniformly
     releases = []
     for start, end, mult in _segments(cfg):
         n = rng.poisson(lam * mult * (end - start))

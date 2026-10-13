@@ -10,13 +10,14 @@ MOVES = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]
 
 
 def octile_distance(a: Cell, b: Cell) -> float:
+    """Return the 8-connected grid distance from a to b, ignoring obstacles."""
     dr = abs(a[0] - b[0])
     dc = abs(a[1] - b[1])
     return (dr + dc) + (math.sqrt(2) - 2) * min(dr, dc)
 
 
 def astar(blocked: np.ndarray, start: Cell, goal: Cell) -> list[Cell] | None:
-    """Shortest cell path from start to goal (inclusive), or None if unreachable."""
+    """Return the shortest cell path from start to goal (both included), or None if unreachable."""
     n_rows, n_cols = blocked.shape
     open_heap = [(octile_distance(start, goal), 0.0, start)]
     best_cost = {start: 0.0}
@@ -27,7 +28,7 @@ def astar(blocked: np.ndarray, start: Cell, goal: Cell) -> list[Cell] | None:
         if cell == goal:
             break
         if cost > best_cost[cell]:
-            continue  # stale entry
+            continue  # outdated heap entry
 
         for dr, dc in MOVES:
             r, c = cell[0] + dr, cell[1] + dc
@@ -35,7 +36,7 @@ def astar(blocked: np.ndarray, start: Cell, goal: Cell) -> list[Cell] | None:
                 continue
             diagonal = dr != 0 and dc != 0
             if diagonal and (blocked[cell[0] + dr, cell[1]] or blocked[cell[0], cell[1] + dc]):
-                continue  # don't cut corners
+                continue  # a diagonal step may not pass a blocked corner
             new_cost = cost + (math.sqrt(2) if diagonal else 1.0)
             if new_cost < best_cost.get((r, c), math.inf):
                 best_cost[(r, c)] = new_cost
@@ -54,6 +55,7 @@ def astar(blocked: np.ndarray, start: Cell, goal: Cell) -> list[Cell] | None:
 
 
 def path_cost_cells(path: list[Cell]) -> float:
+    """Return the path length in cell units."""
     total = 0.0
     for (r0, c0), (r1, c1) in zip(path[:-1], path[1:]):
         total += math.sqrt(2) if (r0 != r1 and c0 != c1) else 1.0

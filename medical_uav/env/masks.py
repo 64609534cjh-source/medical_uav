@@ -1,4 +1,7 @@
-"""Action mask: which actions are allowed now; all of them keep the battery safe."""
+"""Action mask: which actions are valid in the current state.
+
+An action is valid only if the drone can still reach a charger without using the reserve.
+"""
 import numpy as np
 
 from medical_uav.env.actions import CHARGE0, CHARGE_TABLE, DELIVER0, N_ACTIONS, PICK0, RETURN, WAIT
@@ -8,18 +11,21 @@ from medical_uav.env.simulator import Simulator
 
 
 def predict_arrival(sim: Simulator, node: int) -> tuple[float, list[Order]]:
-    """Arrival time at node, and the boxes on board that will have expired by then."""
+    """Return the arrival time at node and the boxes on board that will have expired by then."""
     t_arrive = sim.t + sim.travel_time(sim.location, node)
     expired = [o for o in sim.onboard if o.status == "expired" or o.expiry <= t_arrive + EPS]
     return t_arrive, expired
 
 
 def _battery_ok(sim: Simulator, flight_energy: float, end_node: int, end_load: float) -> bool:
+    """Return True if, after this flight, a charger is reachable without using the reserve."""
     _, to_charger = sim.nearest_charger(end_node, end_load)
     return sim.battery - flight_energy - to_charger >= sim.cfg.reserve - EPS
 
 
 def can_pick(sim: Simulator, order: Order) -> bool:
+    """Return True if the order fits the cargo limits, can be loaded before it expires,
+    and the flight is safe."""
     cfg = sim.cfg
     t_arrive, expired = predict_arrival(sim, order.origin)
     remaining = [o for o in sim.onboard if o not in expired]
@@ -36,6 +42,7 @@ def can_pick(sim: Simulator, order: Order) -> bool:
 
 
 def can_deliver(sim: Simulator, node: int) -> bool:
+    """Return True if a box for node will still be valid on arrival and the flight is safe."""
     _, expired = predict_arrival(sim, node)
     remaining = [o for o in sim.onboard if o not in expired]
     if not any(o.dest == node for o in remaining):
@@ -46,6 +53,7 @@ def can_deliver(sim: Simulator, node: int) -> bool:
 
 
 def can_charge(sim: Simulator, station: int, target: float) -> bool:
+    """Return True if the station is reachable and charging would add enough battery."""
     arrival_battery = sim.battery - sim.energy(sim.location, station, sim.load_kg())
     if arrival_battery < sim.cfg.reserve - EPS:
         return False
@@ -53,6 +61,7 @@ def can_charge(sim: Simulator, station: int, target: float) -> bool:
 
 
 def can_return(sim: Simulator) -> bool:
+    """Return True if the drone is away from the medical center and can fly back safely."""
     if sim.location == M:
         return False
     return sim.battery - sim.energy(sim.location, M, sim.load_kg()) >= sim.cfg.reserve - EPS

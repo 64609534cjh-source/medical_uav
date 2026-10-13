@@ -1,9 +1,9 @@
 """Run one day with a baseline policy, print its metrics and show or save an animation.
 
-Examples:
-    python scripts/demo.py --live                          # Slack-aware, medium load, in a window
-    python scripts/demo.py --policy random --seed 1        # save outputs/demo_random_medium_1.gif
-    python scripts/demo.py --no-video --snapshots 0 100    # metrics and PNG frames only
+Usage:
+    python scripts/demo.py --live
+    python scripts/demo.py --policy random --seed 1
+    python scripts/demo.py --no-video --snapshots 0 100
 """
 import argparse
 import bisect
@@ -50,7 +50,7 @@ def print_metrics(metrics: dict) -> None:
 
 
 class Captions:
-    """Header text for a frame: run settings plus the decision being executed at time t."""
+    """Return the caption for time t: run settings and the action in progress."""
 
     def __init__(self, env, args):
         self.env = env
@@ -64,7 +64,7 @@ class Captions:
 
 
 def live_window_problem() -> str | None:
-    """Why a live window cannot open here, or None if it can."""
+    """Return why a live window cannot be opened, or None if it can."""
     if not has_display():
         return "no display found (e.g. remote session)"
     import matplotlib
@@ -75,7 +75,7 @@ def live_window_problem() -> str | None:
 
 
 def run_live(env, policy, args) -> None:
-    """Step the policy and play the day in a window as it unfolds."""
+    """Run the policy and show the day in a window as it unfolds."""
     import matplotlib.pyplot as plt
 
     renderer = Renderer(env.city_map, env.cfg)
