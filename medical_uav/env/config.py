@@ -13,7 +13,7 @@ FACILITIES = (M, H1, H2, H3, H4, H5)  # nodes where cargo is loaded and unloaded
 HOSPITALS = (H1, H2, H3, H4, H5)
 CHARGERS = (M, C2)
 
-N_ONBOARD = 3  # cargo slots in the observation; must be at least max_boxes
+N_ONBOARD = 3  # boxes the observation can describe; max_boxes may not exceed this
 FULL_BATTERY = 100.0  # battery is measured in percent
 EPS = 1e-9  # tolerance for floating-point comparisons
 
