@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from medical_uav.env.config import EnvConfig
+from medical_uav.env.config import ORDER_TYPES, EnvConfig
 from medical_uav.env.map_gen import CityMap
 from medical_uav.env.orders import Order
 from medical_uav.env.simulator import Simulator
@@ -16,9 +16,8 @@ def line_map():
 
 
 def make_order(oid, type_idx, origin, dest, weight, release):
-    limits = [30.0, 90.0, 60.0, 75.0]
-    limit = limits[type_idx]
-    return Order(oid, type_idx, origin, dest, weight, release, limit, 2 * limit)
+    t = ORDER_TYPES[type_idx]
+    return Order(oid, type_idx, origin, dest, weight, release, t.limit, t.expiry_after)
 
 
 def make_sim(city_map, orders, cfg=None):

@@ -7,6 +7,7 @@ Examples:
 """
 import argparse
 import bisect
+import math
 import os
 import sys
 
@@ -119,8 +120,10 @@ def main():
     args = parser.parse_args()
     if args.fps <= 0:
         parser.error("--fps must be > 0")
-    if args.minutes_per_frame <= 0:
-        parser.error("--minutes-per-frame must be > 0")
+    if not (math.isfinite(args.minutes_per_frame) and args.minutes_per_frame > 0):
+        parser.error("--minutes-per-frame must be a finite number > 0")
+    if not all(math.isfinite(t) and t >= 0 for t in args.snapshots):
+        parser.error("--snapshots must be finite times >= 0")
     if args.out is not None and not args.out.endswith((".gif", ".mp4")):
         parser.error("--out must end with .gif or .mp4")
 

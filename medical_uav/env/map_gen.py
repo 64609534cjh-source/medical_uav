@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from medical_uav.env.astar import astar, path_cost_cells
-from medical_uav.env.config import C2, CHARGERS, M, N_NODES, EnvConfig
+from medical_uav.env.config import C2, CHARGERS, EPS, FULL_BATTERY, M, N_NODES, EnvConfig
 from medical_uav.env.physics import flight_energy
 
 MAX_PLACEMENT_TRIES = 500
@@ -39,7 +39,7 @@ def is_valid_map(dist_km: np.ndarray, cfg: EnvConfig) -> bool:
                 back = min(flight_energy(dist_km[j, k], load, cfg) for k in CHARGERS)
                 used = (flight_energy(dist_km[c, i], load, cfg)
                         + flight_energy(dist_km[i, j], load, cfg) + back)
-                if 100.0 - used < cfg.reserve:
+                if FULL_BATTERY - used < cfg.reserve:
                     return False
     return True
 
@@ -75,12 +75,12 @@ def _place_nodes(rng, blocked: np.ndarray, cfg: EnvConfig):
             if blocked[cell]:
                 continue
             xy = _cell_center_km(cell, cfg)
-            if any(np.linalg.norm(xy - _cell_center_km(other, cfg)) < cfg.min_node_spacing_km - 1e-9
+            if any(np.linalg.norm(xy - _cell_center_km(other, cfg)) < cfg.min_node_spacing_km - EPS
                    for other in cells):
                 continue
             if node == C2:
                 d_m = np.linalg.norm(xy - _cell_center_km(cells[M], cfg))
-                if d_m < cfg.c2_min_dist_from_m_km - 1e-9:
+                if d_m < cfg.c2_min_dist_from_m_km - EPS:
                     continue
             cells.append(cell)
             break

@@ -6,10 +6,12 @@ wrapper translates actions into the do_* commands below.
 import math
 from dataclasses import dataclass
 
-from medical_uav.env.config import CHARGERS, EPS, FACILITIES, M, EnvConfig
+from medical_uav.env.config import CHARGERS, EPS, FACILITIES, FULL_BATTERY, M, EnvConfig
 from medical_uav.env.map_gen import CityMap
 from medical_uav.env.orders import Order
 from medical_uav.env.physics import charge_minutes, delivery_reward, flight_energy, flight_time
+
+INVARIANT_TOL = 1e-6  # battery % slack allowed by the safety check (rounding only)
 
 
 @dataclass
@@ -37,7 +39,7 @@ class Simulator:
 
         self.t = 0.0
         self.location = M
-        self.battery = 100.0
+        self.battery = FULL_BATTERY
         self.onboard: list[Order] = []  # includes expired cargo until it is disposed
         self.pending: list[Order] = []
 
@@ -95,7 +97,7 @@ class Simulator:
         """Battery must always cover the reserve plus the flight to the nearest charger."""
         _, to_charger = self.nearest_charger(self.location, self.load_kg())
         need = self.cfg.reserve + to_charger
-        assert self.battery >= need - 1e-6, \
+        assert self.battery >= need - INVARIANT_TOL, \
             f"battery {self.battery:.3f} < {need:.3f} at t={self.t:.2f}"
 
     def advance_to(self, t_target: float, strict: bool = False) -> None:

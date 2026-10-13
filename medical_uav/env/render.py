@@ -11,11 +11,18 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 from matplotlib.patches import Circle, Rectangle
 
-from medical_uav.env.config import CHARGERS, EPS, NODE_NAMES, ORDER_TYPES, EnvConfig
+from medical_uav.env.config import (CHARGERS, EPS, FULL_BATTERY, M, NODE_NAMES, ORDER_TYPES,
+                                    EnvConfig)
 from medical_uav.env.map_gen import CityMap
 
-TYPE_COLORS = ("#d62728", "#1f77b4", "#9467bd", "#ff7f0e")  # plasma, medicine, sample, supplies
-DAY_START_HOUR = 8
+TYPE_COLORS = {"plasma": "#d62728", "medicine": "#1f77b4", "sample": "#9467bd",
+               "supplies": "#ff7f0e"}
+DAY_START_HOUR = 8  # t = 0 is 08:00 on the clock
+PANEL_ROWS = 12  # pending orders listed in the side panel
+
+
+def _color(o) -> str:
+    return TYPE_COLORS[ORDER_TYPES[o.type_idx].name]
 
 
 def _point_along(path: np.ndarray, fraction: float) -> np.ndarray:
@@ -107,8 +114,8 @@ class Renderer:
         for i, (x, y) in enumerate(cm.node_xy):
             if i in CHARGERS:
                 ax.add_patch(Circle((x, y), 0.17, fill=False, color="#2ca02c", lw=2))
-            ax.plot(x, y, "s" if i == 0 else "o", color="#333333", ms=9)
-            label = "M/C1" if i == 0 else NODE_NAMES[i]
+            ax.plot(x, y, "s" if i == M else "o", color="#333333", ms=9)
+            label = "M/C1" if i == M else NODE_NAMES[i]
             above = y > 0.5  # near the top edge, put the label below the node
             ax.text(x, y - 0.22 if above else y + 0.22, label, ha="center",
                     va="bottom" if above else "top", fontsize=10, weight="bold")
@@ -116,7 +123,7 @@ class Renderer:
         dx, dy = state["xy"]
         ax.plot(dx, dy, marker="P", color="#111111", ms=14, mec="white", mew=1.5)
         for k, o in enumerate(state["cargo"]):
-            ax.plot(dx + 0.12 * (k - 1), dy + 0.25, "s", color=TYPE_COLORS[o.type_idx], ms=6)
+            ax.plot(dx + 0.12 * (k - 1), dy + 0.25, "s", color=_color(o), ms=6)
 
     def _draw_panel(self, sim, t: float, state) -> None:
         ax = self.ax_panel
@@ -134,8 +141,8 @@ class Renderer:
         ax.text(0, 0.86, f"battery {battery:5.1f}%", fontsize=11)
         ax.add_patch(Rectangle((0.35, 0.855), 0.6, 0.03, fill=False, lw=1))
         color = "#2ca02c" if battery > 40 else ("#ff7f0e" if battery > 25 else "#d62728")
-        ax.add_patch(Rectangle((0.35, 0.855), 0.6 * battery / 100, 0.03, color=color))
-        ax.plot([0.35 + 0.6 * self.cfg.reserve / 100] * 2, [0.85, 0.89], color="k", lw=1)
+        ax.add_patch(Rectangle((0.35, 0.855), 0.6 * battery / FULL_BATTERY, 0.03, color=color))
+        ax.plot([0.35 + 0.6 * self.cfg.reserve / FULL_BATTERY] * 2, [0.85, 0.89], color="k", lw=1)
 
         ax.text(0, 0.79, "cargo", fontsize=11, weight="bold")
         for k in range(self.cfg.max_boxes):
@@ -145,20 +152,20 @@ class Renderer:
                 left = o.deadline - t
                 text = (f"{ORDER_TYPES[o.type_idx].name:8s} -> {NODE_NAMES[o.dest]}  "
                         f"{o.weight:.2f} kg  {left:+5.0f} min")
-                ax.text(0.02, y, text, fontsize=10, family="monospace",
-                        color=TYPE_COLORS[o.type_idx])
+                ax.text(0.02, y, text, fontsize=10, family="monospace", color=_color(o))
             else:
                 ax.text(0.02, y, "[ empty ]", fontsize=10, family="monospace", color="#999999")
 
         x = 0.0
         for k, order_type in enumerate(ORDER_TYPES):
-            ax.text(x, 0.595, "\u25a0 " + order_type.name, fontsize=9, color=TYPE_COLORS[k])
+            ax.text(x, 0.595, "\u25a0 " + order_type.name, fontsize=9,
+                    color=TYPE_COLORS[order_type.name])
             x += 0.24
 
         pending = sorted(state["pending"], key=lambda o: o.deadline)
         ax.text(0, 0.545, f"pending orders ({len(pending)}, by deadline; min left)",
                 fontsize=11, weight="bold")
-        shown = pending if len(pending) <= 12 else pending[:11]
+        shown = pending if len(pending) <= PANEL_ROWS else pending[:PANEL_ROWS - 1]
         for k, o in enumerate(shown):
             left = o.deadline - t
             color = "#2ca02c" if left > 10 else ("#ff7f0e" if left > 0 else "#d62728")
@@ -166,7 +173,8 @@ class Renderer:
                     f"{NODE_NAMES[o.dest]:2s} {left:+5.0f} min")
             ax.text(0.02, 0.50 - 0.04 * k, text, fontsize=9.5, family="monospace", color=color)
         if len(pending) > len(shown):
-            ax.text(0.02, 0.50 - 0.04 * 11, f"+{len(pending) - len(shown)} more", fontsize=9.5,
+            ax.text(0.02, 0.50 - 0.04 * len(shown), f"+{len(pending) - len(shown)} more",
+                    fontsize=9.5,
                     family="monospace", color="#555555")
 
         done = [o for o in sim.orders if o.status == "delivered" and o.end_time <= t + EPS]

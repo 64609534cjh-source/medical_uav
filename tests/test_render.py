@@ -101,3 +101,10 @@ def test_save_animation_rejects_other_extensions(tmp_path):
 
     with pytest.raises(ValueError):
         save_animation([np.zeros((8, 8, 3), dtype=np.uint8)], str(tmp_path / "d.png"), fps=4)
+
+
+def test_every_order_type_has_a_colour():
+    from medical_uav.env.config import ORDER_TYPES
+    from medical_uav.env.render import TYPE_COLORS
+
+    assert set(TYPE_COLORS) == {t.name for t in ORDER_TYPES}

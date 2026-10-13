@@ -141,3 +141,27 @@ def test_decision_log_names_the_picked_order():
     expected = (f"PICK {ORDER_TYPES[order.type_idx].name} "
                 f"{NODE_NAMES[order.origin]}->{NODE_NAMES[order.dest]}")
     assert env.decision_log[-1][1] == expected
+
+
+def test_env_keeps_its_own_copy_of_the_config():
+    from medical_uav.env import EnvConfig
+
+    cfg = EnvConfig()
+    env = MedicalUAVEnv(config=cfg)
+    cfg.handling_min = 9.0
+    cfg.loads["high"] = 1.0
+    assert env.cfg.handling_min == 2.0 and env.cfg.loads["high"] == 0.12
+
+
+@pytest.mark.parametrize("overrides", [
+    {"handling_min": 3.0}, {"max_boxes": 2}, {"max_boxes": 1}, {"reserve": 25.0},
+    {"min_charge_gain": 15.0}, {"payload_factor": 0.0, "charge_rate": 2.0},
+])
+def test_masks_match_execution_under_non_default_settings(overrides):
+    # the simulator asserts that every masked-in action really completes (no load after expiry,
+    # battery invariant kept); random rollouts on high load exercise expiries and disposal
+    from medical_uav.env import EnvConfig
+
+    env = MedicalUAVEnv(config=EnvConfig(**overrides), load="high")
+    for seed in range(3):
+        rollout(env, seed, rng_seed=seed)

@@ -1,4 +1,5 @@
 """Gymnasium wrapper around the simulator."""
+import copy
 import math
 
 import gymnasium as gym
@@ -20,7 +21,7 @@ class MedicalUAVEnv(gym.Env):
 
     def __init__(self, config: EnvConfig | None = None, load: str = "medium",
                  render_mode: str | None = None):
-        self.cfg = config or EnvConfig()
+        self.cfg = copy.deepcopy(config) if config is not None else EnvConfig()  # own copy
         self.cfg.validate()
         if load not in self.cfg.loads:
             raise ValueError(f"unknown load {load!r}, expected one of {list(self.cfg.loads)}")
