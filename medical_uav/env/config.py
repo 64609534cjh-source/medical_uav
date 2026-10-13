@@ -33,41 +33,47 @@ ORDER_TYPES = (
 
 @dataclass
 class EnvConfig:
-    # map
+    """All tunable settings. Defaults are the main experiment; override fields for ablations."""
+
+    # map: a grid_size x grid_size grid of cells, each cell_km wide (16 x 0.25 = 4 km square)
     grid_size: int = 16
     cell_km: float = 0.25
-    n_zones_range: tuple[int, int] = (2, 4)
-    min_node_spacing_km: float = 0.75
-    c2_min_dist_from_m_km: float = 1.0
-    map_seed: int = 0
-    max_map_tries: int = 100
+    n_zones_range: tuple[int, int] = (2, 4)  # number of rectangular no-fly zones (min, max)
+    min_node_spacing_km: float = 0.75  # minimum distance between any two nodes
+    c2_min_dist_from_m_km: float = 1.0  # keeps the second charger away from the center
+    map_seed: int = 0  # random seed of the map; same seed -> same map (main experiments use 0)
+    max_map_tries: int = 100  # give up if no valid map is found after this many random attempts
 
     # drone
-    speed_km_per_min: float = 1.0
-    energy_per_km: float = 3.5  # battery % per km, empty
-    payload_factor: float = 0.25  # +25% energy per kg
-    reserve: float = 15.0
-    charge_rate: float = 5.0  # % per min
-    handling_min: float = 2.0  # per box, load or unload
-    max_boxes: int = 3
-    max_weight: float = 2.0
+    speed_km_per_min: float = 1.0  # 60 km/h, the same with or without cargo
+    energy_per_km: float = 3.5  # battery % used per km when empty
+    payload_factor: float = 0.25  # each kg of cargo adds 25 % to the energy per km
+    reserve: float = 15.0  # battery % that must always remain (masks enforce it)
+    charge_rate: float = 5.0  # battery % gained per minute of charging
+    handling_min: float = 2.0  # minutes to load or to unload one box
+    max_boxes: int = 3  # cargo capacity in boxes ...
+    max_weight: float = 2.0  # ... and in kg; both limits apply
 
-    # demand
+    # demand: orders are released during [0, release_window) minutes (08:00-16:00).
+    # Arrival rate at time t = base rate (one of `loads`) x multiplier:
+    # peak_multiplier inside peak_windows, offpeak_multiplier elsewhere.
     release_window: float = 480.0
+    # peaks at 09:00-11:00 and 13:00-14:30
     peak_windows: tuple[tuple[float, float], ...] = ((60.0, 180.0), (300.0, 390.0))
     peak_multiplier: float = 2.0
     offpeak_multiplier: float = 0.6
+    # base rate in orders per minute; expected orders per day = 582 x rate (about 23 / 47 / 70)
     loads: dict = field(default_factory=lambda: {"low": 0.04, "medium": 0.08, "high": 0.12})
-    pool_cap: int = 30
+    pool_cap: int = 30  # max orders waiting to be picked up; further arrivals are rejected
 
     # actions / observation
-    n_slots: int = 12
-    wait_max: float = 10.0
+    n_slots: int = 12  # pending orders the agent can see (and PICK); fixed by the observation size
+    wait_max: float = 10.0  # WAIT ends at the next release or expiry, at the latest after this
 
     # reward
-    reward_on_time: float = 1.0  # R
-    expiry_penalty: float = 0.5  # P
-    energy_cost: float = 0.001  # per % battery
+    reward_on_time: float = 1.0  # R: per box delivered on time
+    expiry_penalty: float = 0.5  # P: per order that expires or is rejected
+    energy_cost: float = 0.001  # per % of battery used in flight
 
     def validate(self) -> None:
         """Raise ValueError for settings the environment cannot run with."""
@@ -98,6 +104,7 @@ class EnvConfig:
                 raise ValueError(f"load {name!r} must be a finite rate >= 0, got {lam}")
         if not self.loads.get("high", 0) > 0:
             raise ValueError("loads must include 'high' > 0 (it scales the load feature)")
+
 
 def day_length(cfg: EnvConfig) -> float:
     """Latest time an order can still be open: release window + longest expiry."""
