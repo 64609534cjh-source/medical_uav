@@ -1,5 +1,4 @@
-"""Matplotlib rendering. Frames are rebuilt from the simulator history, so any
-time t <= sim.t can be drawn (used for smooth replays and videos)."""
+"""Matplotlib rendering; draws any past time t <= sim.t from the recorded history."""
 import math
 import os
 import subprocess
@@ -197,11 +196,7 @@ def frame_times(t0: float, t1: float, step: float) -> list[float]:
 
 
 class GifWriter:
-    """Streams frames into a temporary MP4 and converts it to a GIF on close.
-
-    Pillow's GIF writer keeps every frame in memory until it closes; going through
-    ffmpeg keeps memory flat however long the day is.
-    """
+    """Writes a temporary MP4, converted to GIF on close (low memory)."""
 
     def __init__(self, path: str, fps: int):
         self.path = path

@@ -1,4 +1,4 @@
-"""Action mask. Every rule keeps the safety invariant of the simulator."""
+"""Action mask: which actions are allowed now; all of them keep the battery safe."""
 import numpy as np
 
 from medical_uav.env.actions import CHARGE0, CHARGE_TABLE, DELIVER0, N_ACTIONS, PICK0, RETURN, WAIT
@@ -8,7 +8,7 @@ from medical_uav.env.simulator import Simulator
 
 
 def predict_arrival(sim: Simulator, node: int) -> tuple[float, list[Order]]:
-    """Arrival time at node and the onboard boxes that will be expired cargo by then."""
+    """Arrival time at node, and the boxes on board that will have expired by then."""
     t_arrive = sim.t + sim.travel_time(sim.location, node)
     expired = [o for o in sim.onboard if o.status == "expired" or o.expiry <= t_arrive + EPS]
     return t_arrive, expired
@@ -21,7 +21,7 @@ def _battery_ok(sim: Simulator, flight_energy: float, end_node: int, end_load: f
 
 def can_pick(sim: Simulator, order: Order) -> bool:
     cfg = sim.cfg
-    t_arrive, expired = predict_arrival(sim, order.origin)  # origin is always a facility
+    t_arrive, expired = predict_arrival(sim, order.origin)
     remaining = [o for o in sim.onboard if o not in expired]
     if len(remaining) + 1 > cfg.max_boxes:
         return False

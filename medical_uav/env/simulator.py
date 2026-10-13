@@ -1,8 +1,4 @@
-"""Event-driven simulation of one operating day.
-
-The simulator has no notion of action indices or observations; the Gym
-wrapper translates actions into the do_* commands below.
-"""
+"""Event-driven simulation of one day. uav_env turns action indices into do_* calls."""
 import math
 from dataclasses import dataclass
 
@@ -11,7 +7,7 @@ from medical_uav.env.map_gen import CityMap
 from medical_uav.env.orders import Order
 from medical_uav.env.physics import charge_minutes, delivery_reward, flight_energy, flight_time
 
-INVARIANT_TOL = 1e-6  # battery % slack allowed by the safety check (rounding only)
+INVARIANT_TOL = 1e-6  # battery %, rounding tolerance in check_invariant
 
 
 @dataclass
@@ -40,7 +36,7 @@ class Simulator:
         self.t = 0.0
         self.location = M
         self.battery = FULL_BATTERY
-        self.onboard: list[Order] = []  # includes expired cargo until it is disposed
+        self.onboard: list[Order] = []  # also expired boxes not yet unloaded
         self.pending: list[Order] = []
 
         self.segments: list[Segment] = []
@@ -101,11 +97,9 @@ class Simulator:
             f"battery {self.battery:.3f} < {need:.3f} at t={self.t:.2f}"
 
     def advance_to(self, t_target: float, strict: bool = False) -> None:
-        """Process releases and expiries up to t_target, then move the clock there.
+        """Process releases and expiries up to t_target, then set the clock to it.
 
-        strict=True leaves events exactly at t_target unprocessed (used so that an
-        unload finishing at t_target is recorded before an expiry at t_target).
-        At equal times expiries are processed before releases.
+        strict: leave events at exactly t_target for later. Ties: expiry before release.
         """
         while True:
             t_release = self._next_release_time()
@@ -174,7 +168,7 @@ class Simulator:
             self._dispose(o)
 
     def _dispose(self, o: Order) -> None:
-        """Expired cargo o leaves the drone (its handling time is already spent)."""
+        """Remove expired box o (handling time already spent)."""
         o.disposed_time = self.t
         self.onboard.remove(o)
         self.events.append((self.t, "dispose", o.id))
@@ -199,7 +193,7 @@ class Simulator:
         self.check_invariant()
 
     def do_deliver(self, node: int) -> None:
-        """Unload every box for node, most urgent first; each box is rewarded when unloaded."""
+        """Unload all boxes for node, earliest deadline first."""
         self.fly_to(node)
         boxes = [o for o in self.onboard if o.dest == node]
         boxes.sort(key=lambda o: (o.deadline, o.id))

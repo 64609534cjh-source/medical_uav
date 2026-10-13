@@ -44,7 +44,7 @@ ORDER_TYPES = (
 
 @dataclass
 class EnvConfig:
-    """Tunable settings; defaults are the main experiment. The env keeps its own copy."""
+    """Tunable settings; defaults are the main experiment."""
 
     # map
     grid_size: int = 16  # cells per side

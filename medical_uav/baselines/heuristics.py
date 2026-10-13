@@ -8,8 +8,8 @@ from medical_uav.env.observation import direct_completion_time
 from medical_uav.metrics import episode_metrics
 
 DEFAULT_THETA = 20.0  # charge when battery < this % (best of 20/30/40 on dev days)
-IDLE_CHARGE_BELOW = 80.0  # with no PICK/DELIVER possible, top up when battery < this %
-# charge targets tried in order: those at or above the idle threshold (80 %, then 100 %)
+IDLE_CHARGE_BELOW = 80.0  # when idle, charge if battery < this %
+# charge to 80 %, else 100 %
 CHARGE_PREFERENCE = tuple(t for t in CHARGE_TARGETS if t >= IDLE_CHARGE_BELOW)
 
 
@@ -18,7 +18,7 @@ def random_policy(env, rng: np.random.Generator) -> int:
 
 
 def charging_rule(env, theta: float) -> int | None:
-    """Shared charging rule: when wanted, charge at the nearest station (80 %, else 100 %)."""
+    """Charge action if the battery is low, else None. Nearest station first."""
     sim, mask = env.sim, env.action_masks()
     has_service = mask[PICK0:CHARGE0].any()
     wanted = sim.battery < theta or (not has_service and sim.battery < IDLE_CHARGE_BELOW)
@@ -40,7 +40,7 @@ def edf_policy(env, theta: float = DEFAULT_THETA) -> int:
     if a is not None:
         return a
     sim, mask = env.sim, env.action_masks()
-    candidates = []  # (deadline, deliver-before-pick, action)
+    candidates = []  # sorted by (deadline, deliver before pick)
     for k, order in enumerate(env.slots):
         if mask[PICK0 + k]:
             candidates.append((order.deadline, 1, PICK0 + k))
@@ -52,26 +52,27 @@ def edf_policy(env, theta: float = DEFAULT_THETA) -> int:
 
 
 def slack_aware_policy(env, theta: float = DEFAULT_THETA) -> int:
-    """Deliver here, batch, charge if needed, then EDF that puts hopeless work last."""
+    """In order: deliver here, pick here for a shared destination, charge, then EDF
+    with orders that are already too late moved to the end."""
     sim, mask = env.sim, env.action_masks()
 
-    # 1) boxes for the current node: unload them now (no flight needed)
+    # 1) unload boxes for the current node
     if sim.location in FACILITIES and mask[DELIVER0 + sim.location]:
         return DELIVER0 + sim.location
 
-    # 2) batching: load an order waiting here that goes where cargo already goes
+    # 2) pick an order here going to a destination already on board
     onboard_dests = {o.dest for o in sim.onboard if o.status == "onboard"}
     for k, order in enumerate(env.slots):
         if mask[PICK0 + k] and order.origin == sim.location and order.dest in onboard_dests:
             return PICK0 + k
 
-    # 3) shared charging rule
+    # 3) charge if needed
     a = charging_rule(env, theta)
     if a is not None:
         return a
 
-    # 4) work that can still be on time first, then earliest deadline
-    candidates = []  # (hopeless, deadline, deliver-before-pick, action)
+    # 4) EDF, too-late work last
+    candidates = []  # sorted by (too late, deadline, deliver before pick)
     for k, order in enumerate(env.slots):
         if mask[PICK0 + k]:
             hopeless = sim.t + direct_completion_time(sim, order) > order.deadline + EPS
@@ -85,7 +86,7 @@ def slack_aware_policy(env, theta: float = DEFAULT_THETA) -> int:
 
 
 def _delivery_can_be_on_time(sim, n: int) -> bool:
-    """True if at least one box for n would still be on time when unloaded there."""
+    """Would at least one box for n still arrive on time?"""
     t, expired = predict_arrival(sim, n)
     t += sim.cfg.handling_min * len(expired)  # expired cargo is unloaded first
     boxes = [o for o in sim.onboard if o.dest == n and o not in expired]

@@ -1,17 +1,14 @@
-"""Discrete action table: which actions exist and their indices.
-
-Index layout: PICK(slot) x N_SLOTS | DELIVER(facility) | CHARGE(station, target) | RETURN | WAIT.
-How long each action takes is decided by the simulator and EnvConfig, not here.
-"""
+"""Action indices, in order: PICK(slot) x N_SLOTS, DELIVER(facility), CHARGE(station, target),
+RETURN, WAIT."""
 import numbers
 
 from medical_uav.env.config import CHARGERS, FACILITIES, FULL_BATTERY, M, NODE_NAMES
 
-N_SLOTS = 12  # pending orders the agent can see and PICK (also sizes the observation)
-CHARGE_TARGETS = (60.0, 80.0, FULL_BATTERY)  # battery % a CHARGE action fills up to
+N_SLOTS = 12  # pending orders shown to the agent
+CHARGE_TARGETS = (60.0, 80.0, FULL_BATTERY)  # charge up to this battery %
 CHARGE_TABLE = tuple((station, target) for station in CHARGERS for target in CHARGE_TARGETS)
 
-# DELIVER(n) uses the facility index n as its offset, so facilities must be 0..5 in order
+# DELIVER index = DELIVER0 + facility, so facilities must be numbered 0..5
 assert FACILITIES == tuple(range(len(FACILITIES)))
 
 PICK0 = 0
