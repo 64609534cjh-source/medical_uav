@@ -55,8 +55,9 @@ def _sample_zones(rng, cfg: EnvConfig):
     zones = []
     n_zones = int(rng.integers(cfg.n_zones_range[0], cfg.n_zones_range[1] + 1))
     for _ in range(n_zones):
-        height = int(rng.integers(2, 6))
-        width = int(rng.integers(2, 6))
+        low, high = cfg.zone_size_range
+        height = int(rng.integers(low, high + 1))
+        width = int(rng.integers(low, high + 1))
         row = int(rng.integers(0, g - height + 1))
         col = int(rng.integers(0, g - width + 1))
         blocked[row:row + height, col:col + width] = True

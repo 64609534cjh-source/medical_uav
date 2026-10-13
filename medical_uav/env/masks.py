@@ -49,7 +49,7 @@ def can_charge(sim: Simulator, station: int, target: float) -> bool:
     arrival_battery = sim.battery - sim.energy(sim.location, station, sim.load_kg())
     if arrival_battery < sim.cfg.reserve - EPS:
         return False
-    return target > arrival_battery + 5.0 + EPS
+    return target > arrival_battery + sim.cfg.min_charge_gain + EPS
 
 
 def can_return(sim: Simulator) -> bool:

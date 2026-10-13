@@ -11,7 +11,7 @@ def test_order_types_match_spec():
     names = [o.name for o in ORDER_TYPES]
     assert names == ["plasma", "medicine", "sample", "supplies"]
     assert [o.limit for o in ORDER_TYPES] == [30, 90, 60, 75]
-    assert [o.expiry for o in ORDER_TYPES] == [60, 180, 120, 150]
+    assert [o.expiry_after for o in ORDER_TYPES] == [60, 180, 120, 150]
     assert sum(o.share for o in ORDER_TYPES) == pytest.approx(1.0)
 
 

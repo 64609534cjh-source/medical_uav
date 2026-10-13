@@ -82,5 +82,5 @@ def generate_orders(demand_seed: int, lam: float, cfg: EnvConfig) -> list[Order]
         origin, dest = _sample_route(rng, order_type.route)
         weight = float(rng.uniform(*order_type.weight_range))
         orders.append(Order(i, type_idx, origin, dest, weight, float(release),
-                            order_type.limit, order_type.expiry))
+                            order_type.limit, order_type.expiry_after))
     return orders

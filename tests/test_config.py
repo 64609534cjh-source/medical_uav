@@ -53,3 +53,26 @@ def test_loads_need_a_positive_high_level(loads):
 def test_non_finite_or_fractional_values_rejected(field, value):
     with pytest.raises(ValueError):
         EnvConfig(**{field: value}).validate()
+
+
+@pytest.mark.parametrize("field,value", [
+    ("peak_multiplier", -1.0), ("offpeak_multiplier", math.nan), ("min_node_spacing_km", math.nan),
+    ("c2_min_dist_from_m_km", -1.0), ("min_charge_gain", -5.0), ("map_seed", -1),
+    ("n_zones_range", (3, 2)), ("n_zones_range", (-1, 2)), ("n_zones_range", (1.5, 2)),
+    ("zone_size_range", (0, 3)), ("zone_size_range", (5, 2)), ("zone_size_range", (2, 40)),
+    ("peak_windows", ((180.0, 60.0),)), ("peak_windows", ((60.0, math.nan),)),
+    ("peak_windows", ((-10.0, 30.0),)),
+])
+def test_more_invalid_settings_rejected(field, value):
+    with pytest.raises(ValueError):
+        EnvConfig(**{field: value}).validate()
+
+
+def test_zero_zones_and_short_release_window_are_allowed():
+    EnvConfig(n_zones_range=(0, 0)).validate()
+    EnvConfig(release_window=120.0).validate()  # peak windows past the end are simply unused
+
+
+def test_named_rules_have_their_defaults():
+    cfg = EnvConfig()
+    assert cfg.min_charge_gain == 5.0 and cfg.zone_size_range == (2, 5)
