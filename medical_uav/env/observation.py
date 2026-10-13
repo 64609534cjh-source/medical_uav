@@ -1,30 +1,36 @@
-"""415-dim observation: global block, 12 pending slots, 3 onboard slots."""
+"""Observation: a global block, N_SLOTS pending-order slots, N_ONBOARD cargo slots (415 values)."""
 import numpy as np
 
-from medical_uav.env.config import EPS, FACILITIES, N_NODES, ORDER_TYPES, day_length
+from medical_uav.env.actions import N_SLOTS
+from medical_uav.env.config import (EPS, FACILITIES, FULL_BATTERY, N_NODES, N_ONBOARD, ORDER_TYPES,
+                                    day_length)
 from medical_uav.env.orders import Order, demand_multiplier
 from medical_uav.env.simulator import Simulator
 
-GLOBAL_DIM = 31
-PENDING_DIM = 28
-ONBOARD_DIM = 16
-N_SLOTS = 12
-N_ONBOARD = 3
-OBS_DIM = GLOBAL_DIM + N_SLOTS * PENDING_DIM + N_ONBOARD * ONBOARD_DIM
+N_TYPES = len(ORDER_TYPES)
+N_FACILITIES = len(FACILITIES)
+GLOBAL_DIM = 13 + 2 * N_NODES + N_TYPES  # 31; see _global_features
+PENDING_DIM = 12 + N_TYPES + 2 * N_FACILITIES  # 28; see _pending_features
+ONBOARD_DIM = 6 + N_TYPES + N_FACILITIES  # 16; see _onboard_features
+OBS_DIM = GLOBAL_DIM + N_SLOTS * PENDING_DIM + N_ONBOARD * ONBOARD_DIM  # 415
 
-OBS_BOUND = 10.0  # features are clipped to [-OBS_BOUND, OBS_BOUND]
+OBS_BOUND = 10.0  # every feature is clipped to [-OBS_BOUND, OBS_BOUND]
 
-# feature scales
+# fixed feature scales (kept constant so a feature means the same thing under any config)
 DURATION_SCALE = 30.0  # minutes, for durations and slack
 TRAVEL_SCALE = 10.0  # minutes, for travel times to nodes
 COUNT_SCALE = 10.0  # orders, for per-type and recent counts
-SAME_DEST_SCALE = 5.0
-RECENT_WINDOW = 30.0  # minutes, for 'releases in the last 30 min'
+SAME_DEST_SCALE = 5.0  # orders sharing one destination
+DEMAND_SCALE = 2.0  # reference demand multiplier (the default peak); values may exceed 1
+RECENT_WINDOW = 30.0  # minutes, for "releases in the last 30 min"
 FORECAST_STEPS = (30.0, 60.0)  # minutes ahead for the demand profile
 
 
 def direct_completion_time(sim: Simulator, order: Order) -> float:
-    """Time to finish this order alone from the current position, handling included."""
+    """Optimistic minutes to finish this order alone: travel and handling only.
+
+    Ignores other cargo, expired-cargo disposal and charging, so the real time can be longer.
+    """
     h = sim.cfg.handling_min
     if order.status == "pending":
         return (sim.travel_time(sim.location, order.origin) + h
@@ -54,11 +60,12 @@ def provisional_route_time(sim: Simulator, extra: Order | None = None) -> float:
 
 
 def insertion_extra_time(sim: Simulator, order: Order) -> float:
+    """Extra minutes the provisional route needs if this order is picked up first."""
     return provisional_route_time(sim, order) - provisional_route_time(sim)
 
 
 def rank_pending(sim: Simulator, n_slots: int = N_SLOTS) -> list[Order]:
-    """Orders that can still be on time first (by deadline), then late ones (by expiry)."""
+    """Optimistically on-time orders first (by deadline), then the rest (by expiry)."""
     feasible, late = [], []
     for o in sim.pending:
         if sim.t + direct_completion_time(sim, o) <= o.deadline + EPS:
@@ -81,25 +88,26 @@ def _global_features(sim: Simulator, n_visible: int) -> list[float]:
     load = sim.load_kg()
     _, to_charger = sim.nearest_charger(sim.location, load)
     per_type = [sum(1 for o in sim.pending if o.type_idx == k) / COUNT_SCALE
-                for k in range(len(ORDER_TYPES))]
+                for k in range(N_TYPES)]
     recent = sum(1 for r in sim.release_times_log if r > t - RECENT_WINDOW)
     return [
-        t / day_length(cfg),
-        max(0.0, cfg.release_window - t) / cfg.release_window,
-        demand_multiplier(t, cfg) / 2.0,
-        demand_multiplier(t + FORECAST_STEPS[0], cfg) / 2.0,
-        demand_multiplier(t + FORECAST_STEPS[1], cfg) / 2.0,
-        sim.lam / cfg.loads["high"],
-        sim.battery / 100.0,
-        load / cfg.max_weight,
-        len(sim.onboard) / cfg.max_boxes,
-        *_one_hot(sim.location, N_NODES),
+        t / day_length(cfg),  # time of day, 0..1
+        max(0.0, cfg.release_window - t) / cfg.release_window,  # share of release window left
+        demand_multiplier(t, cfg) / DEMAND_SCALE,  # demand level now
+        demand_multiplier(t + FORECAST_STEPS[0], cfg) / DEMAND_SCALE,  # ... in 30 min
+        demand_multiplier(t + FORECAST_STEPS[1], cfg) / DEMAND_SCALE,  # ... in 60 min
+        sim.lam / cfg.loads["high"],  # today's base load relative to "high"
+        sim.battery / FULL_BATTERY,  # battery level
+        load / cfg.max_weight,  # cargo weight / capacity
+        len(sim.onboard) / cfg.max_boxes,  # boxes on board / capacity
+        *_one_hot(sim.location, N_NODES),  # where the drone is (N_NODES values)
+        # minutes to each node (N_NODES values)
         *[sim.travel_time(sim.location, n) / TRAVEL_SCALE for n in range(N_NODES)],
-        to_charger / 100.0,
-        len(sim.pending) / cfg.pool_cap,
-        (len(sim.pending) - n_visible) / cfg.pool_cap,
-        *per_type,
-        recent / COUNT_SCALE,
+        to_charger / FULL_BATTERY,  # battery needed to reach the nearest charger
+        len(sim.pending) / cfg.pool_cap,  # pending orders / pool capacity
+        (len(sim.pending) - n_visible) / cfg.pool_cap,  # pending orders not shown in the slots
+        *per_type,  # pending orders of each type (N_TYPES values)
+        recent / COUNT_SCALE,  # orders released in the last 30 min
     ]
 
 
@@ -109,35 +117,35 @@ def _pending_features(sim: Simulator, o: Order, pick_allowed: bool) -> list[floa
     onboard_dests = {b.dest for b in sim.onboard if b.status == "onboard"}
     same_dest = sum(1 for p in sim.pending if p.dest == o.dest and p is not o)
     return [
-        1.0,
-        *_one_hot(o.type_idx, len(ORDER_TYPES)),
-        *_one_hot(o.origin, len(FACILITIES)),
-        *_one_hot(o.dest, len(FACILITIES)),
-        o.weight,
-        (o.deadline - t) / o.limit,
-        (o.expiry - t) / o.limit,
-        o.age(t) / o.limit,
-        direct / DURATION_SCALE,
-        (o.deadline - t - direct) / DURATION_SCALE,
-        float(o.dest in onboard_dests),
-        same_dest / SAME_DEST_SCALE,
-        float(o.origin == sim.location),
-        insertion_extra_time(sim, o) / DURATION_SCALE,
-        float(pick_allowed),
+        1.0,  # slot is used
+        *_one_hot(o.type_idx, N_TYPES),  # order type
+        *_one_hot(o.origin, N_FACILITIES),  # pickup facility
+        *_one_hot(o.dest, N_FACILITIES),  # destination facility
+        o.weight,  # kg
+        (o.deadline - t) / o.limit,  # time to deadline, in units of L (negative when late)
+        (o.expiry - t) / o.limit,  # time to expiry, in units of L
+        o.age(t) / o.limit,  # time since release, in units of L
+        direct / DURATION_SCALE,  # optimistic time to serve it alone
+        (o.deadline - t - direct) / DURATION_SCALE,  # slack left after serving it alone
+        float(o.dest in onboard_dests),  # goes where cargo already goes (batching hint)
+        same_dest / SAME_DEST_SCALE,  # other pending orders to the same destination
+        float(o.origin == sim.location),  # can be loaded without flying
+        insertion_extra_time(sim, o) / DURATION_SCALE,  # extra route time if added
+        float(pick_allowed),  # PICK for this slot is allowed by the mask
     ]
 
 
 def _onboard_features(sim: Simulator, o: Order) -> list[float]:
     t = sim.t
     return [
-        1.0,
-        *_one_hot(o.type_idx, len(ORDER_TYPES)),
-        *_one_hot(o.dest, len(FACILITIES)),
-        o.weight,
-        (o.deadline - t) / o.limit,
-        (o.expiry - t) / o.limit,
-        float(o.status == "expired"),
-        direct_completion_time(sim, o) / DURATION_SCALE,
+        1.0,  # slot is used
+        *_one_hot(o.type_idx, N_TYPES),  # order type
+        *_one_hot(o.dest, N_FACILITIES),  # destination facility
+        o.weight,  # kg
+        (o.deadline - t) / o.limit,  # time to deadline, in units of L
+        (o.expiry - t) / o.limit,  # time to expiry, in units of L
+        float(o.status == "expired"),  # expired cargo waiting to be unloaded
+        direct_completion_time(sim, o) / DURATION_SCALE,  # optimistic time to deliver it
     ]
 
 
@@ -148,7 +156,7 @@ def build_observation(sim: Simulator, slots: list[Order], mask: np.ndarray) -> n
             features += _pending_features(sim, slots[k], bool(mask[k]))
         else:
             features += [0.0] * PENDING_DIM
-    onboard = sorted(sim.onboard, key=lambda o: (o.deadline, o.id))
+    onboard = sorted(sim.onboard, key=lambda o: (o.deadline, o.id))  # most urgent first
     for k in range(N_ONBOARD):
         if k < len(onboard):
             features += _onboard_features(sim, onboard[k])

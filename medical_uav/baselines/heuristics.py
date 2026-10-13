@@ -1,11 +1,16 @@
 """Rule-based baselines. Policies take the env and return a valid action index."""
 import numpy as np
 
-from medical_uav.env.actions import CHARGE0, CHARGE_TABLE, DELIVER0, PICK0, WAIT
-from medical_uav.env.config import C2, EPS, FACILITIES, M
+from medical_uav.env.actions import CHARGE0, CHARGE_TARGETS, DELIVER0, PICK0, WAIT, charge_action
+from medical_uav.env.config import CHARGERS, EPS, FACILITIES
 from medical_uav.env.masks import predict_arrival
 from medical_uav.env.observation import direct_completion_time
 from medical_uav.metrics import episode_metrics
+
+DEFAULT_THETA = 20.0  # charge when battery < this % (best of 20/30/40 on dev days)
+IDLE_CHARGE_BELOW = 80.0  # with no PICK/DELIVER possible, top up when battery < this %
+CHARGE_PREFERENCE = (80.0, 100.0)  # charge targets tried in this order
+assert set(CHARGE_PREFERENCE) <= set(CHARGE_TARGETS)
 
 
 def random_policy(env, rng: np.random.Generator) -> int:
@@ -13,23 +18,23 @@ def random_policy(env, rng: np.random.Generator) -> int:
 
 
 def charging_rule(env, theta: float) -> int | None:
-    """Shared charging rule: charge to 80 (else 100) at the nearest station when wanted."""
+    """Shared charging rule: when wanted, charge at the nearest station (80 %, else 100 %)."""
     sim, mask = env.sim, env.action_masks()
     has_service = mask[PICK0:CHARGE0].any()
-    wanted = sim.battery < theta or (not has_service and sim.battery < 80.0)
+    wanted = sim.battery < theta or (not has_service and sim.battery < IDLE_CHARGE_BELOW)
     if not wanted:
         return None
     nearest, _ = sim.nearest_charger(sim.location, sim.load_kg())
-    other = C2 if nearest == M else M
-    for station in (nearest, other):
-        for target in (80.0, 100.0):
-            a = CHARGE0 + CHARGE_TABLE.index((station, target))
+    stations = [nearest] + [c for c in CHARGERS if c != nearest]
+    for station in stations:
+        for target in CHARGE_PREFERENCE:
+            a = charge_action(station, target)
             if mask[a]:
                 return a
     return None
 
 
-def edf_policy(env, theta: float = 20.0) -> int:
+def edf_policy(env, theta: float = DEFAULT_THETA) -> int:
     """Earliest deadline first over valid pickups and deliveries."""
     a = charging_rule(env, theta)
     if a is not None:
@@ -46,7 +51,7 @@ def edf_policy(env, theta: float = 20.0) -> int:
     return min(candidates)[2] if candidates else WAIT
 
 
-def slack_aware_policy(env, theta: float = 20.0) -> int:
+def slack_aware_policy(env, theta: float = DEFAULT_THETA) -> int:
     """Deliver here, batch, charge if needed, then EDF that puts hopeless work last."""
     sim, mask = env.sim, env.action_masks()
 

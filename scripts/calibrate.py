@@ -12,7 +12,8 @@ import time
 
 import numpy as np
 
-from medical_uav.baselines.heuristics import edf_policy, random_policy, slack_aware_policy
+from medical_uav.baselines.heuristics import (DEFAULT_THETA, edf_policy, random_policy,
+                                              slack_aware_policy)
 from medical_uav.env import EnvConfig, MedicalUAVEnv
 from medical_uav.env.config import EPS
 from medical_uav.env.map_gen import generate_map
@@ -20,8 +21,10 @@ from medical_uav.env.observation import direct_completion_time
 from medical_uav.metrics import episode_metrics
 from medical_uav.splits import DEV_SEEDS
 
-DEFAULT_LAMBDAS = [0.04, 0.06, 0.08, 0.10, 0.12, 0.14]
-THETAS = [20.0, 30.0, 40.0]
+DEFAULT_LAMBDAS = [0.04, 0.06, 0.08, 0.10, 0.12, 0.14]  # base rates to sweep (orders/min)
+THETAS = [20.0, 30.0, 40.0]  # charging thresholds tried by --tune-theta
+TUNABLE = {"edf": edf_policy, "slack": slack_aware_policy}  # heuristics with a threshold
+DEFAULT_THETAS = {name: DEFAULT_THETA for name in TUNABLE}
 
 
 def run_day(env, policy, demand_seed, lam):
@@ -91,10 +94,6 @@ def benchmark(cfg, episodes=20):
     print(f"throughput: {rate:.0f} decisions/s (single process, random policy, {steps} steps)")
 
 
-TUNABLE = {"edf": edf_policy, "slack": slack_aware_policy}
-DEFAULT_THETAS = {"edf": 20.0, "slack": 20.0}
-
-
 def make_policy(name: str, demand_seed: int, thetas: dict):
     """Policy for one day; Random gets its own seed so a row never depends on run order."""
     if name == "random":
@@ -151,7 +150,7 @@ def write_tables(rows, out_dir, cfg, seeds, thetas):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--lambdas", type=float, nargs="*", default=DEFAULT_LAMBDAS)
-    parser.add_argument("--seeds", type=int, nargs="*", default=list(DEV_SEEDS))
+    parser.add_argument("--seeds", type=int, nargs="+", default=list(DEV_SEEDS))
     parser.add_argument("--tune-theta", action="store_true")
     parser.add_argument("--map-check", type=int, default=0)
     parser.add_argument("--benchmark", action="store_true")

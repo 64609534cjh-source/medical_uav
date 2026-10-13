@@ -1,7 +1,8 @@
 """Environment settings.
 
 Two parts:
-- fixed structure (nodes, order types, cargo slots): changing it changes the observation/action layout;
+- fixed structure (nodes, order types, cargo slots): changing it changes the observation and
+  action layout;
 - EnvConfig: tunable numbers; changing them keeps the layout and only changes the results.
 """
 import math
@@ -33,10 +34,12 @@ class OrderType:
 
 
 ORDER_TYPES = (
-    OrderType("plasma", "center_to_hospital", (0.6, 0.9), limit=30.0, expiry_after=60.0, share=0.20),
+    OrderType("plasma", "center_to_hospital", (0.6, 0.9), limit=30.0, expiry_after=60.0,
+              share=0.20),
     OrderType("medicine", "center_to_hospital", (0.3, 0.6), limit=90.0, expiry_after=180.0,
               share=0.30),
-    OrderType("sample", "hospital_to_center", (0.2, 0.4), limit=60.0, expiry_after=120.0, share=0.30),
+    OrderType("sample", "hospital_to_center", (0.2, 0.4), limit=60.0, expiry_after=120.0,
+              share=0.30),
     OrderType("supplies", "hospital_to_hospital", (0.4, 0.8), limit=75.0, expiry_after=150.0,
               share=0.20),
 )

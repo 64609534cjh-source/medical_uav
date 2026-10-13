@@ -1,3 +1,5 @@
+import pytest
+
 from medical_uav.env.actions import CHARGE0, DELIVER0, N_ACTIONS, RETURN, WAIT, action_name, decode
 from medical_uav.env.config import C2, M
 from medical_uav.env.masks import compute_action_mask
@@ -86,3 +88,27 @@ def test_expired_cargo_frees_capacity_at_origin(line_map):
     sim.do_charge(C2, 100.0)
     sim.advance_to(57.0)  # at C2, still 3 boxes
     assert compute_action_mask(sim, [new])[0]  # arrive at M 60.5 >= expiry 60: disposed
+
+
+def test_action_layout_is_derived_from_the_structure():
+    from medical_uav.env import actions, observation
+    from medical_uav.env.config import CHARGERS, FACILITIES
+
+    assert observation.N_SLOTS is actions.N_SLOTS
+    assert actions.DELIVER0 == actions.PICK0 + actions.N_SLOTS
+    assert actions.CHARGE0 == actions.DELIVER0 + len(FACILITIES)
+    assert actions.CHARGE_TABLE == tuple((s, t) for s in CHARGERS for t in actions.CHARGE_TARGETS)
+    assert actions.N_ACTIONS == actions.CHARGE0 + len(actions.CHARGE_TABLE) + 2 == 26
+
+
+def test_charge_action_lookup():
+    from medical_uav.env.actions import charge_action
+
+    assert charge_action(C2, 80.0) == CHARGE0 + 4
+    assert charge_action(M, 60.0) == CHARGE0
+
+
+@pytest.mark.parametrize("bad", [-1, 26, 1.5, True])
+def test_decode_rejects_invalid_indices(bad):
+    with pytest.raises(ValueError):
+        decode(bad)
