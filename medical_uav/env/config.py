@@ -1,37 +1,31 @@
-"""Environment settings.
-
-Two parts:
-- fixed structure (nodes, order types, cargo slots): changing it changes the observation and
-  action layout;
-- EnvConfig: tunable numbers; changing them keeps the layout and only changes the results.
-"""
+"""Environment settings: fixed structure (defines the observation/action layout) and EnvConfig."""
 import math
 import numbers
 from dataclasses import dataclass, field
 
 # Fixed structure
 
-# Node indices. C1 is the charger at the center M, so it has no index of its own.
+# Node indices; charger C1 sits at the center M.
 NODE_NAMES = ("M", "H1", "H2", "H3", "H4", "H5", "C2")
 M, H1, H2, H3, H4, H5, C2 = range(len(NODE_NAMES))
 N_NODES = len(NODE_NAMES)
-FACILITIES = (M, H1, H2, H3, H4, H5)  # where boxes can be loaded/unloaded (not C2)
+FACILITIES = (M, H1, H2, H3, H4, H5)  # can load/unload (C2 cannot)
 HOSPITALS = (H1, H2, H3, H4, H5)
 CHARGERS = (M, C2)
 
-N_ONBOARD = 3  # cargo slots in the observation; max_boxes may be lower, never higher
-FULL_BATTERY = 100.0  # battery is measured in % of a full charge
-EPS = 1e-9  # tolerance for comparing times and energies
+N_ONBOARD = 3  # cargo slots in the observation (>= max_boxes)
+FULL_BATTERY = 100.0  # battery in %
+EPS = 1e-9  # float tolerance
 
 
 @dataclass(frozen=True)
 class OrderType:
     name: str
     route: str  # center_to_hospital / hospital_to_center / hospital_to_hospital
-    weight_range: tuple[float, float]  # kg, sampled uniformly
-    limit: float  # minutes after release: delivered by then = on time (L)
-    expiry_after: float  # minutes after release: not delivered by then = lost (H)
-    share: float  # fraction of all orders that have this type
+    weight_range: tuple[float, float]  # kg
+    limit: float  # L: on time if delivered within this many minutes
+    expiry_after: float  # H: lost after this many minutes
+    share: float  # fraction of orders
 
 
 ORDER_TYPES = (
@@ -50,51 +44,46 @@ ORDER_TYPES = (
 
 @dataclass
 class EnvConfig:
-    """Tunable settings. Defaults are the main experiment; override fields for ablations.
+    """Tunable settings; defaults are the main experiment. The env keeps its own copy."""
 
-    Configure before creating the environment: the environment keeps its own copy.
-    """
-
-    # map: a grid_size x grid_size grid of cells, each cell_km wide (16 x 0.25 = 4 km square)
-    grid_size: int = 16
-    cell_km: float = 0.25
-    n_zones_range: tuple[int, int] = (2, 4)  # number of rectangular no-fly zones (min, max)
-    zone_size_range: tuple[int, int] = (2, 5)  # side length of a no-fly zone in cells (min, max)
-    min_node_spacing_km: float = 0.75  # minimum distance between any two nodes
-    c2_min_dist_from_m_km: float = 1.0  # keeps the second charger away from the center
-    map_seed: int = 0  # random seed of the map; same seed -> same map (main experiments use 0)
-    max_map_tries: int = 100  # give up if no valid map is found after this many random attempts
+    # map
+    grid_size: int = 16  # cells per side
+    cell_km: float = 0.25  # km per cell
+    n_zones_range: tuple[int, int] = (2, 4)  # no-fly zones (min, max)
+    zone_size_range: tuple[int, int] = (2, 5)  # zone side in cells (min, max)
+    min_node_spacing_km: float = 0.75
+    c2_min_dist_from_m_km: float = 1.0
+    map_seed: int = 0  # same seed -> same map
+    max_map_tries: int = 100
 
     # drone
-    speed_km_per_min: float = 1.0  # 60 km/h, the same with or without cargo
-    energy_per_km: float = 3.5  # battery % used per km when empty
-    payload_factor: float = 0.25  # each kg of cargo adds 25 % to the energy per km
-    reserve: float = 15.0  # battery % that must always remain (masks enforce it)
-    charge_rate: float = 5.0  # battery % gained per minute of charging
-    min_charge_gain: float = 5.0  # CHARGE is only allowed if it adds more than this many %
-    handling_min: float = 2.0  # minutes per box loaded, unloaded or disposed
-    max_boxes: int = 3  # cargo capacity in boxes ...
-    max_weight: float = 2.0  # ... and in kg; both limits apply
+    speed_km_per_min: float = 1.0  # 60 km/h, load-independent
+    energy_per_km: float = 3.5  # battery % per km, empty
+    payload_factor: float = 0.25  # +25 % energy per kg of cargo
+    reserve: float = 15.0  # battery % always kept
+    charge_rate: float = 5.0  # battery % per minute
+    min_charge_gain: float = 5.0  # min battery % a CHARGE must add
+    handling_min: float = 2.0  # minutes per box (load / unload / dispose)
+    max_boxes: int = 3
+    max_weight: float = 2.0  # kg
 
-    # demand: orders are released during [0, release_window) minutes (08:00-16:00).
-    # Arrival rate at time t = base rate (one of `loads`) x multiplier:
-    # peak_multiplier inside peak_windows, offpeak_multiplier elsewhere.
-    release_window: float = 480.0
-    # peaks at 09:00-11:00 and 13:00-14:30, as (start, end) minutes
+    # demand: rate(t) = base rate x peak or off-peak multiplier
+    release_window: float = 480.0  # minutes of order release (08:00-16:00)
+    # peaks 09:00-11:00 and 13:00-14:30
     peak_windows: tuple[tuple[float, float], ...] = ((60.0, 180.0), (300.0, 390.0))
     peak_multiplier: float = 2.0
     offpeak_multiplier: float = 0.6
-    # base rate in orders per minute; expected orders per day = 582 x rate (about 23 / 47 / 70)
+    # base rate in orders/min (about 23 / 47 / 70 orders per day)
     loads: dict = field(default_factory=lambda: {"low": 0.04, "medium": 0.08, "high": 0.12})
-    pool_cap: int = 30  # max orders waiting to be picked up; further arrivals are rejected
+    pool_cap: int = 30  # max waiting orders; more are rejected
 
     # actions
-    wait_max: float = 10.0  # max WAIT duration in minutes; a release or expiry ends it sooner
+    wait_max: float = 10.0  # max WAIT minutes
 
     # reward
-    reward_on_time: float = 1.0  # R: per box delivered on time
-    expiry_penalty: float = 0.5  # P: per order that expires or is rejected
-    energy_cost: float = 0.001  # per % of battery used in flight
+    reward_on_time: float = 1.0  # R, per on-time box
+    expiry_penalty: float = 0.5  # P, per expired or rejected order
+    energy_cost: float = 0.001  # per battery % flown
 
     def validate(self) -> None:
         """Raise ValueError for settings the environment cannot run with."""
