@@ -31,7 +31,6 @@ python -m pytest -q              # run the tests
 ## Usage
 
 ```python
-from medical_uav.baselines.heuristics import slack_aware_policy
 from medical_uav.env import MedicalUAVEnv
 
 env = MedicalUAVEnv(load="medium", render_mode="rgb_array")
@@ -39,10 +38,11 @@ obs, info = env.reset(options={"demand_seed": 0})   # the same seed gives the sa
 
 done = False
 while not done:
-    action = slack_aware_policy(env)   # or any action allowed by info["action_mask"]
+    # your policy goes here; this one picks a random allowed action
+    action = env.action_space.sample(mask=info["action_mask"].astype("int8"))
     obs, reward, done, truncated, info = env.step(action)
 
-frame = env.render()                   # RGB image of the current state
+frame = env.render()   # RGB image of the current state
 ```
 
 | | |
