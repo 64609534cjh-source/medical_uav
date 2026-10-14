@@ -20,7 +20,7 @@ def octile_distance(a: Cell, b: Cell) -> float:
 def astar(blocked: np.ndarray, start: Cell, goal: Cell) -> list[Cell] | None:
     """Return the shortest cell path from start to goal (both included), or None if unreachable."""
     n_rows, n_cols = blocked.shape
-    open_heap = [(octile_distance(start, goal), 0.0, start)]  # (cost + estimate, cost, cell)
+    open_heap = [(octile_distance(start, goal), 0.0, start)]  # (priority, cost, cell)
     best_cost = {start: 0.0}  # shortest known cost from start to each cell
     came_from = {}  # previous cell on the shortest known path
 
