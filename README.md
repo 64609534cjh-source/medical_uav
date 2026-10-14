@@ -139,10 +139,10 @@ boxes, 2 kg), the order can be loaded before it expires, and afterwards the dron
 charger while keeping 15 % in reserve. So the drone can never be stranded. A forbidden action
 passed to `step` is executed as `WAIT`.
 
-**Observation** (415 numbers, normalized and clipped to [−10, 10]): 31 about the day and the drone (time, demand
-now and ahead, battery, cargo, location, travel times to every node); 12 slots of 28 numbers for
-the most relevant waiting orders (those that can still be on time come first); 3 slots of 16
-numbers for the boxes on board. Unused slots are zero.
+**Observation** (415 numbers, normalized and clipped to [−10, 10]): 31 about the day and the
+drone (time, demand now and ahead, battery, cargo, location, travel times to every node); 12 slots
+of 28 numbers for the most relevant waiting orders (those that can still be on time come first);
+3 slots of 16 numbers for the boxes on board. Unused slots are zero.
 
 **Reward.** +1 for each box delivered on time; a late box earns less the later it is, down to −0.5
 at its expiry; −0.5 for each expired or rejected order; −0.001 per % of battery used.
