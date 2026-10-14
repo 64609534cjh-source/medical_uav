@@ -59,6 +59,8 @@ python scripts/demo.py --live    # play the day in a window; saves a GIF if no w
 python scripts/demo.py           # save the day as outputs/demo_slack_medium_seed0.gif (about 1 min)
 ```
 
+Every run also saves the PNG frames given by `--snapshots`.
+
 | Option | Meaning |
 |---|---|
 | `--policy {slack,edf,random}` | which baseline policy decides (default `slack`) |
