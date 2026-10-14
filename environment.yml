@@ -6,7 +6,7 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
-  - python=3.11.*
+  - python=3.11.17
   - pip
   - pip:
       - numpy==2.4.6
