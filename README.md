@@ -34,40 +34,30 @@ command and activate that name instead. Without conda, use Python 3.11 and run
 
 ## Run the demo
 
-Run all commands from the same folder.
-
 ```bash
-python scripts/demo.py --no-video
+python scripts/demo.py
 ```
 
-This runs one simulated day with the Slack-aware policy (medium load, demand seed 0), prints the
-results and saves the frame shown above to `outputs/demo_slack_medium_seed0_t182min.png`. It takes
-a few seconds. The output starts with:
+This simulates one day with the Slack-aware policy (medium load, demand seed 0) and prints the
+results, which start with:
 
 ```
-Medical UAV | Slack-aware | medium load | demand seed 0 | map seed 0
-
 Completed at 17:05 (t=545.8 min) after 113 decisions
   Orders   70 released: delivered 53/70 (75.7%), expired 17/70 (24.3%), rejected 0/70 (0.0%)
-  On time  47/70 (67.1%); late 6 (mean 33.0 min late)
 ```
 
-To see the whole day:
+It then saves two files in `outputs/` (about one minute):
 
-```bash
-python scripts/demo.py --live    # play the day in a window; saves a GIF if no window can open
-python scripts/demo.py           # save the day as outputs/demo_slack_medium_seed0.gif (about 1 min)
-```
+- `demo_slack_medium_seed0_t182min.png`, the frame shown above
+- `demo_slack_medium_seed0.gif`, the whole day
 
-Every run also saves the PNG frames given by `--snapshots`.
+To watch the day in a window instead, run `python scripts/demo.py --live`.
 
-| Option | Meaning |
+| Option | Values |
 |---|---|
-| `--policy {slack,edf,random}` | which baseline policy decides (default `slack`) |
-| `--load {low,medium,high}` | how many orders arrive (default `medium`) |
-| `--seed N` | which day of orders (default 0) |
-| `--snapshots 0 100 ...` | save PNG frames at these simulated minutes (default 182) |
-| `--out FILE` | animation file, `.gif` or `.mp4` |
+| `--policy` | `slack` (default), `edf`, `random` |
+| `--load` | `low`, `medium` (default), `high` |
+| `--seed` | which day of orders (default `0`) |
 
 `python scripts/demo.py --help` lists all options.
 
