@@ -7,7 +7,7 @@ baseline policies are included: random, earliest deadline first (EDF) and Slack-
 
 NUS ME5418, Group 17 (Jihang Cai, Yu Liu, Yufeng Zhang). Milestone 1: the environment.
 
-![The environment at 11:02 of a simulated day](assets/demo.png)
+![Medical UAV delivery simulation over one day](assets/demo.gif)
 
 ## Requirements
 
@@ -48,7 +48,7 @@ Completed at 17:05 (t=545.8 min) after 113 decisions
 
 It then saves two files in `outputs/` (about one minute):
 
-- `demo_slack_medium_seed0_t182min.png`, the frame shown above
+- `demo_slack_medium_seed0_t182min.png`, a snapshot at 11:02
 - `demo_slack_medium_seed0.gif`, the whole day
 
 To watch the day in a window instead, run `python scripts/demo.py --live`.
