@@ -17,9 +17,37 @@ def octile_distance(a: Cell, b: Cell) -> float:
     return (dr + dc) + (math.sqrt(2) - 2) * min(dr, dc)
 
 
+def _neighbours(blocked: np.ndarray, cell: Cell):
+    """Yield (neighbour, step length) for every legal move from cell."""
+    n_rows, n_cols = blocked.shape
+    for dr, dc in MOVES:
+        r, c = cell[0] + dr, cell[1] + dc
+        if not (0 <= r < n_rows and 0 <= c < n_cols) or blocked[r, c]:
+            continue
+        diagonal = dr != 0 and dc != 0
+        if diagonal and (blocked[cell[0] + dr, cell[1]] or blocked[cell[0], cell[1] + dc]):
+            continue  # a diagonal step may not pass a blocked corner
+        yield (r, c), (math.sqrt(2) if diagonal else 1.0)
+
+
+def grid_distances(blocked: np.ndarray, start: Cell) -> np.ndarray:
+    """Return the shortest route length in cells from start to every cell (inf if unreachable)."""
+    dist = np.full(blocked.shape, math.inf)
+    dist[start] = 0.0
+    heap = [(0.0, start)]
+    while heap:
+        cost, cell = heapq.heappop(heap)
+        if cost > dist[cell]:
+            continue  # outdated heap entry
+        for nxt, step in _neighbours(blocked, cell):
+            if cost + step < dist[nxt]:
+                dist[nxt] = cost + step
+                heapq.heappush(heap, (cost + step, nxt))
+    return dist
+
+
 def astar(blocked: np.ndarray, start: Cell, goal: Cell) -> list[Cell] | None:
     """Return the shortest cell path from start to goal (both included), or None if unreachable."""
-    n_rows, n_cols = blocked.shape
     open_heap = [(octile_distance(start, goal), 0.0, start)]  # (priority, cost, cell)
     best_cost = {start: 0.0}  # shortest known cost from start to each cell
     came_from = {}  # previous cell on the shortest known path
@@ -31,19 +59,13 @@ def astar(blocked: np.ndarray, start: Cell, goal: Cell) -> list[Cell] | None:
         if cost > best_cost[cell]:
             continue  # outdated heap entry
 
-        for dr, dc in MOVES:
-            r, c = cell[0] + dr, cell[1] + dc
-            if not (0 <= r < n_rows and 0 <= c < n_cols) or blocked[r, c]:
-                continue
-            diagonal = dr != 0 and dc != 0
-            if diagonal and (blocked[cell[0] + dr, cell[1]] or blocked[cell[0], cell[1] + dc]):
-                continue  # a diagonal step may not pass a blocked corner
-            new_cost = cost + (math.sqrt(2) if diagonal else 1.0)
-            if new_cost < best_cost.get((r, c), math.inf):
-                best_cost[(r, c)] = new_cost
-                came_from[(r, c)] = cell
-                priority = new_cost + octile_distance((r, c), goal)
-                heapq.heappush(open_heap, (priority, new_cost, (r, c)))
+        for nxt, step in _neighbours(blocked, cell):
+            new_cost = cost + step
+            if new_cost < best_cost.get(nxt, math.inf):
+                best_cost[nxt] = new_cost
+                came_from[nxt] = cell
+                priority = new_cost + octile_distance(nxt, goal)
+                heapq.heappush(open_heap, (priority, new_cost, nxt))
 
     if goal not in best_cost:
         return None

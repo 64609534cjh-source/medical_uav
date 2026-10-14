@@ -3,11 +3,13 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from medical_uav.env.astar import astar, path_cost_cells
-from medical_uav.env.config import C2, CHARGERS, EPS, FULL_BATTERY, M, N_NODES, EnvConfig
+from medical_uav.env.astar import astar, grid_distances, octile_distance, path_cost_cells
+from medical_uav.env.config import (C2, CHARGERS, EPS, FULL_BATTERY, HOSPITALS, M, N_NODES,
+                                    EnvConfig)
 from medical_uav.env.physics import flight_energy
 
 MAX_PLACEMENT_TRIES = 500  # random cells tried per node before the attempt fails
+BORDER_MARGIN = 1  # free cells between every node and the edge of the map
 
 
 @dataclass
@@ -68,28 +70,62 @@ def _sample_zones(rng, cfg: EnvConfig):
     return blocked, zones
 
 
+def _too_close(cell, others, cfg: EnvConfig) -> bool:
+    xy = _cell_center_km(cell, cfg)
+    return any(np.linalg.norm(xy - _cell_center_km(o, cfg)) < cfg.min_node_spacing_km - EPS
+               for o in others)
+
+
 def _place_nodes(rng, blocked: np.ndarray, cfg: EnvConfig):
-    """Choose a free cell for each node that satisfies the spacing rules, or return None."""
-    g = cfg.grid_size
+    """Choose random free cells for M and H1..H5 that keep the spacing rule, or return None."""
+    lo, hi = BORDER_MARGIN, cfg.grid_size - BORDER_MARGIN
     cells = []  # (row, col) of each node, in node-index order
-    for node in range(N_NODES):
+    for _ in range(C2):  # M, H1..H5 in node-index order; C2 is placed separately
         for _ in range(MAX_PLACEMENT_TRIES):
-            cell = (int(rng.integers(0, g)), int(rng.integers(0, g)))
-            if blocked[cell]:
-                continue
-            xy = _cell_center_km(cell, cfg)
-            if any(np.linalg.norm(xy - _cell_center_km(other, cfg)) < cfg.min_node_spacing_km - EPS
-                   for other in cells):
-                continue
-            if node == C2:
-                d_m = np.linalg.norm(xy - _cell_center_km(cells[M], cfg))
-                if d_m < cfg.c2_min_dist_from_m_km - EPS:
-                    continue
-            cells.append(cell)
-            break
+            cell = (int(rng.integers(lo, hi)), int(rng.integers(lo, hi)))
+            if not blocked[cell] and not _too_close(cell, cells, cfg):
+                cells.append(cell)
+                break
         else:
             return None
     return cells
+
+
+def _place_c2(rng, blocked: np.ndarray, cells, cfg: EnvConfig):
+    """Choose the cell for C2 that makes the longest hospital-to-charger route shortest.
+
+    Ties are broken by the total of those routes, then at random. C2 must bring at least one
+    hospital closer to a charger. Returns None if no free cell qualifies.
+    """
+    to_hospital = [grid_distances(blocked, cells[h]) for h in HOSPITALS]
+    to_m = np.array([d[cells[M]] for d in to_hospital])
+    m_xy = _cell_center_km(cells[M], cfg)
+    lo, hi = BORDER_MARGIN, cfg.grid_size - BORDER_MARGIN
+    min_from_m = cfg.c2_min_dist_from_m_km - EPS
+    best_key, best = None, []
+    for r in range(lo, hi):
+        for c in range(lo, hi):
+            near_m = np.linalg.norm(_cell_center_km((r, c), cfg) - m_xy) < min_from_m
+            if blocked[r, c] or near_m or _too_close((r, c), cells, cfg):
+                continue
+            to_c2 = np.array([d[r, c] for d in to_hospital])
+            if not np.any(to_c2 < to_m - EPS):
+                continue
+            nearest = np.minimum(to_m, to_c2)  # each hospital's route to its nearest charger
+            key = (round(nearest.max(), 9), round(nearest.sum(), 9))
+            if best_key is None or key < best_key:
+                best_key, best = key, [(r, c)]
+            elif key == best_key:
+                best.append((r, c))
+    if not best:
+        return None
+    return best[int(rng.integers(len(best)))]
+
+
+def _zones_add_a_detour(dist_km: np.ndarray, cells, cfg: EnvConfig) -> bool:
+    """Return True if no-fly zones lengthen some route from M to a hospital by a cell or more."""
+    return any(dist_km[M, h] - cfg.cell_km * octile_distance(cells[M], cells[h])
+               >= cfg.cell_km - EPS for h in HOSPITALS)
 
 
 def _route_all_pairs(blocked: np.ndarray, cells, cfg: EnvConfig):
@@ -110,17 +146,25 @@ def _route_all_pairs(blocked: np.ndarray, cells, cfg: EnvConfig):
 
 
 def generate_map(seed: int, cfg: EnvConfig) -> CityMap:
-    """Generate a valid map; the same seed always produces the same map."""
+    """Generate a valid map; the same seed always produces the same map.
+
+    No-fly zones, M and the hospitals are placed at random; C2 is then placed where it best
+    covers the hospitals (see _place_c2).
+    """
     rng = np.random.default_rng(seed)
     for attempt in range(1, cfg.max_map_tries + 1):
         blocked, zones = _sample_zones(rng, cfg)
         cells = _place_nodes(rng, blocked, cfg)
-        if cells is None:
+        c2 = None if cells is None else _place_c2(rng, blocked, cells, cfg)
+        if c2 is None:
             continue
+        cells.append(c2)
         routed = _route_all_pairs(blocked, cells, cfg)
         if routed is None:
             continue
         dist, paths = routed
+        if zones and not _zones_add_a_detour(dist, cells, cfg):
+            continue
         if not is_valid_map(dist, cfg):
             continue
         node_xy = np.array([_cell_center_km(cell, cfg) for cell in cells])
