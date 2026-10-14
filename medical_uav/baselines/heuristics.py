@@ -41,7 +41,7 @@ def edf_policy(env, theta: float = DEFAULT_THETA) -> int:
     if a is not None:
         return a
     sim, mask = env.sim, env.action_masks()
-    candidates = []  # sorted by deadline, then deliveries before pickups
+    candidates = []  # (deadline, is_pick, action); min() takes the first
     for k, order in enumerate(env.slots):
         if mask[PICK0 + k]:
             candidates.append((order.deadline, 1, PICK0 + k))
@@ -77,7 +77,7 @@ def slack_aware_policy(env, theta: float = DEFAULT_THETA) -> int:
         return a
 
     # 4) earliest deadline first, work that cannot be on time last
-    candidates = []  # sorted by lateness, then deadline, then deliveries first
+    candidates = []  # (hopeless, deadline, is_pick, action); min() takes the first
     for k, order in enumerate(env.slots):
         if mask[PICK0 + k]:
             hopeless = sim.t + direct_completion_time(sim, order) > order.deadline + EPS

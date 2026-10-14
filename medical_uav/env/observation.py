@@ -94,9 +94,10 @@ def _global_features(sim: Simulator, n_visible: int) -> list[float]:
     return [
         t / day_length(cfg),  # fraction of the day elapsed
         max(0.0, cfg.release_window - t) / cfg.release_window,  # share of release window left
-        demand_multiplier(t, cfg) / DEMAND_SCALE,  # demand multiplier now
-        demand_multiplier(t + FORECAST_STEPS[0], cfg) / DEMAND_SCALE,  # ... at FORECAST_STEPS[0]
-        demand_multiplier(t + FORECAST_STEPS[1], cfg) / DEMAND_SCALE,  # ... at FORECAST_STEPS[1]
+        # demand multiplier now and at each forecast step
+        demand_multiplier(t, cfg) / DEMAND_SCALE,
+        demand_multiplier(t + FORECAST_STEPS[0], cfg) / DEMAND_SCALE,
+        demand_multiplier(t + FORECAST_STEPS[1], cfg) / DEMAND_SCALE,
         sim.lam / cfg.loads["high"],  # today's base rate relative to the high load
         sim.battery / FULL_BATTERY,  # battery level
         load / cfg.max_weight,  # share of weight capacity used
@@ -127,8 +128,8 @@ def _pending_features(sim: Simulator, o: Order, pick_allowed: bool) -> list[floa
         (o.deadline - t) / o.limit,  # time left to the deadline, negative when late
         (o.expiry - t) / o.limit,  # time left to expiry
         o.age(t) / o.limit,  # time since release
-        direct / DURATION_SCALE,  # direct completion time
-        (o.deadline - t - direct) / DURATION_SCALE,  # deadline margin if served directly
+        direct / DURATION_SCALE,  # time to serve this order alone
+        (o.deadline - t - direct) / DURATION_SCALE,  # time to spare at the deadline if served alone
         float(o.dest in onboard_dests),  # a box on board has the same destination
         same_dest / SAME_DEST_SCALE,  # other pending orders to the same destination
         float(o.origin == sim.location),  # order waits at the drone's node
@@ -144,10 +145,11 @@ def _onboard_features(sim: Simulator, o: Order) -> list[float]:
         *_one_hot(o.type_idx, N_TYPES),  # order type
         *_one_hot(o.dest, N_FACILITIES),  # destination facility
         o.weight,  # kg
-        (o.deadline - t) / o.limit,  # time left to the deadline, in on-time limits
-        (o.expiry - t) / o.limit,  # time left to expiry, in on-time limits
+        # the next two are in units of the order's on-time limit
+        (o.deadline - t) / o.limit,  # time left to the deadline
+        (o.expiry - t) / o.limit,  # time left to expiry
         float(o.status == "expired"),  # box has expired
-        direct_completion_time(sim, o) / DURATION_SCALE,  # direct delivery time
+        direct_completion_time(sim, o) / DURATION_SCALE,  # time to deliver this box directly
     ]
 
 

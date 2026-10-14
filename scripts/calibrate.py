@@ -61,7 +61,8 @@ def summarize(results, lam, name):
     row["pool_mean"] = float(pools.mean())
     row["pool_p95"] = float(np.percentile(pools, 95))
     row["pool_max"] = int(pools.max())
-    row["hidden_pct"] = 100.0 * float(np.mean(hidden > 0))  # % of decisions hiding a feasible order
+    # % of decisions where an order that could still be on time is not shown in the slots
+    row["hidden_pct"] = 100.0 * float(np.mean(hidden > 0))
     row["hidden_mean"] = float(hidden.mean())
     return row
 

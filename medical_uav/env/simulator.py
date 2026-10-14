@@ -14,7 +14,7 @@ INVARIANT_TOL = 1e-6  # rounding tolerance for check_invariant, battery %
 class Segment:
     """One interval of the drone's activity, recorded for metrics and rendering."""
 
-    kind: str  # fly / load / unload / dispose / charge / wait
+    kind: str  # one of fly, load, unload, dispose, charge, wait
     t0: float
     t1: float
     node_from: int
@@ -45,7 +45,7 @@ class Simulator:
         self.events: list[tuple[float, str, int]] = []  # (time, kind, order id)
         self.release_times_log: list[float] = []  # arrival times, including rejected orders
         self.total_reward = 0.0
-        self.energy_used = 0.0  # battery % used for flying, summed
+        self.energy_used = 0.0  # total battery % used for flying
         self.km_flown = 0.0
         self.charging_time = 0.0
 
@@ -208,7 +208,7 @@ class Simulator:
                 self._handle_box("dispose", o)
                 self._dispose(o)
                 continue
-            # strict: an unload ending exactly at expiry counts as a delivery
+            # strict=True so an unload ending exactly at expiry still counts as delivered
             self._handle_box("unload", o, strict=True)
             if o.status == "expired":  # expired during the unload
                 self._dispose(o)

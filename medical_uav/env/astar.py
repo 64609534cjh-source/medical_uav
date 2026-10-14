@@ -1,4 +1,4 @@
-"""8-connected A* on the occupancy grid, no corner cutting."""
+"""Shortest paths on the grid map with A*, moving in eight directions around no-fly cells."""
 import heapq
 import math
 
@@ -11,7 +11,7 @@ MOVES = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]
 
 
 def octile_distance(a: Cell, b: Cell) -> float:
-    """Return the 8-connected grid distance from a to b, ignoring obstacles."""
+    """Return the grid distance from a to b with diagonal moves allowed, ignoring obstacles."""
     dr = abs(a[0] - b[0])
     dc = abs(a[1] - b[1])
     return (dr + dc) + (math.sqrt(2) - 2) * min(dr, dc)

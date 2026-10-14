@@ -42,7 +42,7 @@ def can_pick(sim: Simulator, order: Order) -> bool:
 
 
 def can_deliver(sim: Simulator, node: int) -> bool:
-    """Return True if a box for node will still be valid on arrival and the flight is safe."""
+    """Return True if a box for node will not have expired on arrival and the flight is safe."""
     _, expired = predict_arrival(sim, node)
     remaining = [o for o in sim.onboard if o not in expired]
     if not any(o.dest == node for o in remaining):

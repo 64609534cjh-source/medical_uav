@@ -32,7 +32,7 @@ def _point_along(path: np.ndarray, fraction: float) -> np.ndarray:
     target = fraction * seg_len.sum()  # distance still to go along the path
     for i, length in enumerate(seg_len):
         if target <= length or i == len(seg_len) - 1:
-            f = 0.0 if length == 0 else min(target / length, 1.0)  # fraction of this piece
+            f = 0.0 if length == 0 else min(target / length, 1.0)  # fraction along this segment
             return path[i] + f * (path[i + 1] - path[i])
         target -= length
     return path[-1]
@@ -117,7 +117,7 @@ class Renderer:
                 ax.add_patch(Circle((x, y), 0.17, fill=False, color="#2ca02c", lw=2))
             ax.plot(x, y, "s" if i == M else "o", color="#333333", ms=9)
             label = "M/C1" if i == M else NODE_NAMES[i]
-            above = y > 0.5  # near the top edge, put the label below the node
+            above = y > 0.5  # label above the node unless it is near the top edge
             ax.text(x, y - 0.22 if above else y + 0.22, label, ha="center",
                     va="bottom" if above else "top", fontsize=10, weight="bold")
 
