@@ -47,9 +47,9 @@ a few seconds. The output starts with:
 ```
 Medical UAV | Slack-aware | medium load | demand seed 0 | map seed 0
 
-Completed at 17:19 (t=559.3 min) after 124 decisions
-  Orders   70 released: delivered 60/70 (85.7%), expired 10/70 (14.3%), rejected 0/70 (0.0%)
-  On time  50/70 (71.4%); late 10 (mean 24.1 min late)
+Completed at 17:19 (t=559.6 min) after 122 decisions
+  Orders   70 released: delivered 57/70 (81.4%), expired 13/70 (18.6%), rejected 0/70 (0.0%)
+  On time  51/70 (72.9%); late 6 (mean 21.1 min late)
 ```
 
 To see the whole day:

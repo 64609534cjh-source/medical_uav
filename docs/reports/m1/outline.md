@@ -35,9 +35,9 @@ export it to PDF and add the PDF to the submission zip next to the code archive.
   them, so the observation has a fixed size.
 - One fixed map for the main experiments; random maps are kept for a later generalization test.
 - Calibration (`calibration.md`): EDF turned out to be a weak reference — it keeps chasing orders
-  that can no longer be on time and falls far behind at moderate load (0.40 on time at λ 0.10, with
+  that can no longer be on time and falls far behind at moderate load (0.46 on time at λ 0.10, with
   its charging threshold tuned). A Slack-aware heuristic (deliver at the current node first, batch
-  same-destination orders, put hopeless work last) scores 1.00 / 0.82 / 0.68 at λ 0.04 / 0.10 / 0.13,
+  same-destination orders, put hopeless work last) scores 1.00 / 0.84 / 0.69 at λ 0.04 / 0.10 / 0.13,
   so the load levels are defined against it.
   Triage of hopeless orders is the largest single effect, batching the second.
 - The environment runs ~9,100 decisions/s per process, ~90–110 decisions per day.

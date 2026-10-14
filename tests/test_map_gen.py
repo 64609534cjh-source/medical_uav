@@ -61,7 +61,18 @@ def test_one_facility_per_district():
         cells = _cells(generate_map(seed, cfg), cfg)
         districts = [_district_of(cells[i], cfg) for i in range(C2)]
         assert len(set(districts)) == 6
-        assert districts[M][0] == 1  # M sits in the middle row of districts
+
+
+def test_m_keeps_away_from_the_edge_and_moves_between_districts():
+    from medical_uav.env.map_gen import _district_of
+
+    m_districts = set()
+    for seed in range(20):
+        m = generate_map(seed, cfg)
+        x, y = m.node_xy[M]
+        assert min(x, y, 4.0 - x, 4.0 - y) >= cfg.m_min_dist_from_edge_km - 1e-9
+        m_districts.add(_district_of(_cells(m, cfg)[M], cfg))
+    assert len({r for r, _ in m_districts}) == 3 and len({c for _, c in m_districts}) == 2
 
 
 def test_c2_is_far_from_m_and_serves_two_hospitals():
@@ -132,3 +143,8 @@ def test_zones_lengthen_some_route_between_facilities():
 def test_maps_without_zones_still_generate():
     m = generate_map(0, EnvConfig(n_zones_range=(0, 0)))
     assert not m.blocked.any()
+
+
+def test_layout_is_redrawn_when_no_zone_draw_suits_it():
+    m = generate_map(79, cfg)  # its first layout leaves almost no route for a zone to block
+    assert m.tries > 1

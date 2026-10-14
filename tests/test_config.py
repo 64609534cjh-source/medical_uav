@@ -57,7 +57,8 @@ def test_non_finite_or_fractional_values_rejected(field, value):
 
 @pytest.mark.parametrize("field,value", [
     ("peak_multiplier", -1.0), ("offpeak_multiplier", math.nan), ("min_node_spacing_km", math.nan),
-    ("c2_min_dist_from_m_km", -1.0), ("min_charge_gain", -5.0), ("map_seed", -1),
+    ("c2_min_dist_from_m_km", -1.0), ("m_min_dist_from_edge_km", -1.0), ("min_charge_gain", -5.0),
+    ("map_seed", -1),
     ("n_zones_range", (3, 2)), ("n_zones_range", (-1, 2)), ("n_zones_range", (1.5, 2)),
     ("zone_size_range", (0, 3)), ("zone_size_range", (5, 2)), ("zone_size_range", (2, 40)),
     ("peak_windows", ((180.0, 60.0),)), ("peak_windows", ((60.0, math.nan),)),

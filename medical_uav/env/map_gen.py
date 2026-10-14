@@ -1,8 +1,8 @@
 """Random city map generation: node layout first, then small no-fly zones and the routes.
 
-The city is split into 3 x 2 districts. M goes into a middle-row district and one hospital into
-each of the others; C2 is placed where it most shortens the hospitals' trips to a charger. The
-no-fly zones are added last, so they do not shape the layout.
+The city is split into 3 x 2 districts. M goes into a random district, away from the edge of the
+map, and one hospital into each of the others; C2 is placed where it most shortens the hospitals'
+trips to a charger. The no-fly zones are added last; a layout that no zone draw suits is replaced.
 """
 from dataclasses import dataclass, field
 
@@ -18,6 +18,7 @@ BORDER_MARGIN = 1  # free cells between every node and the edge of the map
 DISTRICT_ROWS, DISTRICT_COLS = 3, 2  # the city is split into this many districts
 ZONE_CLEARANCE = 1  # free cells around every zone: to nodes, to other zones and to the edge
 MIN_C2_BENEFICIARIES = 2  # hospitals C2 must bring at least one cell closer to a charger
+ZONE_TRIES_PER_LAYOUT = 20  # zone draws tried on one node layout before a new layout is drawn
 
 # one district for M and one for each hospital
 assert DISTRICT_ROWS * DISTRICT_COLS == len(HOSPITALS) + 1
@@ -33,7 +34,7 @@ class CityMap:
     blocked: np.ndarray | None = None  # True for grid cells inside a no-fly zone
     zones: list = field(default_factory=list)  # (row, col, height, width) of each zone
     seed: int = -1  # seed the map was generated from
-    tries: int = 0  # attempts generation needed
+    tries: int = 0  # node layouts drawn, including the one kept
 
     @classmethod
     def from_positions(cls, node_xy: np.ndarray) -> "CityMap":
@@ -85,17 +86,23 @@ def _district_of(cell, cfg: EnvConfig) -> tuple[int, int]:
 
 
 def _place_nodes(rng, cfg: EnvConfig):
-    """Place M in a middle-row district and one hospital in each other district, or return None."""
+    """Place M in a random district, at least m_min_dist_from_edge_km from the edge of the map,
+    and one hospital in each other district. Returns None if a node does not fit."""
     rows, cols = _edges(DISTRICT_ROWS, cfg), _edges(DISTRICT_COLS, cfg)
-    m_district = (DISTRICT_ROWS // 2, int(rng.integers(DISTRICT_COLS)))
-    others = [(r, c) for r in range(DISTRICT_ROWS) for c in range(DISTRICT_COLS)
-              if (r, c) != m_district]
-    rng.shuffle(others)  # which hospital goes to which district
+    districts = [(r, c) for r in range(DISTRICT_ROWS) for c in range(DISTRICT_COLS)]
+    rng.shuffle(districts)  # the first goes to M, the rest to H1..H5
+    # cells whose centre is at least m_min_dist_from_edge_km from every edge
+    m_lo = int(np.ceil(cfg.m_min_dist_from_edge_km / cfg.cell_km - 0.5 - EPS))
+    m_hi = cfg.grid_size - m_lo
     cells = []  # (row, col) of M, H1..H5 in node-index order
-    for dr, dc in [m_district] + others:
+    for dr, dc in districts:
+        r0, r1, c0, c1 = rows[dr], rows[dr + 1], cols[dc], cols[dc + 1]
+        if not cells:  # M
+            r0, r1, c0, c1 = max(r0, m_lo), min(r1, m_hi), max(c0, m_lo), min(c1, m_hi)
+            if r0 >= r1 or c0 >= c1:
+                return None
         for _ in range(MAX_PLACEMENT_TRIES):
-            cell = (int(rng.integers(rows[dr], rows[dr + 1])),
-                    int(rng.integers(cols[dc], cols[dc + 1])))
+            cell = (int(rng.integers(r0, r1)), int(rng.integers(c0, c1)))
             if not _too_close(cell, cells, cfg):
                 cells.append(cell)
                 break
@@ -195,8 +202,9 @@ def _route_all_pairs(blocked: np.ndarray, cells, cfg: EnvConfig):
 def generate_map(seed: int, cfg: EnvConfig) -> CityMap:
     """Generate a valid map; the same seed always produces the same map.
 
-    The node layout is drawn first and kept; only the no-fly zones are redrawn until at least
-    one route has to go around them and the other rules still hold.
+    The node layout is drawn first; then only the no-fly zones are redrawn until at least one
+    route has to go around them and the other rules still hold. A layout that no zone draw
+    suits is replaced. tries counts the node layouts drawn.
     """
     layout_rng, zone_rng = (np.random.default_rng(s)
                             for s in np.random.SeedSequence(seed).spawn(2))
@@ -207,25 +215,23 @@ def generate_map(seed: int, cfg: EnvConfig) -> CityMap:
             continue
         cells.append(c2)
         free = np.array([[octile_distance(a, b) * cfg.cell_km for b in cells] for a in cells])
-        if is_valid_map(free, cfg):
-            break
-    else:
-        raise RuntimeError(f"no valid node layout for seed {seed} after {cfg.max_map_tries} tries")
+        if not is_valid_map(free, cfg):
+            continue
 
-    for zone_try in range(1, cfg.max_map_tries + 1):
-        placed = _place_zones(zone_rng, cells, cfg)
-        if placed is None:
-            continue
-        blocked, zones = placed
-        routed = _route_all_pairs(blocked, cells, cfg)
-        if routed is None:
-            continue
-        dist, paths = routed
-        if zones and not _zones_add_a_detour(dist, cells, cfg):
-            continue
-        if _c2_beneficiaries(dist, cfg) < MIN_C2_BENEFICIARIES or not is_valid_map(dist, cfg):
-            continue
-        node_xy = np.array([_cell_center_km(cell, cfg) for cell in cells])
-        return CityMap(node_xy=node_xy, dist_km=dist, paths=paths, blocked=blocked,
-                       zones=zones, seed=seed, tries=layout_try + zone_try - 1)
-    raise RuntimeError(f"no valid no-fly zones for seed {seed} after {cfg.max_map_tries} tries")
+        for _ in range(ZONE_TRIES_PER_LAYOUT):
+            placed = _place_zones(zone_rng, cells, cfg)
+            if placed is None:
+                continue
+            blocked, zones = placed
+            routed = _route_all_pairs(blocked, cells, cfg)
+            if routed is None:
+                continue
+            dist, paths = routed
+            if zones and not _zones_add_a_detour(dist, cells, cfg):
+                continue
+            if _c2_beneficiaries(dist, cfg) < MIN_C2_BENEFICIARIES or not is_valid_map(dist, cfg):
+                continue
+            node_xy = np.array([_cell_center_km(cell, cfg) for cell in cells])
+            return CityMap(node_xy=node_xy, dist_km=dist, paths=paths, blocked=blocked,
+                           zones=zones, seed=seed, tries=layout_try)
+    raise RuntimeError(f"no valid map for seed {seed} after {cfg.max_map_tries} node layouts")

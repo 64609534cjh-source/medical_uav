@@ -77,7 +77,7 @@ def map_check(n_maps, cfg):
             ok += 1
         except RuntimeError:
             pass
-    print(f"maps: {ok}/{n_maps} generated, mean attempts {np.mean(tries):.2f}")
+    print(f"maps: {ok}/{n_maps} generated, mean node layouts {np.mean(tries):.2f}")
     m = generate_map(cfg.map_seed, cfg)
     straight = np.linalg.norm(m.node_xy[:, None] - m.node_xy[None, :], axis=2)
     ratio = np.max(np.where(straight > 0, m.dist_km / np.maximum(straight, EPS), 1.0))
