@@ -49,6 +49,9 @@ Every frame shows the policy, load, demand seed, simulated time and the action b
 the side panel shows the battery (with the 15 % reserve mark), the three cargo slots and the
 pending orders sorted by deadline.
 
+A short walkthrough of the API (create the environment, inspect the state, act, render, run a
+full day) is in `scripts/example.py`; run it with `python scripts/example.py`.
+
 Using the environment directly:
 
 ```python
@@ -86,6 +89,7 @@ medical_uav/
   splits.py          which demand seeds are used for training, development and testing
 scripts/
   demo.py            run an episode, print metrics, save an animation
+  example.py         short API walkthrough: state, actions, rendering, a full day
   calibrate.py       load calibration, map statistics, throughput
 tests/               pytest suite
 ```
@@ -133,11 +137,5 @@ python -m pytest -q
 
 numpy (numerics), gymnasium (environment API and `check_env`), matplotlib (rendering), imageio +
 imageio-ffmpeg (gif/mp4 export), pytest (tests). The environment, A*, map generator, simulator,
-masks, observation, renderer and baselines are written by the group; no external environment or
-RL code is used.
-
-## Use of AI tools
-
-This project was developed with the help of AI assistants (Anthropic Claude and OpenAI Codex) for
-design discussion, code writing, code review and documentation. The group reviewed, tested and is
-responsible for all submitted work.
+masks, observation, renderer and baselines are written for this project; no external environment
+or RL code is used.
