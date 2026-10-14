@@ -125,7 +125,35 @@ def tune_thetas(env, seeds, lam, thetas=THETAS) -> dict:
     return results
 
 
-def write_tables(rows, out_dir, cfg, seeds, thetas):
+POLICY_NAMES = {"slack": "Slack-aware", "edf": "EDF", "random": "Random"}
+
+
+def describe_seeds(seeds) -> str:
+    """Return the seeds as a range when they are consecutive, else as a list."""
+    seeds = list(seeds)
+    if seeds == list(range(seeds[0], seeds[0] + len(seeds))):
+        return f"{seeds[0]}-{seeds[-1]}" if len(seeds) > 1 else str(seeds[0])
+    return ", ".join(map(str, seeds))
+
+
+def settings_line(cfg, seeds, thetas, tuned: bool) -> str:
+    """Return the settings every table row was computed with."""
+    return (f"map seed {cfg.map_seed}; demand seeds {describe_seeds(seeds)} ({len(seeds)} days "
+            f"per row); charging threshold EDF {thetas['edf']:.0f}%, Slack-aware "
+            f"{thetas['slack']:.0f}% ({'tuned in this run' if tuned else 'defaults'})")
+
+
+def print_table(rows) -> None:
+    """Print the main columns: on-time rate and expiry rate per base rate and policy."""
+    print(f"{'rate':>6s}  {'policy':12s} {'orders/day':>10s}  {'on time, mean (SD)':>19s}  "
+          f"{'expired, mean':>13s}")
+    for r in rows:
+        on_time = f"{100 * r['on_time_rate']:.1f}% ({100 * r['on_time_rate_std']:.1f} pp)"
+        print(f"{r['lambda']:6.2f}  {POLICY_NAMES[r['policy']]:12s} {r['orders']:10.1f}  "
+              f"{on_time:>19s}  {100 * r['expiry_rate']:12.1f}%")
+
+
+def write_tables(rows, out_dir, cfg, seeds, thetas, tuned=False):
     """Write the calibration results as CSV and Markdown tables."""
     os.makedirs(out_dir, exist_ok=True)
     with open(os.path.join(out_dir, "calibration.csv"), "w", newline="") as f:
@@ -144,13 +172,17 @@ def write_tables(rows, out_dir, cfg, seeds, thetas):
             f"{r['pool_mean']:.1f}/{r['pool_p95']:.0f}/{r['pool_max']} | "
             f"{r['hidden_pct']:.1f} | {r['hidden_mean']:.2f} |")
     header = (f"Command: python scripts/calibrate.py {' '.join(sys.argv[1:])}\n\n"
-              f"map_seed = {cfg.map_seed}; dev seeds {seeds[0]}..{seeds[-1]} "
-              f"({len(seeds)} days per row); charging threshold θ "
-              f"edf {thetas['edf']:.0f} %, slack {thetas['slack']:.0f} %\n\n")
-    table = "\n".join(lines)
+              f"{settings_line(cfg, seeds, thetas, tuned)}.\n\n"
+              "λ is the base arrival rate in orders per minute. Rates are means of the daily "
+              "rates over the days of a row, with the population SD across days; a day's "
+              "on-time rate is on-time deliveries / all orders released that day (rejected "
+              "included). Pool statistics are pooled over all decisions; hidden % is the share "
+              "of decisions at which an order that could still be on time (direct estimate) is "
+              "not among the 12 visible slots.\n\n")
     with open(os.path.join(out_dir, "calibration.md"), "w") as f:
-        f.write(header + table + "\n")
-    print(table)
+        f.write(header + "\n".join(lines) + "\n")
+    print(f"Saved: {os.path.join(out_dir, 'calibration.csv')}")
+    print(f"Saved: {os.path.join(out_dir, 'calibration.md')}")
 
 
 def main():
@@ -180,12 +212,15 @@ def main():
     if not args.lambdas:
         return
 
+    print("\nCalibration")
+    print(settings_line(cfg, args.seeds, thetas, args.tune_theta))
     rows = []
     for lam in args.lambdas:
         for name in ["slack", "edf", "random"]:
             days = [run_day(env, make_policy(name, s, thetas), s, lam) for s in args.seeds]
             rows.append(summarize(days, lam, name))
-    write_tables(rows, args.out, cfg, args.seeds, thetas)
+    print_table(rows)
+    write_tables(rows, args.out, cfg, args.seeds, thetas, args.tune_theta)
 
 
 if __name__ == "__main__":

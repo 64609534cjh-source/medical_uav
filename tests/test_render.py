@@ -64,10 +64,44 @@ def test_save_animation_streams_generator(tmp_path):
     assert len(imageio.mimread(tmp_path / "a.gif")) == 5
 
 
-def test_draw_accepts_header(line_map):
+def test_draw_accepts_title_and_decision(line_map):
     sim = make_sim(line_map, [make_order(0, 1, M, 2, 0.5, 0.0)])
-    frame = Renderer(line_map, sim.cfg).draw(sim, 0.0, header="slack | load medium | seed 0")
-    assert frame.ndim == 3
+    renderer = Renderer(line_map, sim.cfg, title="Slack-aware | medium load | demand seed 0")
+    frame = renderer.draw(sim, 0.0, decision="Last decision 08:00: WAIT")
+    assert frame.shape == (528, 960, 3)  # height divisible by 16 for video codecs
+
+
+def test_activity_text_follows_the_segment_at_t(line_map):
+    from medical_uav.env.render import activity_text
+
+    sim = make_sim(line_map, [make_order(0, 1, M, 2, 0.5, 0.0)])
+    sim.do_pick(sim.orders[0])  # load at M during [0, 2]
+    sim.do_deliver(2)  # fly M -> 2, then unload
+    by_id = {o.id: o for o in sim.orders}
+
+    def text(t):
+        return activity_text(drone_state_at(sim, t), by_id, sim.location)
+
+    assert text(1.0).startswith("Loading #0")
+    assert text(3.5).startswith("Flying")
+    assert text(sim.t - 1.0).startswith("Unloading #0")
+
+
+def test_outcome_counts_use_the_history_not_the_final_state(line_map):
+    from medical_uav.env.render import outcome_counts
+
+    sim = make_sim(line_map, [make_order(0, 1, M, 2, 0.5, 0.0)])
+    sim.do_pick(sim.orders[0])
+    sim.do_deliver(2)
+    before, after = outcome_counts(sim, 3.0), outcome_counts(sim, sim.t)
+    assert (before["delivered"], before["open"]) == (0, 1)
+    assert (after["delivered"], after["on_time"], after["open"]) == (1, 1, 0)
+
+
+def test_clock_starts_at_eight():
+    from medical_uav.env.render import clock
+
+    assert clock(0.0) == "08:00" and clock(222.4) == "11:42"
 
 
 @pytest.mark.parametrize("ext", ["gif", "mp4"])

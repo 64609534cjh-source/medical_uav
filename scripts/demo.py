@@ -1,9 +1,9 @@
-"""Run one day with a baseline policy, print its metrics and show or save an animation.
+"""Watch or record one day with a baseline policy and print its results.
 
 Usage:
     python scripts/demo.py --live
-    python scripts/demo.py --policy random --seed 1
-    python scripts/demo.py --no-video --snapshots 0 100
+    python scripts/demo.py --policy edf --load high --seed 3
+    python scripts/demo.py --no-video --snapshots 60 222
 """
 import argparse
 import bisect
@@ -17,10 +17,12 @@ import numpy as np
 from medical_uav.baselines.heuristics import (edf_policy, random_policy, run_episode,
                                               slack_aware_policy)
 from medical_uav.env import MedicalUAVEnv
-from medical_uav.env.render import Renderer, frame_times, save_animation
-from medical_uav.metrics import episode_metrics
+from medical_uav.env.render import FRAME_PX, Renderer, clock, frame_times, save_animation
+from medical_uav.metrics import episode_metrics, summary_lines
 
 NON_INTERACTIVE_BACKENDS = ("agg", "pdf", "svg", "ps", "cairo", "template")
+POLICY_NAMES = {"slack": "Slack-aware", "edf": "EDF", "random": "Random"}
+DEFAULT_SNAPSHOT = 222.0  # minutes; a busy moment of the default day
 
 
 def make_policy(name: str, seed: int):
@@ -40,31 +42,41 @@ def has_display() -> bool:
     return bool(os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))
 
 
-def print_metrics(metrics: dict) -> None:
-    """Print the day's metrics, one per line."""
-    for key, value in metrics.items():
-        if isinstance(value, dict):
-            value = "  ".join(f"{k} {v:.2f}" for k, v in value.items())
-            print(f"  {key:15s} {value}")
-        elif isinstance(value, float):
-            print(f"  {key:15s} {value:.3f}")
-        else:
-            print(f"  {key:15s} {value}")
-
-
 class Captions:
-    """Frame captions: run settings and the action in progress."""
+    """The decision shown under the frame title: the last one taken at or before t."""
 
-    def __init__(self, env, args):
+    def __init__(self, env):
         self.env = env
-        self.prefix = f"{args.policy} | load {args.load} | demand seed {args.seed}"
 
     def at(self, t: float) -> str:
         log = self.env.decision_log
         # index of the last decision made at or before t; -1 if none yet
         i = bisect.bisect_right([d[0] for d in log], t + 1e-9) - 1
-        action = f"{log[i][1]} (decided at t={log[i][0]:.0f})" if i >= 0 else "start"
-        return f"{self.prefix} | t = {t:5.1f} min | {action}"
+        return f"Last decision {clock(log[i][0])}: {log[i][1]}" if i >= 0 else "Start of the day"
+
+
+def print_results(env, metrics: dict, decisions: int, partial: bool = False) -> None:
+    """Print when the day ended and its main metrics."""
+    sim = env.sim
+    if partial:
+        print(f"\nPartial run: stopped at {clock(sim.t)} (t={sim.t:.1f} min); "
+              "metrics cover the orders released so far")
+    else:
+        print(f"\nCompleted at {clock(sim.t)} (t={sim.t:.1f} min) after {decisions} decisions")
+    for line in summary_lines(metrics):
+        print("  " + line)
+
+
+def save_snapshots(env, renderer, captions, times, base: str) -> None:
+    """Save a PNG frame at each requested time, clamped to the end of the run."""
+    for t in times:
+        if t > env.sim.t:
+            print(f"t={t:g} min is after the end of the run; using t={env.sim.t:.1f}")
+            t = env.sim.t
+        path = f"{base}_t{round(t, 1):g}min.png"
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        imageio.imwrite(path, renderer.draw(env.sim, t, captions.at(t)))
+        print(f"Saved: {path}")
 
 
 def live_window_problem() -> str | None:
@@ -78,14 +90,13 @@ def live_window_problem() -> str | None:
     return None
 
 
-def run_live(env, policy, args) -> None:
-    """Run the policy and show the day in a window as it unfolds."""
+def run_live(env, policy, renderer, captions, args) -> bool:
+    """Run the policy and show the day in a window as it unfolds; return True if it finished."""
     import matplotlib.pyplot as plt
 
-    renderer = Renderer(env.city_map, env.cfg)
-    captions = Captions(env, args)
     env.reset(options={"demand_seed": args.seed})
-    fig, ax = plt.subplots(figsize=(12, 6.8))
+    fig, ax = plt.subplots(figsize=(FRAME_PX[0] / 80, FRAME_PX[1] / 80))
+    fig.subplots_adjust(0, 0, 1, 1)
     fig.canvas.manager.set_window_title("Medical UAV")
     ax.axis("off")
     image = ax.imshow(renderer.draw(env.sim, 0.0, captions.at(0.0)))
@@ -100,27 +111,29 @@ def run_live(env, policy, args) -> None:
             plt.pause(1.0 / args.fps)
         t_prev = env.sim.t
 
-    if not done:
-        print(f"partial run: window closed at t = {env.sim.t:.1f} min "
-              "(metrics cover the orders released so far)")
-    print_metrics(episode_metrics(env.sim))
+    metrics = episode_metrics(env.sim)
+    metrics["return"] = env.sim.total_reward
+    print_results(env, metrics, len(env.decision_log), partial=not done)
     if done and plt.fignum_exists(fig.number):
-        ax.set_title("day finished - close the window to exit", fontsize=12)
+        print("Day finished: close the window to exit")
         plt.show()
+    return done
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--policy", choices=["slack", "edf", "random"], default="slack")
+    parser = argparse.ArgumentParser(description="Watch or record one day with a baseline.")
+    parser.add_argument("--policy", choices=list(POLICY_NAMES), default="slack",
+                        help="slack = Slack-aware, edf = earliest deadline first, random")
     parser.add_argument("--load", choices=["low", "medium", "high"], default="medium")
     parser.add_argument("--seed", type=int, default=0, help="demand seed (which day of orders)")
     parser.add_argument("--live", action="store_true", help="play in a window while running")
-    parser.add_argument("--out", default=None, help="output .gif or .mp4")
-    parser.add_argument("--fps", type=int, default=12)
-    parser.add_argument("--minutes-per-frame", type=float, default=1.0)
-    parser.add_argument("--no-video", action="store_true")
-    parser.add_argument("--snapshots", type=float, nargs="*", default=[],
-                        help="also save PNG frames at these times (minutes)")
+    parser.add_argument("--out", default=None, help="animation file, .gif or .mp4")
+    parser.add_argument("--no-video", action="store_true", help="do not save an animation")
+    parser.add_argument("--snapshots", type=float, nargs="*", default=[DEFAULT_SNAPSHOT],
+                        help="save PNG frames at these minutes (none: no PNG)")
+    parser.add_argument("--fps", type=int, default=12, help="animation frames per second")
+    parser.add_argument("--minutes-per-frame", type=float, default=1.0,
+                        help="simulated minutes between animation frames")
     args = parser.parse_args()
     if args.fps <= 0:
         parser.error("--fps must be > 0")
@@ -130,38 +143,46 @@ def main():
         parser.error("--snapshots must be finite times >= 0")
     if args.out is not None and not args.out.endswith((".gif", ".mp4")):
         parser.error("--out must end with .gif or .mp4")
+    if args.out is not None and args.no_video:
+        parser.error("--out and --no-video cannot be used together")
+    if args.live and (args.out is not None or args.no_video):
+        parser.error("--live shows the day in a window; it cannot be combined with --out or "
+                     "--no-video")
 
     env = MedicalUAVEnv(load=args.load)
     policy = make_policy(args.policy, args.seed)
-    print(f"policy={args.policy} load={args.load} demand_seed={args.seed} "
-          f"map_seed={env.cfg.map_seed}")
+    name = POLICY_NAMES[args.policy]
+    print(f"Medical UAV | {name} | {args.load} load | demand seed {args.seed} | "
+          f"map seed {env.cfg.map_seed}")
+    renderer = Renderer(env.city_map, env.cfg,
+                        title=f"Medical UAV  |  {name}  |  {args.load} load  |  "
+                              f"demand seed {args.seed}")
+    captions = Captions(env)
+    base = f"outputs/demo_{args.policy}_{args.load}_seed{args.seed}"
 
     if args.live:
         problem = live_window_problem()
         if problem is None:
-            run_live(env, policy, args)
+            if run_live(env, policy, renderer, captions, args):
+                save_snapshots(env, renderer, captions, args.snapshots, base)
             return
-        print(f"{problem} - saving an animation instead")
+        print(f"{problem}: saving an animation instead")
 
-    print_metrics(run_episode(env, policy, args.seed))
-    renderer = Renderer(env.city_map, env.cfg)
-    captions = Captions(env, args)
-
-    for t in args.snapshots:
-        t = min(t, env.sim.t)
-        path = f"outputs/snapshot_{args.policy}_{args.load}_{args.seed}_t{t:.0f}.png"
-        os.makedirs("outputs", exist_ok=True)
-        imageio.imwrite(path, renderer.draw(env.sim, t, captions.at(t)))
-        print(f"saved {path}")
+    metrics = run_episode(env, policy, args.seed)
+    print_results(env, metrics, metrics["decisions"])
+    print()
+    save_snapshots(env, renderer, captions, args.snapshots, base)
     if args.no_video:
         return
 
-    out = args.out or f"outputs/demo_{args.policy}_{args.load}_{args.seed}.gif"
+    out = args.out or f"{base}.gif"
     os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
     times = [0.0] + frame_times(0.0, env.sim.t, args.minutes_per_frame)
+    print(f"Rendering {len(times)} frames at {args.fps} fps "
+          f"(about {len(times) / args.fps:.0f} s of animation)...")
     frames = (renderer.draw(env.sim, t, captions.at(t)) for t in times)
-    n = save_animation(frames, out, args.fps)
-    print(f"saved {n} frames to {out}")
+    save_animation(frames, out, args.fps)
+    print(f"Saved: {out}")
 
 
 if __name__ == "__main__":

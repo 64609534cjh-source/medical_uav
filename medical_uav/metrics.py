@@ -50,3 +50,28 @@ def _on_time_by_type(orders, on_time) -> dict:
         n_ok = sum(1 for o in on_time if o.type_idx == k)
         result[order_type.name] = n_ok / n_type if n_type else math.nan
     return result
+
+
+def share(count: int, total: int) -> str:
+    """Return 'count/total (percent%)', the way rates are printed."""
+    return f"{count}/{total} ({100 * count / total:.1f}%)" if total else f"{count}/0"
+
+
+def summary_lines(m: dict) -> list[str]:
+    """Return the main metrics of a day as short labelled lines for printing."""
+    n = m["n_orders"]
+    expired = round(m["expiry_rate"] * n)
+    by_type = ", ".join(f"{name} {'n/a' if math.isnan(rate) else f'{100 * rate:.0f}%'}"
+                        for name, rate in m["on_time_by_type"].items())
+    lines = [
+        f"Orders   {n} released: delivered {share(m['delivered'], n)}, "
+        f"expired {share(expired, n)}, rejected {share(m['rejected'], n)}",
+        f"On time  {share(m['on_time'], n)}; late {m['delivered'] - m['on_time']} "
+        f"(mean {m['mean_lateness']:.1f} min late)",
+        f"By type  on time: {by_type}",
+        f"Effort   {m['km_flown']:.1f} km flown, charging {m['charge_minutes']:.1f} min "
+        f"({100 * m['charge_share']:.1f}% of the day)",
+    ]
+    if "return" in m:
+        lines.append(f"Reward   {m['return']:.2f} in total")
+    return lines
