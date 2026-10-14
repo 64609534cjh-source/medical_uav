@@ -28,7 +28,8 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-`conda env create -f environment.yml` installs the same pinned versions.
+Alternatively, `conda env create -f environment.yml` installs the same pinned versions; then run
+`conda activate medical-uav-rl` and `pip install -e .`.
 
 **1. Walk through the API** (about 50 readable lines):
 
@@ -107,8 +108,9 @@ action are handled at their exact times.
 routes between nodes are shortest paths around the no-fly zones (A* search), computed once. The
 main experiments use one fixed map (`map_seed = 0`).
 
-**Orders.** The day starts at 08:00. Orders arrive at random (a Poisson process) until 16:00, twice
-as often during the peaks 09:00–11:00 and 13:00–14:30.
+**Orders.** The day starts at 08:00. Orders arrive at random (a Poisson process) until 16:00. The
+base arrival rate is multiplied by 2.0 during the peaks 09:00–11:00 and 13:00–14:30 and by 0.6
+otherwise.
 
 | Type | Route | Weight (kg) | On time within | Expires after | Share |
 |---|---|---|---|---|---|
@@ -117,8 +119,10 @@ as often during the peaks 09:00–11:00 and 13:00–14:30.
 | lab sample | hospital → center | 0.2–0.4 | 60 min | 120 min | 30 % |
 | supplies | hospital → hospital | 0.4–0.8 | 75 min | 150 min | 20 % |
 
-**Drone.** 1 km per minute; 3.5 % battery per km, plus 25 % per kg of cargo; charging adds 5 % per
-minute at M (C1) or C2. At most 30 orders can wait; further arrivals are rejected.
+**Drone.** Flies 1 km per minute. A flight uses `3.5 × distance_km × (1 + 0.25 × cargo_kg)` % of
+the battery; charging adds 5 % per minute at M (C1) or C2. At most 30 orders can wait; further
+arrivals are rejected. A box that expires on board stays there, still counting toward the 3-box and
+2 kg limits, until the drone next stops at M or a hospital, where unloading it takes 2 minutes.
 
 **Actions** (26, with a mask of allowed actions):
 
@@ -135,7 +139,7 @@ boxes, 2 kg), the order can be loaded before it expires, and afterwards the dron
 charger while keeping 15 % in reserve. So the drone can never be stranded. A forbidden action
 passed to `step` is executed as `WAIT`.
 
-**Observation** (415 numbers, scaled to roughly 0–1): 31 about the day and the drone (time, demand
+**Observation** (415 numbers, normalized and clipped to [−10, 10]): 31 about the day and the drone (time, demand
 now and ahead, battery, cargo, location, travel times to every node); 12 slots of 28 numbers for
 the most relevant waiting orders (those that can still be on time come first); 3 slots of 16
 numbers for the boxes on board. Unused slots are zero.
@@ -149,14 +153,15 @@ at its expiry; −0.5 for each expired or rejected order; −0.001 per % of batt
 |---|---|
 | Random | a random allowed action |
 | EDF (earliest deadline first) | serve the pickup or delivery with the earliest deadline |
-| Slack-aware | unload at the current node first; then pick up an order here whose destination is already on board; then earliest deadline first, with orders that can no longer be on time moved last |
+| Slack-aware | unload at the current node first; then pick up an order here whose destination is already on board; then charge if due; then earliest deadline first, with orders that can no longer be on time moved last |
 
-EDF and Slack-aware go to charge below 20 % battery, or below 80 % when they have nothing else to
-do.
+Charging is due below 20 % battery, or below 80 % when nothing can be picked up or delivered. EDF
+checks it before anything else; Slack-aware checks it after its two rules for the current node.
 
-Mean on-time rate over 40 development days per load:
+On-time rate of a day = on-time deliveries / all orders released that day (rejected ones
+included). Mean over 40 development days per load:
 
-| Load | Orders per minute | Orders per day | Slack-aware | EDF |
+| Load | Base orders per minute | Orders per day | Slack-aware | EDF |
 |---|---|---|---|---|
 | low | 0.04 | about 22 | 1.00 | 1.00 |
 | medium | 0.08 | about 47 | 0.84 | 0.51 |
