@@ -7,7 +7,7 @@ baseline policies are included: random, earliest deadline first (EDF) and Slack-
 
 NUS ME5418, Group 17 (Jihang Cai, Yu Liu, Yufeng Zhang). Milestone 1: the environment.
 
-![The environment at 11:42 of a simulated day](assets/demo.png)
+![The environment at 13:46 of a simulated day](assets/demo.png)
 
 ## Requirements
 
@@ -41,15 +41,15 @@ python scripts/demo.py --no-video
 ```
 
 This runs one simulated day with the Slack-aware policy (medium load, demand seed 0), prints the
-results and saves the frame shown above to `outputs/demo_slack_medium_seed0_t222min.png`. It takes
+results and saves the frame shown above to `outputs/demo_slack_medium_seed0_t346min.png`. It takes
 a few seconds. The output starts with:
 
 ```
 Medical UAV | Slack-aware | medium load | demand seed 0 | map seed 0
 
-Completed at 16:54 (t=534.1 min) after 111 decisions
-  Orders   64 released: delivered 52/64 (81.2%), expired 12/64 (18.8%), rejected 0/64 (0.0%)
-  On time  45/64 (70.3%); late 7 (mean 29.7 min late)
+Completed at 17:07 (t=547.3 min) after 111 decisions
+  Orders   64 released: delivered 53/64 (82.8%), expired 11/64 (17.2%), rejected 0/64 (0.0%)
+  On time  43/64 (67.2%); late 10 (mean 24.8 min late)
 ```
 
 To see the whole day:
@@ -64,7 +64,7 @@ python scripts/demo.py           # save the day as outputs/demo_slack_medium_see
 | `--policy {slack,edf,random}` | which baseline policy decides (default `slack`) |
 | `--load {low,medium,high}` | how many orders arrive (default `medium`) |
 | `--seed N` | which day of orders (default 0) |
-| `--snapshots 0 100 ...` | save PNG frames at these simulated minutes (default 222) |
+| `--snapshots 0 100 ...` | save PNG frames at these simulated minutes (default 346) |
 | `--out FILE` | animation file, `.gif` or `.mp4` |
 
 `python scripts/demo.py --help` lists all options.
