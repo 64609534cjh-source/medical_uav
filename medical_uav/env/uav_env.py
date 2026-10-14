@@ -40,11 +40,11 @@ class MedicalUAVEnv(gym.Env):
                                             dtype=np.float32)
         self.action_space = spaces.Discrete(N_ACTIONS)
 
-        self.lam = self.cfg.loads[load]
+        self.lam = self.cfg.loads[load]  # base arrival rate, orders per minute
         self.demand_seed = None
         self.decision_log: list[tuple[float, str, float]] = []  # (time, action, reward)
         self.sim: Simulator | None = None
-        self.slots = []
+        self.slots = []  # visible pending orders, indexed by PICK slot
         self._mask = np.zeros(N_ACTIONS, dtype=bool)
         self._obs = np.zeros(OBS_DIM, dtype=np.float32)
         self._done = False

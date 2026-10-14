@@ -29,16 +29,17 @@ def _point_along(path: np.ndarray, fraction: float) -> np.ndarray:
     if len(path) == 1:
         return path[0]
     seg_len = np.linalg.norm(np.diff(path, axis=0), axis=1)
-    target = fraction * seg_len.sum()
+    target = fraction * seg_len.sum()  # distance still to go along the path
     for i, length in enumerate(seg_len):
         if target <= length or i == len(seg_len) - 1:
-            f = 0.0 if length == 0 else min(target / length, 1.0)
+            f = 0.0 if length == 0 else min(target / length, 1.0)  # fraction of this piece
             return path[i] + f * (path[i + 1] - path[i])
         target -= length
     return path[-1]
 
 
 def _leave_time(o):
+    """Return when box o left the drone, or None if it is still on board."""
     return o.end_time if o.status == "delivered" else o.disposed_time
 
 
@@ -54,6 +55,7 @@ def drone_state_at(sim, t: float) -> dict:
         xy, battery, activity = sim.city_map.node_xy[sim.location], sim.battery, "idle"
     else:
         span = seg.t1 - seg.t0
+        # fraction of the current activity completed at t
         f = 1.0 if span <= EPS else min(max((t - seg.t0) / span, 0.0), 1.0)
         if seg.kind == "fly":
             xy = _point_along(sim.city_map.paths[(seg.node_from, seg.node_to)], f)
@@ -208,6 +210,7 @@ class GifWriter:
 
     def close(self) -> None:
         self.writer.close()
+        # build a colour palette from the video, then apply it to the GIF
         palette = "split[a][b];[a]palettegen[p];[b][p]paletteuse"
         cmd = [imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-i", self.tmp_path,
                "-vf", palette, "-loop", "0", self.path]

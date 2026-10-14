@@ -7,7 +7,7 @@ from medical_uav.env.astar import astar, path_cost_cells
 from medical_uav.env.config import C2, CHARGERS, EPS, FULL_BATTERY, M, N_NODES, EnvConfig
 from medical_uav.env.physics import flight_energy
 
-MAX_PLACEMENT_TRIES = 500
+MAX_PLACEMENT_TRIES = 500  # random cells tried per node before the attempt fails
 
 
 @dataclass
@@ -71,7 +71,7 @@ def _sample_zones(rng, cfg: EnvConfig):
 def _place_nodes(rng, blocked: np.ndarray, cfg: EnvConfig):
     """Choose a free cell for each node that satisfies the spacing rules, or return None."""
     g = cfg.grid_size
-    cells = []
+    cells = []  # (row, col) of each node, in node-index order
     for node in range(N_NODES):
         for _ in range(MAX_PLACEMENT_TRIES):
             cell = (int(rng.integers(0, g)), int(rng.integers(0, g)))

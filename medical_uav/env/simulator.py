@@ -33,9 +33,9 @@ class Simulator:
         self.cfg = cfg
         self.city_map = city_map
         self.orders = orders
-        self.lam = lam
+        self.lam = lam  # base arrival rate, orders per minute
 
-        self.t = 0.0
+        self.t = 0.0  # minutes since the start of the day
         self.location = M
         self.battery = FULL_BATTERY
         self.onboard: list[Order] = []  # includes expired boxes not yet unloaded
@@ -43,9 +43,9 @@ class Simulator:
 
         self.segments: list[Segment] = []
         self.events: list[tuple[float, str, int]] = []  # (time, kind, order id)
-        self.release_times_log: list[float] = []
+        self.release_times_log: list[float] = []  # arrival times, including rejected orders
         self.total_reward = 0.0
-        self.energy_used = 0.0
+        self.energy_used = 0.0  # battery % used for flying, summed
         self.km_flown = 0.0
         self.charging_time = 0.0
 

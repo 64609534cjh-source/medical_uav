@@ -50,7 +50,7 @@ def print_metrics(metrics: dict) -> None:
 
 
 class Captions:
-    """Return the caption for time t: run settings and the action in progress."""
+    """Frame captions: run settings and the action in progress."""
 
     def __init__(self, env, args):
         self.env = env
@@ -58,6 +58,7 @@ class Captions:
 
     def at(self, t: float) -> str:
         log = self.env.decision_log
+        # index of the last decision made at or before t; -1 if none yet
         i = bisect.bisect_right([d[0] for d in log], t + 1e-9) - 1
         action = f"{log[i][1]} (decided at t={log[i][0]:.0f})" if i >= 0 else "start"
         return f"{self.prefix} | t = {t:5.1f} min | {action}"

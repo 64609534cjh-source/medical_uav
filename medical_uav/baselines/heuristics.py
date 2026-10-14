@@ -21,7 +21,7 @@ def random_policy(env, rng: np.random.Generator) -> int:
 def charging_rule(env, theta: float) -> int | None:
     """Return a CHARGE action if charging is due, else None; the nearest station is preferred."""
     sim, mask = env.sim, env.action_masks()
-    has_service = mask[PICK0:CHARGE0].any()
+    has_service = mask[PICK0:CHARGE0].any()  # some PICK or DELIVER is valid
     wanted = sim.battery < theta or (not has_service and sim.battery < IDLE_CHARGE_BELOW)
     if not wanted:
         return None

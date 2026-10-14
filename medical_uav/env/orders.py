@@ -46,7 +46,7 @@ def demand_multiplier(t: float, cfg: EnvConfig) -> float:
 
 
 def _segments(cfg: EnvConfig):
-    """Split the release window into intervals with a constant multiplier."""
+    """Split the release window into (start, end, multiplier) intervals."""
     bounds = {0.0, cfg.release_window}
     for start, end in cfg.peak_windows:
         bounds.update((start, end))

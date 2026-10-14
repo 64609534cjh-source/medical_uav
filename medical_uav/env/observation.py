@@ -45,7 +45,7 @@ def provisional_route_time(sim: Simulator, extra: Order | None = None) -> float:
         here = extra.origin
         boxes.append(extra)
     boxes.sort(key=lambda o: (o.deadline, o.id))
-    visited = []
+    visited = []  # destinations in visiting order, without repeats
     for o in boxes:
         if o.dest not in visited:
             visited.append(o.dest)
