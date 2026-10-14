@@ -7,7 +7,7 @@ baseline policies are included: random, earliest deadline first (EDF) and Slack-
 
 NUS ME5418, Group 17 (Jihang Cai, Yu Liu, Yufeng Zhang). Milestone 1: the environment.
 
-![The environment at 10:46 of a simulated day](assets/demo.png)
+![The environment at 11:02 of a simulated day](assets/demo.png)
 
 ## Requirements
 
@@ -41,15 +41,15 @@ python scripts/demo.py --no-video
 ```
 
 This runs one simulated day with the Slack-aware policy (medium load, demand seed 0), prints the
-results and saves the frame shown above to `outputs/demo_slack_medium_seed0_t166min.png`. It takes
+results and saves the frame shown above to `outputs/demo_slack_medium_seed0_t182min.png`. It takes
 a few seconds. The output starts with:
 
 ```
 Medical UAV | Slack-aware | medium load | demand seed 0 | map seed 0
 
-Completed at 17:19 (t=559.6 min) after 122 decisions
-  Orders   70 released: delivered 57/70 (81.4%), expired 13/70 (18.6%), rejected 0/70 (0.0%)
-  On time  51/70 (72.9%); late 6 (mean 21.1 min late)
+Completed at 17:05 (t=545.8 min) after 113 decisions
+  Orders   70 released: delivered 53/70 (75.7%), expired 17/70 (24.3%), rejected 0/70 (0.0%)
+  On time  47/70 (67.1%); late 6 (mean 33.0 min late)
 ```
 
 To see the whole day:
@@ -64,7 +64,7 @@ python scripts/demo.py           # save the day as outputs/demo_slack_medium_see
 | `--policy {slack,edf,random}` | which baseline policy decides (default `slack`) |
 | `--load {low,medium,high}` | how many orders arrive (default `medium`) |
 | `--seed N` | which day of orders (default 0) |
-| `--snapshots 0 100 ...` | save PNG frames at these simulated minutes (default 166) |
+| `--snapshots 0 100 ...` | save PNG frames at these simulated minutes (default 182) |
 | `--out FILE` | animation file, `.gif` or `.mp4` |
 
 `python scripts/demo.py --help` lists all options.
@@ -91,7 +91,7 @@ frame = env.render()   # RGB image of the current state
 | Observation | `Box(415)`: the drone, the 12 most urgent waiting orders and the cargo on board |
 | Action | `Discrete(26)`: pick up, deliver, charge, return to the center, wait; `info["action_mask"]` marks the allowed ones |
 | Reward | +1 per on-time delivery, less when late, −0.5 per expired or rejected order, a small energy cost |
-| Episode | one day, about 85–130 decisions |
+| Episode | one day, about 80–120 decisions |
 | `reset` options | `demand_seed` (which day of orders), `load` (`"low"`, `"medium"` or `"high"`) |
 | Baselines | `random_policy`, `edf_policy`, `slack_aware_policy` in `medical_uav.baselines.heuristics` |
 

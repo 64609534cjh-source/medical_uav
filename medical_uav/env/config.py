@@ -52,9 +52,9 @@ class EnvConfig:
     grid_size: int = 16  # grid cells per side
     cell_km: float = 0.25  # side length of a grid cell
     n_zones_range: tuple[int, int] = (3, 3)  # (min, max) number of no-fly zones
-    zone_size_range: tuple[int, int] = (2, 3)  # (min, max) zone side length in cells
-    min_node_spacing_km: float = 0.75  # minimum distance between nodes
-    m_min_dist_from_edge_km: float = 1.0  # minimum distance from M to the edge of the map
+    zone_size_range: tuple[int, int] = (2, 4)  # (min, max) zone side length in cells
+    min_node_spacing_km: float = 0.75  # minimum distance between C2 and the other nodes
+    facility_spacing_km: float = 1.4  # minimum distance between M and the hospitals
     c2_min_dist_from_m_km: float = 1.5  # minimum distance from C2 to M
     map_seed: int = 0  # seed for map generation
     max_map_tries: int = 100  # attempts before map generation gives up
@@ -77,7 +77,7 @@ class EnvConfig:
     peak_multiplier: float = 2.0  # rate multiplier during peaks
     offpeak_multiplier: float = 0.6  # rate multiplier outside peaks
     # base arrival rate for each load level, in orders per minute
-    loads: dict = field(default_factory=lambda: {"low": 0.04, "medium": 0.10, "high": 0.13})
+    loads: dict = field(default_factory=lambda: {"low": 0.04, "medium": 0.09, "high": 0.12})
     pool_cap: int = 30  # max pending orders; further arrivals are rejected
 
     # actions
@@ -96,7 +96,7 @@ class EnvConfig:
                      "handling_min", "max_weight", "release_window", "wait_max", "max_map_tries",
                      "pool_cap"]:
             _check_number(name, getattr(self, name), positive=True)
-        for name in ["map_seed", "min_node_spacing_km", "m_min_dist_from_edge_km",
+        for name in ["map_seed", "min_node_spacing_km", "facility_spacing_km",
                      "c2_min_dist_from_m_km", "payload_factor", "min_charge_gain",
                      "peak_multiplier", "offpeak_multiplier", "expiry_penalty", "energy_cost",
                      "reward_on_time", "reserve"]:

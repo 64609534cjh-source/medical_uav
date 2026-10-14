@@ -46,33 +46,21 @@ def _cells(m, cfg):
 
 
 def test_nodes_keep_away_from_the_border():
-    from medical_uav.env.map_gen import BORDER_MARGIN
+    from medical_uav.env.map_gen import BORDER_MARGIN, FACILITY_MARGIN
 
     for seed in range(20):
-        for r, c in _cells(generate_map(seed, cfg), cfg):
-            assert BORDER_MARGIN <= r < cfg.grid_size - BORDER_MARGIN
-            assert BORDER_MARGIN <= c < cfg.grid_size - BORDER_MARGIN
+        for i, (r, c) in enumerate(_cells(generate_map(seed, cfg), cfg)):
+            margin = BORDER_MARGIN if i == C2 else FACILITY_MARGIN
+            assert margin <= r < cfg.grid_size - margin
+            assert margin <= c < cfg.grid_size - margin
 
 
-def test_one_facility_per_district():
-    from medical_uav.env.map_gen import _district_of
-
+def test_facilities_are_spread_out():
     for seed in range(20):
-        cells = _cells(generate_map(seed, cfg), cfg)
-        districts = [_district_of(cells[i], cfg) for i in range(C2)]
-        assert len(set(districts)) == 6
-
-
-def test_m_keeps_away_from_the_edge_and_moves_between_districts():
-    from medical_uav.env.map_gen import _district_of
-
-    m_districts = set()
-    for seed in range(20):
-        m = generate_map(seed, cfg)
-        x, y = m.node_xy[M]
-        assert min(x, y, 4.0 - x, 4.0 - y) >= cfg.m_min_dist_from_edge_km - 1e-9
-        m_districts.add(_district_of(_cells(m, cfg)[M], cfg))
-    assert len({r for r, _ in m_districts}) == 3 and len({c for _, c in m_districts}) == 2
+        xy = generate_map(seed, cfg).node_xy[:C2]
+        for i in range(len(xy)):
+            for j in range(i + 1, len(xy)):
+                assert np.linalg.norm(xy[i] - xy[j]) >= cfg.facility_spacing_km - 1e-9
 
 
 def test_c2_is_far_from_m_and_serves_two_hospitals():
@@ -128,23 +116,32 @@ def test_zones_keep_clear_of_nodes_each_other_and_the_border():
                 assert apart_rows or apart_cols
 
 
-def test_zones_lengthen_some_route_between_facilities():
-    from medical_uav.env.astar import octile_distance
-    from medical_uav.env.config import HOSPITALS
+def test_every_zone_lengthens_some_route():
+    from medical_uav.env.map_gen import _route_all_pairs
 
-    facilities = (M,) + HOSPITALS
-    for seed in range(20):
+    for seed in range(10):
         m = generate_map(seed, cfg)
         cells = _cells(m, cfg)
-        assert any(m.dist_km[a, b] - cfg.cell_km * octile_distance(cells[a], cells[b])
-                   >= cfg.cell_km - 1e-9 for a in facilities for b in facilities if a < b)
+        for (r, c, h, w) in m.zones:
+            without = m.blocked.copy()
+            without[r:r + h, c:c + w] = False
+            dist, _ = _route_all_pairs(without, cells, cfg)
+            assert (m.dist_km - dist >= cfg.cell_km - 1e-9).any()
+
+
+def test_zones_lie_in_different_districts_and_apart():
+    from medical_uav.env.map_gen import MIN_ZONE_GAP, _district_of
+
+    for seed in range(20):
+        zones = generate_map(seed, cfg).zones
+        centres = [(r + h / 2, c + w / 2) for r, c, h, w in zones]
+        districts = [_district_of(centre, cfg) for centre in centres]
+        assert len(set(districts)) == len(zones)
+        for i, a in enumerate(centres):
+            for b in centres[i + 1:]:
+                assert np.hypot(a[0] - b[0], a[1] - b[1]) >= MIN_ZONE_GAP - 1e-9
 
 
 def test_maps_without_zones_still_generate():
     m = generate_map(0, EnvConfig(n_zones_range=(0, 0)))
     assert not m.blocked.any()
-
-
-def test_layout_is_redrawn_when_no_zone_draw_suits_it():
-    m = generate_map(79, cfg)  # its first layout leaves almost no route for a zone to block
-    assert m.tries > 1

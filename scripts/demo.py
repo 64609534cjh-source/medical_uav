@@ -22,7 +22,7 @@ from medical_uav.metrics import episode_metrics, summary_lines
 
 NON_INTERACTIVE_BACKENDS = ("agg", "pdf", "svg", "ps", "cairo", "template")
 POLICY_NAMES = {"slack": "Slack-aware", "edf": "EDF", "random": "Random"}
-DEFAULT_SNAPSHOT = 166.0  # minutes; a busy moment of the default day
+DEFAULT_SNAPSHOT = 182.0  # minutes; a busy moment of the default day
 
 
 def make_policy(name: str, seed: int):

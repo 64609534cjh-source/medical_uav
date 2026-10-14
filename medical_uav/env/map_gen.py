@@ -1,8 +1,8 @@
 """Random city map generation: node layout first, then small no-fly zones and the routes.
 
-The city is split into 3 x 2 districts. M goes into a random district, away from the edge of the
-map, and one hospital into each of the others; C2 is placed where it most shortens the hospitals'
-trips to a charger. The no-fly zones are added last; a layout that no zone draw suits is replaced.
+M and the hospitals are placed at random but well apart, so they spread over the city; C2 is
+placed where it most shortens the hospitals' trips to a charger. No-fly zones are added last, at
+most one per district, and each must lengthen some route.
 """
 from dataclasses import dataclass, field
 
@@ -15,14 +15,12 @@ from medical_uav.env.physics import flight_energy
 
 MAX_PLACEMENT_TRIES = 500  # random cells tried per node or zone before the attempt fails
 BORDER_MARGIN = 1  # free cells between every node and the edge of the map
-DISTRICT_ROWS, DISTRICT_COLS = 3, 2  # the city is split into this many districts
+FACILITY_MARGIN = 2  # free cells between M or a hospital and the edge of the map
+DISTRICT_ROWS, DISTRICT_COLS = 3, 2  # districts the city is split into; at most one zone each
 ZONE_CLEARANCE = 1  # free cells around every zone: to nodes, to other zones and to the edge
+MIN_ZONE_GAP = 4  # cells between the centres of any two zones
 MIN_C2_BENEFICIARIES = 2  # hospitals C2 must bring at least one cell closer to a charger
 ZONE_TRIES_PER_LAYOUT = 20  # zone draws tried on one node layout before a new layout is drawn
-
-# one district for M and one for each hospital
-assert DISTRICT_ROWS * DISTRICT_COLS == len(HOSPITALS) + 1
-
 
 @dataclass
 class CityMap:
@@ -73,37 +71,28 @@ def _too_close(cell, others, cfg: EnvConfig) -> bool:
 
 
 def _edges(n_parts: int, cfg: EnvConfig) -> np.ndarray:
-    """Split the cells inside the border margin into n_parts nearly equal bands."""
-    edges = np.linspace(BORDER_MARGIN, cfg.grid_size - BORDER_MARGIN, n_parts + 1)
-    return edges.round().astype(int)
+    """Split the grid into n_parts nearly equal bands and return their boundaries in cells."""
+    return np.linspace(0, cfg.grid_size, n_parts + 1).round().astype(int)
 
 
 def _district_of(cell, cfg: EnvConfig) -> tuple[int, int]:
-    """Return the (row, col) of the district that contains cell."""
+    """Return the (row, col) of the district that contains a cell or a point in cell units."""
     rows, cols = _edges(DISTRICT_ROWS, cfg), _edges(DISTRICT_COLS, cfg)
     return (int(np.searchsorted(rows, cell[0], side="right")) - 1,
             int(np.searchsorted(cols, cell[1], side="right")) - 1)
 
 
 def _place_nodes(rng, cfg: EnvConfig):
-    """Place M in a random district, at least m_min_dist_from_edge_km from the edge of the map,
-    and one hospital in each other district. Returns None if a node does not fit."""
-    rows, cols = _edges(DISTRICT_ROWS, cfg), _edges(DISTRICT_COLS, cfg)
-    districts = [(r, c) for r in range(DISTRICT_ROWS) for c in range(DISTRICT_COLS)]
-    rng.shuffle(districts)  # the first goes to M, the rest to H1..H5
-    # cells whose centre is at least m_min_dist_from_edge_km from every edge
-    m_lo = int(np.ceil(cfg.m_min_dist_from_edge_km / cfg.cell_km - 0.5 - EPS))
-    m_hi = cfg.grid_size - m_lo
+    """Place M and the hospitals at random cells, FACILITY_MARGIN cells from the edge and at least
+    facility_spacing_km apart. Returns None if a node does not fit."""
+    lo, hi = FACILITY_MARGIN, cfg.grid_size - FACILITY_MARGIN
     cells = []  # (row, col) of M, H1..H5 in node-index order
-    for dr, dc in districts:
-        r0, r1, c0, c1 = rows[dr], rows[dr + 1], cols[dc], cols[dc + 1]
-        if not cells:  # M
-            r0, r1, c0, c1 = max(r0, m_lo), min(r1, m_hi), max(c0, m_lo), min(c1, m_hi)
-            if r0 >= r1 or c0 >= c1:
-                return None
+    for _ in range(len(HOSPITALS) + 1):
         for _ in range(MAX_PLACEMENT_TRIES):
-            cell = (int(rng.integers(r0, r1)), int(rng.integers(c0, c1)))
-            if not _too_close(cell, cells, cfg):
+            cell = (int(rng.integers(lo, hi)), int(rng.integers(lo, hi)))
+            xy = _cell_center_km(cell, cfg)
+            if all(np.linalg.norm(xy - _cell_center_km(other, cfg))
+                   >= cfg.facility_spacing_km - EPS for other in cells):
                 cells.append(cell)
                 break
         else:
@@ -144,37 +133,70 @@ def _place_c2(rng, cells, cfg: EnvConfig):
 
 
 def _place_zones(rng, cells, cfg: EnvConfig):
-    """Add rectangular no-fly zones that keep ZONE_CLEARANCE free cells to the nodes, to each other
+    """Add rectangular no-fly zones one at a time at random places. A zone is kept only if it
+    lengthens some route by a cell or more, lies in a district without a zone, is MIN_ZONE_GAP
+    cells from the other zones and keeps ZONE_CLEARANCE free cells to the nodes, to other zones
     and to the edge. Returns (blocked, zones), or None if a zone does not fit."""
     g, k = cfg.grid_size, ZONE_CLEARANCE
     blocked = np.zeros((g, g), dtype=bool)
     nodes = np.zeros((g, g), dtype=bool)
     for cell in cells:
         nodes[cell] = True
-    zones = []
+    zones, centres, districts = [], [], set()
     low, high = cfg.zone_size_range
     for _ in range(int(rng.integers(cfg.n_zones_range[0], cfg.n_zones_range[1] + 1))):
+        dist, paths = _route_all_pairs(blocked, cells, cfg)
+        on_route = _route_cells(paths, cfg)
         for _ in range(MAX_PLACEMENT_TRIES):
             height, width = int(rng.integers(low, high + 1)), int(rng.integers(low, high + 1))
             if g - 2 * k < max(height, width):
                 return None
             row = int(rng.integers(k, g - k - height + 1))
             col = int(rng.integers(k, g - k - width + 1))
+            centre = (row + height / 2, col + width / 2)  # in cell units from the top-left corner
+            district = _district_of(centre, cfg)
             around = (slice(row - k, row + height + k), slice(col - k, col + width + k))
-            if not nodes[around].any() and not blocked[around].any():
-                blocked[row:row + height, col:col + width] = True
-                zones.append((row, col, height, width))
-                break
+            if (district in districts or nodes[around].any() or blocked[around].any()
+                    or any(np.hypot(centre[0] - r, centre[1] - c) < MIN_ZONE_GAP - EPS
+                           for r, c in centres)):
+                continue
+            # a zone away from every route cannot lengthen one, so skip routing it
+            if not on_route[around].any():
+                continue
+            trial = blocked.copy()
+            trial[row:row + height, col:col + width] = True
+            routed = _route_all_pairs(trial, cells, cfg)
+            if routed is None or not (routed[0] - dist >= cfg.cell_km - EPS).any():
+                continue
+            blocked = trial
+            zones.append((row, col, height, width))
+            centres.append(centre)
+            districts.add(district)
+            break
         else:
             return None
     return blocked, zones
 
 
-def _zones_add_a_detour(dist_km: np.ndarray, cells, cfg: EnvConfig) -> bool:
-    """Return True if the zones lengthen a route between two facilities by a cell or more."""
-    facilities = (M,) + HOSPITALS
-    return any(dist_km[a, b] - cfg.cell_km * octile_distance(cells[a], cells[b])
-               >= cfg.cell_km - EPS for i, a in enumerate(facilities) for b in facilities[i + 1:])
+def _route_cells(paths: dict, cfg: EnvConfig) -> np.ndarray:
+    """Return a grid that is True for every cell some route passes through."""
+    on_route = np.zeros((cfg.grid_size, cfg.grid_size), dtype=bool)
+    for points in paths.values():
+        for x, y in points:
+            on_route[int(round(y / cfg.cell_km - 0.5)), int(round(x / cfg.cell_km - 0.5))] = True
+    return on_route
+
+
+def _every_zone_adds_a_detour(blocked: np.ndarray, zones, cells, dist_km: np.ndarray,
+                              cfg: EnvConfig) -> bool:
+    """Return True if removing any one zone would shorten some route by a cell or more."""
+    for row, col, height, width in zones:
+        without = blocked.copy()
+        without[row:row + height, col:col + width] = False
+        shorter, _ = _route_all_pairs(without, cells, cfg)
+        if not (dist_km - shorter >= cfg.cell_km - EPS).any():
+            return False
+    return True
 
 
 def _c2_beneficiaries(dist_km: np.ndarray, cfg: EnvConfig) -> int:
@@ -202,8 +224,8 @@ def _route_all_pairs(blocked: np.ndarray, cells, cfg: EnvConfig):
 def generate_map(seed: int, cfg: EnvConfig) -> CityMap:
     """Generate a valid map; the same seed always produces the same map.
 
-    The node layout is drawn first; then only the no-fly zones are redrawn until at least one
-    route has to go around them and the other rules still hold. A layout that no zone draw
+    The node layout is drawn first; then only the no-fly zones are redrawn until every zone
+    makes some route go around it and the other rules still hold. A layout that no zone draw
     suits is replaced. tries counts the node layouts drawn.
     """
     layout_rng, zone_rng = (np.random.default_rng(s)
@@ -227,7 +249,7 @@ def generate_map(seed: int, cfg: EnvConfig) -> CityMap:
             if routed is None:
                 continue
             dist, paths = routed
-            if zones and not _zones_add_a_detour(dist, cells, cfg):
+            if not _every_zone_adds_a_detour(blocked, zones, cells, dist, cfg):
                 continue
             if _c2_beneficiaries(dist, cfg) < MIN_C2_BENEFICIARIES or not is_valid_map(dist, cfg):
                 continue
