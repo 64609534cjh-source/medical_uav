@@ -3,3 +3,16 @@ docs/reports/** export-ignore
 .flake8 export-ignore
 .gitattributes export-ignore
 .gitignore export-ignore
+tests/test_astar.py export-ignore
+tests/test_calibrate.py export-ignore
+tests/test_config.py export-ignore
+tests/test_demo.py export-ignore
+tests/test_heuristics.py export-ignore
+tests/test_map_gen.py export-ignore
+tests/test_metrics.py export-ignore
+tests/test_observation.py export-ignore
+tests/test_orders.py export-ignore
+tests/test_render.py export-ignore
+tests/test_setup.py export-ignore
+tests/test_simulator_actions.py export-ignore
+tests/test_splits.py export-ignore
