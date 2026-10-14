@@ -75,7 +75,7 @@ def test_zero_zones_and_short_release_window_are_allowed():
 
 def test_named_rules_have_their_defaults():
     cfg = EnvConfig()
-    assert cfg.min_charge_gain == 5.0 and cfg.zone_size_range == (2, 5)
+    assert cfg.min_charge_gain == 5.0 and cfg.zone_size_range == (2, 3)
 
 
 def test_zone_size_is_irrelevant_without_zones():

@@ -30,22 +30,6 @@ def _neighbours(blocked: np.ndarray, cell: Cell):
         yield (r, c), (math.sqrt(2) if diagonal else 1.0)
 
 
-def grid_distances(blocked: np.ndarray, start: Cell) -> np.ndarray:
-    """Return the shortest route length in cells from start to every cell (inf if unreachable)."""
-    dist = np.full(blocked.shape, math.inf)
-    dist[start] = 0.0
-    heap = [(0.0, start)]
-    while heap:
-        cost, cell = heapq.heappop(heap)
-        if cost > dist[cell]:
-            continue  # outdated heap entry
-        for nxt, step in _neighbours(blocked, cell):
-            if cost + step < dist[nxt]:
-                dist[nxt] = cost + step
-                heapq.heappush(heap, (cost + step, nxt))
-    return dist
-
-
 def astar(blocked: np.ndarray, start: Cell, goal: Cell) -> list[Cell] | None:
     """Return the shortest cell path from start to goal (both included), or None if unreachable."""
     open_heap = [(octile_distance(start, goal), 0.0, start)]  # (priority, cost, cell)

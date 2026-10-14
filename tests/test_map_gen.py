@@ -54,49 +54,79 @@ def test_nodes_keep_away_from_the_border():
             assert BORDER_MARGIN <= c < cfg.grid_size - BORDER_MARGIN
 
 
-def test_c2_brings_some_hospital_closer_to_a_charger():
+def test_one_facility_per_district():
+    from medical_uav.env.map_gen import _district_of
+
+    for seed in range(20):
+        cells = _cells(generate_map(seed, cfg), cfg)
+        districts = [_district_of(cells[i], cfg) for i in range(C2)]
+        assert len(set(districts)) == 6
+        assert districts[M][0] == 1  # M sits in the middle row of districts
+
+
+def test_c2_is_far_from_m_and_serves_two_hospitals():
     from medical_uav.env.config import HOSPITALS
 
     for seed in range(20):
-        d = generate_map(seed, cfg).dist_km
-        assert any(d[h, C2] < d[h, M] for h in HOSPITALS)
+        m = generate_map(seed, cfg)
+        assert np.linalg.norm(m.node_xy[C2] - m.node_xy[M]) >= cfg.c2_min_dist_from_m_km - 1e-9
+        saved = [m.dist_km[h, M] - m.dist_km[h, C2] for h in HOSPITALS]
+        assert sum(s >= cfg.cell_km - 1e-9 for s in saved) >= 2
 
 
-def test_c2_minimises_the_longest_hospital_to_charger_route():
-    from medical_uav.env.astar import grid_distances
+def test_c2_minimises_the_summed_hospital_to_charger_distance():
+    from medical_uav.env.astar import octile_distance
     from medical_uav.env.config import HOSPITALS
     from medical_uav.env.map_gen import BORDER_MARGIN
+
+    def total(cells, c2):
+        return sum(min(octile_distance(cells[h], cells[M]), octile_distance(cells[h], c2))
+                   for h in HOSPITALS)
 
     for seed in range(5):
         m = generate_map(seed, cfg)
         cells = _cells(m, cfg)
-        to_h = [grid_distances(m.blocked, cells[h]) for h in HOSPITALS]
-        to_m = np.array([d[cells[M]] for d in to_h])
-
-        def worst(cell):
-            return np.minimum(to_m, [d[cell] for d in to_h]).max()
-
-        chosen = worst(cells[C2])
+        chosen = total(cells, cells[C2])
         lo, hi = BORDER_MARGIN, cfg.grid_size - BORDER_MARGIN
         for r in range(lo, hi):
             for c in range(lo, hi):
                 xy = np.array([(c + 0.5) * cfg.cell_km, (r + 0.5) * cfg.cell_km])
                 spaced = all(np.linalg.norm(xy - m.node_xy[i]) >= cfg.min_node_spacing_km - 1e-9
                              for i in range(C2))
-                far_from_m = np.linalg.norm(xy - m.node_xy[M]) >= cfg.c2_min_dist_from_m_km - 1e-9
-                if not m.blocked[r, c] and spaced and far_from_m:
-                    assert chosen <= worst((r, c)) + 1e-9
+                far = np.linalg.norm(xy - m.node_xy[M]) >= cfg.c2_min_dist_from_m_km - 1e-9
+                helps = sum(octile_distance(cells[h], cells[M]) - octile_distance(cells[h], (r, c))
+                            >= 1 - 1e-9 for h in HOSPITALS)
+                if spaced and far and helps >= 2:
+                    assert chosen <= total(cells, (r, c)) + 1e-9
 
 
-def test_zones_lengthen_some_route_from_m():
-    from medical_uav.env.astar import octile_distance
-    from medical_uav.env.config import HOSPITALS
+def test_zones_keep_clear_of_nodes_each_other_and_the_border():
+    from medical_uav.env.map_gen import ZONE_CLEARANCE
 
     for seed in range(20):
         m = generate_map(seed, cfg)
+        g, k = cfg.grid_size, ZONE_CLEARANCE
+        for (r, c, h, w) in m.zones:
+            assert r >= k and c >= k and r + h <= g - k and c + w <= g - k
+            for (nr, nc) in _cells(m, cfg):
+                assert not (r - k <= nr < r + h + k and c - k <= nc < c + w + k)
+        for i, (r1, c1, h1, w1) in enumerate(m.zones):
+            for (r2, c2, h2, w2) in m.zones[i + 1:]:
+                apart_rows = r1 + h1 + k <= r2 or r2 + h2 + k <= r1
+                apart_cols = c1 + w1 + k <= c2 or c2 + w2 + k <= c1
+                assert apart_rows or apart_cols
+
+
+def test_zones_lengthen_some_route_between_facilities():
+    from medical_uav.env.astar import octile_distance
+    from medical_uav.env.config import HOSPITALS
+
+    facilities = (M,) + HOSPITALS
+    for seed in range(20):
+        m = generate_map(seed, cfg)
         cells = _cells(m, cfg)
-        assert any(m.dist_km[M, h] - cfg.cell_km * octile_distance(cells[M], cells[h])
-                   >= cfg.cell_km - 1e-9 for h in HOSPITALS)
+        assert any(m.dist_km[a, b] - cfg.cell_km * octile_distance(cells[a], cells[b])
+                   >= cfg.cell_km - 1e-9 for a in facilities for b in facilities if a < b)
 
 
 def test_maps_without_zones_still_generate():

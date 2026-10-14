@@ -51,10 +51,10 @@ class EnvConfig:
     # map
     grid_size: int = 16  # grid cells per side
     cell_km: float = 0.25  # side length of a grid cell
-    n_zones_range: tuple[int, int] = (2, 4)  # (min, max) number of no-fly zones
-    zone_size_range: tuple[int, int] = (2, 5)  # (min, max) zone side length in cells
+    n_zones_range: tuple[int, int] = (3, 3)  # (min, max) number of no-fly zones
+    zone_size_range: tuple[int, int] = (2, 3)  # (min, max) zone side length in cells
     min_node_spacing_km: float = 0.75  # minimum distance between nodes
-    c2_min_dist_from_m_km: float = 1.0  # minimum distance from C2 to M
+    c2_min_dist_from_m_km: float = 1.5  # minimum distance from C2 to M
     map_seed: int = 0  # seed for map generation
     max_map_tries: int = 100  # attempts before map generation gives up
 

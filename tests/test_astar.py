@@ -34,21 +34,3 @@ def test_unreachable_returns_none():
     blocked = np.zeros((3, 3), dtype=bool)
     blocked[:, 1] = True
     assert astar(blocked, (0, 0), (0, 2)) is None
-
-
-def test_grid_distances_match_astar_path_lengths():
-    from medical_uav.env.astar import grid_distances
-
-    rng = np.random.default_rng(0)
-    blocked = rng.random((10, 10)) < 0.25
-    blocked[0, 0] = False
-    dist = grid_distances(blocked, (0, 0))
-    for r in range(10):
-        for c in range(10):
-            if blocked[r, c]:
-                continue
-            path = astar(blocked, (0, 0), (r, c))
-            if path is None:
-                assert np.isinf(dist[r, c])
-            else:
-                assert dist[r, c] == pytest.approx(path_cost_cells(path))
