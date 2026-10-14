@@ -38,7 +38,7 @@ def test_env_rejects_unknown_load_and_render_mode():
 
 
 def test_default_loads():
-    assert EnvConfig().loads == {"low": 0.04, "medium": 0.08, "high": 0.12}
+    assert EnvConfig().loads == {"low": 0.04, "medium": 0.10, "high": 0.13}
 
 
 @pytest.mark.parametrize("loads", [{"low": 0.04, "medium": 0.08}, {"low": 0.0, "high": 0.0}])

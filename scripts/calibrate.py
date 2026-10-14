@@ -21,7 +21,7 @@ from medical_uav.env.observation import direct_completion_time
 from medical_uav.metrics import episode_metrics
 from medical_uav.splits import DEV_SEEDS
 
-DEFAULT_LAMBDAS = [0.04, 0.06, 0.08, 0.10, 0.12, 0.14]  # base rates to sweep, orders per minute
+DEFAULT_LAMBDAS = [0.04, 0.06, 0.08, 0.10, 0.12, 0.13, 0.14]  # base rates, orders per minute
 THETAS = [20.0, 30.0, 40.0]  # charging thresholds tried by --tune-theta
 TUNABLE = {"edf": edf_policy, "slack": slack_aware_policy}  # heuristics with a threshold
 DEFAULT_THETAS = {name: DEFAULT_THETA for name in TUNABLE}

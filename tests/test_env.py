@@ -35,7 +35,7 @@ def test_demand_seed_and_load_options():
     env = MedicalUAVEnv()
     env.reset(options={"demand_seed": 7, "load": "high"})
     n_high = len(env.sim.orders)
-    assert env.lam == pytest.approx(0.12)
+    assert env.lam == pytest.approx(0.13)
     env.reset(options={"demand_seed": 7, "load": "low"})
     assert env.lam == pytest.approx(0.04) and len(env.sim.orders) < n_high
 
@@ -150,7 +150,7 @@ def test_env_keeps_its_own_copy_of_the_config():
     env = MedicalUAVEnv(config=cfg)
     cfg.handling_min = 9.0
     cfg.loads["high"] = 1.0
-    assert env.cfg.handling_min == 2.0 and env.cfg.loads["high"] == 0.12
+    assert env.cfg.handling_min == 2.0 and env.cfg.loads["high"] == 0.13
 
 
 @pytest.mark.parametrize("overrides", [

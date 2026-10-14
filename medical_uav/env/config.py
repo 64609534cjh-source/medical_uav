@@ -76,7 +76,7 @@ class EnvConfig:
     peak_multiplier: float = 2.0  # rate multiplier during peaks
     offpeak_multiplier: float = 0.6  # rate multiplier outside peaks
     # base arrival rate for each load level, in orders per minute
-    loads: dict = field(default_factory=lambda: {"low": 0.04, "medium": 0.08, "high": 0.12})
+    loads: dict = field(default_factory=lambda: {"low": 0.04, "medium": 0.10, "high": 0.13})
     pool_cap: int = 30  # max pending orders; further arrivals are rejected
 
     # actions
