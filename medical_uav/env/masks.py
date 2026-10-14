@@ -68,6 +68,7 @@ def can_return(sim: Simulator) -> bool:
 
 
 def compute_action_mask(sim: Simulator, slots: list[Order]) -> np.ndarray:
+    """Return one flag per action: True if the action is allowed now."""
     mask = np.zeros(N_ACTIONS, dtype=bool)
     for k, order in enumerate(slots):
         mask[PICK0 + k] = can_pick(sim, order)

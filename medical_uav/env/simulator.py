@@ -53,12 +53,15 @@ class Simulator:
         self.advance_to(0.0)
 
     def load_kg(self) -> float:
+        """Return the total weight on board."""
         return sum(o.weight for o in self.onboard)
 
     def energy(self, a: int, b: int, load: float) -> float:
+        """Return the battery % used to fly from a to b carrying load kg."""
         return flight_energy(self.city_map.dist_km[a, b], load, self.cfg)
 
     def travel_time(self, a: int, b: int) -> float:
+        """Return the minutes needed to fly from a to b."""
         return flight_time(self.city_map.dist_km[a, b], self.cfg)
 
     def nearest_charger(self, node: int, load: float) -> tuple[int, float]:

@@ -32,6 +32,7 @@ class Order:
         return self.release + self.expiry_after
 
     def age(self, t: float) -> float:
+        """Return the minutes since release at time t."""
         return t - self.release
 
 

@@ -49,6 +49,7 @@ def run_day(env, policy, demand_seed, lam):
 
 
 def summarize(results, lam, name):
+    """Return one table row of mean and std metrics over the given days."""
     pools = np.concatenate([r["pool_sizes"] for r in results])
     hidden = np.concatenate([r["hidden_counts"] for r in results])
     row = {"lambda": lam, "policy": name, "days": len(results), "decisions": len(pools),
@@ -68,6 +69,7 @@ def summarize(results, lam, name):
 
 
 def map_check(n_maps, cfg):
+    """Print how many map seeds generate and how much no-fly zones lengthen routes."""
     ok, tries = 0, []
     for seed in range(n_maps):
         try:
@@ -83,6 +85,7 @@ def map_check(n_maps, cfg):
 
 
 def benchmark(cfg, episodes=20):
+    """Print simulation speed in decisions per second."""
     env = MedicalUAVEnv(config=cfg, load="medium")
     rng = np.random.default_rng(0)
     steps, start = 0, time.time()
@@ -123,6 +126,7 @@ def tune_thetas(env, seeds, lam, thetas=THETAS) -> dict:
 
 
 def write_tables(rows, out_dir, cfg, seeds, thetas):
+    """Write the calibration results as CSV and Markdown tables."""
     os.makedirs(out_dir, exist_ok=True)
     with open(os.path.join(out_dir, "calibration.csv"), "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))

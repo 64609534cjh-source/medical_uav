@@ -76,6 +76,7 @@ def drone_state_at(sim, t: float) -> dict:
 
 
 class Renderer:
+    """Draws frames: the map on the left, a status panel on the right."""
     def __init__(self, city_map: CityMap, cfg: EnvConfig):
         self.city_map = city_map
         self.cfg = cfg

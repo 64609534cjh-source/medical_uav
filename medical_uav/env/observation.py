@@ -154,6 +154,7 @@ def _onboard_features(sim: Simulator, o: Order) -> list[float]:
 
 
 def build_observation(sim: Simulator, slots: list[Order], mask: np.ndarray) -> np.ndarray:
+    """Return the observation vector for the current state."""
     features = _global_features(sim, len(slots))
     for k in range(N_SLOTS):
         if k < len(slots):

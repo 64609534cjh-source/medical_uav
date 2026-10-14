@@ -24,6 +24,7 @@ NON_INTERACTIVE_BACKENDS = ("agg", "pdf", "svg", "ps", "cairo", "template")
 
 
 def make_policy(name: str, seed: int):
+    """Return the baseline policy with this name."""
     if name == "slack":
         return slack_aware_policy
     if name == "edf":
@@ -33,12 +34,14 @@ def make_policy(name: str, seed: int):
 
 
 def has_display() -> bool:
+    """Return True if a window can be shown on this machine."""
     if sys.platform in ("darwin", "win32"):
         return True
     return bool(os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))
 
 
 def print_metrics(metrics: dict) -> None:
+    """Print the day's metrics, one per line."""
     for key, value in metrics.items():
         if isinstance(value, dict):
             value = "  ".join(f"{k} {v:.2f}" for k, v in value.items())
