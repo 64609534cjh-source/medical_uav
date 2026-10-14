@@ -50,7 +50,8 @@ the side panel shows the battery (with the 15 % reserve mark), the three cargo s
 pending orders sorted by deadline.
 
 A short walkthrough of the API (create the environment, inspect the state, act, render, run a
-full day) is in `scripts/example.py`; run it with `python scripts/example.py`.
+full day) is in `scripts/example.py`; run it with `python scripts/example.py`. It saves
+`outputs/example_frame.png`; for an animation of the whole day, run `python scripts/demo.py`.
 
 Using the environment directly:
 
