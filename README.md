@@ -12,10 +12,12 @@ or to wait.
 
 ![A simulated day at 11:42](assets/demo.png)
 
-*Slack-aware baseline, medium load, demand seed 0. Left: the 4 km x 4 km map with no-fly zones
-(red), the medical center M (also charger C1), hospitals H1–H5, charger C2, and the drone (+)
-flying to H5 with three boxes. Right: clock, battery with the 15 % reserve mark, cargo with minutes
-left to each deadline, and the pending orders sorted by deadline.*
+*Slack-aware baseline, medium load, demand seed 0, at 11:42. Left: the 4 km x 4 km map with
+no-fly zones, the medical center M (also charger C1), hospitals H1–H5, charger C2, and the drone
+flying from M to H5 with three boxes (coloured by order type). Right: what the drone is doing, its
+battery with the 15 % reserve mark, the boxes on board and the waiting orders, each with the
+minutes left until its deadline (red when late) and until it expires. Bottom: legend and the
+outcome so far.*
 
 ## Install and run
 
@@ -31,35 +33,43 @@ pip install -e .
 Alternatively, `conda env create -f environment.yml` installs the same pinned versions; then run
 `conda activate medical-uav-rl` and `pip install -e .`.
 
-**1. Walk through the API** (about 50 readable lines):
+**1. Walk through the API** (about 90 readable lines):
 
 ```bash
 python scripts/example.py
 ```
 
-It creates the environment, prints the drone's state, the visible orders and the allowed actions,
-takes five decisions while printing their duration, reward and events, saves the current frame to
-`outputs/example_frame.png`, and finally runs a whole day:
+It goes through seven numbered steps: create the environment and print its state; let the
+Slack-aware baseline take five decisions, printing each one's duration, reward and events; pick a
+charging action from the allowed ones; save the current frame to `outputs/example_frame.png`; run
+the whole day; compare the three baselines on that day; and rerun it with a changed setting.
+Excerpt:
 
 ```
-t = 1.0 min | at M | battery 100.0 % | 0 box(es) on board
-  slot 0: supplies H5->H1  0.75 kg  deadline in 75 min
+2. Let the Slack-aware baseline take five decisions
+> WAIT
+  took 1.0 min | reward +0.000 | release #0 at t=1.0
+  08:00 (t=1.0 min) | at M | battery 100.0% | cargo 0/3 boxes, 0.00/2.00 kg | pending 1
+  slot 0: #0 supplies H5->H1, 0.75 kg, due in 75 min, expires in 150 min
   allowed: PICK(0), CHARGE(C2,100), WAIT
-
 > PICK supplies H5->H1
-  took 3.9 min, reward -0.006, events: pickup #0 at 4.8
+  took 3.9 min | reward -0.006 | pickup #0 at t=4.8
 ...
-full day: 64 orders, on time 70%, expired 19%, return 40.39
+6. Compare the baselines on the same day (64 orders)
+  policy              on time  late  expired   reward
+  Random         9/64 (14.1%)    10       45   -14.05
+  EDF           15/64 (23.4%)    35       14    11.72
+  Slack-aware   45/64 (70.3%)     7       12    40.39
 ```
 
 **2. Watch a day:**
 
 ```bash
 python scripts/demo.py --live   # play the day in a window; without a display it saves a GIF
-python scripts/demo.py          # save outputs/demo_slack_medium_0.gif
+python scripts/demo.py          # save the day as a GIF plus a PNG frame at 11:42
 ```
 
-**3. Run the tests** (183 tests, including Gymnasium's `check_env`):
+**3. Run the tests** (189 tests, including Gymnasium's `check_env`):
 
 ```bash
 python -m pytest -q
@@ -174,9 +184,11 @@ charging-threshold tuning, the map statistics and the speed measurement:
 python scripts/calibrate.py --tune-theta --map-check 200 --benchmark
 ```
 
-More demo options: `--policy {slack,edf,random}`, `--load {low,medium,high}`, `--seed N` (demand
-seed), `--no-video`, and `--snapshots 0 100 160` (PNG frames at those minutes, saved in
-`outputs/`).
+Without `--live`, `demo.py` prints the day's results and saves
+`outputs/demo_slack_medium_seed0.gif` and `outputs/demo_slack_medium_seed0_t222min.png`. Options:
+`--policy {slack,edf,random}`, `--load {low,medium,high}`, `--seed N` (demand seed), `--no-video`,
+`--out FILE.gif|FILE.mp4`, and `--snapshots 0 100 160` (PNG frames at those minutes; `--snapshots`
+alone saves none).
 
 ## Code guide
 
