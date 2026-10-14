@@ -90,14 +90,22 @@ def live_window_problem() -> str | None:
     return None
 
 
-def run_live(env, policy, renderer, captions, args) -> bool:
-    """Run the policy and show the day in a window as it unfolds; return True if it finished."""
+def run_live(env, policy, renderer, captions, args) -> bool | None:
+    """Show the day in a window as it unfolds.
+
+    Return True if the day finished, False if the window was closed early, and None if no
+    window could be opened.
+    """
     import matplotlib.pyplot as plt
 
     env.reset(options={"demand_seed": args.seed})
-    fig, ax = plt.subplots(figsize=(FRAME_PX[0] / 80, FRAME_PX[1] / 80))
+    try:
+        fig, ax = plt.subplots(figsize=(FRAME_PX[0] / 80, FRAME_PX[1] / 80))
+        fig.canvas.manager.set_window_title("Medical UAV")
+    except Exception as exc:  # the window system failed although a display was detected
+        print(f"could not open a window ({exc})")
+        return None
     fig.subplots_adjust(0, 0, 1, 1)
-    fig.canvas.manager.set_window_title("Medical UAV")
     ax.axis("off")
     image = ax.imshow(renderer.draw(env.sim, 0.0, captions.at(0.0)))
 
@@ -163,9 +171,12 @@ def main():
     if args.live:
         problem = live_window_problem()
         if problem is None:
-            if run_live(env, policy, renderer, captions, args):
+            finished = run_live(env, policy, renderer, captions, args)
+            if finished:
                 save_snapshots(env, renderer, captions, args.snapshots, base)
-            return
+            if finished is not None:
+                return
+            problem = "no window"
         print(f"{problem}: saving an animation instead")
 
     metrics = run_episode(env, policy, args.seed)
