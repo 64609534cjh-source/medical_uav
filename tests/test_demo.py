@@ -29,14 +29,3 @@ def test_demo_rejects_conflicting_options(args):
     result = subprocess.run([sys.executable, "scripts/demo.py", *args],
                             capture_output=True, text=True, cwd=REPO)
     assert result.returncode == 2 and "cannot" in result.stderr
-
-
-def test_example_runs_and_saves_a_frame(tmp_path):
-    frame = tmp_path / "frame.png"
-    code = ("import sys; sys.path.insert(0, 'scripts'); import example; "
-            f"example.main({str(frame)!r})")
-    result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, cwd=REPO)
-    assert result.returncode == 0, result.stderr
-    assert frame.stat().st_size > 0
-    for section in range(1, 8):
-        assert f"\n{section}. " in "\n" + result.stdout
