@@ -156,16 +156,11 @@ def _onboard_features(sim: Simulator, o: Order) -> list[float]:
 def build_observation(sim: Simulator, slots: list[Order], mask: np.ndarray) -> np.ndarray:
     """Return the observation vector for the current state."""
     features = _global_features(sim, len(slots))
-    for k in range(N_SLOTS):
-        if k < len(slots):
-            features += _pending_features(sim, slots[k], bool(mask[k]))
-        else:
-            features += [0.0] * PENDING_DIM
+    for k, o in enumerate(slots):
+        features += _pending_features(sim, o, bool(mask[k]))
+    features += [0.0] * (N_SLOTS - len(slots)) * PENDING_DIM  # empty slots
     onboard = sorted(sim.onboard, key=lambda o: (o.deadline, o.id))  # earliest deadline first
-    for k in range(N_ONBOARD):
-        if k < len(onboard):
-            features += _onboard_features(sim, onboard[k])
-        else:
-            features += [0.0] * ONBOARD_DIM
-    obs = np.clip(np.array(features, dtype=np.float32), -OBS_BOUND, OBS_BOUND)
-    return obs
+    for o in onboard:
+        features += _onboard_features(sim, o)
+    features += [0.0] * (N_ONBOARD - len(onboard)) * ONBOARD_DIM  # empty slots
+    return np.clip(np.array(features, dtype=np.float32), -OBS_BOUND, OBS_BOUND)

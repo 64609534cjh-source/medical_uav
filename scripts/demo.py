@@ -74,11 +74,8 @@ def live_window_problem() -> str | None:
 
 
 def run_live(env, policy, renderer, args) -> bool | None:
-    """Show the day in a window as it unfolds.
-
-    Return True if the day finished, False if the window was closed early, and None if no
-    window could be opened.
-    """
+    """Show the day in a window. Return True if the day finished, False if the window was
+    closed early, None if no window could be opened."""
     import matplotlib.pyplot as plt
 
     env.reset(options={"demand_seed": args.seed})

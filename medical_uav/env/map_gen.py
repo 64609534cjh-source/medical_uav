@@ -92,13 +92,8 @@ def _place_nodes(rng, cfg: EnvConfig):
 
 
 def _place_c2(rng, cells, cfg: EnvConfig):
-    """Choose the cell for C2 that minimises the summed hospital-to-nearest-charger distance.
-
-    Distances ignore no-fly zones, which are added later. C2 must be at least
-    c2_min_dist_from_m_km from M and bring MIN_C2_BENEFICIARIES hospitals a cell or more closer
-    to a charger. Ties are broken by the longest such distance, then at random. Returns None
-    if no cell qualifies.
-    """
+    """Choose the C2 cell with the smallest summed hospital-to-nearest-charger distance, ignoring
+    zones (ties: smallest worst distance, then random). Return None if no cell qualifies."""
     to_m = np.array([octile_distance(cells[h], cells[M]) for h in HOSPITALS])
     m_xy = _cell_center_km(cells[M], cfg)
     lo, hi = BORDER_MARGIN, cfg.grid_size - BORDER_MARGIN
@@ -124,10 +119,8 @@ def _place_c2(rng, cells, cfg: EnvConfig):
 
 
 def _place_zones(rng, cells, cfg: EnvConfig):
-    """Add rectangular no-fly zones one at a time at random places. A zone is kept only if it
-    lengthens some route by a cell or more, lies in a district without a zone, is MIN_ZONE_GAP
-    cells from the other zones and keeps ZONE_CLEARANCE free cells to the nodes, to other zones
-    and to the edge. Returns (blocked, zones), or None if a zone does not fit."""
+    """Add no-fly zones one at a time at random places; keep a zone only if it follows the zone
+    rules and lengthens some route. Return (blocked, zones), or None if a zone does not fit."""
     g, k = cfg.grid_size, ZONE_CLEARANCE
     blocked = np.zeros((g, g), dtype=bool)
     nodes = np.zeros((g, g), dtype=bool)
@@ -213,12 +206,8 @@ def _route_all_pairs(blocked: np.ndarray, cells, cfg: EnvConfig):
 
 
 def generate_map(seed: int, cfg: EnvConfig) -> CityMap:
-    """Generate a valid map; the same seed always produces the same map.
-
-    The node layout is drawn first; then only the no-fly zones are redrawn until every zone
-    makes some route go around it and the other rules still hold. A layout that no zone draw
-    suits is replaced. tries counts the node layouts drawn.
-    """
+    """Generate a valid map; the same seed always gives the same map. Zones are redrawn first,
+    then the node layout if no zone draw suits it."""
     layout_rng, zone_rng = (np.random.default_rng(s)
                             for s in np.random.SeedSequence(seed).spawn(2))
     for layout_try in range(1, cfg.max_map_tries + 1):

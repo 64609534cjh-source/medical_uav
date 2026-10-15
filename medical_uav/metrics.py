@@ -57,8 +57,10 @@ def summary_lines(m: dict) -> list[str]:
     """Return the main metrics of a day as short labelled lines for printing."""
     n = m["n_orders"]
     expired = round(m["expiry_rate"] * n)
-    by_type = ", ".join(f"{name} {'n/a' if math.isnan(rate) else f'{100 * rate:.0f}%'}"
-                        for name, rate in m["on_time_by_type"].items())
+    rates = []
+    for name, rate in m["on_time_by_type"].items():
+        rates.append(f"{name} {'n/a' if math.isnan(rate) else f'{100 * rate:.0f}%'}")
+    by_type = ", ".join(rates)
     lines = [
         f"Orders   {n} released: delivered {share(m['delivered'], n)}, "
         f"expired {share(expired, n)}, rejected {share(m['rejected'], n)}",

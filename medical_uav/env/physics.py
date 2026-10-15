@@ -18,11 +18,8 @@ def charge_minutes(battery: float, target: float, cfg: EnvConfig) -> float:
 
 
 def delivery_reward(age: float, limit: float, expiry_after: float, cfg: EnvConfig) -> float:
-    """Return the reward for a box delivered `age` minutes after release.
-
-    The full on-time reward up to `limit`, then decreasing linearly to minus the expiry
-    penalty at `expiry_after`.
-    """
+    """Return the reward for a box delivered `age` minutes after release: full reward up to
+    `limit`, then falling linearly to minus the expiry penalty at `expiry_after`."""
     if age <= limit + EPS:
         return cfg.reward_on_time
     late_fraction = (age - limit) / (expiry_after - limit)

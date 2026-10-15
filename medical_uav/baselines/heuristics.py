@@ -53,12 +53,8 @@ def edf_policy(env, theta: float = DEFAULT_THETA) -> int:
 
 
 def slack_aware_policy(env, theta: float = DEFAULT_THETA) -> int:
-    """Earliest deadline first with three extra rules, checked in order.
-
-    Unload at the current node; pick up an order here whose destination is already on board;
-    charge if due. Otherwise use earliest deadline first, with work that cannot be on time
-    by the direct estimate moved to the end.
-    """
+    """EDF with three extra rules: unload here first, batch pickups going where cargo already
+    goes, and put work that can no longer be on time last."""
     sim, mask = env.sim, env.action_masks()
 
     # 1) unload boxes for the current node

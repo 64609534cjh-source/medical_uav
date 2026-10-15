@@ -337,19 +337,15 @@ def frame_times(t0: float, t1: float, step: float) -> list[float]:
 
 
 def save_animation(frames, path: str, fps: int) -> int:
-    """Write frames to an .mp4 or .gif file one at a time and return how many were written.
-
-    A GIF is first written as a temporary MP4 and then converted, so the frames never have to be
-    held in memory.
-    """
+    """Write frames to an .mp4 or .gif file one at a time; return how many were written.
+    A GIF is written as a temporary MP4 first and then converted."""
     if not path.endswith((".gif", ".mp4")):
         raise ValueError(f"animation must be .gif or .mp4, got {path!r}")
     video = path if path.endswith(".mp4") else path + ".tmp.mp4"
     count = 0
     with imageio.get_writer(video, fps=fps) as writer:
-        for frame in frames:
+        for count, frame in enumerate(frames, start=1):
             writer.append_data(frame)
-            count += 1
     if video != path:
         # build a colour palette from the video, then apply it to the GIF
         palette = "split[a][b];[a]palettegen[p];[b][p]paletteuse"
