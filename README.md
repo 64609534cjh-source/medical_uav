@@ -87,9 +87,10 @@ frame = env.render()   # RGB image of the current state
 | `reset` options | `demand_seed` (which day of orders), `load` (`"low"`, `"medium"` or `"high"`) |
 | Baselines | `random_policy`, `edf_policy`, `slack_aware_policy` in `medical_uav.baselines.heuristics` |
 
-All settings (map, drone, orders, rewards) are in `medical_uav/env/config.py`; pass
-`MedicalUAVEnv(config=EnvConfig(...))` to change them. The rules of the environment are described
-in the report.
+Most settings (map, drone, demand, rewards) are in `medical_uav/env/config.py`; pass
+`MedicalUAVEnv(config=EnvConfig(...))` to change them. The order types, the 12 slots and the charge
+targets are fixed because they define the observation and action layout. The rules of the
+environment are described in the report.
 
 ## Files
 
