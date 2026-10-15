@@ -51,15 +51,11 @@ It then saves two files in `outputs/` (about one minute):
 - `demo_slack_medium_seed0_t182min.png`, a snapshot at 11:02
 - `demo_slack_medium_seed0.gif`, the whole day
 
-To watch the day in a window instead, run `python scripts/demo.py --live`.
-
 | Option | Values |
 |---|---|
 | `--policy` | `slack` (default), `edf`, `random` |
 | `--load` | `low`, `medium` (default), `high` |
 | `--seed` | which day of orders (default `0`) |
-
-`python scripts/demo.py --help` lists all options.
 
 ## Using the environment in code
 

@@ -175,7 +175,8 @@ def write_tables(rows, out_dir, cfg, seeds, thetas, tuned=False):
               f"{settings_line(cfg, seeds, thetas, tuned)}.\n\n"
               "λ is the base arrival rate in orders per minute. Rates are means of the daily "
               "rates over the days of a row, with the population SD across days; a day's "
-              "on-time rate is on-time deliveries / all orders released that day. Pool statistics are pooled over all decisions; hidden % is the share "
+              "on-time rate is on-time deliveries / all orders released that day. Pool "
+              "statistics are pooled over all decisions; hidden % is the share "
               "of decisions at which an order that could still be on time (direct estimate) is "
               "not among the 12 visible slots.\n\n")
     with open(os.path.join(out_dir, "calibration.md"), "w") as f:
