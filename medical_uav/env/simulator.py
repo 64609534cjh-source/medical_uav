@@ -100,19 +100,13 @@ class Simulator:
         assert self.battery >= need - INVARIANT_TOL, \
             f"battery {self.battery:.3f} < {need:.3f} at t={self.t:.2f}"
 
-    def advance_to(self, t_target: float, strict: bool = False) -> None:
-        """Process releases and expiries up to t_target, then move the clock to t_target.
-
-        With strict=True, events at exactly t_target are left unprocessed. An expiry and a
-        release at the same time are processed expiry first.
-        """
+    def advance_to(self, t_target: float) -> None:
+        """Process releases and expiries up to and including t_target, then move the clock there.
+        An expiry and a release at the same time are processed expiry first."""
         while True:
             t_release = self._next_release_time()
             t_expiry = self._next_expiry_time()
-            t_next = min(t_release, t_expiry)
-            if strict and t_next >= t_target - EPS:
-                break
-            if not strict and t_next > t_target + EPS:
+            if min(t_release, t_expiry) > t_target + EPS:
                 break
 
             if t_expiry <= t_release + EPS:
@@ -173,12 +167,12 @@ class Simulator:
         self.onboard.remove(o)
         self.events.append((self.t, "dispose", o.id))
 
-    def _handle_box(self, kind: str, o: Order, strict: bool = False) -> None:
+    def _handle_box(self, kind: str, o: Order) -> None:
         """Spend the handling time for one box on the ground."""
         t_end = self.t + self.cfg.handling_min
         self.segments.append(Segment(kind, self.t, t_end, self.location, self.location,
                                      self.battery, self.battery, o.id))
-        self.advance_to(t_end, strict=strict)
+        self.advance_to(t_end)
 
     def do_pick(self, order: Order) -> None:
         """Fly to the order's origin and load it."""
@@ -203,8 +197,7 @@ class Simulator:
                 self._handle_box("dispose", o)
                 self._dispose(o)
                 continue
-            # strict=True so an unload ending exactly at expiry still counts as delivered
-            self._handle_box("unload", o, strict=True)
+            self._handle_box("unload", o)
             if o.status == "expired":  # expired during the unload
                 self._dispose(o)
                 continue

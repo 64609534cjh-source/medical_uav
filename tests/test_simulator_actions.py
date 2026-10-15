@@ -26,13 +26,16 @@ def test_late_delivery_reward(line_map):
     assert sim.total_reward - r0 == pytest.approx(0.25 - 0.001 * 8.4)
 
 
-def test_unload_at_exact_expiry_is_late_delivery(line_map):
+def test_unload_ending_exactly_at_expiry_counts_as_expired(line_map):
     sim = make_sim(line_map, [make_order(0, 0, M, 4, 0.6, 0.0)])  # plasma to H4 (5 km)
     sim.do_pick(sim.orders[0])
     sim.advance_to(53.0)  # arrive 58, unload done 60 = expiry
+    r0 = sim.total_reward
     sim.do_deliver(4)
-    assert sim.orders[0].status == "delivered"
-    assert sim.orders[0].end_time == pytest.approx(60.0)
+    assert sim.orders[0].status == "expired"
+    energy = sim.cfg.energy_cost * sim.energy(M, 4, 0.6)
+    # the same -0.5 a delivery at the expiry time would have earned
+    assert sim.total_reward - r0 == pytest.approx(-0.5 - energy)
 
 
 def test_two_boxes_same_destination_unload_sequentially(line_map):
@@ -81,7 +84,8 @@ def test_unload_expiry_release_same_instant(line_map):
     sim.advance_to(119.0)
     sim.do_deliver(1)  # arrive 121, unload done 123
     last_three = [(k, i) for (_, k, i) in sim.events[-3:]]
-    assert last_three == [("deliver", 0), ("expire", 1), ("release", 2)]
+    # events due at the end of the unload are processed first, an expiry before a release
+    assert last_three == [("expire", 1), ("release", 2), ("deliver", 0)]
     assert d.status == "pending"
 
 

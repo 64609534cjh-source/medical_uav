@@ -89,7 +89,7 @@ States: `pending → onboard → delivered`, or `pending/onboard → expired`.
 
 - **Delivered** when that box's unload finishes. On time iff age ≤ L.
 - **Expired** when age reaches H while not delivered. A pending order is removed. An onboard box becomes *expired cargo*: it keeps its weight and box slot and is unloaded automatically (2 min, no reward) at the next facility stop (M or any hospital; not C2).
-- **Same-timestamp order of events:** unload completions → expiries → releases. So an unload that finishes exactly at age H counts as a (late) delivery with reward −0.5, which equals the expiry penalty (§7).
+- **Same-timestamp events:** an expiry is processed before a release at the same time, and events due when an unload finishes are processed before the delivery is recorded. So a box whose unload finishes exactly at age H counts as expired; its −0.5 equals what a delivery at H would earn (§7). (Simplified on 2026-10-15: the earlier rule that counted it as delivered needed a `strict` flag in the simulator and never occurred in 480 measured baseline days.)
 - Events that happen inside a macro action (releases, expiries, each unload) are processed at their exact times. New orders never interrupt an action.
 - Every expiry time is known in advance (release + H) and flights are deterministic. So masks can predict exactly which onboard boxes will have expired on arrival, and how long their disposal takes.
 
