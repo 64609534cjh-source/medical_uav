@@ -5,7 +5,6 @@ from medical_uav.env.actions import CHARGE0, CHARGE_TARGETS, DELIVER0, PICK0, WA
 from medical_uav.env.config import CHARGERS, EPS, FACILITIES
 from medical_uav.env.masks import predict_arrival
 from medical_uav.env.observation import direct_completion_time
-from medical_uav.metrics import episode_metrics
 
 DEFAULT_THETA = 20.0  # battery % below which a policy goes to charge; tuned on dev seeds
 IDLE_CHARGE_BELOW = 80.0  # battery % below which an idle drone tops up
@@ -96,17 +95,3 @@ def _delivery_can_be_on_time(sim, n: int) -> bool:
         if t <= o.deadline + EPS:
             return True
     return False
-
-
-def run_episode(env, policy, demand_seed: int, options: dict | None = None) -> dict:
-    """Run one day with the policy and return its metrics, total reward and decision count."""
-    env.reset(options={**(options or {}), "demand_seed": demand_seed})
-    total, decisions, done = 0.0, 0, False
-    while not done:
-        _, reward, done, _, _ = env.step(policy(env))
-        total += reward
-        decisions += 1
-    result = episode_metrics(env.sim)
-    result["return"] = total
-    result["decisions"] = decisions
-    return result

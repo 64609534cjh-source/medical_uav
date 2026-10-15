@@ -5,6 +5,7 @@ from medical_uav.env.config import N_NODES, ORDER_TYPES, EnvConfig
 from medical_uav.env.map_gen import CityMap
 from medical_uav.env.orders import Order
 from medical_uav.env.simulator import Simulator
+from medical_uav.metrics import episode_metrics
 
 # Nodes on a line, distances are |x_i - x_j| km: M, H1..H5, C2
 LINE_X = [0.0, 2.0, 3.0, 4.0, 5.0, 6.0, 3.5]
@@ -31,3 +32,17 @@ def make_order(oid, type_idx, origin, dest, weight, release):
 
 def make_sim(city_map, orders, cfg=None):
     return Simulator(cfg or EnvConfig(), city_map, orders, lam=0.07)
+
+
+def run_episode(env, policy, demand_seed, options=None):
+    """Run one day with the policy and return its metrics, total reward and decision count."""
+    env.reset(options={**(options or {}), "demand_seed": demand_seed})
+    total, decisions, done = 0.0, 0, False
+    while not done:
+        _, reward, done, _, _ = env.step(policy(env))
+        total += reward
+        decisions += 1
+    result = episode_metrics(env.sim)
+    result["return"] = total
+    result["decisions"] = decisions
+    return result

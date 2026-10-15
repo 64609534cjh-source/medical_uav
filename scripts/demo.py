@@ -1,4 +1,8 @@
-"""Run one day with a baseline policy, print the results and save a frame and an animation."""
+"""Run one day with a baseline policy, print the results and save a frame and an animation.
+
+This is also the usage example: create the environment, reset it to a day, step until the day
+is over, then read the results and draw the day.
+"""
 import argparse
 import bisect
 import os
@@ -6,11 +10,10 @@ import os
 import imageio.v2 as imageio
 import numpy as np
 
-from medical_uav.baselines.heuristics import (edf_policy, random_policy, run_episode,
-                                              slack_aware_policy)
+from medical_uav.baselines.heuristics import edf_policy, random_policy, slack_aware_policy
 from medical_uav.env import MedicalUAVEnv
 from medical_uav.env.render import Renderer, clock, frame_times, save_animation
-from medical_uav.metrics import summary_lines
+from medical_uav.metrics import episode_metrics, summary_lines
 
 POLICY_NAMES = {"slack": "Slack-aware", "edf": "EDF", "random": "Random"}
 SNAPSHOT_MIN = 182.0  # minute of the saved frame; a busy moment of the default day
@@ -43,19 +46,35 @@ def main():
     parser.add_argument("--seed", type=int, default=0, help="demand seed (which day of orders)")
     args = parser.parse_args()
 
-    env = MedicalUAVEnv(load=args.load)
     name = POLICY_NAMES[args.policy]
+    policy = make_policy(args.policy, args.seed)
+
+    # 1. create the environment and start a day
+    env = MedicalUAVEnv(load=args.load)
+    obs, info = env.reset(options={"demand_seed": args.seed})
     print(f"Medical UAV | {name} | {args.load} load | demand seed {args.seed} | "
           f"map seed {env.cfg.map_seed}")
 
-    metrics = run_episode(env, make_policy(args.policy, args.seed), args.seed)
+    # 2. let the policy choose actions until the day is over; the baselines read the
+    #    environment directly, a learned policy would use obs and info["action_mask"]
+    total_reward = 0.0
+    terminated = truncated = False
+    while not (terminated or truncated):
+        action = policy(env)
+        obs, reward, terminated, truncated, info = env.step(action)
+        total_reward += reward
+
+    # 3. results of the day
     sim = env.sim
+    metrics = episode_metrics(sim)
+    metrics["return"] = total_reward
     print(f"\nCompleted at {clock(sim.t)} (t={sim.t:.1f} min) "
-          f"after {metrics['decisions']} decisions")
+          f"after {len(env.decision_log)} decisions")
     for line in summary_lines(metrics):
         print("  " + line)
     print()
 
+    # 4. draw one frame and the whole day; the renderer can draw any minute of the finished day
     renderer = Renderer(env.city_map, env.cfg,
                         title=f"Medical UAV  |  {name}  |  {args.load} load  |  "
                               f"demand seed {args.seed}")

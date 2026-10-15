@@ -57,22 +57,10 @@ It then saves two files in `outputs/` (about one minute):
 | `--load` | `low`, `medium` (default), `high` |
 | `--seed` | which day of orders (default `0`) |
 
-## Using the environment in code
+`scripts/demo.py` is also the usage example: it creates the environment, starts a day, lets a
+policy choose actions until the day is over, and then draws the day.
 
-```python
-from medical_uav.env import MedicalUAVEnv
-
-env = MedicalUAVEnv(load="medium", render_mode="rgb_array")
-obs, info = env.reset(options={"demand_seed": 0})   # the same seed gives the same day
-
-terminated = truncated = False
-while not (terminated or truncated):
-    # your policy goes here; this one picks a random allowed action
-    action = env.action_space.sample(mask=info["action_mask"].astype("int8"))
-    obs, reward, terminated, truncated, info = env.step(action)
-
-frame = env.render()   # RGB image of the current state
-```
+## The environment
 
 | | |
 |---|---|
@@ -109,7 +97,7 @@ medical_uav/
   metrics.py         per-day metrics
   splits.py          seeds for training, development and testing
 scripts/
-  demo.py            run and show one day
+  demo.py            run and show one day; also the usage example
 environment.yml      conda environment
 requirements.txt     the same packages for pip
 pyproject.toml       package definition for `pip install -e .`

@@ -2,11 +2,11 @@ import math
 
 import pytest
 
-from medical_uav.baselines.heuristics import run_episode, slack_aware_policy
+from medical_uav.baselines.heuristics import slack_aware_policy
 from medical_uav.env import MedicalUAVEnv
 from medical_uav.env.config import M
 from medical_uav.metrics import episode_metrics
-from tests.conftest import make_order, make_sim
+from tests.conftest import make_order, make_sim, run_episode
 
 
 def test_metrics_by_type_and_delivered():
