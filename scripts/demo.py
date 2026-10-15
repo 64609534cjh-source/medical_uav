@@ -85,7 +85,7 @@ def main():
     imageio.imwrite(f"{base}_t{round(t, 1):g}min.png", renderer.draw(sim, t, caption_at(env, t)))
     print(f"Saved: {base}_t{round(t, 1):g}min.png")
 
-    times = [0.0] + frame_times(0.0, sim.t, 1.0)
+    times = frame_times(sim.t)
     print(f"Rendering {len(times)} frames at {FPS} fps "
           f"(about {len(times) / FPS:.0f} s of animation)...")
     save_animation((renderer.draw(sim, t, caption_at(env, t)) for t in times), f"{base}.gif", FPS)

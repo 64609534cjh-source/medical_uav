@@ -322,15 +322,11 @@ class Renderer:
                 fontsize=10.5, color=TEXT, ha="right", va="center")
 
 
-def frame_times(t0: float, t1: float, step: float) -> list[float]:
-    """Return frame times after t0 up to t1, every `step` minutes, always including t1."""
-    times = []
-    k = math.floor(t0 / step + EPS) + 1
-    while k * step <= t1 + EPS:
-        times.append(k * step)
-        k += 1
-    if t1 > t0 + EPS and (not times or times[-1] < t1 - EPS):
-        times.append(t1)
+def frame_times(t_end: float) -> list[float]:
+    """Return the animation frame times: every simulated minute from 0, then t_end."""
+    times = [float(m) for m in range(math.floor(t_end + EPS) + 1)]
+    if times[-1] < t_end - EPS:
+        times.append(t_end)
     return times
 
 

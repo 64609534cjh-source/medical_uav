@@ -45,12 +45,12 @@ def test_env_render_rgb_array():
     assert frame.ndim == 3 and frame.shape[2] == 3
 
 
-def test_frame_times_cover_interval_without_repeating_start():
+def test_frame_times_every_minute_then_the_end():
     from medical_uav.env.render import frame_times
 
-    assert frame_times(0.0, 3.0, 1.0) == pytest.approx([1.0, 2.0, 3.0])
-    assert frame_times(2.5, 4.0, 1.0) == pytest.approx([3.0, 4.0])
-    assert frame_times(5.0, 5.0, 1.0) == []
+    assert frame_times(3.0) == pytest.approx([0.0, 1.0, 2.0, 3.0])
+    assert frame_times(2.5) == pytest.approx([0.0, 1.0, 2.0, 2.5])
+    assert frame_times(0.0) == [0.0]
 
 
 def test_save_animation_streams_generator(tmp_path):
