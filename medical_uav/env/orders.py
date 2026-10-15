@@ -18,9 +18,9 @@ class Order:
     release: float  # time the order appears, minutes
     limit: float  # minutes after release within which delivery is on time
     expiry_after: float  # minutes after release at which the order expires
-    status: str = "future"  # one of future, pending, onboard, delivered, expired, rejected
+    status: str = "future"  # one of future, pending, onboard, delivered, expired
     pickup_time: float | None = None
-    end_time: float | None = None  # time the order was delivered, expired or rejected
+    end_time: float | None = None  # time the order was delivered or expired
     disposed_time: float | None = None  # time expired cargo was unloaded
 
     @property

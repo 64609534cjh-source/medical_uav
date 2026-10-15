@@ -31,20 +31,17 @@ def test_pending_order_expires_with_penalty(line_map):
 
 
 def test_expiry_before_release_same_time(line_map):
-    cfg = EnvConfig(pool_cap=1)
     orders = [make_order(0, 0, M, 1, 0.7, 0.0), make_order(1, 0, M, 2, 0.7, 60.0)]
-    sim = make_sim(line_map, orders, cfg)
+    sim = make_sim(line_map, orders)
     sim.advance_to(60.0)
     assert orders[0].status == "expired" and orders[1].status == "pending"
 
 
-def test_pool_cap_rejects(line_map):
-    cfg = EnvConfig(pool_cap=2)
-    orders = [make_order(i, 1, M, 1, 0.5, 5.0) for i in range(3)]
-    sim = make_sim(line_map, orders, cfg)
+def test_every_arrival_joins_the_pending_pool(line_map):
+    orders = [make_order(i, 1, M, 1, 0.5, 5.0) for i in range(40)]
+    sim = make_sim(line_map, orders)
     sim.advance_to(5.0)
-    assert [o.status for o in orders] == ["pending", "pending", "rejected"]
-    assert sim.total_reward == pytest.approx(-0.5)
+    assert len(sim.pending) == 40 and sim.total_reward == 0.0
 
 
 def test_done_only_after_release_window(line_map):

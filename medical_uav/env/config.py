@@ -76,14 +76,13 @@ class EnvConfig:
     offpeak_multiplier: float = 0.6  # rate multiplier outside peaks
     # base arrival rate for each load level, in orders per minute
     loads: dict = field(default_factory=lambda: {"low": 0.04, "medium": 0.09, "high": 0.12})
-    pool_cap: int = 30  # max pending orders; further arrivals are rejected
 
     # actions
     wait_max: float = 10.0  # longest duration of one WAIT action, minutes
 
     # reward
     reward_on_time: float = 1.0  # reward per on-time delivery
-    expiry_penalty: float = 0.5  # penalty per expired or rejected order
+    expiry_penalty: float = 0.5  # penalty per expired order
     energy_cost: float = 0.001  # penalty per battery % used
 
     def validate(self) -> None:

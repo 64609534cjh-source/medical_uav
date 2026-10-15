@@ -83,7 +83,7 @@ def drone_state_at(sim, t: float) -> dict:
              if o.pickup_time is not None and o.pickup_time <= t + EPS
              and (_leave_time(o) is None or _leave_time(o) > t + EPS)]
     pending = [o for o in sim.orders
-               if o.release <= t + EPS and o.status != "rejected"
+               if o.release <= t + EPS
                and (o.pickup_time is None or o.pickup_time > t + EPS)
                and (o.end_time is None or o.end_time > t + EPS)]
     return {"xy": np.asarray(xy, dtype=float), "battery": battery, "activity": activity,
@@ -113,18 +113,16 @@ def activity_text(state: dict, orders_by_id: dict, location: int) -> str:
 
 
 def outcome_counts(sim, t: float) -> dict:
-    """Count released, delivered, on-time, expired, rejected and open orders at time t."""
+    """Count released, delivered, on-time, expired and open orders at time t."""
     def closed(o):
         return o.end_time is not None and o.end_time <= t + EPS
 
     released = [o for o in sim.orders if o.status != "future" and o.release <= t + EPS]
     delivered = [o for o in released if o.status == "delivered" and closed(o)]
     expired = sum(1 for o in released if o.status == "expired" and closed(o))
-    rejected = sum(1 for o in released if o.status == "rejected" and closed(o))
     return {"released": len(released), "delivered": len(delivered),
             "on_time": sum(1 for o in delivered if o.end_time - o.release <= o.limit + EPS),
-            "expired": expired, "rejected": rejected,
-            "open": len(released) - len(delivered) - expired - rejected}
+            "expired": expired, "open": len(released) - len(delivered) - expired}
 
 
 def _due_color(minutes: float) -> str:
@@ -320,7 +318,7 @@ class Renderer:
         late = c["delivered"] - c["on_time"]
         ax.text(w, 15, f"Delivered {c['delivered']} (on time {c['on_time']}, late {late})",
                 fontsize=10.5, color=TEXT, ha="right", va="center")
-        ax.text(w, 35, f"Expired {c['expired']}   Rejected {c['rejected']}   Open {c['open']}",
+        ax.text(w, 35, f"Expired {c['expired']}   Open {c['open']}",
                 fontsize=10.5, color=TEXT, ha="right", va="center")
 
 

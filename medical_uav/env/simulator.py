@@ -41,7 +41,7 @@ class Simulator:
 
         self.segments: list[Segment] = []
         self.events: list[tuple[float, str, int]] = []  # (time, kind, order id)
-        self.release_times_log: list[float] = []  # arrival times, including rejected orders
+        self.release_times_log: list[float] = []  # arrival times
         self.total_reward = 0.0
         self.energy_used = 0.0  # total battery % used for flying
         self.km_flown = 0.0
@@ -141,15 +141,9 @@ class Simulator:
         o = self.orders[self._next_release]
         self._next_release += 1
         self.release_times_log.append(o.release)
-        if len(self.pending) >= self.cfg.pool_cap:
-            o.status = "rejected"
-            o.end_time = o.release
-            self.total_reward -= self.cfg.expiry_penalty
-            self.events.append((o.release, "reject", o.id))
-        else:
-            o.status = "pending"
-            self.pending.append(o)
-            self.events.append((o.release, "release", o.id))
+        o.status = "pending"
+        self.pending.append(o)
+        self.events.append((o.release, "release", o.id))
 
     def fly_to(self, node: int) -> None:
         """Fly to node; at a facility, expired cargo is unloaded on arrival."""

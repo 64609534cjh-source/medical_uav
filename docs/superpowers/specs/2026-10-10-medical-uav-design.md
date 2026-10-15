@@ -81,11 +81,11 @@ The agent decides, at every decision point, **which order to pick up next, where
 - **Arrivals:** non-homogeneous Poisson over the 480-min release window, rate λ·m(t), with m(t) = 2.0 in [60, 180) and [300, 390) (two peaks) and 0.6 elsewhere. Expected orders per day = 582·λ.
 - **Load levels (v3, after the map revision; calibrated against the Slack-aware heuristic, gate G1):** low λ = 0.04 (≈ 22 orders/day), medium λ = 0.09 (≈ 52), high λ = 0.12 (≈ 68). Measured on 40 dev seeds, θ = 20 for both heuristics (θ 30/40 differ by ≤ 0.002 for Slack-aware and are worse for EDF): Slack-aware on-time 0.99 / 0.81 / 0.66; EDF 1.00 / 0.41 / 0.27; on-time-feasible orders hidden beyond the 12 slots in 0 / 0.7 / 5.8 % of Slack-aware decisions. λ = 0.14 (0.56, 14.3 % hidden) stays a stress appendix. Levels were recalibrated after each map revision.
 - The full day's orders are generated from `demand_seed` at `reset()` and revealed only at their release times. They never depend on the agent's actions, so every method sees exactly the same order stream for a given seed.
-- **Pending pool cap** 30 (orders released but not picked up). An arrival that finds the pool full is rejected.
+- No pending-pool cap (removed 2026-10-15): every arrival joins the pool; expiry already bounds the backlog. Before the change Slack-aware never hit the old cap of 30 and EDF/Random hit it 3–4 times in 40 high-load days.
 - **Measured regime (M1):** ≈ 80–120 decisions per day; charging ≈ 22 % of the day; ≈ 3–4.5 km flown per delivered order; mean / p95 / max pending pool ≈ 1.6/6/11 at λ 0.06, 4.0/11/17 at 0.09, 7.2/17/29 at 0.12. Medium-load peaks (≈ 9.6 orders/hour) exceed unbatched capacity, so triage and batching matter exactly when demand peaks.
 
 ### 4.4 Order life cycle and events
-States: `pending → onboard → delivered`, or `pending/onboard → expired`, or `rejected` at arrival.
+States: `pending → onboard → delivered`, or `pending/onboard → expired`.
 
 - **Delivered** when that box's unload finishes. On time iff age ≤ L.
 - **Expired** when age reaches H while not delivered. A pending order is removed. An onboard box becomes *expired cargo*: it keeps its weight and box slot and is unloaded automatically (2 min, no reward) at the next facility stop (M or any hospital; not C2).
@@ -94,7 +94,7 @@ States: `pending → onboard → delivered`, or `pending/onboard → expired`, o
 - Every expiry time is known in advance (release + H) and flights are deterministic. So masks can predict exactly which onboard boxes will have expired on arrival, and how long their disposal takes.
 
 ### 4.5 Episode termination
-The episode ends at the first decision point where the release window (480 min) has closed **and** every released order is resolved (delivered, expired or rejected). Every order is resolved by t = 660 at the latest (latest release 480 + longest expiry 180). The clock can pass 660 by at most the length of the one action in progress, during which no reward can occur. No terminal penalty is needed: every order's outcome is already counted.
+The episode ends at the first decision point where the release window (480 min) has closed **and** every released order is resolved (delivered or expireded). Every order is resolved by t = 660 at the latest (latest release 480 + longest expiry 180). The clock can pass 660 by at most the length of the one action in progress, during which no reward can occur. No terminal penalty is needed: every order's outcome is already counted.
 
 ---
 
@@ -121,19 +121,17 @@ Whenever the drone arrives at a facility, expired cargo is unloaded first (see �
 
 Masks are returned as `info["action_mask"]` (bool array of length 26) and via `env.action_masks()`. Baselines and the agent use the same masks. If a masked action is passed to `step` anyway (e.g. by `check_env`'s random sampling), it is executed as WAIT and `info["invalid_action"] = True`; agents and baselines never do this, and the PPO code asserts it. An action outside `Discrete(26)` raises `ValueError`.
 
-## 6. Observation — `Box(shape=(415,))`, float32, roughly normalised
+## 6. Observation — `Box(shape=(403,))`, float32, roughly normalised
 
 **Pending slots.** 12 pending orders chosen by a two-tier ranking: first the orders that can still be delivered on time (direct completion ≤ deadline), sorted by time-to-deadline; then the late but not yet expired ones, sorted by time-to-expiry (ties: release time, then order id). This keeps a backlog of late orders from hiding fresh orders that can still be on time. Fewer than 12 → zero-padded with `valid = 0`. Orders beyond the 12 stay in the environment and appear as soon as they rank in the top 12. Calibration logs how often an on-time-feasible order is hidden beyond slot 12: 0 % of decisions at λ 0.06, 0.7 % at 0.09, 5.8 % at 0.12, 14.3 % at 0.14 (Slack-aware). "Feasible" is optimistic (direct timing, ignoring other cargo and recharging). Every method sees the same 12 slots.
 
 | block | features (count) |
 |---|---|
-| global (31) | t/660; remaining release time/480; demand multiplier now, in 30 min, in 60 min (÷2); base load λ/λ_high; battery/100; onboard weight/2; onboard boxes/3; location one-hot (7); flight time to each of 7 nodes (÷10 min); energy to nearest charger/100; pending count/30; pending beyond 12 /30; pending count per type (4, ÷10); releases in last 30 min/10 |
-| each pending slot (28) × 12 | valid; type one-hot (4); origin one-hot (6); destination one-hot (6); weight; time to deadline/L (negative when late); time to expiry/L; age/L; direct completion time (fly to origin + 2 + fly to dest + 2)/30; slack = time to deadline − direct completion (÷30); same destination as any onboard box; number of pending orders with the same destination/5; origin is the current location; **insertion extra time** (÷30, below); pick feasible (mask bit) |
+| global (31) | t/660; remaining release time/480; demand multiplier now, in 30 min, in 60 min (÷2); base load λ/λ_high; battery/100; onboard weight/2; onboard boxes/3; location one-hot (7); flight time to each of 7 nodes (÷10 min); energy to nearest charger/100; pending count/30; pending beyond 12 /30 (fixed scale); pending count per type (4, ÷10); releases in last 30 min/10 |
+| each pending slot (27) × 12 | valid; type one-hot (4); origin one-hot (6); destination one-hot (6); weight; time to deadline/L (negative when late); time to expiry/L; age/L; direct completion time (fly to origin + 2 + fly to dest + 2)/30; slack = time to deadline − direct completion (÷30); same destination as any onboard box; number of pending orders with the same destination/5; origin is the current location; pick feasible (mask bit) |
 | each onboard slot (16) × 3 | valid; type one-hot (4); destination one-hot (6); weight; time to deadline/L; time to expiry/L; expired flag; direct delivery time/30 |
 
-Total = 31 + 12 × 28 + 3 × 16 = **415**.
-
-**Insertion extra time.** The provisional route visits the destinations of onboard (non-expired) boxes in earliest-deadline order. With the candidate added, the route becomes: here → candidate origin (+2 min) → onboard ∪ candidate destinations in earliest-deadline order. The feature is the duration difference, handling included. It is a hint for batching, not a plan the agent must follow.
+Total = 31 + 12 × 27 + 3 × 16 = **403**. (The insertion-extra-time hint, which needed a provisional delivery route, was removed on 2026-10-15; slots stay at 12 because a 12-vs-30-slot rollout comparison showed no measurable gain from 30: paired 95 % CI upper bounds below 1 point at medium and high load.)
 
 ## 7. Reward (undiscounted, γ = 1)
 
@@ -142,7 +140,6 @@ Total = 31 + 12 × 28 + 3 × 16 = **415**.
 | box delivered at age a ≤ L | +1 |
 | box delivered at age L < a ≤ H | 1 − 1.5 · (a − L)/(H − L) (linear from +1 at L down to −0.5 at H) |
 | order expires (pending or onboard) | −0.5 |
-| arrival rejected (pool full) | −0.5 |
 | flight energy | −0.001 per % consumed |
 
 - R = 1, P = 0.5. The extra value of rescuing a late order rather than letting it expire shrinks smoothly from 1.5 to 0. During peaks, two fresh on-time orders (+2) beat one near-expired rescue, which is the triage behaviour we want. Off-peak, a late delivery is worth doing unless it is so close to expiry that the flight energy costs more than the remaining gain. This is intended: the value of rescuing an order fades to zero at H.
@@ -166,8 +163,8 @@ Total = 31 + 12 × 28 + 3 × 16 = **415**.
 - One policy covers all load levels (λ is part of the observation); no per-load models.
 
 ### 8.2 Networks and behaviour cloning
-- **(a) MLP:** separate actor and critic, each 415 → 256 → 256 (ReLU) → 26 logits / 1 value.
-- **(b) Set network:** shared pending-slot encoder MLP(28→64→64); onboard encoder MLP(16→64); global encoder MLP(31→64); one 4-head attention layer in which the global embedding queries the valid slot embeddings plus one learned always-valid "null" token → attention output. **Context = [global embedding, attention output]**, so battery/time/location always reach the heads, even with zero or one valid slot. Both pending and onboard embeddings are keys of the attention (with the null token), so an empty pool and an empty drone are both well-defined. PICK(k) logits come from a shared scorer on [slot_k embedding, context]; the other 14 logits from an MLP on the context; the value head is an MLP on [context, masked mean-pool of slot embeddings]. Attention masks absent slots only (not battery-infeasible pickups; those are handled by the action mask). Tests: empty and single-slot observations give finite outputs; permuting pending slots permutes the PICK logits accordingly.
+- **(a) MLP:** separate actor and critic, each 403 → 256 → 256 (ReLU) → 26 logits / 1 value.
+- **(b) Set network:** shared pending-slot encoder MLP(27→64→64); onboard encoder MLP(16→64); global encoder MLP(31→64); one 4-head attention layer in which the global embedding queries the valid slot embeddings plus one learned always-valid "null" token → attention output. **Context = [global embedding, attention output]**, so battery/time/location always reach the heads, even with zero or one valid slot. Both pending and onboard embeddings are keys of the attention (with the null token), so an empty pool and an empty drone are both well-defined. PICK(k) logits come from a shared scorer on [slot_k embedding, context]; the other 14 logits from an MLP on the context; the value head is an MLP on [context, masked mean-pool of slot embeddings]. Attention masks absent slots only (not battery-infeasible pickups; those are handled by the action mask). Tests: empty and single-slot observations give finite outputs; permuting pending slots permutes the PICK logits accordingly.
 - **Behaviour cloning (BC):** ≈ 1,000 Slack-aware episodes on training demand seeds across the three loads, split by whole episodes into train/validation. Report action-family accuracy, closed-loop performance against the teacher, a tiny-dataset overfit check, and MLP vs set network.
 - **Two learning variants, clearly labelled:** (1) **PPO from scratch** — the primary question, Must; (2) **BC → PPO** — the BC policy (20 supervised epochs on the ≈ 1,000 episodes) as initialisation, then the same 3 × 5 M PPO budget. BC → PPO is a Should item: trained in M3 after the scratch pilot if the schedule holds, dropped first otherwise. It is never described as learning from scratch, and its extra cost (demonstration collection + supervised epochs) is reported.
 
@@ -206,8 +203,8 @@ Total = 31 + 12 × 28 + 3 × 16 = **415**.
 Every method runs on exactly the same (map, demand seed, load) cases.
 
 ### 10.2 Metrics (per episode, saved per day, then aggregated)
-- **Primary:** on-time rate = on-time deliveries / all released orders (rejected ones included).
-- Return; served rate; expiry rate; rejections; mean and 90th-percentile lateness of late deliveries; on-time rate **per order type** (no type may be starved).
+- **Primary:** on-time rate = on-time deliveries / all released orders .
+- Return; served rate; expiry rate; mean and 90th-percentile lateness of late deliveries; on-time rate **per order type** (no type may be starved).
 - Energy used; charging minutes; charging share = charging minutes / episode duration; number of charges; battery level when charging starts.
 - Mean boxes per delivery stop (batching); share of WAIT and RETURN actions; decision time per step; % of decisions with a hidden on-time-feasible order.
 - **Stall diagnostics:** *WAIT with work available* (WAIT while a PICK/DELIVER that would finish on time was valid — an opportunity count, since strategic waiting can be right); *idle expiries* (expired while serving it was valid and the agent chose WAIT or RETURN); *energy-blocked decisions* (decisions where a mask computed without the battery rule would allow some PICK/DELIVER that the real mask forbids).
@@ -233,7 +230,7 @@ Timeline plots (actions, battery, onboard boxes, pool size) for typical days; ba
 ### 10.6 Success targets (pre-registered)
 - **Competitive:** PPO within 3 percentage points of Slack-aware on-time at medium and high load.
 - **Stretch:** ≥ 3 points better than Slack-aware on one pre-registered load (medium) with the paired 95 % CI above zero, and no more than 2 points worse elsewhere.
-- **Acceptable outcome:** correct learning, a reproducible fair comparison, and an explained gap. The observation contains engineered hints (slack, compatibility, insertion time), so results are described as learning dispatch from engineered features.
+- **Acceptable outcome:** correct learning, a reproducible fair comparison, and an explained gap. The observation contains engineered hints (slack, compatibility, feasibility ranking), so results are described as learning dispatch from engineered features.
 
 ---
 
@@ -312,8 +309,8 @@ Remaining before the M1 report (plan: `docs/superpowers/plans/2026-10-11-m1-fina
 |---|---|---|
 | CHARGE / WAIT advance a short fixed interval | CHARGE to a target level; WAIT until the next event (≤ 10 min) | short steps made decision chains too long; the previous agent never learned to charge |
 | MOVE to any node | only RETURN_TO_CENTER; charging stations are reached through CHARGE | fewer actions; keeps the anticipatory repositioning that matters |
-| soft deadline with ever-growing waiting cost | service limit L + expiry H; linear late reward; one-time −0.5 on expiry or rejection | bounded backlog, a clear signal, matches the cold-chain intuition |
-| all orders visible (unbounded) | top-12 pending slots + aggregate counts; pool cap 30 | fixed Gymnasium shapes; overflow counted as failure |
+| soft deadline with ever-growing waiting cost | service limit L + expiry H; linear late reward; one-time −0.5 on expiry | bounded backlog, a clear signal, matches the cold-chain intuition |
+| all orders visible (unbounded) | top-12 pending slots + aggregate counts | fixed Gymnasium shapes |
 | PPO + attention from the start | MLP first, set/attention network in M3 | de-risk: get learning working before adding architecture |
 | random maps as the main setting | one fixed map; random maps as a stretch | learning first, generalization second |
 | insertion heuristic + rolling horizon | Slack-aware heuristic + rollout planner | one strong heuristic plus one planner, both fully specified |

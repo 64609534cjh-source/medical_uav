@@ -10,7 +10,7 @@ from medical_uav.env.simulator import Simulator
 N_TYPES = len(ORDER_TYPES)
 N_FACILITIES = len(FACILITIES)
 GLOBAL_DIM = 13 + 2 * N_NODES + N_TYPES  # see _global_features
-PENDING_DIM = 12 + N_TYPES + 2 * N_FACILITIES  # see _pending_features
+PENDING_DIM = 11 + N_TYPES + 2 * N_FACILITIES  # see _pending_features
 ONBOARD_DIM = 6 + N_TYPES + N_FACILITIES  # see _onboard_features
 OBS_DIM = GLOBAL_DIM + N_SLOTS * PENDING_DIM + N_ONBOARD * ONBOARD_DIM
 
@@ -20,6 +20,7 @@ OBS_BOUND = 10.0  # every feature is clipped to [-OBS_BOUND, OBS_BOUND]
 DURATION_SCALE = 30.0  # minutes; scales durations
 TRAVEL_SCALE = 10.0  # minutes; scales travel times
 COUNT_SCALE = 10.0  # scales order counts
+POOL_SCALE = 30.0  # scales the number of pending orders
 SAME_DEST_SCALE = 5.0  # scales the count of orders sharing a destination
 DEMAND_SCALE = 2.0  # scales the demand multiplier
 RECENT_WINDOW = 30.0  # minutes; window for counting recent arrivals
@@ -33,32 +34,6 @@ def direct_completion_time(sim: Simulator, order: Order) -> float:
         return (sim.travel_time(sim.location, order.origin) + h
                 + sim.travel_time(order.origin, order.dest) + h)
     return sim.travel_time(sim.location, order.dest) + h
-
-
-def provisional_route_time(sim: Simulator, extra: Order | None = None) -> float:
-    """Estimate the minutes to deliver all cargo, plus `extra` if given, in deadline order."""
-    h = sim.cfg.handling_min
-    boxes = [o for o in sim.onboard if o.status == "onboard"]
-    here, total = sim.location, 0.0
-    if extra is not None:
-        total += sim.travel_time(here, extra.origin) + h
-        here = extra.origin
-        boxes.append(extra)
-    boxes.sort(key=lambda o: (o.deadline, o.id))
-    visited = []  # destinations in visiting order, without repeats
-    for o in boxes:
-        if o.dest not in visited:
-            visited.append(o.dest)
-    for node in visited:
-        n_boxes = sum(1 for o in boxes if o.dest == node)
-        total += sim.travel_time(here, node) + h * n_boxes
-        here = node
-    return total
-
-
-def insertion_extra_time(sim: Simulator, order: Order) -> float:
-    """Return the minutes that picking up this order first adds to the delivery route."""
-    return provisional_route_time(sim, order) - provisional_route_time(sim)
 
 
 def rank_pending(sim: Simulator) -> list[Order]:
@@ -106,8 +81,8 @@ def _global_features(sim: Simulator, n_visible: int) -> list[float]:
         # travel time to each node
         *[sim.travel_time(sim.location, n) / TRAVEL_SCALE for n in range(N_NODES)],
         to_charger / FULL_BATTERY,  # battery needed to reach the nearest charger
-        len(sim.pending) / cfg.pool_cap,  # share of the pending pool used
-        (len(sim.pending) - n_visible) / cfg.pool_cap,  # pending orders not shown in the slots
+        len(sim.pending) / POOL_SCALE,  # pending orders
+        (len(sim.pending) - n_visible) / POOL_SCALE,  # pending orders not shown in the slots
         *per_type,  # pending orders per type
         recent / COUNT_SCALE,  # orders that arrived within RECENT_WINDOW
     ]
@@ -133,7 +108,6 @@ def _pending_features(sim: Simulator, o: Order, pick_allowed: bool) -> list[floa
         float(o.dest in onboard_dests),  # a box on board has the same destination
         same_dest / SAME_DEST_SCALE,  # other pending orders to the same destination
         float(o.origin == sim.location),  # order waits at the drone's node
-        insertion_extra_time(sim, o) / DURATION_SCALE,  # added route time if picked up first
         float(pick_allowed),  # PICK for this slot is valid
     ]
 

@@ -4,7 +4,7 @@ import pytest
 from medical_uav.env.config import M
 from medical_uav.env.masks import compute_action_mask
 from medical_uav.env.observation import (GLOBAL_DIM, OBS_DIM, ONBOARD_DIM, PENDING_DIM,
-                                         build_observation, insertion_extra_time, rank_pending)
+                                         build_observation, rank_pending)
 from tests.conftest import make_order, make_sim
 
 
@@ -27,21 +27,14 @@ def test_at_most_twelve_slots(line_map):
     assert len(rank_pending(sim)) == 12
 
 
-def test_insertion_extra_time(line_map):
-    a, b = make_order(0, 1, M, 1, 0.4, 0.0), make_order(1, 1, M, 1, 0.4, 0.0)
-    sim = make_sim(line_map, [a, b])
-    assert insertion_extra_time(sim, a) == pytest.approx(6.0)  # 0 + 2 load + 2 fly + 2 unload
-    sim.do_pick(a)
-    assert insertion_extra_time(sim, b) == pytest.approx(4.0)  # 2 load + 2 extra unload
-
-
 def test_observation_shape_and_slot_encoding(line_map):
     sim = make_sim(line_map, [make_order(0, 0, M, 1, 0.7, 0.0)])
     obs = observe(sim)
+    assert OBS_DIM == 403
     assert obs.shape == (OBS_DIM,) and obs.dtype == np.float32 and np.isfinite(obs).all()
     s0 = obs[GLOBAL_DIM:GLOBAL_DIM + PENDING_DIM]
     assert s0[0] == 1.0 and s0[1] == 1.0  # valid, type plasma
-    assert s0[27] == 1.0  # pick feasible
+    assert s0[26] == 1.0  # pick feasible
     assert obs[GLOBAL_DIM + PENDING_DIM] == 0.0  # slot 1 is padding
 
 

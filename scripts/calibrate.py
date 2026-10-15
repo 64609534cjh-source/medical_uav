@@ -54,8 +54,8 @@ def summarize(results, lam, name):
     hidden = np.concatenate([r["hidden_counts"] for r in results])
     row = {"lambda": lam, "policy": name, "days": len(results), "decisions": len(pools),
            "orders": np.mean([r["n_orders"] for r in results])}
-    for key in ["on_time_rate", "served_rate", "expiry_rate", "rejected", "km_per_delivery",
-                "charge_share", "busy_share"]:
+    for key in ["on_time_rate", "served_rate", "expiry_rate", "km_per_delivery", "charge_share",
+                "busy_share"]:
         values = [r[key] for r in results]
         row[key] = float(np.mean(values))
         row[key + "_std"] = float(np.std(values))
@@ -160,14 +160,14 @@ def write_tables(rows, out_dir, cfg, seeds, thetas, tuned=False):
         writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
         writer.writeheader()
         writer.writerows(rows)
-    lines = ["| λ | policy | orders | on-time (mean ± day SD) | served | expired | rejected | "
+    lines = ["| λ | policy | orders | on-time (mean ± day SD) | served | expired | "
              "km/deliv | charge | busy | decisions | pool mean/p95/max | hidden % | hidden mean |",
-             "|" + "---|" * 14]
+             "|" + "---|" * 13]
     for r in rows:
         lines.append(
             f"| {r['lambda']:.2f} | {r['policy']} | {r['orders']:.1f} | "
             f"{r['on_time_rate']:.2f} ± {r['on_time_rate_std']:.2f} | {r['served_rate']:.2f} | "
-            f"{r['expiry_rate']:.2f} | {r['rejected']:.1f} | {r['km_per_delivery']:.2f} | "
+            f"{r['expiry_rate']:.2f} | {r['km_per_delivery']:.2f} | "
             f"{r['charge_share']:.2f} | {r['busy_share']:.2f} | {r['decisions']} | "
             f"{r['pool_mean']:.1f}/{r['pool_p95']:.0f}/{r['pool_max']} | "
             f"{r['hidden_pct']:.1f} | {r['hidden_mean']:.2f} |")
@@ -175,8 +175,7 @@ def write_tables(rows, out_dir, cfg, seeds, thetas, tuned=False):
               f"{settings_line(cfg, seeds, thetas, tuned)}.\n\n"
               "λ is the base arrival rate in orders per minute. Rates are means of the daily "
               "rates over the days of a row, with the population SD across days; a day's "
-              "on-time rate is on-time deliveries / all orders released that day (rejected "
-              "included). Pool statistics are pooled over all decisions; hidden % is the share "
+              "on-time rate is on-time deliveries / all orders released that day. Pool statistics are pooled over all decisions; hidden % is the share "
               "of decisions at which an order that could still be on time (direct estimate) is "
               "not among the 12 visible slots.\n\n")
     with open(os.path.join(out_dir, "calibration.md"), "w") as f:

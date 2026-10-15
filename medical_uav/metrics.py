@@ -36,7 +36,6 @@ def episode_metrics(sim: Simulator) -> dict:
         "on_time_rate": rate(len(on_time)),
         "served_rate": rate(len(delivered)),
         "expiry_rate": rate(sum(1 for o in orders if o.status == "expired")),
-        "rejected": sum(1 for o in orders if o.status == "rejected"),
         "mean_lateness": (sum(o.end_time - o.deadline for o in late) / len(late)) if late else 0.0,
         "km_flown": sim.km_flown,
         "energy_used": sim.energy_used,
@@ -63,7 +62,7 @@ def summary_lines(m: dict) -> list[str]:
     by_type = ", ".join(rates)
     lines = [
         f"Orders   {n} released: delivered {share(m['delivered'], n)}, "
-        f"expired {share(expired, n)}, rejected {share(m['rejected'], n)}",
+        f"expired {share(expired, n)}",
         f"On time  {share(m['on_time'], n)}; late {m['delivered'] - m['on_time']} "
         f"(mean {m['mean_lateness']:.1f} min late)",
         f"By type  on time: {by_type}",

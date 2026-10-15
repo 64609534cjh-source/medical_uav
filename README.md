@@ -43,7 +43,7 @@ results, which start with:
 
 ```
 Completed at 17:05 (t=545.8 min) after 113 decisions
-  Orders   70 released: delivered 53/70 (75.7%), expired 17/70 (24.3%), rejected 0/70 (0.0%)
+  Orders   70 released: delivered 53/70 (75.7%), expired 17/70 (24.3%)
 ```
 
 It then saves two files in `outputs/` (about one minute):
@@ -69,20 +69,20 @@ from medical_uav.env import MedicalUAVEnv
 env = MedicalUAVEnv(load="medium", render_mode="rgb_array")
 obs, info = env.reset(options={"demand_seed": 0})   # the same seed gives the same day
 
-done = False
-while not done:
+terminated = truncated = False
+while not (terminated or truncated):
     # your policy goes here; this one picks a random allowed action
     action = env.action_space.sample(mask=info["action_mask"].astype("int8"))
-    obs, reward, done, truncated, info = env.step(action)
+    obs, reward, terminated, truncated, info = env.step(action)
 
 frame = env.render()   # RGB image of the current state
 ```
 
 | | |
 |---|---|
-| Observation | `Box(415)`: the drone, the 12 most urgent waiting orders and the cargo on board |
+| Observation | `Box(403)`: the drone, up to 12 waiting orders (those that can still be on time first) and the cargo on board |
 | Action | `Discrete(26)`: pick up, deliver, charge, return to the center, wait; `info["action_mask"]` marks the allowed ones |
-| Reward | +1 per on-time delivery, less when late, −0.5 per expired or rejected order, a small energy cost |
+| Reward | +1 per on-time delivery, less when late, −0.5 per expired order, a small energy cost |
 | Episode | one day, about 80–120 decisions |
 | `reset` options | `demand_seed` (which day of orders), `load` (`"low"`, `"medium"` or `"high"`) |
 | Baselines | `random_policy`, `edf_policy`, `slack_aware_policy` in `medical_uav.baselines.heuristics` |

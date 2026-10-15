@@ -75,12 +75,12 @@ def test_step_after_done_raises():
         env.step(WAIT)
 
 
-def test_overload_episode_runs_and_counts_rejections():
+def test_overload_episode_ends_with_every_order_delivered_or_expired():
     env = MedicalUAVEnv()
     rollout(env, 2, options={"lam": 0.4})
     statuses = [o.status for o in env.sim.orders]
-    assert "rejected" in statuses
-    assert all(s in ("delivered", "expired", "rejected") for s in statuses)
+    assert "expired" in statuses
+    assert all(s in ("delivered", "expired") for s in statuses)
 
 
 def test_reward_equals_sum_of_order_outcomes():
