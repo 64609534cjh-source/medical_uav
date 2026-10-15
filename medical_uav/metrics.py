@@ -23,6 +23,12 @@ def episode_metrics(sim: Simulator) -> dict:
     def rate(count):
         return count / n if n else 0.0
 
+    by_type = {}  # on-time rate per order type; NaN for a type with no orders
+    for k, order_type in enumerate(ORDER_TYPES):
+        n_type = sum(1 for o in orders if o.type_idx == k)
+        n_ok = sum(1 for o in on_time if o.type_idx == k)
+        by_type[order_type.name] = n_ok / n_type if n_type else math.nan
+
     return {
         "n_orders": n,
         "delivered": len(delivered),
@@ -38,18 +44,8 @@ def episode_metrics(sim: Simulator) -> dict:
         "episode_minutes": sim.t,
         "charge_share": sim.charging_time / duration,
         "busy_share": busy / duration,
-        "on_time_by_type": _on_time_by_type(orders, on_time),
+        "on_time_by_type": by_type,
     }
-
-
-def _on_time_by_type(orders, on_time) -> dict:
-    """Return the on-time rate per order type; NaN for a type with no orders."""
-    result = {}
-    for k, order_type in enumerate(ORDER_TYPES):
-        n_type = sum(1 for o in orders if o.type_idx == k)
-        n_ok = sum(1 for o in on_time if o.type_idx == k)
-        result[order_type.name] = n_ok / n_type if n_type else math.nan
-    return result
 
 
 def share(count: int, total: int) -> str:

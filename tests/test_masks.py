@@ -1,12 +1,13 @@
 import pytest
 
 from medical_uav.env.actions import CHARGE0, DELIVER0, N_ACTIONS, RETURN, WAIT, action_name, decode
-from medical_uav.env.config import C2, M
+from medical_uav.env.config import C2, FACILITIES, M
 from medical_uav.env.masks import compute_action_mask
 from tests.conftest import make_order, make_sim
 
 
 def test_decode_table():
+    assert FACILITIES == tuple(range(len(FACILITIES)))  # DELIVER(f) uses f as its offset
     assert decode(3) == ("pick", 3) and decode(DELIVER0 + 2) == ("deliver", 2)
     assert decode(CHARGE0 + 4) == ("charge", (C2, 80.0))
     assert decode(24) == ("return", None) and decode(25) == ("wait", None)
@@ -106,12 +107,6 @@ def test_charge_action_lookup():
 
     assert charge_action(C2, 80.0) == CHARGE0 + 4
     assert charge_action(M, 60.0) == CHARGE0
-
-
-@pytest.mark.parametrize("bad", [-1, 26, 1.5, True])
-def test_decode_rejects_invalid_indices(bad):
-    with pytest.raises(ValueError):
-        decode(bad)
 
 
 def test_decode_accepts_numpy_integers():

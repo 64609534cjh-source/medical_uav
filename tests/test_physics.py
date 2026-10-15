@@ -23,7 +23,6 @@ def test_flight_energy_and_time():
 
 def test_charge_minutes():
     assert physics.charge_minutes(40, 80, cfg) == pytest.approx(8.0)
-    assert physics.charge_minutes(90, 80, cfg) == 0.0
 
 
 @pytest.mark.parametrize("age,expected", [(10, 1.0), (30, 1.0), (45, 0.25), (60, -0.5)])

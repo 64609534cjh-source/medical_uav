@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from medical_uav.env.config import ORDER_TYPES, EnvConfig
+from medical_uav.env.config import N_NODES, ORDER_TYPES, EnvConfig
 from medical_uav.env.map_gen import CityMap
 from medical_uav.env.orders import Order
 from medical_uav.env.simulator import Simulator
@@ -10,9 +10,18 @@ from medical_uav.env.simulator import Simulator
 LINE_X = [0.0, 2.0, 3.0, 4.0, 5.0, 6.0, 3.5]
 
 
+def straight_map(node_xy) -> CityMap:
+    """Return an obstacle-free map whose routes are straight lines between the nodes."""
+    node_xy = np.asarray(node_xy, dtype=float)
+    dist = np.linalg.norm(node_xy[:, None, :] - node_xy[None, :, :], axis=2)
+    paths = {(i, j): np.array([node_xy[i], node_xy[j]])
+             for i in range(N_NODES) for j in range(N_NODES)}
+    return CityMap(node_xy=node_xy, dist_km=dist, paths=paths)
+
+
 @pytest.fixture
 def line_map():
-    return CityMap.from_positions(np.array([[x, 0.0] for x in LINE_X]))
+    return straight_map([[x, 0.0] for x in LINE_X])
 
 
 def make_order(oid, type_idx, origin, dest, weight, release):

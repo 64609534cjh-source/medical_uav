@@ -1,6 +1,5 @@
 """Gymnasium wrapper around the simulator."""
 import copy
-import math
 
 import gymnasium as gym
 import numpy as np
@@ -64,8 +63,6 @@ class MedicalUAVEnv(gym.Env):
         if load not in self.cfg.loads:
             raise ValueError(f"unknown load {load!r}, expected one of {list(self.cfg.loads)}")
         self.lam = float(options.get("lam", self.cfg.loads[load]))
-        if not (math.isfinite(self.lam) and self.lam >= 0):
-            raise ValueError(f"lam must be a finite rate >= 0, got {self.lam}")
         self.demand_seed = options.get("demand_seed")
         if self.demand_seed is None:
             self.demand_seed = int(self.np_random.integers(*TRAIN_SEED_RANGE))

@@ -2,7 +2,8 @@
 import numpy as np
 
 from medical_uav.env.config import C2, M, EnvConfig
-from medical_uav.env.map_gen import CityMap, generate_map, is_valid_map
+from medical_uav.env.map_gen import generate_map, is_valid_map
+from tests.conftest import straight_map
 
 cfg = EnvConfig()
 
@@ -36,7 +37,7 @@ def test_generated_maps_are_valid_and_paths_avoid_zones():
 
 
 def test_invalid_when_too_far():
-    far = CityMap.from_positions(np.array([[0, 0]] + [[20, 0]] * 5 + [[1, 0]], dtype=float))
+    far = straight_map([[0, 0]] + [[20, 0]] * 5 + [[1, 0]])
     assert not is_valid_map(far.dist_km, cfg)
 
 

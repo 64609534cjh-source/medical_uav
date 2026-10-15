@@ -28,8 +28,6 @@ class Simulator:
     """State of the drone and all orders, advanced one action at a time."""
 
     def __init__(self, cfg: EnvConfig, city_map: CityMap, orders: list[Order], lam: float):
-        if any(a.release > b.release for a, b in zip(orders, orders[1:])):
-            raise ValueError("orders must be sorted by release time")
         self.cfg = cfg
         self.city_map = city_map
         self.orders = orders

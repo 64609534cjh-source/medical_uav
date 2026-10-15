@@ -14,7 +14,7 @@ def flight_energy(dist_km: float, load_kg: float, cfg: EnvConfig) -> float:
 
 def charge_minutes(battery: float, target: float, cfg: EnvConfig) -> float:
     """Return the minutes needed to charge from battery to target (both in %)."""
-    return max(0.0, target - battery) / cfg.charge_rate
+    return (target - battery) / cfg.charge_rate
 
 
 def delivery_reward(age: float, limit: float, expiry_after: float, cfg: EnvConfig) -> float:

@@ -43,13 +43,11 @@ def node_name(node: int) -> str:
 
 def _point_along(path: np.ndarray, fraction: float) -> np.ndarray:
     """Return the point at the given fraction of the polyline's length."""
-    if len(path) == 1:
-        return path[0]
     seg_len = np.linalg.norm(np.diff(path, axis=0), axis=1)
     target = fraction * seg_len.sum()  # distance still to go along the path
     for i, length in enumerate(seg_len):
         if target <= length or i == len(seg_len) - 1:
-            f = 0.0 if length == 0 else min(target / length, 1.0)  # fraction along this segment
+            f = min(target / length, 1.0)  # fraction along this segment
             return path[i] + f * (path[i + 1] - path[i])
         target -= length
     return path[-1]
@@ -338,46 +336,27 @@ def frame_times(t0: float, t1: float, step: float) -> list[float]:
     return times
 
 
-class GifWriter:
-    """Write frames to a temporary MP4 and convert it to a GIF on close, keeping memory low."""
-
-    def __init__(self, path: str, fps: int):
-        self.path = path
-        self.tmp_path = path + ".tmp.mp4"
-        self.writer = imageio.get_writer(self.tmp_path, fps=fps)
-
-    def append_data(self, frame) -> None:
-        self.writer.append_data(frame)
-
-    def close(self) -> None:
-        self.writer.close()
-        # build a colour palette from the video, then apply it to the GIF
-        palette = "split[a][b];[a]palettegen[p];[b][p]paletteuse"
-        cmd = [imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-i", self.tmp_path,
-               "-vf", palette, "-loop", "0", self.path]
-        try:
-            subprocess.run(cmd, check=True, capture_output=True)
-        finally:
-            os.remove(self.tmp_path)
-
-
-def open_animation_writer(path: str, fps: int):
-    """Return a frame writer for an .mp4 or .gif path."""
-    if path.endswith(".mp4"):
-        return imageio.get_writer(path, fps=fps)
-    if path.endswith(".gif"):
-        return GifWriter(path, fps)
-    raise ValueError(f"animation must be .gif or .mp4, got {path!r}")
-
-
 def save_animation(frames, path: str, fps: int) -> int:
-    """Write frames one at a time and return how many were written."""
-    writer = open_animation_writer(path, fps)
+    """Write frames to an .mp4 or .gif file one at a time and return how many were written.
+
+    A GIF is first written as a temporary MP4 and then converted, so the frames never have to be
+    held in memory.
+    """
+    if not path.endswith((".gif", ".mp4")):
+        raise ValueError(f"animation must be .gif or .mp4, got {path!r}")
+    video = path if path.endswith(".mp4") else path + ".tmp.mp4"
     count = 0
-    try:
+    with imageio.get_writer(video, fps=fps) as writer:
         for frame in frames:
             writer.append_data(frame)
             count += 1
-    finally:
-        writer.close()
+    if video != path:
+        # build a colour palette from the video, then apply it to the GIF
+        palette = "split[a][b];[a]palettegen[p];[b][p]paletteuse"
+        cmd = [imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-i", video,
+               "-vf", palette, "-loop", "0", path]
+        try:
+            subprocess.run(cmd, check=True, capture_output=True)
+        finally:
+            os.remove(video)
     return count

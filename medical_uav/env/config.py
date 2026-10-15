@@ -1,6 +1,4 @@
 """Environment constants and tunable settings."""
-import math
-import numbers
 from dataclasses import dataclass, field
 
 # Fixed structure; changing it changes the observation and action spaces.
@@ -89,67 +87,11 @@ class EnvConfig:
     energy_cost: float = 0.001  # penalty per battery % used
 
     def validate(self) -> None:
-        """Raise ValueError for settings the environment cannot run with."""
-        for name in ["grid_size", "map_seed", "max_map_tries", "max_boxes", "pool_cap"]:
-            _check_int(name, getattr(self, name))
-        for name in ["grid_size", "cell_km", "speed_km_per_min", "energy_per_km", "charge_rate",
-                     "handling_min", "max_weight", "release_window", "wait_max", "max_map_tries",
-                     "pool_cap"]:
-            _check_number(name, getattr(self, name), positive=True)
-        for name in ["map_seed", "min_node_spacing_km", "facility_spacing_km",
-                     "c2_min_dist_from_m_km", "payload_factor", "min_charge_gain",
-                     "peak_multiplier", "offpeak_multiplier", "expiry_penalty", "energy_cost",
-                     "reward_on_time", "reserve"]:
-            _check_number(name, getattr(self, name), positive=False)
-        if not self.reserve < FULL_BATTERY:
-            raise ValueError(f"reserve must be < {FULL_BATTERY}, got {self.reserve}")
+        """Raise ValueError for settings the observation layout cannot hold."""
         if not 1 <= self.max_boxes <= N_ONBOARD:
             raise ValueError(f"max_boxes must be 1..{N_ONBOARD}, got {self.max_boxes}")
-
-        _check_int_range("n_zones_range", self.n_zones_range, minimum=0)
-        _check_int_range("zone_size_range", self.zone_size_range, minimum=1)
-        if self.n_zones_range[1] > 0 and self.zone_size_range[1] > self.grid_size:
-            raise ValueError(f"zone_size_range {self.zone_size_range} does not fit the grid")
-        if not isinstance(self.peak_windows, (tuple, list)):
-            raise ValueError(f"peak_windows must be a sequence of (start, end) pairs, "
-                             f"got {self.peak_windows!r}")
-        for window in self.peak_windows:
-            start, end = _pair("peak window", window)
-            _check_number("peak window start", start, positive=False)
-            _check_number("peak window end", end, positive=True)
-            if not start < end:
-                raise ValueError(f"peak window {window} must have start < end")
-
-        for name, lam in self.loads.items():
-            _check_number(f"load {name!r}", lam, positive=False)
-        if not self.loads.get("high", 0) > 0:
+        if self.loads.get("high", 0) <= 0:
             raise ValueError("loads must include 'high' > 0 (it scales the load feature)")
-
-
-def _check_int(name: str, value) -> None:
-    if isinstance(value, bool) or not isinstance(value, int):
-        raise ValueError(f"{name} must be an integer, got {value!r}")
-
-
-def _pair(name: str, value):
-    if not (isinstance(value, (tuple, list)) and len(value) == 2):
-        raise ValueError(f"{name} must be a (min, max) pair, got {value!r}")
-    return value
-
-
-def _check_number(name: str, value, positive: bool) -> None:
-    is_number = isinstance(value, numbers.Real) and not isinstance(value, bool)
-    if not (is_number and math.isfinite(value) and (value > 0 if positive else value >= 0)):
-        bound = "> 0" if positive else ">= 0"
-        raise ValueError(f"{name} must be a finite number {bound}, got {value}")
-
-
-def _check_int_range(name: str, pair, minimum: int) -> None:
-    low, high = _pair(name, pair)
-    _check_int(name, low)
-    _check_int(name, high)
-    if not minimum <= low <= high:
-        raise ValueError(f"{name} must satisfy {minimum} <= min <= max, got {pair}")
 
 
 def day_length(cfg: EnvConfig) -> float:

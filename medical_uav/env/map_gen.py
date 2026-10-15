@@ -34,15 +34,6 @@ class CityMap:
     seed: int = -1  # seed the map was generated from
     tries: int = 0  # node layouts drawn, including the one kept
 
-    @classmethod
-    def from_positions(cls, node_xy: np.ndarray) -> "CityMap":
-        """Build an obstacle-free map with straight routes (used in tests)."""
-        node_xy = np.asarray(node_xy, dtype=float)
-        dist = np.linalg.norm(node_xy[:, None, :] - node_xy[None, :, :], axis=2)
-        paths = {(i, j): np.array([node_xy[i], node_xy[j]])
-                 for i in range(N_NODES) for j in range(N_NODES)}
-        return cls(node_xy=node_xy, dist_km=dist, paths=paths)
-
 
 def is_valid_map(dist_km: np.ndarray, cfg: EnvConfig) -> bool:
     """Return True if a fully loaded drone can fly from any charger to any node i, then to any
@@ -245,10 +236,7 @@ def generate_map(seed: int, cfg: EnvConfig) -> CityMap:
             if placed is None:
                 continue
             blocked, zones = placed
-            routed = _route_all_pairs(blocked, cells, cfg)
-            if routed is None:
-                continue
-            dist, paths = routed
+            dist, paths = _route_all_pairs(blocked, cells, cfg)
             if not _every_zone_adds_a_detour(blocked, zones, cells, dist, cfg):
                 continue
             if _c2_beneficiaries(dist, cfg) < MIN_C2_BENEFICIARIES or not is_valid_map(dist, cfg):

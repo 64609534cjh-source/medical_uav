@@ -61,7 +61,7 @@ def insertion_extra_time(sim: Simulator, order: Order) -> float:
     return provisional_route_time(sim, order) - provisional_route_time(sim)
 
 
-def rank_pending(sim: Simulator, n_slots: int = N_SLOTS) -> list[Order]:
+def rank_pending(sim: Simulator) -> list[Order]:
     """Return the pending orders shown in the slots, in slot order.
 
     Orders that can meet their deadline by direct_completion_time come first, by deadline;
@@ -75,7 +75,7 @@ def rank_pending(sim: Simulator, n_slots: int = N_SLOTS) -> list[Order]:
             late.append(o)
     feasible.sort(key=lambda o: (o.deadline, o.release, o.id))
     late.sort(key=lambda o: (o.expiry, o.release, o.id))
-    return (feasible + late)[:n_slots]
+    return (feasible + late)[:N_SLOTS]
 
 
 def _one_hot(index: int, size: int) -> list[float]:
@@ -168,5 +168,4 @@ def build_observation(sim: Simulator, slots: list[Order], mask: np.ndarray) -> n
         else:
             features += [0.0] * ONBOARD_DIM
     obs = np.clip(np.array(features, dtype=np.float32), -OBS_BOUND, OBS_BOUND)
-    assert obs.shape == (OBS_DIM,)
     return obs
