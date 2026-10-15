@@ -1,8 +1,10 @@
 # M1 report outline (2 pages)
 
-Facts behind the "OpenAI Gym Code and Report" submission. The report draft
-lives in Claude Docs: https://claude.ai/code/artifact/85f1f0ef-8cc2-4709-85e4-d323808d8c81 —
-export it to PDF and add the PDF to the submission zip next to the code archive.
+Facts behind the "OpenAI Gym Code and Report" submission. The local two-page
+report is `report.pdf` at the repository root. Its editable content and PDF builder
+are `docs/reports/m1/report_content.json` and `docs/reports/m1/build_report.py`.
+The earlier external draft is retained as a historical reference only:
+https://claude.ai/code/artifact/85f1f0ef-8cc2-4709-85e4-d323808d8c81.
 
 ## 1. Code explanation
 
@@ -11,7 +13,8 @@ export it to PDF and add the PDF to the submission zip next to the code archive.
   -> `uav_env.MedicalUAVEnv` (Gymnasium API) -> `render` (replay of the simulation history).
 - One `step` = one macro action, which advances the clock by its real duration (flight, handling,
   charging, waiting). Releases and expiries that happen inside the action are processed at their
-  exact times; same-time order: unload -> expiry -> release.
+  exact times. Due expiry/release events are processed before delivery is recorded,
+  with expiry before release; an unload ending exactly at expiry counts as expired.
 - Safety invariant: after every action, battery >= 15 % + energy to the nearest charger. The mask
   preserves it, so the drone can never be stranded; asserted in code and tested.
 - Determinism: map from `map_seed`, orders from `demand_seed`, so every policy sees the same day.
@@ -20,8 +23,10 @@ export it to PDF and add the PDF to the submission zip next to the code archive.
 
 ## 2. Existing code / libraries
 
-- numpy, gymnasium (API + `check_env`), matplotlib, imageio, pytest. No external simulator,
-  environment or RL code.
+- numpy, gymnasium (API + `check_env`), matplotlib, imageio, imageio-ffmpeg and pytest.
+  No external robotics simulator or RL training library. ReportLab typesets the report;
+  PyMuPDF renders it for inspection. Claude assisted earlier design/code development;
+  OpenAI Codex assisted review, debugging, tests, verification and report drafting.
 
 ## 3. Reflections / changes from the proposal
 
@@ -40,5 +45,6 @@ export it to PDF and add the PDF to the submission zip next to the code archive.
   same-destination orders, put hopeless work last) scores 0.99 / 0.81 / 0.66 at λ 0.04 / 0.09 / 0.12,
   so the load levels are defined against it.
   Triage of hopeless orders is the largest single effect, batching the second.
-- The environment runs ~9,100 decisions/s per process, ~80–120 decisions per day.
+- Report only measured results from the final verification logs. Earlier throughput
+  measurements are historical and are not a portable performance guarantee.
 - Next: stronger heuristic baselines, neural network, masked PPO.

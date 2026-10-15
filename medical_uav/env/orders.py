@@ -1,4 +1,5 @@
 """Order records and generation of a day's orders."""
+import math
 from dataclasses import dataclass
 
 import numpy as np
@@ -69,6 +70,8 @@ def _sample_route(rng, route: str) -> tuple[int, int]:
 
 def generate_orders(demand_seed: int, lam: float, cfg: EnvConfig) -> list[Order]:
     """Generate one day's orders sorted by release time; lam is the base rate per minute."""
+    if not math.isfinite(lam) or lam < 0:
+        raise ValueError("lam must be finite and >= 0")
     rng = np.random.default_rng(demand_seed)
 
     # Poisson arrivals: draw a count for each interval, then spread the times uniformly

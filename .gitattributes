@@ -3,5 +3,4 @@ docs/reports/** export-ignore
 .flake8 export-ignore
 .gitattributes export-ignore
 .gitignore export-ignore
-tests export-ignore
-scripts/calibrate.py export-ignore
+*.pdf binary

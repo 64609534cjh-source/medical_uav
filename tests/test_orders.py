@@ -39,3 +39,9 @@ def test_routes_weights_limits():
             assert o.origin in HOSPITALS and o.dest in HOSPITALS and o.origin != o.dest
         assert 0.2 <= o.weight <= 0.9 and 0 <= o.release < 480
         assert o.expiry_after == 2 * o.limit
+
+
+@pytest.mark.parametrize("lam", [-0.01, float("nan"), float("inf")])
+def test_order_generator_rejects_invalid_arrival_rates(lam):
+    with pytest.raises(ValueError, match="lam"):
+        generate_orders(0, lam, cfg)

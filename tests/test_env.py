@@ -165,3 +165,19 @@ def test_masks_match_execution_under_non_default_settings(overrides):
     env = MedicalUAVEnv(config=EnvConfig(**overrides), load="high")
     for seed in range(3):
         rollout(env, seed, rng_seed=seed)
+
+
+@pytest.mark.parametrize("lam", [-0.01, float("nan"), float("inf"), -float("inf")])
+def test_reset_rejects_invalid_arrival_rates(lam):
+    with pytest.raises(ValueError, match="lam"):
+        MedicalUAVEnv().reset(options={"lam": lam})
+
+
+def test_zero_demand_day_ends_without_deliveries_or_reward():
+    env = MedicalUAVEnv()
+    env.reset(options={"demand_seed": 0, "lam": 0.0})
+    assert env.sim.orders == []
+    for _ in range(48):
+        _, reward, done, truncated, info = env.step(WAIT)
+        assert reward == 0.0 and info["elapsed"] > 0.0 and not truncated
+    assert done and env.sim.t == pytest.approx(480.0)

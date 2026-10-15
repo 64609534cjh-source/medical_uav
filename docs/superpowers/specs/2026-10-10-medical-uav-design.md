@@ -4,6 +4,16 @@ Group 17 (Jihang Cai, Yu Liu, Yufeng Zhang) · NUS robotics RL module · design 
 
 This document is the agreed design for the whole project. It was produced in a three-way discussion (student, Claude, Codex) and replaces the earlier AI-drafted proposal details where they differ. Section 14 records what changed from the proposal and why; section 15 records the decisions taken in the discussion, including the v2 revision.
 
+**M1 closeout, 2026-10-15.** The current deliverable is the repository code plus
+the two-page `report.pdf`. M1 uses 403 observation features, 26 actions, twelve
+pending slots, base loads 0.04/0.09/0.12, no pending-pool cap, and expiry before
+release before delivery recording for due same-time events. The default dynamics
+are unchanged by closeout; invalid numeric settings and arrival rates are now
+rejected explicitly. All 189 tests pass in the specified Python 3.11.17 environment;
+the three-load calibration was rerun on development seeds only. Historical task
+lists below and in the implementation plans retain earlier dimensions, rates and
+acceptance steps; use the code and local report for the submitted M1 behavior.
+
 ---
 
 ## 1. Intent

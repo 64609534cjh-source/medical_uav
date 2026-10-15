@@ -1,0 +1,182 @@
+{
+  "title": "Dynamic Medical Pickup and Delivery with a Single UAV",
+  "authors": "Group 17  |  Jihang Cai, Yu Liu, Yufeng Zhang",
+  "subtitle": "NUS ME5418  |  OpenAI Gym Code and Report  |  15 October 2026",
+  "pages": [
+    [
+      {
+        "kind": "paragraph",
+        "text": "The environment models online medical dispatch: one UAV collects and delivers requests while balancing deadlines, payload and charging. Milestone 1 provides a seeded Gymnasium simulator, three baseline policies and a visual demo. The benchmark uses synthetic demand and simplified physics; learning agents are reserved for later milestones."
+      },
+      {
+        "kind": "heading",
+        "text": "Code logic and organization"
+      },
+      {
+        "kind": "paragraph",
+        "text": "<b>config.py</b> defines parameters; <b>map_gen.py</b> and <b>astar.py</b> construct a grid and routes; <b>orders.py</b> generates a day's requests. <b>simulator.py</b> owns time, battery, cargo and order events. <b>observation.py</b> and <b>masks.py</b> build the policy input and feasible actions; <b>uav_env.py</b> exposes reset/step. <b>heuristics.py</b> chooses baseline actions, <b>metrics.py</b> measures outcomes, and <b>render.py</b> replays recorded events and flights. The demo is an explicit reset/step loop followed by result printing and PNG/GIF export."
+      },
+      {
+        "kind": "heading",
+        "text": "World and order model"
+      },
+      {
+        "kind": "paragraph",
+        "text": "A 16 x 16 grid with 0.25 km cells contains center M, hospitals H1-H5, and chargers at M/C1 and C2. Three rectangular no-fly zones alter eight-connected A* routes; diagonal corner cutting is forbidden. A map is accepted only if routes are connected and satisfy the battery feasibility check. Main calibration uses map seed 0. The UAV starts empty at M with 100% battery, carries at most three boxes and 2 kg, flies at 1 km/min, and spends two minutes loading or unloading each box. Flight energy is 3.5d(1 + 0.25w) battery percentage points for distance d in km and load w in kg; charging adds five points/min."
+      },
+      {
+        "kind": "table",
+        "widths": [
+          0.17,
+          0.23,
+          0.18,
+          0.22,
+          0.2
+        ],
+        "rows": [
+          [
+            "Request",
+            "Route",
+            "Weight kg",
+            "Limit / expiry min",
+            "Share"
+          ],
+          [
+            "Plasma",
+            "M to hospital",
+            "0.6-0.9",
+            "30 / 60",
+            "20%"
+          ],
+          [
+            "Medicine",
+            "M to hospital",
+            "0.3-0.6",
+            "90 / 180",
+            "30%"
+          ],
+          [
+            "Sample",
+            "Hospital to M",
+            "0.2-0.4",
+            "60 / 120",
+            "30%"
+          ],
+          [
+            "Supplies",
+            "Hospital to hospital",
+            "0.4-0.8",
+            "75 / 150",
+            "20%"
+          ]
+        ]
+      },
+      {
+        "kind": "paragraph",
+        "text": "Orders arrive over 480 minutes via a piecewise-constant Poisson process: the rate is 2 times the base rate during minutes 60-180 and 300-390, and 0.6 times otherwise. Base rates are 0.04/0.09/0.12 orders/min for low/medium/high demand. A demand seed fixes the full stream independently of actions; requests are revealed only when released. Each order moves from pending to onboard to delivered, or expires. Expired cargo retains its box slot and weight until disposal at a facility; C2 cannot dispose it."
+      },
+      {
+        "kind": "heading",
+        "text": "Observation actions and reward"
+      },
+      {
+        "kind": "paragraph",
+        "text": "The float32 observation has <b>403 features</b>: 31 global features, twelve pending rows of 27, and three cargo rows of 16. It includes battery, location, demand schedule, travel times, order ages, deadlines, expiry, direct-service estimates and compatibility hints. Unused rows are zero-padded. Pending orders estimated still able to meet their deadlines rank first, then other orders by expiry. Additional orders remain in the pool and are represented by summaries. Features are scaled and clipped to [-10, 10]."
+      },
+      {
+        "kind": "paragraph",
+        "text": "<b>Discrete(26)</b> contains twelve PICK slots, six destination DELIVER actions, six CHARGE choices (two stations x 60/80/100% targets), RETURN to M, and WAIT. PICK loads one box; DELIVER unloads all boxes for that destination in deadline order. Each action includes travel and runs to completion. WAIT ends at the next release/expiry or after ten minutes. Masks enforce capacity, loading before expiry, and battery sufficient to reach a charger plus a 15% reserve. Masked actions fall back to WAIT with an invalid-action flag; out-of-range indices raise ValueError."
+      },
+      {
+        "kind": "paragraph",
+        "text": "A box unloaded by age L earns +1. For L &lt; age &lt; H, reward is <b>1 - 1.5(age - L)/(H - L)</b>; expiry at H costs 0.5 once. Flying costs 0.001 per battery point. Step reward sums all events during the action. There are no pickup, waiting or terminal bonuses/penalties. Due expiry/release events precede delivery recording, with expiry before release; unloading exactly at H counts as expired. Termination requires the arrival window to close and all orders to resolve, without mandatory return or disposal of remaining expired cargo."
+      }
+    ],
+    [
+      {
+        "kind": "heading",
+        "text": "Verification and demonstration"
+      },
+      {
+        "kind": "paragraph",
+        "text": "On Windows, the specified conda environment (Python 3.11.17 and pinned packages) passed <b>189 tests</b>: Gymnasium check_env, determinism, safety masks, reward accounting, event boundaries and animation export. Regression fixes reject nonpositive waiting durations or charge rates, invalid capacity/rates and malformed demand settings. Zero-demand episodes remain valid. Run <b>python -m pytest -q</b> for verification and <b>python scripts/demo.py</b> for a day and its PNG/GIF."
+      },
+      {
+        "kind": "table",
+        "widths": [
+          0.34,
+          0.22,
+          0.22,
+          0.22
+        ],
+        "rows": [
+          [
+            "On-time rate",
+            "Low",
+            "Medium",
+            "High"
+          ],
+          [
+            "Random",
+            "55.5%",
+            "26.3%",
+            "22.6%"
+          ],
+          [
+            "EDF",
+            "99.6%",
+            "40.6%",
+            "27.5%"
+          ],
+          [
+            "Slack-aware",
+            "99.3%",
+            "81.0%",
+            "65.9%"
+          ]
+        ]
+      },
+      {
+        "kind": "caption",
+        "text": "Mean daily on-time deliveries / released orders; map 0, the same 40 development demand seeds (100000-100039) per load/policy, and 20% charging thresholds. Calibration only; final test seeds remain unused. Reproduce: python scripts/calibrate.py --lambdas 0.04 0.09 0.12."
+      },
+      {
+        "kind": "image",
+        "path": "assets/demo.png",
+        "width": 400
+      },
+      {
+        "kind": "caption",
+        "text": "Medium demand, seed 0, t = 182 min. The default day has 70 orders, 53 delivered (47 on time), 17 expired and return 39.43 in 113 decisions. The animation shows paths, battery, cargo and deadlines: assets/demo.gif."
+      },
+      {
+        "kind": "heading",
+        "text": "Existing code libraries and tools"
+      },
+      {
+        "kind": "paragraph",
+        "text": "NumPy provides arrays/random sampling; Gymnasium provides spaces, the API and checker; Matplotlib draws frames; imageio and imageio-ffmpeg encode animations; pytest runs tests. The repository implements dispatch, map generation, grid A*, masks, features and baseline rules. No external robotics simulator or RL training library is used. ReportLab typesets this PDF; PyMuPDF renders it for inspection. Neither is a runtime dependency. environment.yml and requirements.txt specify runtime versions."
+      },
+      {
+        "kind": "heading",
+        "text": "Reflections limitations and next steps"
+      },
+      {
+        "kind": "paragraph",
+        "text": "Compared with the proposal, target-level charging and event-limited WAIT reduce short repeated decisions; arbitrary MOVE is reduced to RETURN, with travel embedded in service actions. Accumulating waiting/terminal costs are replaced by service limits, hard expiry and a continuous late-delivery reward. These choices simplify bookkeeping but change the objective: late service can improve return without improving on-time rate, so both must be reported. A learned policy will need to account for variable action durations."
+      },
+      {
+        "kind": "paragraph",
+        "text": "Twelve slots make inputs fixed but incomplete: at high load, a directly on-time-feasible order is hidden at 5.8% of Slack-aware decision points in this calibration. Slack and ranking are engineered hints, so the learning task is dispatch with provided features, routes and constraints. EDF's drop at medium load motivates including Slack-aware as a stronger reference. Main-map calibration does not establish unseen-map generalization; flight and cold-chain parameters are synthetic. Next steps are masked PPO, consistent evaluation of return and on-time rate, and later map-generalization tests."
+      },
+      {
+        "kind": "heading",
+        "text": "AI use declaration"
+      },
+      {
+        "kind": "paragraph",
+        "text": "Claude assisted earlier design and code development. OpenAI Codex assisted code review, debugging, regression tests, verification and report drafting. AI-generated code and prose are included. The group remains responsible for the content and quality of the submitted work."
+      }
+    ]
+  ]
+}

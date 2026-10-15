@@ -15,7 +15,7 @@ NUS ME5418, Group 17 (Jihang Cai, Yu Liu, Yufeng Zhang). Milestone 1: the enviro
 - Python 3.11 with numpy 2.4.6, gymnasium 1.4.0, matplotlib 3.11.2, imageio 2.38.1 and
   imageio-ffmpeg 0.6.0 (animation export; it includes FFmpeg). `environment.yml` installs all
   of them.
-- Tested on Linux.
+- Verified on Windows with Python 3.11.17 and the pinned packages below.
 
 ## Installation
 
@@ -46,10 +46,13 @@ Completed at 17:05 (t=545.8 min) after 113 decisions
   Orders   70 released: delivered 53/70 (75.7%), expired 17/70 (24.3%)
 ```
 
-It then saves two files in `outputs/` (about one minute):
+It then saves two files in `outputs/` (rendering may take several minutes):
 
 - `demo_slack_medium_seed0_t182min.png`, a snapshot at 11:02
 - `demo_slack_medium_seed0.gif`, the whole day
+
+The demo prints the results before rendering the animation. It does not open a live window;
+open the saved GIF in a browser to view it. A pre-rendered example is in `assets/demo.gif`.
 
 | Option | Values |
 |---|---|
@@ -73,8 +76,27 @@ policy choose actions until the day is over, and then draws the day.
 
 Most settings (map, drone, demand, rewards) are in `medical_uav/env/config.py`; pass
 `MedicalUAVEnv(config=EnvConfig(...))` to change them. The order types, the 12 slots and the charge
-targets are fixed because they define the observation and action layout. The rules of the
-environment are described in the report.
+targets are fixed because they define the observation and action layout. Invalid numerical
+settings, such as zero waiting duration or charge rate, are rejected with `ValueError`.
+The rules, assumptions and changes from the proposal are described in the two-page `report.pdf`.
+
+## Verification
+
+```bash
+python -m pytest -q
+python scripts/calibrate.py --lambdas 0.04 0.09 0.12
+```
+
+Calibration uses map seed 0 and 40 development demand seeds (100000-100039), with the same
+order streams for every policy. Final test seeds (200000-200099) are reserved for the later
+learning-agent evaluation. `--seed` in the demo is the demand seed; changing it does not change
+the map. The default `env.reset(seed=...)` instead seeds a draw of a training demand seed;
+use `options={"demand_seed": ...}` to request a particular day directly.
+
+Only twelve pending orders are individually observed; the remaining backlog is represented
+by summary features. Episodes end when the 480-minute arrival window has closed and every
+order is delivered or expired, without a mandatory return-to-base or cargo-cleanup phase.
+The parameters define a synthetic benchmark. No trained RL agent is included in this milestone.
 
 ## Files
 
@@ -98,7 +120,23 @@ medical_uav/
   splits.py          seeds for training, development and testing
 scripts/
   demo.py            run and show one day; also the usage example
+  calibrate.py       compare baselines on development seeds
+tests/               API, simulator, safety, validation and rendering checks
+report.pdf           two-page shared M1 report
 environment.yml      conda environment
 requirements.txt     the same packages for pip
 pyproject.toml       package definition for `pip install -e .`
 ```
+
+## Libraries and AI assistance
+
+NumPy supplies numerical arrays and random sampling; Gymnasium supplies the environment API
+and checker; Matplotlib draws the custom visualization; imageio and imageio-ffmpeg export
+animations; pytest runs the tests. The dispatch simulator, map generation, grid A*, action masks,
+features and baseline rules are implemented in this repository. No external robotics simulator
+or RL training library is used in this milestone.
+
+Claude assisted the earlier design and code development. OpenAI Codex assisted code review,
+debugging, regression tests, verification and report drafting. ReportLab was used to typeset
+the PDF and PyMuPDF to inspect its rendered pages; these report-production tools are not
+runtime dependencies. The submission declares AI assistance in `report.pdf`.
