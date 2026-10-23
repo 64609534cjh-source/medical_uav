@@ -24,6 +24,7 @@ DPI = 80
 TEXT, MUTED, AMBER, RED = "#222222", "#8a8a8a", "#c77c00", "#d62728"
 NO_FLY, CHARGER_RING, ROUTE, BATTERY_FILL = "#f4c4c4", "#2ca02c", "#555555", "#5b9b5f"
 DUE_WARNING_MIN = 10.0  # due times below this many minutes are shown in amber
+HIGHLIGHT, HIGHLIGHT_ROW = "#e8a800", "#fff1b8"  # orders the current decision concerns
 
 
 def _color(o) -> str:
@@ -58,15 +59,21 @@ def _leave_time(o):
     return o.end_time if o.status == "delivered" else o.disposed_time
 
 
-def drone_state_at(sim, t: float) -> dict:
-    """Reconstruct the drone position, battery, cargo and pending orders at time t."""
+def drone_state_at(sim, t: float, at_end: bool = False) -> dict:
+    """Reconstruct the drone position, battery, cargo and pending orders at time t.
+    When one activity ends and the next starts at t, the next one is shown, unless at_end:
+    then the finished one is shown as done (used to show the result of a decision)."""
     seg = None
     for s in sim.segments:
         if s.t0 - EPS <= t <= s.t1 + EPS:
             seg = s
             if t < s.t1 - EPS:
                 break
-    if seg is None:
+    ended = [s for s in sim.segments if abs(s.t1 - t) <= EPS] if at_end else []
+    if ended:
+        seg = ended[-1]
+        xy, battery, activity = sim.city_map.node_xy[seg.node_to], seg.battery1, "done"
+    elif seg is None:
         xy, battery, activity = sim.city_map.node_xy[sim.location], sim.battery, "idle"
     else:
         span = seg.t1 - seg.t0
@@ -95,6 +102,8 @@ def activity_text(state: dict, orders_by_id: dict, location: int) -> str:
     seg = state["segment"]
     if seg is None:
         return f"At {node_name(location)}"
+    if state["activity"] == "done":
+        return f"At {node_name(seg.node_to)}: action finished"
     here = NODE_NAMES[seg.node_to]
     o = orders_by_id.get(seg.order_id)
     label = f"#{o.id} {ORDER_TYPES[o.type_idx].name}" if o is not None else ""
@@ -158,28 +167,35 @@ class Renderer:
         self.boxes = {"head": (16, 6, 928, 44), "map": (16, 58, 404, 404),
                       "panel": (448, 58, 496, 404), "foot": (16, 472, 928, 46)}
 
-    def draw(self, sim, t: float, decision: str = "") -> np.ndarray:
-        """Return an RGB image of the day at time t; `decision` is shown under the title."""
+    def draw(self, sim, t: float, decision: str = "", highlight: set[int] | None = None,
+             probs: list[tuple[str, float]] | None = None, speed: str | None = None,
+             at_end: bool = False) -> np.ndarray:
+        """Return an RGB image of the day at time t. `decision` is shown under the title;
+        `highlight` marks orders by id on the map and in the panel; `probs` lists a network's
+        top actions with their probabilities; `speed` replaces the minute counter; `at_end`
+        shows the activity that ends at t (see drone_state_at)."""
         self.fig.clear()
-        state = drone_state_at(sim, t)
+        state = drone_state_at(sim, t, at_end)
         orders_by_id = {o.id: o for o in sim.orders}
-        self._draw_header(t, decision)
-        self._draw_map(state)
-        self._draw_panel(sim, t, state, orders_by_id)
+        marked = [orders_by_id[i] for i in (highlight or ())]
+        self._draw_header(t, decision, speed)
+        self._draw_map(state, marked, t)
+        self._draw_panel(sim, t, state, orders_by_id, {o.id for o in marked}, probs)
         self._draw_footer(sim, t)
         self.fig.canvas.draw()
         return np.asarray(self.fig.canvas.buffer_rgba())[..., :3].copy()
 
-    def _draw_header(self, t: float, decision: str) -> None:
+    def _draw_header(self, t: float, decision: str, speed: str | None) -> None:
         ax = _pixel_axes(self.fig, *self.boxes["head"])
         w = self.boxes["head"][2]
-        ax.text(0, 14, self.title, fontsize=13, weight="bold", color=TEXT, va="center")
+        ax.text(0, 12, self.title, fontsize=11, color=MUTED, va="center")
         if decision:
-            ax.text(0, 34, decision, fontsize=10.5, color=MUTED, va="center")
+            ax.text(0, 33, decision, fontsize=13, weight="bold", color=TEXT, va="center")
         ax.text(w, 14, clock(t), fontsize=16, weight="bold", color=TEXT, ha="right", va="center")
-        ax.text(w, 34, f"t = {t:.1f} min", fontsize=10.5, color=MUTED, ha="right", va="center")
+        ax.text(w, 34, speed or f"t = {t:.1f} min", fontsize=10.5, color=MUTED, ha="right",
+                va="center")
 
-    def _draw_map(self, state: dict) -> None:
+    def _draw_map(self, state: dict, marked: list, t: float) -> None:
         cm, cfg = self.city_map, self.cfg
         ax = self.fig.add_axes(_fraction_box(*self.boxes["map"]))
         size = cfg.grid_size * cfg.cell_km
@@ -193,7 +209,7 @@ class Renderer:
                                    h * cfg.cell_km, color=NO_FLY, lw=0))
 
         seg = state["segment"]
-        if seg is not None and seg.kind == "fly":
+        if seg is not None and seg.kind == "fly" and state["activity"] != "done":
             path = cm.paths[(seg.node_from, seg.node_to)]
             ax.plot(path[:, 0], path[:, 1], "--", color=ROUTE, lw=1.5)
 
@@ -205,6 +221,11 @@ class Renderer:
             above = y > 0.5  # label above the node unless it is near the top edge
             ax.text(x, y - 0.22 if above else y + 0.22, label, ha="center",
                     va="bottom" if above else "top", fontsize=10, weight="bold")
+
+        for o in marked:  # ring the node where each highlighted order is picked up or delivered
+            waiting = o.pickup_time is None or o.pickup_time > t + EPS
+            x, y = cm.node_xy[o.origin if waiting else o.dest]
+            ax.add_patch(Circle((x, y), 0.3, fill=False, color=HIGHLIGHT, lw=3))
 
         dx, dy = state["xy"]
         ax.plot(dx, dy, marker="P", color="#111111", ms=14, mec="white", mew=1.5)
@@ -218,7 +239,8 @@ class Renderer:
         ax.text(size - 0.1, size - 0.1, f"{size:g} x {size:g} km", ha="right", va="bottom",
                 fontsize=9, color=MUTED)
 
-    def _draw_panel(self, sim, t: float, state: dict, orders_by_id: dict) -> None:
+    def _draw_panel(self, sim, t: float, state: dict, orders_by_id: dict, marked: set[int],
+                    probs: list[tuple[str, float]] | None) -> None:
         ax = _pixel_axes(self.fig, *self.boxes["panel"])
         cfg = self.cfg
         due_x, exp_x = 396, 490
@@ -249,23 +271,30 @@ class Renderer:
                 continue
             o = cargo[k]
             self._order_row(ax, y, o, f"\u2192 {NODE_NAMES[o.dest]}", t, due_x, exp_x,
-                            expired=o.status == "expired" and o.expiry <= t + EPS)
+                            expired=o.status == "expired" and o.expiry <= t + EPS,
+                            marked=o.id in marked)
 
         y += 30
         pending = sorted(state["pending"], key=lambda o: (o.deadline, o.id))
         self._table_header(ax, y, f"Pending {len(pending)} (earliest deadline first)",
                            due_x, exp_x)
+        # highlighted orders first, so the order being picked up is always visible
+        pending.sort(key=lambda o: o.id not in marked)
         shown = pending if len(pending) <= PANEL_ROWS else pending[:PANEL_ROWS - 1]
         for o in shown:
             y += 18
             route = f"{NODE_NAMES[o.origin]} \u2192 {NODE_NAMES[o.dest]}"
-            self._order_row(ax, y, o, route, t, due_x, exp_x)
+            self._order_row(ax, y, o, route, t, due_x, exp_x, marked=o.id in marked)
         if len(pending) > len(shown):
             y += 18
             ax.text(16, y, f"+{len(pending) - len(shown)} more", fontsize=10, color=MUTED,
                     va="center")
-        ax.text(0, 398, "due < 0: late, still deliverable until it expires", fontsize=8.5,
-                color=MUTED, va="center")
+        if probs:
+            choices = "   ".join(f"{name} {p:.2f}" for name, p in probs)
+            ax.text(0, 398, f"Network: {choices}", fontsize=9.5, color=TEXT, va="center")
+        else:
+            ax.text(0, 398, "due < 0: late, still deliverable until it expires", fontsize=8.5,
+                    color=MUTED, va="center")
 
     @staticmethod
     def _table_header(ax, y: float, title: str, due_x: float, exp_x: float) -> None:
@@ -275,7 +304,9 @@ class Renderer:
 
     @staticmethod
     def _order_row(ax, y: float, o, where: str, t: float, due_x: float, exp_x: float,
-                   expired: bool = False) -> None:
+                   expired: bool = False, marked: bool = False) -> None:
+        if marked:
+            ax.add_patch(Rectangle((-2, y - 9), exp_x + 6, 18, color=HIGHLIGHT_ROW, lw=0))
         ax.add_patch(Rectangle((2, y - 5), 9, 9, color=_color(o)))
         ax.text(16, y, f"#{o.id}", fontsize=10, color=MUTED, va="center")
         ax.text(56, y, ORDER_TYPES[o.type_idx].name, fontsize=10, color=TEXT, va="center")
@@ -328,6 +359,67 @@ def frame_times(t_end: float) -> list[float]:
     if times[-1] < t_end - EPS:
         times.append(t_end)
     return times
+
+
+def explanation_times(decision_log: list, first: int, count: int, hold_s: float, travel_s: float,
+                      fps: int, t_end: float) -> list[tuple[float, str]]:
+    """Return (simulated time, caption) per video frame for decisions first .. first+count-1:
+    each decision is held hold_s seconds, its action plays over travel_s seconds, and its end
+    is held hold_s seconds. t_end is the end of the day (where the last decision finishes)."""
+    frames = []
+    last = min(first + count, len(decision_log))
+    for i in range(first, last):
+        t0, label, _ = decision_log[i]
+        t1 = decision_log[i + 1][0] if i + 1 < len(decision_log) else t_end
+        n = i + 1
+        frames += [(t0, f"Decision {n} at {clock(t0)}: {label}")] * round(hold_s * fps)
+        steps = round(travel_s * fps)
+        playing = f"Decision {n}: {label} ({t1 - t0:.0f} min, shown in {travel_s:g} s)"
+        frames += [(t0 + (t1 - t0) * k / steps, playing) for k in range(steps)]
+        frames += [(t1, f"Decision {n} done at {clock(t1)}: {label}")] * round(hold_s * fps)
+    return frames
+
+
+def overview_times(t_end: float, minutes_per_second: float, fps: int) -> list[float]:
+    """Return frame times for a whole-day video at the given simulated minutes per video second."""
+    step = minutes_per_second / fps
+    times = [k * step for k in range(math.floor(t_end / step + EPS) + 1)]
+    if times[-1] < t_end - EPS:
+        times.append(t_end)
+    return times
+
+
+def _events_between(sim, t0: float, t1: float) -> list:
+    """Events after t0 (those exactly at t0 end the previous action) and up to t1."""
+    return [e for e in sim.events if t0 + EPS < e[0] <= t1 + EPS]
+
+
+def highlight_ids(sim, t0: float, t1: float) -> set[int]:
+    """Return the ids of orders picked up, delivered or unloaded between t0 and t1."""
+    return {oid for _, kind, oid in _events_between(sim, t0, t1)
+            if kind in ("pickup", "deliver", "dispose")}
+
+
+def outcome_text(sim, t0: float, t1: float) -> str:
+    """Describe what happened to orders and the battery between t0 and t1, in a few words."""
+    orders = {o.id: o for o in sim.orders}
+    counts = {"picked up": 0, "delivered on time": 0, "delivered late": 0, "expired": 0,
+              "expired box unloaded": 0}
+    for _, kind, oid in _events_between(sim, t0, t1):
+        o = orders[oid]
+        if kind == "pickup":
+            counts["picked up"] += 1
+        elif kind == "deliver":
+            on_time = o.end_time - o.release <= o.limit + EPS
+            counts["delivered on time" if on_time else "delivered late"] += 1
+        elif kind == "expire":
+            counts["expired"] += 1
+        elif kind == "dispose":
+            counts["expired box unloaded"] += 1
+    parts = [f"{n} {what}" for what, n in counts.items() if n]
+    b0, b1 = drone_state_at(sim, t0)["battery"], drone_state_at(sim, t1, at_end=True)["battery"]
+    parts.append(f"battery {b0:.0f}% \u2192 {b1:.0f}%")
+    return ", ".join(parts)
 
 
 def save_animation(frames, path: str, fps: int) -> int:
