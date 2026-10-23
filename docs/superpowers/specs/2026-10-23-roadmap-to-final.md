@@ -57,9 +57,8 @@ Random, EDF (M1 continuity); FCFS, nearest-first (proposal, M2); Slack-aware (st
 | dates | work | submitted |
 |---|---|---|
 | 10/23–25 | environment v2 (§3), seed manifest, both networks, shared evaluator, FCFS/nearest | — |
-| 10/26–28 | Slack-aware BC (curves, closed loop), M2 demo, production PPO end to end on both networks (short runs), checkpoint save/reload, throughput; start the planner audit | — |
-| **10/29–30 M2** | extracted-archive rehearsal, report | networks, BC code and checkpoints, forward/backward demo, evaluator, environment v2, README, 2-page report; PPO stays on its branch |
-| 10/31–11/1 | **owner:** visualization (decision-paced replay; see §8) | — |
+| 10/26–28 | Slack-aware BC (curves, closed loop), M2 demo, readable visualization (§8; owner reviews before submission), production PPO end to end on both networks (short runs), checkpoint save/reload, throughput; start the planner audit | — |
+| **10/29–30 M2** | extracted-archive rehearsal, report | networks, BC code and checkpoints, forward/backward demo, readable visualization, evaluator, environment v2, README, 2-page report; PPO stays on its branch |
 | **10/31–11/6 M3** | 3 seeds of set-network scratch PPO; MLP control; Slack-BC → PPO; planner (validated) and planner-BC → PPO; learning curves, probes, failure analysis | per the M3 rubric (to obtain): training/evaluation code, trained agents, comparisons, report |
 | 11/7–11/11 | reward controls (current, on-time only); primary architecture to 5 seeds; scenario rollout; optional unseen-map study (maps as clusters) only after the core comparisons | — |
 | 11/12–14 | locked test evaluation, uncertainty, per-type, latency, batching/charging case studies | — |
@@ -68,9 +67,9 @@ Random, EDF (M1 continuity); FCFS, nearest-first (proposal, M2); Slack-aware (st
 
 Budget (environment decisions): debugging ≤ 3 M; primary scratch PPO 5 × 6 M; alternative architecture 3 × 6 M; Slack-BC → PPO 3 × 6 M; planner-BC → PPO 3 × 6 M; reward controls 2 × 3 × 6 M; optional mixed-map 3 × 6 M. About 123 M core decisions; measure production throughput first (pilot: 6 M in 9–27 min on 4 threads).
 
-## 8. Visualization (owner decides timing)
+## 8. Visualization (in M2; owner reviews before submission)
 
-The M1 GIF showed 12 simulated minutes per second; nobody can follow it. Planned fix, built from the existing event logs: (1) a 45–90 s explanation replay of one short decision sequence, holding each decision 2–4 s with the order, deadline, chosen action, battery/cargo consequence and outcome; (2) an accelerated day overview with a labelled playback speed; MP4 output. Final video 3–4 min: task, Slack-aware vs learned policy on the same arrivals synchronised by simulated time, one batching and one charging decision explained, aggregate results and one limitation. Proposed slot 10/31–11/1, before M3 needs to show the trained agent.
+The M1 GIF showed 12 simulated minutes per second; nobody can follow it. Planned fix, built from the existing event logs: (1) a 45–90 s explanation replay of one short decision sequence, holding each decision 2–4 s with the order, deadline, chosen action, battery/cargo consequence and outcome; (2) an accelerated day overview with a labelled playback speed; MP4 output. Final video 3–4 min: task, Slack-aware vs learned policy on the same arrivals synchronised by simulated time, one batching and one charging decision explained, aggregate results and one limitation. Owner (10/23): it must be fixed before the M2 submission; Claude and Codex build a first version, the owner reviews it and asks for changes before submitting.
 
 ## 9. Evidence so far (pilots, 2026-10-23)
 
@@ -91,7 +90,7 @@ Scripts and logs: `docs/superpowers/experiments/2026-10-23-pilots/` (spikes, not
 | 10/23 | one mixed-load policy, no curriculum | v2 spec: low → medium → mixed curriculum | §9.3: the mixed policy learns as well as single-load ones |
 | 10/23 | seeds: screen / select / test 300 days; training seeds 11–55 | dev 40 days, test 100 days | separate model selection from screening; more test power |
 | 10/23 | baselines: + visible-order planner (audited), + scenario rollout in the final | rolling-horizon optimizer (proposal); one-step rollout (M1 report) | the M1 report promised the planner; the final asks for a strong conventional comparison |
-| 10/23 | visualization after M2 (owner's call), slot 10/31–11/1 proposed | — | TA feedback; owner postponed it |
+| 10/23 | visualization fixed in M2, owner reviews before submission | GIF at 12 simulated minutes per second | TA: "too fast to understand anything"; owner: must be fixed before M2 |
 
 ## 11. Report notes (fill in as we go)
 

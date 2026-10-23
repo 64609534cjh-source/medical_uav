@@ -22,11 +22,11 @@ The networks are designed for PPO from the start (masked action logits plus a va
 - Environment v2 (roadmap §3): compromise reward and the 452-feature observation, with tests; the seed manifest of roadmap §4.
 - One shared evaluation script used for every method from now on (shipped in the submission).
 - Tests for the network properties below.
+- A readable visualization replacing the M1 GIF (roadmap §8), reviewed by the owner before submission.
 
 **Started during M2 week, delivered in M3** (on branch `m3-ppo`, not in the M2 submission): production masked PPO run end to end on both networks (short runs, checkpoint save/reload, measured throughput), and the planner information audit.
 
 **Non-goals for M2**
-- Fixing the GIF / visualization (TA comment "too fast to understand anything"). Recorded; the owner will discuss it later.
 - Teammates' independent implementations (later).
 - Random-map generalization, more architectures, hyper-parameter searches.
 
