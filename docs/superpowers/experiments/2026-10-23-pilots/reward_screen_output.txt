@@ -1,0 +1,8 @@
+medium slack      on-time 0.810  served 0.906  expired 0.094  diff-vs-slack +0.000  plasma=0.74 medicine=0.88 sample=0.80 supplies=0.79
+medium current    on-time 0.831  served 0.966  expired 0.034  diff-vs-slack +0.021  plasma=0.80 medicine=0.87 sample=0.82 supplies=0.84
+medium ontime     on-time 0.902  served 0.923  expired 0.077  diff-vs-slack +0.093  plasma=0.73 medicine=0.97 sample=0.95 supplies=0.92
+medium compromise on-time 0.897  served 0.946  expired 0.054  diff-vs-slack +0.087  plasma=0.79 medicine=0.95 sample=0.93 supplies=0.88
+high   slack      on-time 0.659  served 0.807  expired 0.193  diff-vs-slack +0.000  plasma=0.64 medicine=0.74 sample=0.66 supplies=0.59
+high   current    on-time 0.660  served 0.879  expired 0.121  diff-vs-slack +0.001  plasma=0.61 medicine=0.68 sample=0.68 supplies=0.65
+high   ontime     on-time 0.772  served 0.817  expired 0.183  diff-vs-slack +0.113  plasma=0.56 medicine=0.87 sample=0.79 supplies=0.79
+high   compromise on-time 0.768  served 0.854  expired 0.146  diff-vs-slack +0.109  plasma=0.64 medicine=0.86 sample=0.78 supplies=0.74
