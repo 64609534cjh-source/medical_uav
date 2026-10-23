@@ -83,8 +83,9 @@ def main():
         choices = ", ".join(f"{names[i][a]} {q:.2f}"
                             for q, a in zip(top.values, top.indices) if q > 0)
         print(f"   decision {i + 1}: {choices}   (Slack-aware chose {names[i][int(teacher[i])]})")
-        valid = torch.nonzero(mask[i])[:, 0][:4]
-        print("      logits of the first valid actions: "
+        valid = torch.nonzero(mask[i])[:, 0]
+        valid = valid[torch.argsort(logits[i, valid], descending=True)][:3]
+        print("      their logits: "
               + ", ".join(f"{names[i][a]} {logits[i, a]:.2f}" for a in valid)
               + f";  value estimate {value[i]:.3f} (untrained: BC does not train the value head)")
 
