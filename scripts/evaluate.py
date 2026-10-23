@@ -13,7 +13,7 @@ import numpy as np
 from medical_uav.agents.policy import NetworkPolicy, load_checkpoint
 from medical_uav.baselines.heuristics import (edf_policy, fcfs_policy, nearest_policy,
                                               random_policy, slack_aware_policy)
-from medical_uav.evaluation import evaluate, heuristic, paired_ci
+from medical_uav.evaluation import checkpoint_labels, evaluate, heuristic, paired_ci
 from medical_uav.splits import SCREEN_SEEDS, SELECT_SEEDS
 
 SEED_SETS = {"screen": SCREEN_SEEDS, "select": SELECT_SEEDS}
@@ -36,9 +36,9 @@ def make_policies(methods: list[str], checkpoints: list[str]) -> dict:
     rules = {"random": DailyRandom(), "edf": edf_policy, "slack": slack_aware_policy,
              "fcfs": fcfs_policy, "nearest": nearest_policy}
     policies = {m: heuristic(rules[m]) for m in methods}
-    for path in checkpoints:
+    for path, label in zip(checkpoints, checkpoint_labels(checkpoints)):
         net, _ = load_checkpoint(path)
-        policies[Path(path).stem] = NetworkPolicy(net)
+        policies[label] = NetworkPolicy(net)
     return policies
 
 

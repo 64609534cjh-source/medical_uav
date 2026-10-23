@@ -1,10 +1,18 @@
 """Run policies on the same days and compare them. A policy is called as
 policy(env, obs, mask) and returns a valid action index."""
+from pathlib import Path
+
 import numpy as np
 
 from medical_uav.env import MedicalUAVEnv
 from medical_uav.env.config import ENV_VERSION
 from medical_uav.metrics import episode_metrics
+
+
+def checkpoint_labels(paths: list) -> list[str]:
+    """Name each checkpoint by its file name, or by folder/file name when file names repeat."""
+    stems = [Path(p).stem for p in paths]
+    return [f"{Path(p).parent.name}/{s}" if stems.count(s) > 1 else s for p, s in zip(paths, stems)]
 
 
 def heuristic(fn):

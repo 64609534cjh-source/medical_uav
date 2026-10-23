@@ -10,7 +10,7 @@ from pathlib import Path
 
 import torch
 
-from medical_uav.agents.bc import collect_demonstrations, split_by_seed, train_bc
+from medical_uav.agents.bc import collect_demonstrations, new_network, split_by_seed, train_bc
 from medical_uav.agents.networks import NETWORKS
 from medical_uav.agents.policy import save_checkpoint
 from medical_uav.baselines.heuristics import slack_aware_policy
@@ -36,12 +36,12 @@ def main():
           f"{time.time() - t0:.0f} s")
 
     histories = {}
-    for kind, net_class in NETWORKS.items():
+    for kind in NETWORKS:
         t0 = time.time()
-        net = net_class()
-        history = train_bc(net, train, val, epochs=args.epochs, device=args.device)
+        net = new_network(kind, seed=0)
+        history = train_bc(net, train, val, epochs=args.epochs, seed=0, device=args.device)
         best = min(range(len(history)), key=lambda e: history[e]["val_loss"])
-        info = {"teacher": "slack-aware", "loads": LOADS,
+        info = {"teacher": "slack-aware", "seed": 0, "loads": LOADS,
                 "demand_seeds": [0, len(DEMAND_SEEDS) - 1],
                 "decisions": len(data["action"]), "val_fraction": 0.2, "epochs": args.epochs,
                 "best_epoch": best + 1, "val_acc": history[best]["val_acc"],

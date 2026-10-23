@@ -18,6 +18,7 @@ TYPE_COLORS = {"plasma": "#d62728", "medicine": "#1f77b4", "sample": "#9467bd",
                "supplies": "#ff7f0e"}
 DAY_START_HOUR = 8  # clock hour at simulation time 0
 PANEL_ROWS = 8  # rows of the pending-order table; when more wait, the last row counts them
+PANEL_ROWS_WITH_CHOICES = 7  # fewer rows when the network's top choices are shown below
 FRAME_PX = (960, 528)  # frame width and height in pixels; video codecs need multiples of 16
 DPI = 80
 
@@ -280,7 +281,8 @@ class Renderer:
                            due_x, exp_x)
         # highlighted orders first, so the order being picked up is always visible
         pending.sort(key=lambda o: o.id not in marked)
-        shown = pending if len(pending) <= PANEL_ROWS else pending[:PANEL_ROWS - 1]
+        rows = PANEL_ROWS_WITH_CHOICES if probs else PANEL_ROWS
+        shown = pending if len(pending) <= rows else pending[:rows - 1]
         for o in shown:
             y += 18
             route = f"{NODE_NAMES[o.origin]} \u2192 {NODE_NAMES[o.dest]}"
@@ -289,9 +291,12 @@ class Renderer:
             y += 18
             ax.text(16, y, f"+{len(pending) - len(shown)} more", fontsize=10, color=MUTED,
                     va="center")
-        if probs:
-            choices = "   ".join(f"{name} {p:.2f}" for name, p in probs)
-            ax.text(0, 398, f"Network: {choices}", fontsize=9.5, color=TEXT, va="center")
+        if probs:  # the network's top choices, one per line, below the pending table
+            ax.text(0, 358, "Network's top choices:", fontsize=9.5, weight="bold", color=TEXT,
+                    va="center")
+            for k, (name, p) in enumerate(probs):
+                ax.text(16, 373 + 13 * k, f"{p:.2f}  {name}", fontsize=9.5, color=TEXT,
+                        va="center")
         else:
             ax.text(0, 398, "due < 0: late, still deliverable until it expires", fontsize=8.5,
                     color=MUTED, va="center")

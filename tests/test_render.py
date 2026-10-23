@@ -211,3 +211,16 @@ def test_state_at_end_of_a_decision_shows_the_finished_action(line_map):
     done = drone_state_at(sim, t1, at_end=True)
     assert done["activity"] == "done" and done["segment"].kind == "load"
     assert [o.id for o in done["cargo"]] == [0]
+
+
+def test_network_choices_stay_inside_the_frame(line_map):
+    from medical_uav.env.render import FRAME_PX
+
+    sim = make_sim(line_map, [make_order(0, 1, M, 2, 0.5, 0.0)])
+    r = Renderer(line_map, sim.cfg)
+    long = "PICK supplies H4->H2"
+    r.draw(sim, 0.0, "Decision 1", probs=[(long, 0.61), (long, 0.25), (long, 0.14)])
+    renderer = r.fig.canvas.get_renderer()
+    for ax in r.fig.axes:
+        for text in ax.texts:
+            assert text.get_window_extent(renderer=renderer).x1 <= FRAME_PX[0]

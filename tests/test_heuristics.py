@@ -158,3 +158,14 @@ def test_nearest_serves_closest(line_map):
     sim = make_sim(line_map, [a, far])
     sim.do_pick(a)  # at H1 with a box for H2 (1 km away); H5 is 4 km away
     assert nearest_policy(SimEnv(sim)) == DELIVER0 + 2
+
+
+def test_nearest_breaks_ties_by_the_earliest_box_deadline(line_map):
+    med = make_order(0, 1, M, 1, 0.5, 0.0)  # medicine M -> H1, deadline 90, released first
+    plasma = make_order(1, 0, M, 1, 0.7, 5.0)  # plasma M -> H1, deadline 35
+    sample = make_order(2, 2, 3, M, 0.3, 0.0)  # sample waiting at H3, deadline 60
+    sim = make_sim(line_map, [med, plasma, sample])
+    sim.advance_to(5.0)
+    sim.do_pick(med)
+    sim.do_pick(plasma)  # t = 9 at M; delivering both to H1 and picking at H3 both end at 15
+    assert nearest_policy(SimEnv(sim)) == DELIVER0 + 1

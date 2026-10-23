@@ -25,3 +25,10 @@ def test_evaluate_rejects_invalid_action():
 
 def test_paired_ci_constant():
     assert paired_ci(np.full(20, 0.1)) == pytest.approx((0.1, 0.1, 0.1))
+
+
+def test_checkpoint_labels_are_unique():
+    from medical_uav.evaluation import checkpoint_labels
+
+    labels = checkpoint_labels(["runs/a/ckpt_01.pt", "runs/b/ckpt_01.pt", "checkpoints/bc_set.pt"])
+    assert labels == ["a/ckpt_01", "b/ckpt_01", "bc_set"]
