@@ -52,7 +52,7 @@ class EnvConfig:
     n_zones_range: tuple[int, int] = (3, 3)  # (min, max) number of no-fly zones
     zone_size_range: tuple[int, int] = (2, 4)  # (min, max) zone side length in cells
     min_node_spacing_km: float = 0.75  # minimum distance between C2 and the other nodes
-    facility_spacing_km: float = 1.4  # minimum distance between M and the hospitals
+    facility_spacing_km: float = 1.4  # minimum distance between any two facilities (M and hospitals)
     c2_min_dist_from_m_km: float = 1.5  # minimum distance from C2 to M
     map_seed: int = 0  # seed for map generation
     max_map_tries: int = 100  # attempts before map generation gives up
@@ -63,7 +63,7 @@ class EnvConfig:
     payload_factor: float = 0.25  # relative energy increase per kg of cargo
     reserve: float = 15.0  # battery % that must never be used
     charge_rate: float = 5.0  # battery % gained per minute of charging
-    min_charge_gain: float = 5.0  # smallest battery % a CHARGE action may add
+    min_charge_gain: float = 5.0  # a CHARGE action must add more than this battery %
     handling_min: float = 2.0  # minutes to load, unload or dispose of one box
     max_boxes: int = 3  # cargo capacity in boxes
     max_weight: float = 2.0  # cargo capacity in kg

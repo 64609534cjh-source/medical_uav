@@ -74,7 +74,7 @@ policy choose actions until the day is over, and then draws the day.
 Most settings (map, drone, demand, rewards) are in `medical_uav/env/config.py`; pass
 `MedicalUAVEnv(config=EnvConfig(...))` to change them. The order types, the 12 slots and the charge
 targets are fixed because they define the observation and action layout. The rules of the
-environment are described in the report.
+environment are described in the report, `ME5418_Group17_M1_Report.pdf`.
 
 ## Files
 
@@ -98,6 +98,10 @@ medical_uav/
   splits.py          seeds for training, development and testing
 scripts/
   demo.py            run and show one day; also the usage example
+assets/
+  demo.gif           the default demo day (the animation at the top of this page)
+  demo.png           its frame at 11:02 (Figure 2 of the report)
+ME5418_Group17_M1_Report.pdf   the two-page report
 environment.yml      conda environment
 requirements.txt     the same packages for pip
 pyproject.toml       package definition for `pip install -e .`

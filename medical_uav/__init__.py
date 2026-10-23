@@ -1,1 +1,1 @@
-"""Medical UAV dispatching: environment, baselines and learning agents."""
+"""Medical UAV dispatching: environment and baseline policies."""

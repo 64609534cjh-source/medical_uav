@@ -1,4 +1,5 @@
-"""Event-driven simulation of one day; each do_* method carries out one action."""
+"""Event-driven simulation of one day; each do_* method carries out one action.
+Times are minutes from the start of the day; battery is in %."""
 import math
 from dataclasses import dataclass
 

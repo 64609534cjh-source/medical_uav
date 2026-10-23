@@ -35,7 +35,8 @@ def charging_rule(env, theta: float) -> int | None:
 
 
 def edf_policy(env, theta: float = DEFAULT_THETA) -> int:
-    """Earliest deadline first: take the valid pickup or delivery with the earliest deadline."""
+    """Earliest deadline first: charge if due, else take the valid pickup or delivery with the
+    earliest deadline, else WAIT."""
     a = charging_rule(env, theta)
     if a is not None:
         return a

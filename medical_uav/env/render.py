@@ -17,7 +17,7 @@ from medical_uav.env.map_gen import CityMap
 TYPE_COLORS = {"plasma": "#d62728", "medicine": "#1f77b4", "sample": "#9467bd",
                "supplies": "#ff7f0e"}
 DAY_START_HOUR = 8  # clock hour at simulation time 0
-PANEL_ROWS = 8  # pending orders listed in the side panel
+PANEL_ROWS = 8  # rows of the pending-order table; when more wait, the last row counts them
 FRAME_PX = (960, 528)  # frame width and height in pixels; video codecs need multiples of 16
 DPI = 80
 

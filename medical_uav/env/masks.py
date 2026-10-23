@@ -34,6 +34,7 @@ def can_pick(sim: Simulator, order: Order) -> bool:
     new_load = sum(o.weight for o in remaining) + order.weight
     if new_load > cfg.max_weight + EPS:
         return False
+    # expired boxes are unloaded first, then the new box is loaded
     t_loaded = t_arrive + cfg.handling_min * (len(expired) + 1)
     if t_loaded >= order.expiry - EPS:
         return False
@@ -42,7 +43,8 @@ def can_pick(sim: Simulator, order: Order) -> bool:
 
 
 def can_deliver(sim: Simulator, node: int) -> bool:
-    """Return True if a box for node will not have expired on arrival and the flight is safe."""
+    """Return True if a box for node will not have expired on arrival and the flight is safe.
+    The box may still expire while it is being unloaded."""
     _, expired = predict_arrival(sim, node)
     remaining = [o for o in sim.onboard if o not in expired]
     if not any(o.dest == node for o in remaining):

@@ -89,6 +89,7 @@ class MedicalUAVEnv(gym.Env):
         label = self.describe(action)
         t0, r0, n_events = sim.t, sim.total_reward, len(sim.events)
         self._execute(action)
+        # delivery rewards, expiry penalties and flight energy costs during this action
         reward = sim.total_reward - r0
         self.decision_log.append((t0, label, reward))
         self._done = sim.is_done()
