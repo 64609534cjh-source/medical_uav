@@ -4,3 +4,4 @@ docs export-ignore
 .gitignore export-ignore
 tests export-ignore
 scripts/calibrate.py export-ignore
+scripts/headroom.py export-ignore
