@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from medical_uav.baselines.heuristics import (charging_rule, edf_policy, random_policy,
-                                              slack_aware_policy)
+from medical_uav.baselines.heuristics import (charging_rule, edf_policy, fcfs_policy, nearest_policy,
+                                              random_policy, slack_aware_policy)
 from medical_uav.env import MedicalUAVEnv
 from medical_uav.env.actions import CHARGE0, DELIVER0, PICK0, WAIT
 from medical_uav.env.config import M
@@ -31,6 +31,7 @@ def test_policies_only_choose_valid_actions(seed):
     while not done:
         a = edf_policy(env)
         assert info["action_mask"][a]
+        assert info["action_mask"][fcfs_policy(env)] and info["action_mask"][nearest_policy(env)]
         c = charging_rule(env, 50.0)
         assert c is None or info["action_mask"][c]
         obs, r, done, _, info = env.step(a)
@@ -138,3 +139,21 @@ def test_slack_aware_delivery_counts_if_any_box_can_be_on_time(line_map):
     sim.advance_to(45.0)
     # DELIVER(H3): arrive 49, late box 49-51, fresh box 51-53 <= 95 -> still worth it now
     assert slack_aware_policy(SimEnv(sim)) == DELIVER0 + 3
+
+
+def test_fcfs_serves_oldest(line_map):
+    old = make_order(0, 1, M, 2, 0.5, 0.0)  # medicine, released first, deadline 90
+    new = make_order(1, 0, M, 3, 0.7, 5.0)  # plasma, released later, deadline 35
+    sim = make_sim(line_map, [old, new])
+    sim.advance_to(5.0)
+    env = SimEnv(sim)
+    assert fcfs_policy(env) == PICK0 + env.slots.index(old)
+    assert edf_policy(env) == PICK0 + env.slots.index(new)
+
+
+def test_nearest_serves_closest(line_map):
+    a = make_order(0, 3, 1, 2, 0.5, 0.0)  # supplies H1 -> H2
+    far = make_order(1, 3, 5, 3, 0.5, 0.0)  # supplies waiting at H5
+    sim = make_sim(line_map, [a, far])
+    sim.do_pick(a)  # at H1 with a box for H2 (1 km away); H5 is 4 km away
+    assert nearest_policy(SimEnv(sim)) == DELIVER0 + 2

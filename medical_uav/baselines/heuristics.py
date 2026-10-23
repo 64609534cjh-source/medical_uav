@@ -96,3 +96,46 @@ def _delivery_can_be_on_time(sim, n: int) -> bool:
         if t <= o.deadline + EPS:
             return True
     return False
+
+
+def _service_candidates(env):
+    """Return (pick_or_deliver_action, order or oldest box, node) for every valid service action."""
+    sim, mask = env.sim, env.action_masks()
+    out = []
+    for k, order in enumerate(env.slots):
+        if mask[PICK0 + k]:
+            out.append((PICK0 + k, order, order.origin))
+    for n in FACILITIES:
+        if mask[DELIVER0 + n]:
+            boxes = [o for o in sim.onboard if o.dest == n and o.status == "onboard"]
+            out.append((DELIVER0 + n, min(boxes, key=lambda o: o.release), n))
+    return out
+
+
+def fcfs_policy(env, theta: float = DEFAULT_THETA) -> int:
+    """First come, first served: charge if due, else serve the valid pickup or delivery whose
+    order (for a delivery, its oldest box) was released first, else WAIT."""
+    a = charging_rule(env, theta)
+    if a is not None:
+        return a
+    candidates = [(order.release, action) for action, order, _ in _service_candidates(env)]
+    return min(candidates)[1] if candidates else WAIT
+
+
+def nearest_policy(env, theta: float = DEFAULT_THETA) -> int:
+    """Nearest first: charge if due, else take the valid pickup or delivery that finishes soonest
+    (flight plus handling, including expired boxes unloaded on arrival), ties by deadline."""
+    a = charging_rule(env, theta)
+    if a is not None:
+        return a
+    sim = env.sim
+    candidates = []
+    for action, order, node in _service_candidates(env):
+        t_arrive, expired = predict_arrival(sim, node)
+        if action >= DELIVER0:  # unload every box for node that is still valid
+            handled = len(expired) + sum(1 for o in sim.onboard if o.dest == node and o not in expired)
+        else:
+            handled = len(expired) + 1
+        finish = t_arrive + sim.cfg.handling_min * handled
+        candidates.append((finish, order.deadline, action))
+    return min(candidates)[2] if candidates else WAIT
