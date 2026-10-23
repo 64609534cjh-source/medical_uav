@@ -59,3 +59,22 @@ def test_update_changes_parameters_and_is_finite():
     stats = ppo_update(net, opt, buf, adv, ret, ent_coef=0.01, rng=np.random.default_rng(0))
     assert all(np.isfinite(v) for v in stats.values())
     assert any(not torch.equal(b, p) for b, p in zip(before, net.parameters()))
+
+
+def test_train_ppo_smoke(tmp_path):
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    from medical_uav.agents.policy import load_checkpoint
+
+    repo = Path(__file__).resolve().parents[1]
+    result = subprocess.run([sys.executable, str(repo / "scripts" / "train_ppo.py"), "--net", "mlp",
+                             "--decisions", "4096", "--eval-every", "4096", "--eval-days", "1",
+                             "--out", str(tmp_path / "run")], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    assert (tmp_path / "run" / "updates.csv").exists() and (tmp_path / "run" / "evals.csv").exists()
+    checkpoints = sorted((tmp_path / "run").glob("ckpt_*.pt"))
+    assert len(checkpoints) == 1
+    _, info = load_checkpoint(checkpoints[0])
+    assert info["decisions"] == 4096 and info["seed"] == 11
