@@ -1,5 +1,4 @@
-docs/superpowers/** export-ignore
-docs/reports/** export-ignore
+docs export-ignore
 .flake8 export-ignore
 .gitattributes export-ignore
 .gitignore export-ignore
