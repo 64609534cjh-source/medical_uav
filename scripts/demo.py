@@ -136,9 +136,11 @@ def main():
     # the whole day at a labelled speed
     speed = f"{args.day_speed:g} simulated min per second"
     times = overview_times(sim.t, args.day_speed, FPS)
-    n = save_animation((renderer.draw(sim, t, caption_at(env, t), speed=speed,
-                                      probs=choices[max(decision_at(env, t), 0)] if choices else None)
-                        for t in times), f"{base}_day.mp4", FPS)
+    def overview(t):
+        probs = choices[max(decision_at(env, t), 0)] if choices else None
+        return renderer.draw(sim, t, caption_at(env, t), speed=speed, probs=probs)
+
+    n = save_animation((overview(t) for t in times), f"{base}_day.mp4", FPS)
     print(f"Saved: {base}_day.mp4 ({n / FPS:.0f} s)")
 
 

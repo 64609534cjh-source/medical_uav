@@ -112,7 +112,8 @@ def test_set_empty_and_single_order_finite():
     net = SetNet()
     obs, mask = state_with_orders(1)
     g, pending, cargo = split_obs(obs)
-    empty = torch.cat([g, torch.zeros_like(pending).flatten(1), torch.zeros_like(cargo).flatten(1)], 1)
+    no_cargo = torch.zeros_like(cargo).flatten(1)
+    empty = torch.cat([g, torch.zeros_like(pending).flatten(1), no_cargo], 1)
     single_pending = torch.zeros_like(pending)
     first = int(torch.nonzero(pending[0, :, 0])[0])
     single_pending[0, first] = pending[0, first]

@@ -25,7 +25,8 @@ def load_checkpoint(path) -> tuple[torch.nn.Module, dict]:
 
 
 class NetworkPolicy:
-    """Greedy policy: the valid action with the highest logit. Uses only the observation and mask."""
+    """Greedy policy: the valid action with the highest logit; uses only the observation and
+    the mask."""
 
     def __init__(self, net: torch.nn.Module):
         self.net = net

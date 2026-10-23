@@ -153,7 +153,8 @@ def test_explanation_holds_each_decision():
     frames = explanation_times(LOG, 0, 3, hold_s=2.0, travel_s=3.0, fps=12, t_end=25.0)
     assert len(frames) >= 3 * (2 * 2 + 3) * 12
     for n, (t0, label, _) in enumerate(LOG, start=1):
-        held = [t == t0 and label in caption and f"Decision {n}" in caption for t, caption in frames]
+        held = [t == t0 and label in caption and f"Decision {n}" in caption
+                for t, caption in frames]
         longest, run = 0, 0
         for h in held:
             run = run + 1 if h else 0

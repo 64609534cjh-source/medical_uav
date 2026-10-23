@@ -1,8 +1,9 @@
 import numpy as np
 import pytest
 
-from medical_uav.baselines.heuristics import (charging_rule, edf_policy, fcfs_policy, nearest_policy,
-                                              random_policy, slack_aware_policy)
+from medical_uav.baselines.heuristics import (charging_rule, edf_policy, fcfs_policy,
+                                              nearest_policy, random_policy,
+                                              slack_aware_policy)
 from medical_uav.env import MedicalUAVEnv
 from medical_uav.env.actions import CHARGE0, DELIVER0, PICK0, WAIT
 from medical_uav.env.config import M

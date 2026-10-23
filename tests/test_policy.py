@@ -44,4 +44,5 @@ def test_checkpoint_round_trip(tmp_path):
         a = net.cpu()(obs, mask)
         b = loaded(obs, mask)
     assert all(torch.allclose(x, y, atol=1e-6) for x, y in zip(a, b))
-    assert info["note"] == "untrained" and info["env_version"] == ENV_VERSION and info["kind"] == "set"
+    assert info["note"] == "untrained" and info["kind"] == "set"
+    assert info["env_version"] == ENV_VERSION

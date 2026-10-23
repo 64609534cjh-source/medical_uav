@@ -3,8 +3,8 @@ import pytest
 
 from medical_uav.env.config import M, N_NODES
 from medical_uav.env.masks import compute_action_mask
-from medical_uav.env.observation import (GLOBAL_DIM, OBS_DIM, ONBOARD_DIM, PENDING_DIM, TRAVEL_SCALE,
-                                         build_observation, rank_pending)
+from medical_uav.env.observation import (GLOBAL_DIM, OBS_DIM, ONBOARD_DIM, PENDING_DIM,
+                                         TRAVEL_SCALE, build_observation, rank_pending)
 from tests.conftest import make_order, make_sim
 
 
@@ -58,7 +58,8 @@ def test_travel_matrix_in_global_block(line_map):
     sim = make_sim(line_map, [make_order(0, 0, M, 1, 0.7, 0.0)])
     obs = observe(sim)
     matrix = obs[GLOBAL_DIM - N_NODES * N_NODES:GLOBAL_DIM].reshape(N_NODES, N_NODES)
-    expected = [[sim.travel_time(i, j) / TRAVEL_SCALE for j in range(N_NODES)] for i in range(N_NODES)]
+    expected = [[sim.travel_time(i, j) / TRAVEL_SCALE for j in range(N_NODES)]
+                for i in range(N_NODES)]
     assert np.allclose(matrix, expected)
 
 

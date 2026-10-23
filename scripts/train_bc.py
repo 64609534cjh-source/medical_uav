@@ -32,7 +32,8 @@ def main():
     data = collect_demonstrations(slack_aware_policy, LOADS, DEMAND_SEEDS, args.processes)
     train, val = split_by_seed(data, val_fraction=0.2, seed=0)
     print(f"{len(data['action'])} decisions from {len(DEMAND_SEEDS) * len(LOADS)} days "
-          f"({len(train['action'])} train, {len(val['action'])} validation), {time.time() - t0:.0f} s")
+          f"({len(train['action'])} train, {len(val['action'])} validation), "
+          f"{time.time() - t0:.0f} s")
 
     histories = {}
     for kind, net_class in NETWORKS.items():
@@ -40,7 +41,8 @@ def main():
         net = net_class()
         history = train_bc(net, train, val, epochs=args.epochs, device=args.device)
         best = min(range(len(history)), key=lambda e: history[e]["val_loss"])
-        info = {"teacher": "slack-aware", "loads": LOADS, "demand_seeds": [0, len(DEMAND_SEEDS) - 1],
+        info = {"teacher": "slack-aware", "loads": LOADS,
+                "demand_seeds": [0, len(DEMAND_SEEDS) - 1],
                 "decisions": len(data["action"]), "val_fraction": 0.2, "epochs": args.epochs,
                 "best_epoch": best + 1, "val_acc": history[best]["val_acc"],
                 "val_acc_by_family": history[best]["val_acc_by_family"]}

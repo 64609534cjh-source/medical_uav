@@ -39,7 +39,8 @@ def record_states(load: str, seed: int, n: int):
         rewards.append(r)
     to_go = np.cumsum(rewards[::-1])[::-1]  # reward from each decision to the end of the day
     return (torch.as_tensor(np.array(observations[:n])), torch.as_tensor(np.array(masks[:n])),
-            torch.as_tensor(actions[:n]), names[:n], torch.as_tensor(to_go[:n].copy(), dtype=torch.float32))
+            torch.as_tensor(actions[:n]), names[:n],
+            torch.as_tensor(to_go[:n].copy(), dtype=torch.float32))
 
 
 def grad_norms(net: torch.nn.Module) -> str:
@@ -73,12 +74,14 @@ def main():
     trained, info = load_checkpoint(CHECKPOINTS / "bc_set.pt")
     with torch.no_grad():
         logits, value = trained(obs, mask)
-    print(f"\n3. forward pass (trained set network): logits {tuple(logits.shape)}, value {tuple(value.shape)}")
+    print(f"\n3. forward pass (trained set network): logits {tuple(logits.shape)}, "
+          f"value {tuple(value.shape)}")
     busiest = torch.argsort(mask.sum(1), descending=True)[:3]  # states with the most valid actions
     for i in sorted(int(k) for k in busiest):
         p = torch.softmax(logits[i], 0)
         top = torch.topk(p, 3)
-        choices = ", ".join(f"{names[i][a]} {q:.2f}" for q, a in zip(top.values, top.indices) if q > 0)
+        choices = ", ".join(f"{names[i][a]} {q:.2f}"
+                            for q, a in zip(top.values, top.indices) if q > 0)
         print(f"   decision {i + 1}: {choices}   (Slack-aware chose {names[i][int(teacher[i])]})")
 
     # 4. backward pass: imitation loss for the policy, return-to-go loss for the value head
@@ -96,7 +99,8 @@ def main():
     opt.step()
     with torch.no_grad():
         logits, value = net(obs, mask)
-        after = (torch.nn.functional.cross_entropy(logits, teacher) + 0.5 * ((value - to_go / 10) ** 2).mean())
+        after = (torch.nn.functional.cross_entropy(logits, teacher)
+                 + 0.5 * ((value - to_go / 10) ** 2).mean())
     print(f"   after one Adam step the loss falls from {loss.item():.3f} to {after.item():.3f}")
 
     # 5. the trained networks run a whole day on their own
@@ -106,7 +110,8 @@ def main():
         m = run_day(NetworkPolicy(net), load, 100_000)
         print(f"   BC {kind} network (validation accuracy {info['val_acc']:.3f}): "
               f"{100 * m['on_time_rate']:.1f}% on time")
-        m["on_time_by_type"] = {k[8:]: v for k, v in m.items() if k.startswith("on_time_") and k != "on_time_rate"}
+        m["on_time_by_type"] = {k[8:]: v for k, v in m.items()
+                                if k.startswith("on_time_") and k != "on_time_rate"}
         for line in summary_lines(m):
             print("     " + line)
     m = run_day(lambda env, o, msk: slack_aware_policy(env), load, 100_000)

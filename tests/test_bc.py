@@ -49,6 +49,7 @@ def test_trained_checkpoint_with_history_loads(tmp_path):
     data = collect_demonstrations(slack_aware_policy, ["low"], [0, 1])
     train, val = split_by_seed(data, val_fraction=0.5, seed=0)
     history = train_bc(MLPNet(), train, val, epochs=1)
-    save_checkpoint(MLPNet(), "mlp", tmp_path / "bc.pt", {"val_acc_by_family": history[0]["val_acc_by_family"]})
+    info = {"val_acc_by_family": history[0]["val_acc_by_family"]}
+    save_checkpoint(MLPNet(), "mlp", tmp_path / "bc.pt", info)
     _, info = load_checkpoint(tmp_path / "bc.pt")
     assert all(type(k) is str and type(v) is float for k, v in info["val_acc_by_family"].items())

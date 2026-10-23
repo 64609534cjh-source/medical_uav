@@ -2,7 +2,7 @@
 
 Usage:
     python scripts/evaluate.py --methods random,edf,slack,fcfs,nearest --loads low,medium,high
-    python scripts/evaluate.py --methods slack --checkpoints checkpoints/bc_set.pt --out outputs/eval.csv
+    python scripts/evaluate.py --methods slack --checkpoints checkpoints/bc_set.pt
 """
 import argparse
 import csv
@@ -11,8 +11,8 @@ from pathlib import Path
 import numpy as np
 
 from medical_uav.agents.policy import NetworkPolicy, load_checkpoint
-from medical_uav.baselines.heuristics import (edf_policy, fcfs_policy, nearest_policy, random_policy,
-                                              slack_aware_policy)
+from medical_uav.baselines.heuristics import (edf_policy, fcfs_policy, nearest_policy,
+                                              random_policy, slack_aware_policy)
 from medical_uav.evaluation import evaluate, heuristic, paired_ci
 from medical_uav.splits import SCREEN_SEEDS, SELECT_SEEDS
 
@@ -47,7 +47,8 @@ def print_summary(rows: list[dict], loads: list[str]) -> None:
     methods = list(dict.fromkeys(r["method"] for r in rows))
     for load in loads:
         print(f"\n{load} load")
-        by = {m: {r["seed"]: r for r in rows if r["method"] == m and r["load"] == load} for m in methods}
+        by = {m: {r["seed"]: r for r in rows if r["method"] == m and r["load"] == load}
+              for m in methods}
         for m in methods:
             days = by[m]
             line = (f"  {m:12s} on-time {np.mean([d['on_time_rate'] for d in days.values()]):.3f}"
