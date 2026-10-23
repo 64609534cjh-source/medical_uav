@@ -6,6 +6,7 @@ def test_package_imports():
     import gymnasium  # noqa: F401
     import matplotlib  # noqa: F401
     import numpy  # noqa: F401
+    import torch  # noqa: F401
 
     import medical_uav  # noqa: F401
 
