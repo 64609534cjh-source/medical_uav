@@ -48,6 +48,13 @@ def collect_demonstrations(teacher, loads: list[str], demand_seeds, processes: i
             "load": np.array(load_idx, dtype=np.int64)}
 
 
+def new_network(kind: str, seed: int) -> torch.nn.Module:
+    """Create a network ("mlp" or "set") with weights initialised from the given seed."""
+    from medical_uav.agents.networks import NETWORKS
+    torch.manual_seed(seed)
+    return NETWORKS[kind]()
+
+
 def split_by_seed(data: dict, val_fraction: float = 0.2, seed: int = 0) -> tuple[dict, dict]:
     """Split by demand seed: all of a seed's decisions (at every load) go to the same side."""
     seeds = np.unique(data["seed"])

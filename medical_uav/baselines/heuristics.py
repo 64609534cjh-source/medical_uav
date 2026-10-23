@@ -132,10 +132,13 @@ def nearest_policy(env, theta: float = DEFAULT_THETA) -> int:
     candidates = []
     for action, order, node in _service_candidates(env):
         t_arrive, expired = predict_arrival(sim, node)
-        if action >= DELIVER0:  # unload every box for node that is still valid
-            handled = len(expired) + sum(1 for o in sim.onboard if o.dest == node and o not in expired)
+        if action >= DELIVER0:
+            boxes = [o for o in sim.onboard if o.dest == node and o not in expired]
+            handled = len(expired) + len(boxes)  # expired boxes first, then every box for node
+            deadline = min(o.deadline for o in boxes)  # ties go to the most urgent box
         else:
             handled = len(expired) + 1
+            deadline = order.deadline
         finish = t_arrive + sim.cfg.handling_min * handled
-        candidates.append((finish, order.deadline, action))
+        candidates.append((finish, deadline, action))
     return min(candidates)[2] if candidates else WAIT

@@ -53,3 +53,11 @@ def test_trained_checkpoint_with_history_loads(tmp_path):
     save_checkpoint(MLPNet(), "mlp", tmp_path / "bc.pt", info)
     _, info = load_checkpoint(tmp_path / "bc.pt")
     assert all(type(k) is str and type(v) is float for k, v in info["val_acc_by_family"].items())
+
+
+def test_new_network_is_reproducible():
+    import torch
+
+    from medical_uav.agents.bc import new_network
+    a, b = new_network("set", seed=0), new_network("set", seed=0)
+    assert all(torch.equal(x, y) for x, y in zip(a.parameters(), b.parameters()))

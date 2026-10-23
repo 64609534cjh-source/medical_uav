@@ -16,7 +16,7 @@ def test_demo_network_runs_from_any_directory(tmp_path):
     result = subprocess.run([sys.executable, str(REPO / "scripts" / "demo_network.py"), "--quick"],
                             capture_output=True, text=True, cwd=tmp_path)
     assert result.returncode == 0, result.stderr
-    for word in ("forward", "backward", "logits", "value", "on time"):
+    for word in ("forward", "backward", "logits", "value estimate", "on time"):
         assert word in result.stdout
 
 
