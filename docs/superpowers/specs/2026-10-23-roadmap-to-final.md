@@ -82,6 +82,8 @@ Scripts and logs: `docs/superpowers/experiments/2026-10-23-pilots/` (spikes, not
 
 5. **M2 BC, production code (environment v2)** — `python scripts/train_bc.py` (900 Slack-aware days, seeds 0–299 × 3 loads, 88 744 decisions, split by seed 80/20, 30 epochs): validation accuracy MLP .934, set .939. `python scripts/evaluate.py --methods random,edf,slack,fcfs,nearest --checkpoints checkpoints/bc_mlp.pt checkpoints/bc_set.pt --seeds screen`: on-time (low / medium / high) — Random .555/.263/.226; EDF .996/.406/.275; FCFS .970/.493/.321; nearest .992/.716/.532; Slack-aware .993/.810/.659; BC-MLP .992/.792/.649; BC-set .995/.795/.644 (vs Slack-aware: medium −1.8 [−3.3, −0.5] / −1.5 [−3.4, +0.2]; high −1.0 [−2.7, +0.6] / −1.5 [−3.2, +0.2]).
 
+6. **Production PPO, 1 M decisions, seed 11** (branch `m3-ppo`, `python scripts/train_ppo.py --net {mlp,set} --seed 11 --decisions 1e6 --eval-every 2.5e5`; 4 CPU threads; greedy on the first 20 selection days): set network medium .879 → .889 → .891 → .881, high .763 → .771 → .777 → .783 (at 0.25/0.5/0.75/1 M; 267 s); MLP medium .823 → .839 → .852 → .850, high .661 → .708 → .721 → .724 (209 s). Slack-aware on the same days: .810 / .659. After 1 M decisions the set network is ahead of the MLP by 3.1 (medium) and 5.9 (high) points — one seed, to be confirmed with 3 seeds in M3. Approximate KL ≈ 0.001, clip fraction ≈ 1 %, entropy falling 0.61 → 0.22: stable updates.
+
 ## 10. Decision log (since M1)
 
 | date | decision | was | why |
