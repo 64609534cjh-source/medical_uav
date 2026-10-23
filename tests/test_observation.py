@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from medical_uav.env.config import M
+from medical_uav.env.config import M, N_NODES
 from medical_uav.env.masks import compute_action_mask
-from medical_uav.env.observation import (GLOBAL_DIM, OBS_DIM, ONBOARD_DIM, PENDING_DIM,
+from medical_uav.env.observation import (GLOBAL_DIM, OBS_DIM, ONBOARD_DIM, PENDING_DIM, TRAVEL_SCALE,
                                          build_observation, rank_pending)
 from tests.conftest import make_order, make_sim
 
@@ -30,7 +30,7 @@ def test_at_most_twelve_slots(line_map):
 def test_observation_shape_and_slot_encoding(line_map):
     sim = make_sim(line_map, [make_order(0, 0, M, 1, 0.7, 0.0)])
     obs = observe(sim)
-    assert OBS_DIM == 403
+    assert OBS_DIM == 452 and GLOBAL_DIM == 80
     assert obs.shape == (OBS_DIM,) and obs.dtype == np.float32 and np.isfinite(obs).all()
     s0 = obs[GLOBAL_DIM:GLOBAL_DIM + PENDING_DIM]
     assert s0[0] == 1.0 and s0[1] == 1.0  # valid, type plasma
@@ -52,6 +52,14 @@ def test_global_block(line_map):
     assert obs[6] == pytest.approx(1.0)  # battery / 100
     assert obs[9] == 1.0 and obs[10:16].sum() == 0  # located at M
     assert obs[24] == pytest.approx(1 / 30)  # one pending order
+
+
+def test_travel_matrix_in_global_block(line_map):
+    sim = make_sim(line_map, [make_order(0, 0, M, 1, 0.7, 0.0)])
+    obs = observe(sim)
+    matrix = obs[GLOBAL_DIM - N_NODES * N_NODES:GLOBAL_DIM].reshape(N_NODES, N_NODES)
+    expected = [[sim.travel_time(i, j) / TRAVEL_SCALE for j in range(N_NODES)] for i in range(N_NODES)]
+    assert np.allclose(matrix, expected)
 
 
 def test_onboard_block(line_map):

@@ -19,7 +19,7 @@ from medical_uav.env.config import EPS
 from medical_uav.env.map_gen import generate_map
 from medical_uav.env.observation import direct_completion_time
 from medical_uav.metrics import episode_metrics
-from medical_uav.splits import DEV_SEEDS
+from medical_uav.splits import SCREEN_SEEDS
 
 DEFAULT_LAMBDAS = [0.04, 0.06, 0.09, 0.12, 0.14]  # base rates, orders per minute
 THETAS = [20.0, 30.0, 40.0]  # charging thresholds tried by --tune-theta
@@ -188,7 +188,7 @@ def write_tables(rows, out_dir, cfg, seeds, thetas, tuned=False):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--lambdas", type=float, nargs="*", default=DEFAULT_LAMBDAS)
-    parser.add_argument("--seeds", type=int, nargs="+", default=list(DEV_SEEDS))
+    parser.add_argument("--seeds", type=int, nargs="+", default=list(SCREEN_SEEDS))
     parser.add_argument("--tune-theta", action="store_true")
     parser.add_argument("--map-check", type=int, default=0)
     parser.add_argument("--benchmark", action="store_true")

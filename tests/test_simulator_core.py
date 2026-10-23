@@ -27,7 +27,15 @@ def test_pending_order_expires_with_penalty(line_map):
     sim.advance_to(60.0)
     o = sim.orders[0]
     assert o.status == "expired" and o.end_time == pytest.approx(60.0)
-    assert sim.pending == [] and sim.total_reward == pytest.approx(-0.5)
+    assert sim.pending == [] and sim.total_reward == pytest.approx(-0.1)
+
+
+def test_expiry_and_energy_cost_v2(line_map):
+    sim = make_sim(line_map, [make_order(0, 0, M, 1, 0.7, 0.0)])
+    sim.fly_to(1)  # 2 km without cargo: 7 battery %
+    assert sim.total_reward == pytest.approx(-0.001 * 7.0)
+    sim.advance_to(60.0)  # the plasma order expires
+    assert sim.total_reward == pytest.approx(-0.007 - 0.1)
 
 
 def test_expiry_before_release_same_time(line_map):

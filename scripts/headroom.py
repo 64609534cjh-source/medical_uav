@@ -12,7 +12,7 @@ import numpy as np
 from medical_uav.env import MedicalUAVEnv
 from medical_uav.baselines.heuristics import slack_aware_policy
 from medical_uav.metrics import episode_metrics
-from medical_uav.splits import DEV_SEEDS
+from medical_uav.splits import SCREEN_SEEDS
 
 SCORE = sys.argv[3] if len(sys.argv) > 3 else "reward"
 VISIBLE_ONLY = len(sys.argv) > 4 and sys.argv[4] == "visible"
@@ -86,7 +86,7 @@ def run(args):
 if __name__ == "__main__":
     loads = sys.argv[1].split(",")
     n_days = int(sys.argv[2])
-    jobs = [(l, s, p) for l in loads for s in list(DEV_SEEDS)[:n_days] for p in ("slack", "rollout")]
+    jobs = [(l, s, p) for l in loads for s in list(SCREEN_SEEDS)[:n_days] for p in ("slack", "rollout")]
     with Pool(16) as pool:
         res = pool.map(run, jobs)
     import json, os

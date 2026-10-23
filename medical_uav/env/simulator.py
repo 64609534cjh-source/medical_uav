@@ -204,7 +204,7 @@ class Simulator:
                 continue
             o.status = "delivered"
             o.end_time = self.t
-            self.total_reward += delivery_reward(o.age(self.t), o.limit, o.expiry_after, self.cfg)
+            self.total_reward += delivery_reward(o.age(self.t), o.limit, self.cfg)
             self.onboard.remove(o)
             self.events.append((self.t, "deliver", o.id))
         self.advance_to(self.t)  # process events due now

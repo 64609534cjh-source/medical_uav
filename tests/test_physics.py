@@ -25,6 +25,6 @@ def test_charge_minutes():
     assert physics.charge_minutes(40, 80, cfg) == pytest.approx(8.0)
 
 
-@pytest.mark.parametrize("age,expected", [(10, 1.0), (30, 1.0), (45, 0.25), (60, -0.5)])
-def test_delivery_reward_plasma(age, expected):
-    assert physics.delivery_reward(age, 30, 60, cfg) == pytest.approx(expected)
+@pytest.mark.parametrize("age,expected", [(10, 1.0), (30, 1.0), (30.5, 0.1), (59, 0.1)])
+def test_delivery_reward_v2(age, expected):
+    assert physics.delivery_reward(age, 30, cfg) == pytest.approx(expected)

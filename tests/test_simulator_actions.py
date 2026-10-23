@@ -23,7 +23,7 @@ def test_late_delivery_reward(line_map):
     sim.advance_to(41.0)  # arrive 43, unload done 45 -> age 45
     r0 = sim.total_reward
     sim.do_deliver(1)
-    assert sim.total_reward - r0 == pytest.approx(0.25 - 0.001 * 8.4)
+    assert sim.total_reward - r0 == pytest.approx(0.1 - 0.001 * 8.4)
 
 
 def test_unload_ending_exactly_at_expiry_counts_as_expired(line_map):
@@ -34,8 +34,8 @@ def test_unload_ending_exactly_at_expiry_counts_as_expired(line_map):
     sim.do_deliver(4)
     assert sim.orders[0].status == "expired"
     energy = sim.cfg.energy_cost * sim.energy(M, 4, 0.6)
-    # the same -0.5 a delivery at the expiry time would have earned
-    assert sim.total_reward - r0 == pytest.approx(-0.5 - energy)
+    # the expiry penalty, not the late-delivery reward
+    assert sim.total_reward - r0 == pytest.approx(-0.1 - energy)
 
 
 def test_two_boxes_same_destination_unload_sequentially(line_map):

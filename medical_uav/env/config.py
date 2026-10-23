@@ -14,6 +14,7 @@ CHARGERS = (M, C2)
 N_ONBOARD = 3  # onboard boxes listed in the observation; unused rows are zero-filled
 FULL_BATTERY = 100.0  # battery is measured in percent
 EPS = 1e-9  # tolerance for floating-point comparisons
+ENV_VERSION = "v2"  # reward and observation version; stored with checkpoints and results
 
 
 @dataclass(frozen=True)
@@ -80,9 +81,10 @@ class EnvConfig:
     # actions
     wait_max: float = 10.0  # longest duration of one WAIT action, minutes
 
-    # reward
+    # reward (environment v2)
     reward_on_time: float = 1.0  # reward per on-time delivery
-    expiry_penalty: float = 0.5  # penalty per expired order
+    reward_late: float = 0.1  # reward per late delivery
+    expiry_penalty: float = 0.1  # penalty per expired order
     energy_cost: float = 0.001  # penalty per battery % used
 
     def validate(self) -> None:

@@ -90,9 +90,9 @@ def test_reward_equals_sum_of_order_outcomes():
     for o in env.sim.orders:
         if o.status == "delivered":
             age = o.end_time - o.release
-            expected += delivery_reward(age, o.limit, o.expiry_after, env.sim.cfg)
+            expected += delivery_reward(age, o.limit, env.sim.cfg)
         else:
-            expected -= 0.5
+            expected -= 0.1  # expiry penalty (environment v2)
     expected -= 0.001 * env.sim.energy_used
     assert total == pytest.approx(expected, abs=1e-6)
 

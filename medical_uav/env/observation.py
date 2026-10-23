@@ -9,7 +9,7 @@ from medical_uav.env.simulator import Simulator
 
 N_TYPES = len(ORDER_TYPES)
 N_FACILITIES = len(FACILITIES)
-GLOBAL_DIM = 13 + 2 * N_NODES + N_TYPES  # see _global_features
+GLOBAL_DIM = 13 + 2 * N_NODES + N_TYPES + N_NODES * N_NODES  # see _global_features
 PENDING_DIM = 11 + N_TYPES + 2 * N_FACILITIES  # see _pending_features
 ONBOARD_DIM = 6 + N_TYPES + N_FACILITIES  # see _onboard_features
 OBS_DIM = GLOBAL_DIM + N_SLOTS * PENDING_DIM + N_ONBOARD * ONBOARD_DIM
@@ -85,6 +85,8 @@ def _global_features(sim: Simulator, n_visible: int) -> list[float]:
         (len(sim.pending) - n_visible) / POOL_SCALE,  # pending orders not shown in the slots
         *per_type,  # pending orders per type
         recent / COUNT_SCALE,  # orders that arrived within RECENT_WINDOW
+        # travel time between every pair of nodes, row by row (fixed for a given map)
+        *[sim.travel_time(i, j) / TRAVEL_SCALE for i in range(N_NODES) for j in range(N_NODES)],
     ]
 
 
