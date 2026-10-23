@@ -4,6 +4,8 @@ Group 17 · design date 2026-10-23 · M2 due 2026-10-30 23:59 · M3 due 2026-11-
 
 This document extends the project design (`2026-10-10-medical-uav-design.md`). Where the two differ, this one wins for M2.
 
+**Ownership (owner, 2026-10-23):** the owner hands the technical design of M2 and M3 to Claude and Codex. Work aims straight at M3; the M2 submission is cut from `main` on 10/29 with whatever M2 needs, while M3 work continues on its branch. Choices below marked "decided" are Claude+Codex decisions; the owner is told the results.
+
 ## 1. Intent
 
 M2 delivers the policy/value networks that the M3 learning agent will train, a demo that shows them working on real environment data, and a 2-page report. M1 scored 11/15 (class mean 10.5), so M2 must show clearly that the network is correctly built and actually learns something, not only that it runs.
@@ -69,6 +71,7 @@ No positional encoding, dropout or extra transformer blocks. Attention masks onl
 - Loss: cross-entropy of the masked policy on the teacher action (the value head is not trained by BC; PPO trains it). Adam 3e-4, batch 256, at most 20 epochs. Same recipe for both networks.
 - Report: train/validation loss curves; validation accuracy overall and per action family (PICK / DELIVER / CHARGE / RETURN / WAIT); closed-loop on-time rate on the 40 dev days per load for each network vs Slack-aware, Random, EDF, FCFS and nearest-first.
 - The trained checkpoints (small files) ship with the M2 submission so the demo needs no training.
+- M3 option, not M2: use the rollout planner (stronger than Slack-aware) as the teacher, so BC → PPO starts above Slack-aware. Evaluated in the M3 design.
 
 ## 6. Baselines and evaluation (decided)
 
@@ -84,7 +87,7 @@ The 2026-10-15 review found that the current reward mostly buys rescues of late 
 2. on-time only: +1 per on-time delivery, nothing else;
 3. compromise: +1 on time, +0.1 late, −0.1 expiry, current energy cost.
 
-Report on-time, served and expiry rates and per-type on-time for each. The owner chooses by 2026-10-26, and the choice is frozen for M3. A changed reward is an environment change after M1 and must be stated in the M2 report's reflections.
+Report on-time, served and expiry rates and per-type on-time for each. Claude and Codex choose by 2026-10-26 from these numbers (prefer the candidate with the highest on-time rate that does not starve any order type), tell the owner, and freeze the choice for M3. A changed reward is an environment change after M1 and must be stated in the M2 report's reflections.
 
 ## 8. M2 demo (decided)
 
