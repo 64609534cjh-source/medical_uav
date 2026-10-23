@@ -11,6 +11,7 @@ import torch
 
 from medical_uav.env import MedicalUAVEnv
 from medical_uav.metrics import episode_metrics
+from medical_uav.splits import RL_SEED_RANGE
 
 LOADS = ("low", "medium", "high")  # every new day draws one of these uniformly
 REWARD_SCALE = 10.0  # the learner sees reward / 10
@@ -30,9 +31,9 @@ class RolloutBuffer:
 
 
 def _new_day(env, rng):
-    """Reset env to a random training day at a random load; return (obs, mask)."""
-    obs, info = env.reset(seed=int(rng.integers(1 << 30)),
-                          options={"load": LOADS[int(rng.integers(len(LOADS)))]})
+    """Reset env to a random online-RL training day at a random load; return (obs, mask)."""
+    obs, info = env.reset(options={"demand_seed": int(rng.integers(*RL_SEED_RANGE)),
+                                   "load": LOADS[int(rng.integers(len(LOADS)))]})
     return obs, info["action_mask"]
 
 

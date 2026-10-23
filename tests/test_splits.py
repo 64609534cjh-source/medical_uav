@@ -10,6 +10,10 @@ def test_seed_manifest():
         for b in sets[i + 1:]:
             assert not a & b
     assert splits.TRAINING_SEEDS == (11, 22, 33, 44, 55)
+    # demonstrations and online RL use separate blocks of the training range
+    lo, hi = splits.RL_SEED_RANGE
+    assert all(splits.TRAIN_SEED_RANGE[0] <= s < lo for s in splits.DEMO_SEEDS)
+    assert splits.TRAIN_SEED_RANGE == (0, hi)
 
 
 def test_default_demand_seeds_come_from_the_training_range():

@@ -78,3 +78,17 @@ def test_train_ppo_smoke(tmp_path):
     assert len(checkpoints) == 1
     _, info = load_checkpoint(checkpoints[0])
     assert info["decisions"] == 4096 and info["seed"] == 11
+
+
+def test_ppo_days_avoid_demonstration_seeds():
+    from medical_uav.agents.ppo import _new_day
+    from medical_uav.env import MedicalUAVEnv
+    from medical_uav.splits import DEMO_SEEDS, RL_SEED_RANGE
+
+    env, rng = MedicalUAVEnv(), np.random.default_rng(11)
+    seeds = []
+    for _ in range(500):
+        _new_day(env, rng)
+        seeds.append(env.demand_seed)
+    lo, hi = RL_SEED_RANGE
+    assert all(lo <= s < hi for s in seeds) and not set(seeds) & set(DEMO_SEEDS)

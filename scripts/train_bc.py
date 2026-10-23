@@ -14,10 +14,11 @@ from medical_uav.agents.bc import collect_demonstrations, new_network, split_by_
 from medical_uav.agents.networks import NETWORKS
 from medical_uav.agents.policy import save_checkpoint
 from medical_uav.baselines.heuristics import slack_aware_policy
+from medical_uav.splits import DEMO_SEEDS
 
 REPO = Path(__file__).resolve().parents[1]
 LOADS = ["low", "medium", "high"]
-DEMAND_SEEDS = range(300)  # training demand seeds; 300 seeds x 3 loads = 900 teacher days
+DEMAND_SEEDS = DEMO_SEEDS[:300]  # 300 demonstration seeds x 3 loads = 900 teacher days
 
 
 def main():
