@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-from medical_uav.agents.networks import MLPNet, count_parameters, masked_logits, split_obs
+from medical_uav.agents.networks import MLPNet, SetNet, count_parameters, masked_logits, split_obs
 from medical_uav.env import MedicalUAVEnv
 from medical_uav.env.observation import GLOBAL_DIM, OBS_DIM
 
@@ -75,3 +75,55 @@ def test_mlp_parameter_count():
 
 def test_mlp_overfits_tiny_batch():
     assert overfit_loss(MLPNet()) < 0.05
+
+
+def state_with_orders(min_orders):
+    """Return one observation and mask with at least min_orders occupied pending slots."""
+    obs, mask = real_batch(120, load="high")
+    occupied = obs[:, GLOBAL_DIM:GLOBAL_DIM + 12 * 27].reshape(-1, 12, 27)[:, :, 0].sum(1)
+    i = int(torch.nonzero(occupied >= min_orders)[0])
+    return obs[i:i + 1], mask[i:i + 1]
+
+
+def test_set_shapes_mask_and_batch_of_one():
+    torch.manual_seed(0)
+    check_shapes_and_mask(SetNet())
+
+
+def test_set_pending_permutation():
+    torch.manual_seed(0)
+    net = SetNet()
+    obs, mask = state_with_orders(3)
+    perm = torch.randperm(12)
+    g, pending, cargo = split_obs(obs)
+    obs_p = torch.cat([g, pending[:, perm].flatten(1), cargo.flatten(1)], dim=1)
+    mask_p = mask.clone()
+    mask_p[:, :12] = mask[:, :12][:, perm]
+    with torch.no_grad():
+        logits, value = net(obs, mask)
+        logits_p, value_p = net(obs_p, mask_p)
+    assert torch.allclose(logits_p[:, :12], logits[:, :12][:, perm], atol=1e-5)
+    assert torch.allclose(logits_p[:, 12:], logits[:, 12:], atol=1e-5)
+    assert torch.allclose(value_p, value, atol=1e-5)
+
+
+def test_set_empty_and_single_order_finite():
+    torch.manual_seed(0)
+    net = SetNet()
+    obs, mask = state_with_orders(1)
+    g, pending, cargo = split_obs(obs)
+    empty = torch.cat([g, torch.zeros_like(pending).flatten(1), torch.zeros_like(cargo).flatten(1)], 1)
+    single_pending = torch.zeros_like(pending)
+    first = int(torch.nonzero(pending[0, :, 0])[0])
+    single_pending[0, first] = pending[0, first]
+    single = torch.cat([g, single_pending.flatten(1), torch.zeros_like(cargo).flatten(1)], 1)
+    only_wait = torch.zeros_like(mask)
+    only_wait[0, 25] = True
+    for o, m in ((empty, only_wait), (single, mask)):
+        with torch.no_grad():
+            logits, value = net(o, m)
+        assert torch.isfinite(logits).all() and torch.isfinite(value).all()
+
+
+def test_set_overfits_tiny_batch():
+    assert overfit_loss(SetNet()) < 0.05
