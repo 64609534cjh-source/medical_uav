@@ -8,6 +8,7 @@ and a checkpoint at every evaluation.
 """
 import argparse
 import csv
+import json
 import time
 from pathlib import Path
 
@@ -17,7 +18,7 @@ import torch
 from medical_uav.agents.networks import NETWORKS
 from medical_uav.agents.policy import NetworkPolicy, save_checkpoint
 from medical_uav.agents.ppo import collect, compute_gae, make_envs, ppo_update
-from medical_uav.evaluation import run_day
+from medical_uav.evaluation import run_day, run_metadata
 from medical_uav.splits import SELECT_SEEDS
 
 N_ENVS, N_STEPS = 16, 128  # decisions per update = 2048
@@ -44,6 +45,7 @@ def main():
     parser.add_argument("--eval-every", type=float, default=5e5)
     parser.add_argument("--eval-days", type=int, default=20)
     parser.add_argument("--threads", type=int, default=4)
+    parser.add_argument("--reward", default="v2", help="reward variant")
     parser.add_argument("--out", required=True)
     args = parser.parse_args()
 
@@ -52,6 +54,7 @@ def main():
     rng = np.random.default_rng(args.seed)
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
+    (out / "run.json").write_text(json.dumps(run_metadata(vars(args)), indent=1))
     total, eval_every = int(args.decisions), int(args.eval_every)
 
     net = NETWORKS[args.net]()

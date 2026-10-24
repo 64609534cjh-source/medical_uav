@@ -78,6 +78,9 @@ def test_train_ppo_smoke(tmp_path):
     assert len(checkpoints) == 1
     _, info = load_checkpoint(checkpoints[0])
     assert info["decisions"] == 4096 and info["seed"] == 11
+    import json
+    meta = json.loads((tmp_path / "run" / "run.json").read_text())
+    assert {"env_version", "git_revision", "net", "seed", "reward"} <= set(meta)
 
 
 def test_ppo_days_avoid_demonstration_seeds():

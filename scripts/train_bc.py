@@ -14,6 +14,7 @@ from medical_uav.agents.bc import collect_demonstrations, new_network, split_by_
 from medical_uav.agents.networks import NETWORKS
 from medical_uav.agents.policy import save_checkpoint
 from medical_uav.baselines.heuristics import slack_aware_policy
+from medical_uav.evaluation import run_metadata
 from medical_uav.splits import DEMO_SEEDS
 
 REPO = Path(__file__).resolve().parents[1]
@@ -51,8 +52,10 @@ def main():
         histories[kind] = history
         print(f"{kind}: best epoch {best + 1}, validation accuracy {history[best]['val_acc']:.3f}, "
               f"{time.time() - t0:.0f} s")
+    meta = run_metadata({"teacher": "slack-aware", "seed": 0, "loads": LOADS,
+                         "demand_seeds": [0, len(DEMAND_SEEDS) - 1], "epochs": args.epochs})
     with open(Path(args.out) / "bc_history.json", "w") as f:
-        json.dump(histories, f, indent=1)
+        json.dump({"metadata": meta, "histories": histories}, f, indent=1)
 
 
 if __name__ == "__main__":

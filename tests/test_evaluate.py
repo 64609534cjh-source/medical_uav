@@ -32,3 +32,12 @@ def test_checkpoint_labels_are_unique():
 
     labels = checkpoint_labels(["runs/a/ckpt_01.pt", "runs/b/ckpt_01.pt", "checkpoints/bc_set.pt"])
     assert labels == ["a/ckpt_01", "b/ckpt_01", "bc_set"]
+
+
+def test_rows_have_per_type_counts():
+    from medical_uav.evaluation import run_day
+
+    row = run_day(heuristic(slack_aware_policy), "medium", 100_000)
+    types = ["plasma", "medicine", "sample", "supplies"]
+    assert sum(row[f"released_{t}"] for t in types) == row["n_orders"]
+    assert sum(row[f"on_time_count_{t}"] for t in types) == row["on_time"]

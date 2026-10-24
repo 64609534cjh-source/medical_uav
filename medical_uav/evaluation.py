@@ -1,12 +1,26 @@
 """Run policies on the same days and compare them. A policy is called as
 policy(env, obs, mask) and returns a valid action index."""
+import platform
+import subprocess
 from pathlib import Path
 
 import numpy as np
+import torch
 
 from medical_uav.env import MedicalUAVEnv
-from medical_uav.env.config import ENV_VERSION
+from medical_uav.env.config import ENV_VERSION, EPS, ORDER_TYPES
 from medical_uav.metrics import episode_metrics
+
+
+def run_metadata(extra: dict) -> dict:
+    """What produced a result: environment version, code revision, library versions, and extra."""
+    try:
+        revision = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True,
+                                  text=True, cwd=Path(__file__).parent).stdout.strip() or "unknown"
+    except OSError:
+        revision = "unknown"
+    return {"env_version": ENV_VERSION, "git_revision": revision,
+            "python": platform.python_version(), "torch": torch.__version__, **extra}
 
 
 def checkpoint_labels(paths: list) -> list[str]:
@@ -39,6 +53,13 @@ def run_day(policy, load: str, demand_seed: int) -> dict:
             row.update({f"on_time_{name}": rate for name, rate in value.items()})
         else:
             row[key] = value
+    # counts per order type, so rates can be pooled over days
+    released = [o for o in env.sim.orders if o.status != "future"]
+    for k, order_type in enumerate(ORDER_TYPES):
+        mine = [o for o in released if o.type_idx == k]
+        row[f"released_{order_type.name}"] = len(mine)
+        row[f"on_time_count_{order_type.name}"] = sum(
+            1 for o in mine if o.status == "delivered" and o.end_time - o.release <= o.limit + EPS)
     return row
 
 
