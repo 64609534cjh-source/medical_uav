@@ -1,0 +1,129 @@
+"""Compare how policies serve the same days: batching, charging, waiting, peak service.
+
+Writes behaviour.csv (one row per policy, load and day), prints the means, and draws the battery
+over one day for each policy and the on-time rate by hour of release.
+
+Usage:
+    python scripts/analyze_behaviour.py --checkpoints runs/m3_set_s11/ckpt_06000640.pt \\
+        --methods slack,rollout --out outputs/behaviour
+"""
+import argparse
+import csv
+from multiprocessing import Pool
+from pathlib import Path
+
+import numpy as np
+import torch
+from matplotlib.figure import Figure
+
+from medical_uav.agents.policy import NetworkPolicy, load_checkpoint
+from medical_uav.baselines.heuristics import slack_aware_policy
+from medical_uav.baselines.rollout import rollout_policy
+from medical_uav.env import MedicalUAVEnv
+from medical_uav.env.config import EPS
+from medical_uav.evaluation import checkpoint_labels
+from medical_uav.metrics import behaviour_metrics, episode_metrics
+from medical_uav.splits import SCREEN_SEEDS
+
+RULES = {"slack": slack_aware_policy, "rollout": rollout_policy}
+HOURS = 8  # orders are released over 8 hours
+
+
+def make_policy(name: str):
+    """A rule by name, or a checkpoint path as a network policy; policy(env, obs, mask)."""
+    if name in RULES:
+        return lambda env, obs, mask: RULES[name](env)
+    return NetworkPolicy(load_checkpoint(name)[0])
+
+
+def run(job) -> dict:
+    """One day of one policy: behaviour metrics, on-time by hour of release, battery trace."""
+    torch.set_num_threads(1)
+    name, label, load, seed = job
+    policy = make_policy(name)
+    env = MedicalUAVEnv(load=load)
+    obs, info = env.reset(options={"demand_seed": seed})
+    done = False
+    while not done:
+        obs, _, done, _, info = env.step(policy(env, obs, info["action_mask"]))
+    sim = env.sim
+    hourly = []
+    for h in range(HOURS):
+        released = [o for o in sim.orders if h * 60 <= o.release < (h + 1) * 60]
+        on_time = [o for o in released
+                   if o.status == "delivered" and o.end_time - o.release <= o.limit + EPS]
+        hourly.append(len(on_time) / len(released) if released else np.nan)
+    trace = [(s.t0, s.battery0) for s in sim.segments] + [(sim.t, sim.battery)]
+    return {"method": label, "load": load, "seed": seed,
+            "on_time_rate": episode_metrics(sim)["on_time_rate"],
+            **behaviour_metrics(sim, env.decision_log), "hourly": hourly, "trace": trace}
+
+
+def draw(rows: list[dict], labels: list[str], out: Path) -> None:
+    """Battery over the first day of the highest load for each policy; on-time by hour."""
+    load = rows[-1]["load"]
+    day = min(r["seed"] for r in rows)
+    fig = Figure(figsize=(8, 3.2), dpi=120)
+    ax = fig.add_subplot()
+    for label in labels:
+        r = next(r for r in rows if r["method"] == label and r["load"] == load and r["seed"] == day)
+        t, b = zip(*r["trace"])
+        ax.plot(np.array(t) / 60 + 8, b, label=label, lw=1.2)
+    ax.set_xlabel("time of day (h)")
+    ax.set_ylabel("battery (%)")
+    ax.set_title(f"Battery over one day ({load} load, demand seed {day})")
+    ax.legend(fontsize=8)
+    fig.tight_layout()
+    fig.savefig(out / "battery_day.png")
+
+    fig = Figure(figsize=(8, 3.2), dpi=120)
+    ax = fig.add_subplot()
+    for label in labels:
+        hourly = np.array([r["hourly"] for r in rows if r["method"] == label and r["load"] == load])
+        ax.plot(np.arange(HOURS) + 8.5, np.nanmean(hourly, axis=0), marker="o", label=label)
+    ax.set_xlabel("hour of release")
+    ax.set_ylabel("on-time rate")
+    ax.set_title(f"On-time rate by hour of release ({load} load)")
+    ax.legend(fontsize=8)
+    fig.tight_layout()
+    fig.savefig(out / "on_time_by_hour.png")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--checkpoints", nargs="*", default=[])
+    parser.add_argument("--methods", default="slack,rollout")
+    parser.add_argument("--loads", default="medium,high")
+    parser.add_argument("--days", type=int, default=len(SCREEN_SEEDS))
+    parser.add_argument("--processes", type=int, default=8)
+    parser.add_argument("--out", default="outputs/behaviour")
+    args = parser.parse_args()
+
+    named = [(m, m) for m in args.methods.split(",") if m]
+    named += list(zip(args.checkpoints, checkpoint_labels(args.checkpoints)))
+    seeds = list(SCREEN_SEEDS)[:args.days]
+    jobs = [(name, label, load, seed) for load in args.loads.split(",") for name, label in named
+            for seed in seeds]
+    with Pool(args.processes) as pool:
+        rows = pool.map(run, jobs, chunksize=1)
+
+    out = Path(args.out)
+    out.mkdir(parents=True, exist_ok=True)
+    keys = [k for k in rows[0] if k not in ("hourly", "trace")]
+    with open(out / "behaviour.csv", "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=keys)
+        writer.writeheader()
+        writer.writerows({k: r[k] for k in keys} for r in rows)
+    labels = [label for _, label in named]
+    for load in args.loads.split(","):
+        print(f"\n{load} load (means over {len(seeds)} days)")
+        for label in labels:
+            rs = [r for r in rows if r["method"] == label and r["load"] == load]
+            means = {k: np.nanmean([r[k] for r in rs]) for k in keys[3:]}
+            print(f"  {label:28s} " + "  ".join(f"{k} {v:.3f}" for k, v in means.items()))
+    draw(rows, labels, out)
+    print(f"\nSaved: {out}")
+
+
+if __name__ == "__main__":
+    main()

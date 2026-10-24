@@ -47,6 +47,41 @@ def episode_metrics(sim: Simulator) -> dict:
     }
 
 
+def behaviour_metrics(sim: Simulator, decision_log: list) -> dict:
+    """How a day was served: boxes unloaded per delivery stop, charges and the battery when they
+    started, the shares of WAIT and RETURN decisions, and the on-time rate of orders released
+    inside and outside the demand peaks."""
+    stops, unloads = 0, 0
+    previous = None
+    for seg in sim.segments:
+        if seg.kind == "unload":
+            unloads += 1
+            if previous is None or previous.kind != "unload" or previous.node_to != seg.node_to:
+                stops += 1  # a new stop starts unless the drone keeps unloading at the same node
+        if seg.kind != "dispose":
+            previous = seg
+    charges = [seg for seg in sim.segments if seg.kind == "charge"]
+    labels = [entry[1] for entry in decision_log]
+
+    def on_time_rate(in_peak: bool) -> float:
+        released = [o for o in sim.orders if o.status != "future"
+                    and any(a <= o.release < b for a, b in sim.cfg.peak_windows) == in_peak]
+        on_time = [o for o in released
+                   if o.status == "delivered" and o.end_time - o.release <= o.limit + EPS]
+        return len(on_time) / len(released) if released else math.nan
+
+    return {
+        "boxes_per_stop": unloads / stops if stops else math.nan,
+        "charges": len(charges),
+        "battery_at_charge": (sum(c.battery0 for c in charges) / len(charges)
+                              if charges else math.nan),
+        "wait_share": labels.count("WAIT") / len(labels) if labels else math.nan,
+        "return_share": labels.count("RETURN") / len(labels) if labels else math.nan,
+        "on_time_peak": on_time_rate(True),
+        "on_time_offpeak": on_time_rate(False),
+    }
+
+
 def share(count: int, total: int) -> str:
     """Return 'count/total (percent%)', the way rates are printed."""
     return f"{count}/{total} ({100 * count / total:.1f}%)" if total else f"{count}/0"
