@@ -131,3 +131,41 @@ def ppo_update(net, opt, buf: RolloutBuffer, adv, ret, clip: float = 0.2, epochs
                 stats["approx_kl"].append((old_log_prob[b] - log_prob).mean().item())
                 stats["clip_frac"].append(((ratio - 1).abs() > clip).float().mean().item())
     return {k: float(np.mean(v)) for k, v in stats.items()}
+
+
+VALUE_PARTS = ("value_head", "critic")  # the value part of each network (SetNet, MLPNet)
+
+
+def warm_up_value(net, envs, state: dict, rng, rollouts: int = 10, epochs: int = 4,
+                  n_steps: int = 128, minibatch: int = 512) -> dict:
+    """Train only the value part of a network on returns of its own policy, with every other
+    parameter frozen, so a network trained by imitation starts PPO with a sensible critic and
+    unchanged action probabilities. Returns the value loss of the first and last rollout."""
+    value_params = [p for name, p in net.named_parameters() if name.startswith(VALUE_PARTS)]
+    frozen = [p for name, p in net.named_parameters() if not name.startswith(VALUE_PARTS)]
+    for p in frozen:
+        p.requires_grad_(False)
+    opt = torch.optim.Adam(value_params, lr=3e-4, eps=1e-5)
+    losses = []
+    for _ in range(rollouts):
+        buf = collect(envs, net, state, n_steps, rng)
+        _, ret = compute_gae(buf.reward, buf.value, buf.done, buf.last_value)
+        obs = torch.as_tensor(buf.obs.reshape(-1, buf.obs.shape[-1]))
+        mask = torch.as_tensor(buf.mask.reshape(-1, buf.mask.shape[-1]))
+        target = torch.as_tensor(ret.reshape(-1))
+        with torch.no_grad():
+            losses.append(((net(obs, mask)[1] - target) ** 2).mean().item())
+        index = np.arange(len(target))
+        for _ in range(epochs):
+            rng.shuffle(index)
+            for i in range(0, len(index), minibatch):
+                b = torch.as_tensor(index[i:i + minibatch])
+                loss = ((net(obs[b], mask[b])[1] - target[b]) ** 2).mean()
+                opt.zero_grad()
+                loss.backward()
+                opt.step()
+    for p in frozen:
+        p.requires_grad_(True)
+    state["finished"] = []  # warm-up days are not training results
+    return {"value_loss_before": losses[0], "value_loss_after": losses[-1],
+            "decisions": rollouts * n_steps * len(envs)}

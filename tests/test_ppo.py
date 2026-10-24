@@ -102,3 +102,53 @@ def test_make_envs_uses_the_reward_variant():
 
     envs, _ = make_envs(2, np.random.default_rng(0), EnvConfig(**REWARDS["m1"]))
     assert all(env.cfg.late_reward == "linear" and env.cfg.expiry_penalty == 0.5 for env in envs)
+
+
+def fixed_batch():
+    net, buf = rollout(n_envs=2, n_steps=16)
+    obs = torch.as_tensor(buf.obs.reshape(-1, buf.obs.shape[-1]))
+    mask = torch.as_tensor(buf.mask.reshape(-1, 26))
+    return obs, mask
+
+
+def test_warm_up_keeps_the_policy():
+    from medical_uav.agents.ppo import warm_up_value
+
+    torch.manual_seed(0)
+    net = SetNet()
+    obs, mask = fixed_batch()
+    with torch.no_grad():
+        before = torch.softmax(net(obs, mask)[0], 1)
+    envs, state = make_envs(2, np.random.default_rng(1))
+    warm_up_value(net, envs, state, np.random.default_rng(1), rollouts=2, epochs=1, n_steps=32)
+    with torch.no_grad():
+        after = torch.softmax(net(obs, mask)[0], 1)
+    assert torch.allclose(before, after, atol=1e-6)
+
+
+def test_warm_up_reduces_value_loss():
+    from medical_uav.agents.ppo import warm_up_value
+
+    torch.manual_seed(0)
+    net = SetNet()
+    envs, state = make_envs(2, np.random.default_rng(1))
+    stats = warm_up_value(net, envs, state, np.random.default_rng(1), rollouts=4, epochs=4,
+                          n_steps=64)
+    assert stats["value_loss_after"] < stats["value_loss_before"]
+
+
+def test_train_ppo_from_a_bc_checkpoint(tmp_path):
+    import json
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    repo = Path(__file__).resolve().parents[1]
+    result = subprocess.run([sys.executable, str(repo / "scripts" / "train_ppo.py"), "--net", "set",
+                             "--init", str(repo / "checkpoints" / "bc_set.pt"),
+                             "--warmup-rollouts", "1", "--decisions", "2048", "--eval-every",
+                             "2048", "--eval-days", "1", "--out", str(tmp_path / "run")],
+                            capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    meta = json.loads((tmp_path / "run" / "run.json").read_text())
+    assert meta["init"].endswith("bc_set.pt") and meta["warmup"]["decisions"] == 16 * 128
