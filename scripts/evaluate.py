@@ -11,6 +11,7 @@ from multiprocessing import Pool
 from pathlib import Path
 
 import numpy as np
+import torch
 
 from medical_uav.agents.policy import NetworkPolicy, load_checkpoint
 from medical_uav.baselines.heuristics import (edf_policy, fcfs_policy, nearest_policy,
@@ -47,6 +48,7 @@ def make_policies(methods: list[str], checkpoints: list[str]) -> dict:
 
 def run_job(job) -> list[dict]:
     """Evaluate one method or checkpoint at one load (built here, so jobs can run in parallel)."""
+    torch.set_num_threads(1)  # many workers run at once; each must use a single core
     method, checkpoint, label, load, seeds = job
     policies = make_policies([method] if method else [], [checkpoint] if checkpoint else [])
     return evaluate({label: next(iter(policies.values()))}, [load], seeds)

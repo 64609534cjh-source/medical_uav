@@ -125,3 +125,21 @@ def test_evaluate_script_in_parallel_with_the_planner(tmp_path):
                              "--out", str(out)], capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
     assert out.read_text().count("\n") == 5 and "rollout" in result.stdout
+
+
+def test_parallel_evaluation_job_uses_one_thread():
+    import importlib.util
+    from pathlib import Path
+
+    import torch
+
+    path = Path(__file__).resolve().parents[1] / "scripts" / "evaluate.py"
+    spec = importlib.util.spec_from_file_location("evaluate_script", path)
+    script = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(script)
+    before = torch.get_num_threads()
+    try:
+        script.run_job(("slack", None, "slack", "low", [100_000]))
+        assert torch.get_num_threads() == 1  # parallel workers must not each use every core
+    finally:
+        torch.set_num_threads(before)
