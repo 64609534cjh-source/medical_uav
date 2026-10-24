@@ -101,6 +101,9 @@ def select_checkpoint(results: dict, slack: dict) -> tuple[str | None, list[dict
     for path in sorted(results):
         r = results[path]
         reasons = []
+        values = [v for load in r.values() for v in load.values()]
+        if not all(np.isfinite(values)):
+            reasons.append("a rate is not finite")
         if r["low"]["on_time_rate"] < LOW_LOAD_FLOOR:
             reasons.append(f"low load {r['low']['on_time_rate']:.3f} < {LOW_LOAD_FLOOR}")
         for load in ("medium", "high"):

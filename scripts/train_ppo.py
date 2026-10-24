@@ -106,6 +106,8 @@ def main():
             evals.flush()
             save_checkpoint(net, args.net, out / f"ckpt_{decisions:08d}.pt",
                             {"decisions": decisions, "seed": args.seed, "net": args.net,
+                             "reward": args.reward, "init": args.init,
+                             "git_revision": meta["git_revision"],
                              "eval_days": args.eval_days, **{f"on_time_{k}": v
                                                              for k, v in result.items()}})
             print(f"{decisions:>9d} decisions  {time.time() - t0:6.0f} s  "

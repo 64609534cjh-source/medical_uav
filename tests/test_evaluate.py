@@ -143,3 +143,10 @@ def test_parallel_evaluation_job_uses_one_thread():
         assert torch.get_num_threads() == 1  # parallel workers must not each use every core
     finally:
         torch.set_num_threads(before)
+
+
+def test_select_rejects_missing_rates():
+    from medical_uav.evaluation import select_checkpoint
+
+    chosen, rows = select_checkpoint({"a.pt": fake(0.99, 0.9, float("nan"))}, SLACK)
+    assert chosen is None and "not finite" in rows[0]["reason"]

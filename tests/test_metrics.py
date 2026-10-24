@@ -69,3 +69,18 @@ def test_analyze_behaviour_script(tmp_path):
     assert result.returncode == 0, result.stderr
     names = {p.name for p in (tmp_path / "beh").iterdir()}
     assert {"behaviour.csv", "battery_day.png", "on_time_by_hour.png"} <= names
+
+
+def test_boxes_per_stop_counts_only_successful_deliveries(line_map):
+    from medical_uav.metrics import behaviour_metrics
+
+    a = make_order(0, 0, M, 5, 0.6, 0.0)  # plasma to H5 (6 km), expires at 60
+    b = make_order(1, 1, M, 5, 0.5, 0.0)  # medicine to H5
+    sim = make_sim(line_map, [a, b])
+    sim.do_pick(a)
+    sim.do_pick(b)
+    sim.advance_to(52.5)  # arrive 58.5: a is unloaded first and expires during it (at 60)
+    sim.do_deliver(5)
+    m = behaviour_metrics(sim, [(0.0, "PICK", 0.0)])
+    assert a.status == "expired" and b.status == "delivered"
+    assert m["boxes_per_stop"] == 1.0  # one stop, one box actually delivered

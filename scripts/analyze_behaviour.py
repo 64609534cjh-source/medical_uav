@@ -47,21 +47,24 @@ def run(job) -> dict:
     while not done:
         obs, _, done, _, info = env.step(policy(env, obs, info["action_mask"]))
     sim = env.sim
-    hourly = []
+    released, on_time = [], []  # per hour of release, counted so they can be pooled over days
     for h in range(HOURS):
-        released = [o for o in sim.orders if h * 60 <= o.release < (h + 1) * 60]
-        on_time = [o for o in released
-                   if o.status == "delivered" and o.end_time - o.release <= o.limit + EPS]
-        hourly.append(len(on_time) / len(released) if released else np.nan)
+        mine = [o for o in sim.orders if h * 60 <= o.release < (h + 1) * 60]
+        released.append(len(mine))
+        on_time.append(sum(1 for o in mine
+                           if o.status == "delivered" and o.end_time - o.release <= o.limit + EPS))
     trace = [(s.t0, s.battery0) for s in sim.segments] + [(sim.t, sim.battery)]
-    return {"method": label, "load": load, "seed": seed,
-            "on_time_rate": episode_metrics(sim)["on_time_rate"],
-            **behaviour_metrics(sim, env.decision_log), "hourly": hourly, "trace": trace}
+    m = episode_metrics(sim)
+    return {"method": label, "load": load, "seed": seed, "on_time_rate": m["on_time_rate"],
+            "charge_share": m["charge_share"], "km_flown": m["km_flown"],
+            **behaviour_metrics(sim, env.decision_log),
+            "hourly": (released, on_time), "trace": trace}
 
 
-def draw(rows: list[dict], labels: list[str], out: Path) -> None:
-    """Battery over the first day of the highest load for each policy; on-time by hour."""
-    load = rows[-1]["load"]
+def draw(rows: list[dict], labels: list[str], loads: list[str], out: Path) -> None:
+    """Battery over the first day of the last load for each policy; on-time rate by hour of
+    release, pooled over days (on-time orders / released orders), for every load."""
+    load = loads[-1]
     day = min(r["seed"] for r in rows)
     fig = Figure(figsize=(8, 3.2), dpi=120)
     ax = fig.add_subplot()
@@ -76,15 +79,19 @@ def draw(rows: list[dict], labels: list[str], out: Path) -> None:
     fig.tight_layout()
     fig.savefig(out / "battery_day.png")
 
-    fig = Figure(figsize=(8, 3.2), dpi=120)
-    ax = fig.add_subplot()
-    for label in labels:
-        hourly = np.array([r["hourly"] for r in rows if r["method"] == label and r["load"] == load])
-        ax.plot(np.arange(HOURS) + 8.5, np.nanmean(hourly, axis=0), marker="o", label=label)
-    ax.set_xlabel("hour of release")
-    ax.set_ylabel("on-time rate")
-    ax.set_title(f"On-time rate by hour of release ({load} load)")
-    ax.legend(fontsize=8)
+    fig = Figure(figsize=(4 * len(loads), 3.2), dpi=120)
+    for k, load in enumerate(loads):
+        ax = fig.add_subplot(1, len(loads), k + 1)
+        for label in labels:
+            counts = np.array([r["hourly"] for r in rows
+                               if r["method"] == label and r["load"] == load])  # [days, 2, hours]
+            released, on_time = counts[:, 0].sum(axis=0), counts[:, 1].sum(axis=0)
+            ax.plot(np.arange(HOURS) + 8.5, on_time / np.maximum(released, 1), marker="o",
+                    label=label)
+        ax.set_xlabel("hour of release")
+        ax.set_ylabel("on-time rate (pooled)")
+        ax.set_title(f"{load} load")
+        ax.legend(fontsize=7)
     fig.tight_layout()
     fig.savefig(out / "on_time_by_hour.png")
 
@@ -121,7 +128,7 @@ def main():
             rs = [r for r in rows if r["method"] == label and r["load"] == load]
             means = {k: np.nanmean([r[k] for r in rs]) for k in keys[3:]}
             print(f"  {label:28s} " + "  ".join(f"{k} {v:.3f}" for k, v in means.items()))
-    draw(rows, labels, out)
+    draw(rows, labels, args.loads.split(","), out)
     print(f"\nSaved: {out}")
 
 

@@ -139,6 +139,8 @@ def test_warm_up_reduces_value_loss():
 
 def test_train_ppo_from_a_bc_checkpoint(tmp_path):
     import json
+
+    from medical_uav.agents.policy import load_checkpoint
     import subprocess
     import sys
     from pathlib import Path
@@ -152,3 +154,5 @@ def test_train_ppo_from_a_bc_checkpoint(tmp_path):
     assert result.returncode == 0, result.stderr
     meta = json.loads((tmp_path / "run" / "run.json").read_text())
     assert meta["init"].endswith("bc_set.pt") and meta["warmup"]["decisions"] == 16 * 128
+    _, info = load_checkpoint(next((tmp_path / "run").glob("ckpt_*.pt")))
+    assert info["reward"] == "v2" and info["init"].endswith("bc_set.pt") and info["git_revision"]

@@ -146,15 +146,17 @@ def warm_up_value(net, envs, state: dict, rng, rollouts: int = 10, epochs: int =
     for p in frozen:
         p.requires_grad_(False)
     opt = torch.optim.Adam(value_params, lr=3e-4, eps=1e-5)
-    losses = []
+    first = None  # the first rollout's data and returns, to measure the loss before and after
     for _ in range(rollouts):
         buf = collect(envs, net, state, n_steps, rng)
         _, ret = compute_gae(buf.reward, buf.value, buf.done, buf.last_value)
         obs = torch.as_tensor(buf.obs.reshape(-1, buf.obs.shape[-1]))
         mask = torch.as_tensor(buf.mask.reshape(-1, buf.mask.shape[-1]))
         target = torch.as_tensor(ret.reshape(-1))
-        with torch.no_grad():
-            losses.append(((net(obs, mask)[1] - target) ** 2).mean().item())
+        if first is None:
+            first = (obs, mask, target)
+            with torch.no_grad():
+                before = ((net(obs, mask)[1] - target) ** 2).mean().item()
         index = np.arange(len(target))
         for _ in range(epochs):
             rng.shuffle(index)
@@ -167,5 +169,8 @@ def warm_up_value(net, envs, state: dict, rng, rollouts: int = 10, epochs: int =
     for p in frozen:
         p.requires_grad_(True)
     state["finished"] = []  # warm-up days are not training results
-    return {"value_loss_before": losses[0], "value_loss_after": losses[-1],
+    obs, mask, target = first
+    with torch.no_grad():
+        after = ((net(obs, mask)[1] - target) ** 2).mean().item()
+    return {"value_loss_before": before, "value_loss_after": after,
             "decisions": rollouts * n_steps * len(envs)}

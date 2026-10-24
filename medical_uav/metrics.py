@@ -48,18 +48,18 @@ def episode_metrics(sim: Simulator) -> dict:
 
 
 def behaviour_metrics(sim: Simulator, decision_log: list) -> dict:
-    """How a day was served: boxes unloaded per delivery stop, charges and the battery when they
-    started, the shares of WAIT and RETURN decisions, and the on-time rate of orders released
-    inside and outside the demand peaks."""
-    stops, unloads = 0, 0
+    """How a day was served: boxes delivered per delivery stop (a box that expires while being
+    unloaded does not count), charges and the battery when they started, the shares of WAIT and
+    RETURN decisions, and the on-time rate of orders released inside and outside the peaks."""
+    stops = 0
     previous = None
     for seg in sim.segments:
         if seg.kind == "unload":
-            unloads += 1
             if previous is None or previous.kind != "unload" or previous.node_to != seg.node_to:
                 stops += 1  # a new stop starts unless the drone keeps unloading at the same node
         if seg.kind != "dispose":
             previous = seg
+    delivered = sum(1 for _, kind, _ in sim.events if kind == "deliver")
     charges = [seg for seg in sim.segments if seg.kind == "charge"]
     labels = [entry[1] for entry in decision_log]
 
@@ -71,7 +71,7 @@ def behaviour_metrics(sim: Simulator, decision_log: list) -> dict:
         return len(on_time) / len(released) if released else math.nan
 
     return {
-        "boxes_per_stop": unloads / stops if stops else math.nan,
+        "boxes_per_stop": delivered / stops if stops else math.nan,
         "charges": len(charges),
         "battery_at_charge": (sum(c.battery0 for c in charges) / len(charges)
                               if charges else math.nan),

@@ -29,18 +29,36 @@ def test_visible_copy_hides_future_and_hidden_orders():
     assert env.sim.pending and len(env.sim.orders) > len(c.sim.orders)  # the original is untouched
 
 
+def overflowing_states(n):
+    """n mid-day states at a very high load, where more orders wait than the 12 slots show."""
+    states = []
+    for k in range(n):
+        env = MedicalUAVEnv()
+        env.reset(options={"demand_seed": 100_000 + k % 20, "lam": 0.2})
+        for _ in range(20 + k % 40):
+            env.step(slack_aware_policy(env))
+        states.append(env)
+    return states
+
+
 def test_rollout_ignores_future_and_hidden_orders():
     rng = np.random.default_rng(0)
-    for env in mid_day_states(20):
+    states = overflowing_states(100)
+    assert sum(len(env.sim.pending) > len(env.slots) for env in states) >= 50  # hidden orders exist
+    for env in states:
         before = rollout_policy(env)
         other = copy.deepcopy(env)
         sim = other.sim
         shown = {o.id for o in other.slots}
-        for o in sim.orders[sim._next_release:] + [o for o in sim.pending if o.id not in shown]:
+        hidden = [o for o in sim.pending if o.id not in shown]
+        for o in sim.orders[sim._next_release:] + hidden:
             o.dest = int(rng.choice([d for d in range(6) if d != o.origin]))
             o.weight = float(rng.uniform(0.2, 0.9))
+            o.limit, o.expiry_after = o.limit * 3, o.expiry_after * 3  # later deadlines and expiry
         for o in sim.orders[sim._next_release:]:
             o.release = sim.t + 0.5  # future orders would arrive almost at once
+        removed = {o.id for o in hidden[::2]}  # and half of the hidden orders disappear
+        sim.pending = [o for o in sim.pending if o.id not in removed]
         assert rollout_policy(other) == before
 
 
