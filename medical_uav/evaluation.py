@@ -2,6 +2,7 @@
 policy(env, obs, mask) and returns a valid action index."""
 import platform
 import subprocess
+import time
 from pathlib import Path
 
 import numpy as np
@@ -38,16 +39,19 @@ def run_day(policy, load: str, demand_seed: int) -> dict:
     """Run one day with the policy and return its metrics, total reward and decision count."""
     env = MedicalUAVEnv(load=load)
     obs, info = env.reset(options={"demand_seed": demand_seed})
-    total, decisions, done = 0.0, 0, False
+    total, decisions, done, seconds = 0.0, 0, False, []
     while not done:
+        t0 = time.perf_counter()
         a = policy(env, obs, info["action_mask"])
+        seconds.append(time.perf_counter() - t0)
         assert info["action_mask"][a], f"invalid action {a}"  # the env would silently WAIT
         obs, reward, done, _, info = env.step(a)
         total += reward
         decisions += 1
     m = episode_metrics(env.sim)
     row = {"load": load, "seed": demand_seed, "env_version": ENV_VERSION, "return": total,
-           "decisions": decisions}
+           "decisions": decisions, "decision_ms_mean": 1000 * float(np.mean(seconds)),
+           "decision_ms_p95": 1000 * float(np.percentile(seconds, 95))}
     for key, value in m.items():
         if key == "on_time_by_type":
             row.update({f"on_time_{name}": rate for name, rate in value.items()})

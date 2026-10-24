@@ -11,7 +11,8 @@ def test_evaluate_rows_and_columns():
                     ["low"], range(100_000, 100_002))
     assert len(rows) == 4
     keys = {"method", "load", "seed", "env_version", "on_time", "n_orders", "on_time_rate",
-            "served_rate", "expiry_rate", "return", "charge_share", "on_time_plasma"}
+            "served_rate", "expiry_rate", "return", "charge_share", "on_time_plasma",
+            "decision_ms_mean", "decision_ms_p95"}
     assert keys <= set(rows[0])
     assert {r["method"] for r in rows} == {"slack", "fcfs"}
 
@@ -110,3 +111,17 @@ def test_select_checkpoints_script(tmp_path):
     report = json.loads((tmp_path / "sel.json").read_text())
     rows = report["runs"][str(run)]["checkpoints"]
     assert len(rows) == 1 and "eligible" in rows[0] and "medium" in report["slack"]
+
+
+def test_evaluate_script_in_parallel_with_the_planner(tmp_path):
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    repo = Path(__file__).resolve().parents[1]
+    out = tmp_path / "eval.csv"
+    result = subprocess.run([sys.executable, str(repo / "scripts" / "evaluate.py"), "--methods",
+                             "slack,rollout", "--loads", "low", "--days", "2", "--processes", "2",
+                             "--out", str(out)], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    assert out.read_text().count("\n") == 5 and "rollout" in result.stdout
