@@ -41,3 +41,72 @@ def test_rows_have_per_type_counts():
     types = ["plasma", "medicine", "sample", "supplies"]
     assert sum(row[f"released_{t}"] for t in types) == row["n_orders"]
     assert sum(row[f"on_time_count_{t}"] for t in types) == row["on_time"]
+
+
+TYPES = ["plasma", "medicine", "sample", "supplies"]
+
+
+def fake(low, medium, high, types=None):
+    """Selection-day results of one checkpoint: on-time rates per load and pooled per type."""
+    types = types or {}
+    out = {}
+    for load, rate in (("low", low), ("medium", medium), ("high", high)):
+        out[load] = {"on_time_rate": rate,
+                     **{f"on_time_{t}": types.get((load, t), rate) for t in TYPES}}
+    return out
+
+
+SLACK = fake(0.99, 0.81, 0.66)
+
+
+def test_select_prefers_highest_eligible():
+    from medical_uav.evaluation import select_checkpoint
+
+    results = {"run/ckpt_1.pt": fake(0.99, 0.90, 0.80), "run/ckpt_2.pt": fake(0.95, 0.95, 0.90),
+               "run/ckpt_3.pt": fake(0.99, 0.91, 0.82)}
+    chosen, rows = select_checkpoint(results, SLACK)
+    assert chosen == "run/ckpt_3.pt"
+    assert not next(r for r in rows if r["path"] == "run/ckpt_2.pt")["eligible"]
+
+
+def test_select_type_gate():
+    from medical_uav.evaluation import select_checkpoint
+
+    results = {"run/ckpt_1.pt": fake(0.99, 0.90, 0.85, {("high", "plasma"): 0.61})}
+    chosen, rows = select_checkpoint(results, SLACK)
+    assert chosen is None and "plasma" in rows[0]["reason"]
+
+
+def test_select_none_eligible():
+    from medical_uav.evaluation import select_checkpoint
+
+    results = {"a.pt": fake(0.9, 0.9, 0.9), "b.pt": fake(0.8, 0.9, 0.9)}
+    chosen, rows = select_checkpoint(results, SLACK)
+    assert chosen is None and all(r["reason"] for r in rows)
+
+
+def test_select_tie_goes_to_earlier():
+    from medical_uav.evaluation import select_checkpoint
+
+    results = {"run/ckpt_2.pt": fake(0.99, 0.90, 0.80), "run/ckpt_1.pt": fake(0.99, 0.90, 0.80)}
+    assert select_checkpoint(results, SLACK)[0] == "run/ckpt_1.pt"
+
+
+def test_select_checkpoints_script(tmp_path):
+    import json
+    import shutil
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    repo = Path(__file__).resolve().parents[1]
+    run = tmp_path / "run"
+    run.mkdir()
+    shutil.copy(repo / "checkpoints" / "bc_set.pt", run / "ckpt_00000001.pt")
+    result = subprocess.run([sys.executable, str(repo / "scripts" / "select_checkpoints.py"),
+                             str(run), "--days", "2", "--processes", "2",
+                             "--out", str(tmp_path / "sel.json")], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    report = json.loads((tmp_path / "sel.json").read_text())
+    rows = report["runs"][str(run)]["checkpoints"]
+    assert len(rows) == 1 and "eligible" in rows[0] and "medium" in report["slack"]

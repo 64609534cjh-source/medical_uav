@@ -78,3 +78,36 @@ def paired_ci(diffs: np.ndarray, n_boot: int = 10_000, seed: int = 0) -> tuple[f
     diffs = np.asarray(diffs, dtype=float)
     boot = np.random.default_rng(seed).choice(diffs, (n_boot, len(diffs))).mean(axis=1)
     return float(diffs.mean()), float(np.percentile(boot, 2.5)), float(np.percentile(boot, 97.5))
+
+
+LOW_LOAD_FLOOR = 0.97  # a selected checkpoint keeps the low load almost fully on time
+TYPE_TOLERANCE = 0.03  # and no order type more than 3 points below Slack-aware (medium, high)
+
+
+def select_checkpoint(results: dict, slack: dict) -> tuple[str | None, list[dict]]:
+    """Choose one checkpoint of a run by the rule fixed before training (roadmap section 4).
+
+    `results` maps each checkpoint path to {load: {"on_time_rate": ..., "on_time_<type>": pooled
+    rate}} on the selection days, `slack` holds the same for Slack-aware. A checkpoint is eligible
+    if its low-load on-time rate is at least LOW_LOAD_FLOOR and, at medium and high load, no order
+    type is more than TYPE_TOLERANCE below Slack-aware. The eligible checkpoint with the highest
+    mean of the medium and high on-time rates wins; ties go to the earlier checkpoint.
+    Returns the chosen path (None if none is eligible) and one row per checkpoint."""
+    rows = []
+    for path in sorted(results):
+        r = results[path]
+        reasons = []
+        if r["low"]["on_time_rate"] < LOW_LOAD_FLOOR:
+            reasons.append(f"low load {r['low']['on_time_rate']:.3f} < {LOW_LOAD_FLOOR}")
+        for load in ("medium", "high"):
+            for order_type in ORDER_TYPES:
+                key = f"on_time_{order_type.name}"
+                if r[load][key] < slack[load][key] - TYPE_TOLERANCE:
+                    reasons.append(f"{order_type.name} at {load} load {r[load][key]:.3f} vs "
+                                   f"Slack-aware {slack[load][key]:.3f}")
+        score = (r["medium"]["on_time_rate"] + r["high"]["on_time_rate"]) / 2
+        rows.append({"path": path, "eligible": not reasons, "reason": "; ".join(reasons),
+                     "score": score})
+    eligible = [row for row in rows if row["eligible"]]
+    best = max(eligible, key=lambda row: row["score"], default=None)  # first maximum = earliest
+    return (best["path"] if best else None), rows
