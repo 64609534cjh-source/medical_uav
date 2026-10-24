@@ -17,7 +17,13 @@ def charge_minutes(battery: float, target: float, cfg: EnvConfig) -> float:
     return (target - battery) / cfg.charge_rate
 
 
-def delivery_reward(age: float, limit: float, cfg: EnvConfig) -> float:
+def delivery_reward(age: float, limit: float, expiry_after: float, cfg: EnvConfig) -> float:
     """Return the reward for a box delivered `age` minutes after release: the on-time reward up
-    to `limit`, the smaller late reward after it (an order past its expiry is never delivered)."""
-    return cfg.reward_on_time if age <= limit + EPS else cfg.reward_late
+    to `limit`; after it the late reward, or with late_reward "linear" (the M1 reward) a value
+    falling from the on-time reward to minus the expiry penalty at `expiry_after`."""
+    if age <= limit + EPS:
+        return cfg.reward_on_time
+    if cfg.late_reward == "linear":
+        late_fraction = (age - limit) / (expiry_after - limit)
+        return cfg.reward_on_time - (cfg.reward_on_time + cfg.expiry_penalty) * late_fraction
+    return cfg.reward_late

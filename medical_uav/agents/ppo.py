@@ -9,7 +9,7 @@ from dataclasses import dataclass
 import numpy as np
 import torch
 
-from medical_uav.env import MedicalUAVEnv
+from medical_uav.env import EnvConfig, MedicalUAVEnv
 from medical_uav.metrics import episode_metrics
 from medical_uav.splits import RL_SEED_RANGE
 
@@ -37,10 +37,11 @@ def _new_day(env, rng):
     return obs, info["action_mask"]
 
 
-def make_envs(n_envs: int, rng) -> tuple[list, dict]:
-    """Create n_envs environments, each started on a random day; return them and the
-    collection state (current obs and masks, and the results of finished days)."""
-    envs = [MedicalUAVEnv() for _ in range(n_envs)]
+def make_envs(n_envs: int, rng, config: EnvConfig | None = None) -> tuple[list, dict]:
+    """Create n_envs environments (with the given settings, e.g. a reward variant), each started
+    on a random day; return them and the collection state (current obs and masks, and the
+    results of finished days)."""
+    envs = [MedicalUAVEnv(config=config) for _ in range(n_envs)]
     starts = [_new_day(env, rng) for env in envs]
     state = {"obs": np.array([s[0] for s in starts]), "mask": np.array([s[1] for s in starts]),
              "finished": []}

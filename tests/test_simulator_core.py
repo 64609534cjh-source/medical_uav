@@ -71,3 +71,19 @@ def test_events_log_release_and_expiry(line_map):
     sim = make_sim(line_map, [make_order(0, 0, M, 1, 0.7, 5.0)])
     sim.advance_to(65.0)
     assert [(k, i) for (_, k, i) in sim.events] == [("release", 0), ("expire", 0)]
+
+
+def test_ontime_variant_counts_only_on_time(line_map):
+    from medical_uav.env.config import REWARDS
+    cfg = EnvConfig(**REWARDS["ontime"])
+    orders = [make_order(0, 0, M, 1, 0.7, 0.0), make_order(1, 1, M, 2, 0.5, 0.0)]
+    sim = make_sim(line_map, orders, cfg)
+    sim.fly_to(1)  # flight costs nothing
+    sim.advance_to(60.0)  # the plasma order expires: no penalty
+    assert sim.total_reward == 0.0
+    assert physics_late_reward(cfg) == 0.0
+
+
+def physics_late_reward(cfg):
+    from medical_uav.env import physics
+    return physics.delivery_reward(45, 30, 60, cfg)

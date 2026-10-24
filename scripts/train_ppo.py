@@ -18,6 +18,8 @@ import torch
 from medical_uav.agents.networks import NETWORKS
 from medical_uav.agents.policy import NetworkPolicy, save_checkpoint
 from medical_uav.agents.ppo import collect, compute_gae, make_envs, ppo_update
+from medical_uav.env import EnvConfig
+from medical_uav.env.config import REWARDS
 from medical_uav.evaluation import run_day, run_metadata
 from medical_uav.splits import SELECT_SEEDS
 
@@ -45,7 +47,8 @@ def main():
     parser.add_argument("--eval-every", type=float, default=5e5)
     parser.add_argument("--eval-days", type=int, default=20)
     parser.add_argument("--threads", type=int, default=4)
-    parser.add_argument("--reward", default="v2", help="reward variant")
+    parser.add_argument("--reward", choices=list(REWARDS), default="v2",
+                        help="reward variant: v2 (default), m1 (Milestone 1 reward), ontime")
     parser.add_argument("--out", required=True)
     args = parser.parse_args()
 
@@ -59,7 +62,7 @@ def main():
 
     net = NETWORKS[args.net]()
     opt = torch.optim.Adam(net.parameters(), lr=LR, eps=1e-5)
-    envs, state = make_envs(N_ENVS, rng)
+    envs, state = make_envs(N_ENVS, rng, EnvConfig(**REWARDS[args.reward]))
     updates = open(out / "updates.csv", "w", newline="")
     evals = open(out / "evals.csv", "w", newline="")
     update_log = csv.writer(updates)

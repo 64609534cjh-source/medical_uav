@@ -27,4 +27,11 @@ def test_charge_minutes():
 
 @pytest.mark.parametrize("age,expected", [(10, 1.0), (30, 1.0), (30.5, 0.1), (59, 0.1)])
 def test_delivery_reward_v2(age, expected):
-    assert physics.delivery_reward(age, 30, cfg) == pytest.approx(expected)
+    assert physics.delivery_reward(age, 30, 60, cfg) == pytest.approx(expected)
+
+
+@pytest.mark.parametrize("age,expected", [(10, 1.0), (30, 1.0), (45, 0.25), (60, -0.5)])
+def test_m1_reward_variant(age, expected):
+    from medical_uav.env.config import REWARDS
+    m1 = EnvConfig(**REWARDS["m1"])
+    assert physics.delivery_reward(age, 30, 60, m1) == pytest.approx(expected)

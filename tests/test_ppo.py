@@ -95,3 +95,10 @@ def test_ppo_days_avoid_demonstration_seeds():
         seeds.append(env.demand_seed)
     lo, hi = RL_SEED_RANGE
     assert all(lo <= s < hi for s in seeds) and not set(seeds) & set(DEMO_SEEDS)
+
+
+def test_make_envs_uses_the_reward_variant():
+    from medical_uav.env.config import REWARDS, EnvConfig
+
+    envs, _ = make_envs(2, np.random.default_rng(0), EnvConfig(**REWARDS["m1"]))
+    assert all(env.cfg.late_reward == "linear" and env.cfg.expiry_penalty == 0.5 for env in envs)
