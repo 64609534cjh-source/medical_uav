@@ -157,7 +157,7 @@
     "medical_uav/agents/inference.py": "f55ee053319069c317b77ddeaf9f9163f24d83a31ed01002730322a6bacf9216",
     "medical_uav/research/visibility.py": "ff877c0ce494c354cd41700916bfb91ed697de7b4e202184e6c2b20db835c9ba",
     "scripts/run_r1_visibility.py": "44fb7f03a325923bde99fb25438012e4a14157c9b0736307b6cdd942aaa76306",
-    "scripts/register_gen4.py": "7a441c8d9693e6e79069eac28856c677eb3327a5e6807b1841d6cda6dded19b0",
+    "scripts/register_gen4.py": "37466b21cdcb4cc71418942a0d9491a780046a9a63339ea41743893d6e78fab9",
     "configs/gen4_scenario_registry.json": "914a4609252c2a1305ce54eb84ddee28c0b744e9882374b98b2c5be53ee2ff64"
   },
   "new_dev_usage": "not used in this diagnostic replay; tune/confirm IDs reserved separately",

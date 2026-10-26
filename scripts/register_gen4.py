@@ -1,5 +1,6 @@
 """Audit locally recorded scenario IDs before reserving new development manifests."""
 import hashlib
+import gzip
 import json
 from pathlib import Path
 import subprocess
@@ -79,7 +80,17 @@ def main():
              'scope': registry['audit_scope']}
     for name, data in [('gen4_scenario_registry.json', registry)]:
         (ROOT / 'configs' / name).write_text(json.dumps(data, indent=2) + '\n')
-    (ROOT / 'results/gen4_seed_usage_audit.json').write_text(json.dumps(audit, indent=2) + '\n')
+    detail_path = ROOT / 'results/gen4_seed_usage_audit.json.gz'
+    with detail_path.open('wb') as stream, gzip.GzipFile(filename='', fileobj=stream, mode='wb', mtime=0) as zipped:
+        zipped.write(json.dumps(audit, separators=(',', ':')).encode())
+    summary = {'source_commit': audit['source_commit'], 'scope': audit['scope'],
+               'evidence_file_count': len(evidence),
+               'unique_observed_id_counts': {k: len(v) for k, v in seen.items()},
+               'observed_learner_ids': sorted(seen['learner']), 'observed_map_ids': sorted(seen['map']),
+               'new_manifest_ids_absent_from_scanned_records': True,
+               'detailed_ids_and_evidence_hashes': detail_path.relative_to(ROOT).as_posix(),
+               'detail_sha256': hashlib.sha256(detail_path.read_bytes()).hexdigest()}
+    (ROOT / 'results/gen4_seed_usage_audit.json').write_text(json.dumps(summary, indent=2) + '\n')
     print(json.dumps({'files_audited': len(evidence), 'unique_observed_ids': {k: len(v) for k, v in seen.items()},
                       'registered_dev_days_each': 100, 'new_final_test': None}))
 
