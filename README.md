@@ -1,12 +1,23 @@
 # Medical UAV Delivery Environment
 
-**Current milestone: M5 and frozen final Test completed (26 October 2026).**
+**Current milestone: Generation 2 architecture comparison completed (26 October 2026).**
+[Gen2 report](results/gen2_summary.md) · [new Test-v2](results/gen2_test_v2.md) · [architecture/reproduction notes](docs/gen2_architectures.md).
+On the same new 100-day × three-load Test-v2, destination-conditioned DELIVER reaches
+**85.90 ± 0.34%**, frozen M5 **85.02 ± 0.33%**, and relational attention **84.97 ± 0.36%**.
+Destination − M5 is **+0.88 pp [95% paired interval +0.41,+1.37]**, positive for all five
+learner pairs. Attention shows no clear gain. Canonical CPU batch-1 p50 is
+185/259/348 µs for M5/destination/attention. Rates vary by load/type; no universal
+or optimality claim is made. Both old Test and Test-v2 are consumed; all models,
+protocols, full-day logs and first-generation results are retained. No method
+changes followed Test-v2.
+
+**Generation 1: M5 and frozen original Test completed (26 October 2026).**
 [Full M5 report](results/m5_summary.md) · [Final Test results](results/final_test.md).
 The final S1 structured method reaches **86.42 ± 0.37%** equal-load Test on-time
 rate; Slack-aware reaches **82.12%**. The paired gap is **+4.30 pp** with a joint
 95% learner/day bootstrap interval of **[+3.77, +4.83] pp**. SD is across five
 learners. Test is now consumed; historical milestone sections below describe its
-status at those earlier stages. No post-Test tuning was performed.
+status at those earlier stages. Generation 1 models were frozen before the separate Generation 2 study.
 
 A Gymnasium environment in which one drone picks up and delivers medical orders between a medical
 center and five hospitals over one simulated day. Orders arrive at random and have deadlines; the

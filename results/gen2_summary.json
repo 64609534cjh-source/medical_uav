@@ -1,0 +1,120 @@
+{
+  "generation": 2,
+  "training_source_commits": [
+    "705806aba80a06a992286464e31a363f698d726d"
+  ],
+  "retention": {
+    "m5": {
+      "dev_best": 0.8671636181367826,
+      "dev_last": 0.8627627043253131,
+      "dev_last_three_mean": 0.8613595934108238,
+      "dev_extra_best": 0.8608027920844741,
+      "dev_extra_last": 0.8587403010341769
+    },
+    "destination": {
+      "dev_best": 0.8734915058140613,
+      "dev_last": 0.8709486580944746,
+      "dev_last_three_mean": 0.870610905539041,
+      "dev_extra_best": 0.8683003593615737,
+      "dev_extra_last": 0.8685285221408213
+    },
+    "relational": {
+      "dev_best": 0.8651255901451149,
+      "dev_last": 0.8601589536749898,
+      "dev_last_three_mean": 0.8593245161764974,
+      "dev_extra_best": 0.8599580219197568,
+      "dev_extra_last": 0.8566917990172233
+    }
+  },
+  "test_v2_primary_differences": {
+    "destination": {
+      "estimate": 0.008844029456866421,
+      "learner_sample_sd": 0.004873880540514016,
+      "learner_mean_values": [
+        0.005056136260159308,
+        0.012231721081658068,
+        0.0023276164437006255,
+        0.013487840747929483,
+        0.011116832750884618
+      ],
+      "seed_only_95_percentile": [
+        0.004854141334583851,
+        0.012511191282011945
+      ],
+      "day_only_95_percentile": [
+        0.00651073481867585,
+        0.011213823709818854
+      ],
+      "joint_95_percentile": [
+        0.004077217635034466,
+        0.013729284426533334
+      ]
+    },
+    "relational": {
+      "estimate": -0.000499455331225779,
+      "learner_sample_sd": 0.004382957787535863,
+      "learner_mean_values": [
+        0.005138747240176259,
+        0.0024583049505809305,
+        -0.005944413764713687,
+        -0.0011552796138948477,
+        -0.0029946354682775494
+      ],
+      "seed_only_95_percentile": [
+        -0.0038066756159754645,
+        0.0029759822405664316
+      ],
+      "day_only_95_percentile": [
+        -0.0031852478260281634,
+        0.002124536658593763
+      ],
+      "joint_95_percentile": [
+        -0.005270903215024764,
+        0.004407063263777195
+      ]
+    }
+  },
+  "latency": {
+    "m5": {
+      "parameters": 65232,
+      "by_batch": {
+        "1": {
+          "p50_us_per_batch": 184.75799999999998,
+          "p95_us_per_batch": 197.7901
+        },
+        "8": {
+          "p50_us_per_batch": 279.06,
+          "p95_us_per_batch": 294.2634
+        }
+      }
+    },
+    "destination": {
+      "parameters": 79675,
+      "by_batch": {
+        "1": {
+          "p50_us_per_batch": 259.104,
+          "p95_us_per_batch": 280.1572
+        },
+        "8": {
+          "p50_us_per_batch": 368.961,
+          "p95_us_per_batch": 384.66724999999997
+        }
+      }
+    },
+    "relational": {
+      "parameters": 102896,
+      "by_batch": {
+        "1": {
+          "p50_us_per_batch": 347.7025,
+          "p95_us_per_batch": 381.4914
+        },
+        "8": {
+          "p50_us_per_batch": 577.2235000000001,
+          "p95_us_per_batch": 623.6027
+        }
+      }
+    }
+  },
+  "test_v2_status": "consumed",
+  "generation1_preserved": true
+}
