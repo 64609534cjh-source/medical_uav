@@ -1,0 +1,326 @@
+{
+  "status": "accepted",
+  "scope": "Dev only; seed 0 excluded from formal comparisons",
+  "parameters": 65232,
+  "source_commit": "b60c7930dac9d0bfa4d070ef9d2e85008bc45349",
+  "evaluations": [
+    {
+      "transitions": 0,
+      "by_load": {
+        "low": {
+          "episodes": 40,
+          "on_time_rate": 0.0,
+          "served_rate": 0.0,
+          "expiry_rate": 1.0,
+          "reward": -11.981951945378828,
+          "km_flown": 341.27198439395625,
+          "charge_minutes": 238.89038907577014,
+          "wait_minutes": 19.95314668406155
+        },
+        "medium": {
+          "episodes": 40,
+          "on_time_rate": 0.0,
+          "served_rate": 0.0,
+          "expiry_rate": 1.0,
+          "reward": -27.16162204004637,
+          "km_flown": 356.8920114418132,
+          "charge_minutes": 249.82440800927006,
+          "wait_minutes": 15.251376726445272
+        },
+        "high": {
+          "episodes": 40,
+          "on_time_rate": 0.0,
+          "served_rate": 0.0,
+          "expiry_rate": 1.0,
+          "reward": -35.18590263190953,
+          "km_flown": 353.11503768843795,
+          "charge_minutes": 247.18052638190738,
+          "wait_minutes": 30.526966395412426
+        }
+      },
+      "mean_on_time_rate": 0.0,
+      "mean_reward": -24.776492205778244
+    },
+    {
+      "transitions": 25600,
+      "by_load": {
+        "low": {
+          "episodes": 40,
+          "on_time_rate": 0.8254143100440887,
+          "served_rate": 0.947748429975286,
+          "expiry_rate": 0.052251570024714124,
+          "reward": 17.24428340778227,
+          "km_flown": 227.13009457184097,
+          "charge_minutes": 174.14841897905654,
+          "wait_minutes": 0.0
+        },
+        "medium": {
+          "episodes": 40,
+          "on_time_rate": 0.6004470301846327,
+          "served_rate": 0.7379330305562902,
+          "expiry_rate": 0.26206696944370983,
+          "reward": 25.602543297885394,
+          "km_flown": 184.63870795465462,
+          "charge_minutes": 153.96782740509224,
+          "wait_minutes": 0.0
+        },
+        "high": {
+          "episodes": 40,
+          "on_time_rate": 0.5142632780175445,
+          "served_rate": 0.5806705693656452,
+          "expiry_rate": 0.4193294306343548,
+          "reward": 20.607305325858785,
+          "km_flown": 170.30991286426436,
+          "charge_minutes": 143.92388782344793,
+          "wait_minutes": 61.70100412101392
+        }
+      },
+      "mean_on_time_rate": 0.6467082060820887,
+      "mean_reward": 21.151377343842153
+    },
+    {
+      "transitions": 51200,
+      "by_load": {
+        "low": {
+          "episodes": 40,
+          "on_time_rate": 0.9692982303158472,
+          "served_rate": 0.9940292022792022,
+          "expiry_rate": 0.005970797720797721,
+          "reward": 20.260441497031355,
+          "km_flown": 190.3589559677439,
+          "charge_minutes": 139.38951255608976,
+          "wait_minutes": 67.39835071905807
+        },
+        "medium": {
+          "episodes": 40,
+          "on_time_rate": 0.7146956495805389,
+          "served_rate": 0.8334983846149304,
+          "expiry_rate": 0.16650161538506958,
+          "reward": 33.935395039584094,
+          "km_flown": 162.81760857632733,
+          "charge_minutes": 129.53032716040764,
+          "wait_minutes": 27.9907786371249
+        },
+        "high": {
+          "episodes": 40,
+          "on_time_rate": 0.6083319622550991,
+          "served_rate": 0.7222415104342981,
+          "expiry_rate": 0.27775848956570187,
+          "reward": 32.96658472858563,
+          "km_flown": 161.90100323726801,
+          "charge_minutes": 131.71374514977896,
+          "wait_minutes": 19.0176118289263
+        }
+      },
+      "mean_on_time_rate": 0.7641086140504951,
+      "mean_reward": 29.054140421733692
+    },
+    {
+      "transitions": 76800,
+      "by_load": {
+        "low": {
+          "episodes": 40,
+          "on_time_rate": 0.9722179767861052,
+          "served_rate": 0.9941958689458689,
+          "expiry_rate": 0.0058041310541310535,
+          "reward": 20.240564475282792,
+          "km_flown": 230.41324977634412,
+          "charge_minutes": 166.2025773974929,
+          "wait_minutes": 0.0
+        },
+        "medium": {
+          "episodes": 40,
+          "on_time_rate": 0.7737248243277706,
+          "served_rate": 0.8626676560027752,
+          "expiry_rate": 0.13733234399722483,
+          "reward": 37.575089422721405,
+          "km_flown": 158.3248862650793,
+          "charge_minutes": 121.75464812943919,
+          "wait_minutes": 34.232194051545605
+        },
+        "high": {
+          "episodes": 40,
+          "on_time_rate": 0.672308380725881,
+          "served_rate": 0.7736988326871522,
+          "expiry_rate": 0.22630116731284772,
+          "reward": 39.37918735552482,
+          "km_flown": 154.4412183378799,
+          "charge_minutes": 121.81689935203488,
+          "wait_minutes": 26.145982291346392
+        }
+      },
+      "mean_on_time_rate": 0.806083727279919,
+      "mean_reward": 32.398280417843004
+    },
+    {
+      "transitions": 102400,
+      "by_load": {
+        "low": {
+          "episodes": 40,
+          "on_time_rate": 0.9893660149763092,
+          "served_rate": 0.999074074074074,
+          "expiry_rate": 0.0009259259259259259,
+          "reward": 20.63545931757947,
+          "km_flown": 230.44682842010678,
+          "charge_minutes": 166.30908513684642,
+          "wait_minutes": 0.0
+        },
+        "medium": {
+          "episodes": 40,
+          "on_time_rate": 0.7840137250602854,
+          "served_rate": 0.9144878540261004,
+          "expiry_rate": 0.08551214597389963,
+          "reward": 40.22221227796685,
+          "km_flown": 171.74896093502062,
+          "charge_minutes": 130.2974869938364,
+          "wait_minutes": 0.0
+        },
+        "high": {
+          "episodes": 40,
+          "on_time_rate": 0.664224327907089,
+          "served_rate": 0.8295196355773872,
+          "expiry_rate": 0.17048036442261288,
+          "reward": 42.14478150823912,
+          "km_flown": 151.1777276315383,
+          "charge_minutes": 117.38007086083621,
+          "wait_minutes": 16.858948340622685
+        }
+      },
+      "mean_on_time_rate": 0.8125346893145612,
+      "mean_reward": 34.334151034595145
+    }
+  ],
+  "health": {
+    "updates": 100,
+    "invalid_actions": 0,
+    "nonfinite_recorded_diagnostics": 0,
+    "checkpoint_count": 5,
+    "initial_ratio_max_error": 2.6226043701171875e-06
+  },
+  "timings": {
+    "status": "complete",
+    "transitions": 102400,
+    "updates": 100,
+    "learner_seed": 0,
+    "wall_seconds": 75.67597695899894,
+    "eval_seconds": 31.91473259799932,
+    "checkpoint_seconds": 0.335325064994322,
+    "collect_seconds": 23.56032622400744,
+    "gae_seconds": 0.30459127600624925,
+    "update_seconds": 18.6564170440015,
+    "training_seconds": 42.52133454401519,
+    "learning_rate_schedule": "constant",
+    "best_score": [
+      0.8125346893145612,
+      34.334151034595145
+    ],
+    "best_written_in_this_run": true,
+    "inherited_best_checkpoint": null,
+    "last_evaluation": {
+      "transitions": 102400,
+      "update_index": 100,
+      "checkpoint": "checkpoint_000102400.pt",
+      "split": "dev",
+      "eval_seconds": 6.3325449869989825,
+      "policies": {
+        "ppo": {
+          "by_load": {
+            "low": {
+              "episodes": 40,
+              "on_time_rate": 0.9893660149763092,
+              "served_rate": 0.999074074074074,
+              "expiry_rate": 0.0009259259259259259,
+              "reward": 20.63545931757947,
+              "km_flown": 230.44682842010678,
+              "charge_minutes": 166.30908513684642,
+              "wait_minutes": 0.0
+            },
+            "medium": {
+              "episodes": 40,
+              "on_time_rate": 0.7840137250602854,
+              "served_rate": 0.9144878540261004,
+              "expiry_rate": 0.08551214597389963,
+              "reward": 40.22221227796685,
+              "km_flown": 171.74896093502062,
+              "charge_minutes": 130.2974869938364,
+              "wait_minutes": 0.0
+            },
+            "high": {
+              "episodes": 40,
+              "on_time_rate": 0.664224327907089,
+              "served_rate": 0.8295196355773872,
+              "expiry_rate": 0.17048036442261288,
+              "reward": 42.14478150823912,
+              "km_flown": 151.1777276315383,
+              "charge_minutes": 117.38007086083621,
+              "wait_minutes": 16.858948340622685
+            }
+          },
+          "mean_on_time_rate": 0.8125346893145612,
+          "mean_reward": 34.334151034595145
+        }
+      },
+      "episodes": 120,
+      "demand_seeds": [
+        100000,
+        100001,
+        100002,
+        100003,
+        100004,
+        100005,
+        100006,
+        100007,
+        100008,
+        100009,
+        100010,
+        100011,
+        100012,
+        100013,
+        100014,
+        100015,
+        100016,
+        100017,
+        100018,
+        100019,
+        100020,
+        100021,
+        100022,
+        100023,
+        100024,
+        100025,
+        100026,
+        100027,
+        100028,
+        100029,
+        100030,
+        100031,
+        100032,
+        100033,
+        100034,
+        100035,
+        100036,
+        100037,
+        100038,
+        100039
+      ]
+    },
+    "transitions_by_load": {
+      "high": 36492,
+      "medium": 34484,
+      "low": 31424
+    },
+    "episodes_by_load": {
+      "low": 315,
+      "medium": 327,
+      "high": 327
+    },
+    "resume_mode": "fresh",
+    "started_episodes_by_load": {
+      "high": 330,
+      "medium": 329,
+      "low": 318
+    },
+    "started_counts_include_history": true,
+    "other_seconds": 0.9045847519901145
+  }
+}

@@ -1,0 +1,274 @@
+{
+  "generation": 3,
+  "frozen_utc": "2026-10-26T13:38:11.315099+00:00",
+  "source_commit": "8f2198da2682d67c37322ff947f754c8d8088cc4",
+  "final_candidates_frozen": true,
+  "split": "test-v3",
+  "demand_seed_range": [
+    400000,
+    400099
+  ],
+  "loads": [
+    "low",
+    "medium",
+    "high"
+  ],
+  "map_seed": 0,
+  "jobs": 5,
+  "diagnostics": true,
+  "failure_diagnostics": true,
+  "entries": [
+    {
+      "name": "destination_s1",
+      "method": "destination",
+      "learner_seed": 1,
+      "checkpoint": "outputs/gen2_architectures/destination_s1/best.pt",
+      "checkpoint_sha256": "d4031b08b89ce776ee4f097c88d840345d7becf0fdf0725b004a9c9d8b19a9e1",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "preselected best on Dev-main only"
+    },
+    {
+      "name": "destination_s2",
+      "method": "destination",
+      "learner_seed": 2,
+      "checkpoint": "outputs/gen2_architectures/destination_s2/best.pt",
+      "checkpoint_sha256": "9b404353817903f28fb1a290404dc2796bd32b4ab1b3b600a3372f386d42ca1c",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "preselected best on Dev-main only"
+    },
+    {
+      "name": "destination_s3",
+      "method": "destination",
+      "learner_seed": 3,
+      "checkpoint": "outputs/gen2_architectures/destination_s3/best.pt",
+      "checkpoint_sha256": "62f64cfc0fa2f7bef51c1acb8001eb3ec121a6c23fc6493660c2b2e1a28f565e",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "preselected best on Dev-main only"
+    },
+    {
+      "name": "destination_s4",
+      "method": "destination",
+      "learner_seed": 4,
+      "checkpoint": "outputs/gen2_architectures/destination_s4/best.pt",
+      "checkpoint_sha256": "88b8f1e788d46003102109e1f3ab86b0d39f9deb0686a9182895509dd996b69f",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "preselected best on Dev-main only"
+    },
+    {
+      "name": "destination_s5",
+      "method": "destination",
+      "learner_seed": 5,
+      "checkpoint": "outputs/gen2_architectures/destination_s5/best.pt",
+      "checkpoint_sha256": "0d23228638a7d0c370a64409b6a3160628627d513598313310ba9cdf0b299ec5",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "preselected best on Dev-main only"
+    },
+    {
+      "name": "urgency_s1",
+      "method": "urgency",
+      "learner_seed": 1,
+      "checkpoint": "outputs/gen3_architectures/urgency_s1/best.pt",
+      "checkpoint_sha256": "e387c9429fb06fbd06ec72adcf480078015120e23f40da7f7272f25e27161039",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "best on Dev-main only; all learners retained"
+    },
+    {
+      "name": "urgency_s2",
+      "method": "urgency",
+      "learner_seed": 2,
+      "checkpoint": "outputs/gen3_architectures/urgency_s2/best.pt",
+      "checkpoint_sha256": "cb4f799f461e83e6a200234fb0c21e941e6f16050d341e7b606594ae96423ce5",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "best on Dev-main only; all learners retained"
+    },
+    {
+      "name": "urgency_s3",
+      "method": "urgency",
+      "learner_seed": 3,
+      "checkpoint": "outputs/gen3_architectures/urgency_s3/best.pt",
+      "checkpoint_sha256": "9d0ce5f8da23e96803634eac8b7ba7f15252dcef3e099d3fc3bc904492c6d98f",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "best on Dev-main only; all learners retained"
+    },
+    {
+      "name": "urgency_s4",
+      "method": "urgency",
+      "learner_seed": 4,
+      "checkpoint": "outputs/gen3_architectures/urgency_s4/best.pt",
+      "checkpoint_sha256": "8d5fa52645da2c0d416dd5807d4ca5a2c5128151990b9dbe4e013d37613c2e22",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "best on Dev-main only; all learners retained"
+    },
+    {
+      "name": "urgency_s5",
+      "method": "urgency",
+      "learner_seed": 5,
+      "checkpoint": "outputs/gen3_architectures/urgency_s5/best.pt",
+      "checkpoint_sha256": "60e4b2757bb1ec3782bab3c2a1a65fc9614124e14895851af777ae093281e64f",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "best on Dev-main only; all learners retained"
+    },
+    {
+      "name": "coordinated_s1",
+      "method": "coordinated",
+      "learner_seed": 1,
+      "checkpoint": "outputs/gen3_architectures/coordinated_s1/best.pt",
+      "checkpoint_sha256": "96cd02805ae8b3a8764c5e023914c6d5b3aeb016533359bfbc566f1009156055",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "best on Dev-main only; all learners retained"
+    },
+    {
+      "name": "coordinated_s2",
+      "method": "coordinated",
+      "learner_seed": 2,
+      "checkpoint": "outputs/gen3_architectures/coordinated_s2/best.pt",
+      "checkpoint_sha256": "78f377377a2c9d3f9a35a30a848dde8b9afc2ed30c732a849724f584a56971ea",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "best on Dev-main only; all learners retained"
+    },
+    {
+      "name": "coordinated_s3",
+      "method": "coordinated",
+      "learner_seed": 3,
+      "checkpoint": "outputs/gen3_architectures/coordinated_s3/best.pt",
+      "checkpoint_sha256": "0bdad0160a3667571dcde03d877508db19b99e8252955a42858d12d706a4cd70",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "best on Dev-main only; all learners retained"
+    },
+    {
+      "name": "coordinated_s4",
+      "method": "coordinated",
+      "learner_seed": 4,
+      "checkpoint": "outputs/gen3_architectures/coordinated_s4/best.pt",
+      "checkpoint_sha256": "492aec6877e265a2ffbbafec78c3a7b746103be8958a7c195a77fb7625d43aed",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "best on Dev-main only; all learners retained"
+    },
+    {
+      "name": "coordinated_s5",
+      "method": "coordinated",
+      "learner_seed": 5,
+      "checkpoint": "outputs/gen3_architectures/coordinated_s5/best.pt",
+      "checkpoint_sha256": "aaa061ac8ffcb3423ee92546203f936ec8dc3088a0b01fc2dd7eebb8c0ff8c58",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "best on Dev-main only; all learners retained"
+    },
+    {
+      "name": "baselines",
+      "policies": [
+        "slack",
+        "edf",
+        "random"
+      ],
+      "learner_seed": 0
+    }
+  ],
+  "statistics": {
+    "repetitions": 10000,
+    "rng_seed": 20261026,
+    "primary": "paired crossed learner-ID/day-ID product bootstrap; equal loads and daily rates; sample SD across5 learners; common day weights across loads",
+    "types": "daily type rates; zero-release days consistently omitted, resampled weights renormalized per-load eligible days; show all types, counts and pointwise intervals; missingness verified identical methods/learners",
+    "multiplicity": "exploratory pointwise95%, no familywise correction; five learners limit precision"
+  },
+  "primary_comparisons": [
+    "urgency - destination",
+    "coordinated - destination"
+  ],
+  "scope": "all predeclared methods and learners irrespective of Dev ranking; canonical original forwards, no fast policy in scientific final evaluation",
+  "frozen_files": {
+    "configs/gen3_holdout_freeze.json": "017725349a430f6fc46036f4c39b5e43e628d2381b8184fe1c1cd15fcf1da37c",
+    "configs/gen3_inference_validation_protocol.json": "409ca5c3ff5ec93fa0627a04e1673b733dde4dc342e94040aee672dd12e2f4f2",
+    "configs/gen3_protocol.json": "778620c42db51b507e5237a80b093ab4a625f4616c64d70921bbde623fca58c4",
+    "configs/ppo_gen3_coordinated_seed1.json": "764af7e3d9bd483069c2928f099c9a6542466c8a4d3c1fb9bc2db63568f9b43e",
+    "configs/ppo_gen3_coordinated_seed2.json": "f22f8c1c358ff8d5fe219447ab52c0d43e0a1f80495538395a55a87cbb87f738",
+    "configs/ppo_gen3_coordinated_seed3.json": "f1c44fb1de6481d93c68e11db4e17202a98d698d0b1aa1f6779a958824e11c53",
+    "configs/ppo_gen3_coordinated_seed4.json": "4227873bdd7a0b812d620d485a89bc42b02e595746f87a8baaaa9197b4ae8cce",
+    "configs/ppo_gen3_coordinated_seed5.json": "bb7ce9cdf126e100a55598d6e49d013fcf637974258f48c991195a95d74616e2",
+    "configs/ppo_gen3_urgency_seed1.json": "08dd982bf9666825edda090f4b19e249aeee1feb941968137fa5455b1079d624",
+    "configs/ppo_gen3_urgency_seed2.json": "724e2b49b3ab4bbd590c83fbd1e3f5bc4eb4e55573abbac8fb66ab9d62c4badd",
+    "configs/ppo_gen3_urgency_seed3.json": "a6c754c3861942ac03acaf19ffbf2f3432af1e093848d6146860644355bade26",
+    "configs/ppo_gen3_urgency_seed4.json": "4a95b8a42239239a655cfbb6e55c4f8acffaed58b36d02f88f752623b77b9a4e",
+    "configs/ppo_gen3_urgency_seed5.json": "fb538381ca17ccb2b18bd3654e9f31905b80b2fb6f3ea07bd7c55d329ce4a756",
+    "medical_uav/__init__.py": "ba19badf7f8059a7a7c58ed5abc38c3e551132e7953ff2e09ef2bbe28cb487c7",
+    "medical_uav/agents/__init__.py": "8af1254008002658691f71235317c2f3deebc2a60fa7b5df16fd9fa0c217bb05",
+    "medical_uav/agents/decision.py": "32102f54084f4c83f694308ff329de166c61b88a9d0e73ffedfcb0fa6e4ffc37",
+    "medical_uav/agents/destination_inference.py": "1954b99592cbb790a454927c8823e72de249d509911a5b63f9667478cfd59867",
+    "medical_uav/agents/inference.py": "f55ee053319069c317b77ddeaf9f9163f24d83a31ed01002730322a6bacf9216",
+    "medical_uav/agents/networks.py": "a09a717afe099eb3e5d0a5c191ab506ad07d5420fd0261b69cc1ef44e26897bf",
+    "medical_uav/agents/relational.py": "ffc7d724396f2d1949a0252fabcc11e5ae391fb2a38eaff0072470809fb15c6e",
+    "medical_uav/algorithms/__init__.py": "7aad7f1a03ee1e880ccd9fc6b00999a761a6d8ebeaa441dacd371b5414dad8ea",
+    "medical_uav/algorithms/ppo.py": "6d2e9e06a7b6e7ff49d109a96af8f2c0824e16f67d6788807819ae0f6e3cf6c0",
+    "medical_uav/algorithms/returns.py": "8900663b4f601e64d57fd6e3b029b8c2938f879f450a775c0a63f31937c78fc0",
+    "medical_uav/algorithms/rollout_buffer.py": "a4dc17d97ad379d095824262a1b603da2dff9cb86df449d772e47a2fc6be1fd9",
+    "medical_uav/baselines/__init__.py": "5f9fe415a722625d656ed95a9b9a536ef8eafee9f79b2210cda8e9bb02a77234",
+    "medical_uav/baselines/heuristics.py": "1cd143d9ace7d6d011993420c933e1c8585603b315955d6d138f80d905d777c8",
+    "medical_uav/env/__init__.py": "7fa956f33796af454577dd4906e8ea9464ee71ceb4e28fe7e7a83e2d20e3994a",
+    "medical_uav/env/actions.py": "fbc28e03339b196b83ff24ac639b22c39074ff3b6e9acfd7f3015296af2a090d",
+    "medical_uav/env/astar.py": "c05dd7486f0722f5b4e53f294d77034fb52a2a86e0ff7d405f3d81697d01c114",
+    "medical_uav/env/config.py": "823dca2125c67c13ac9507a6e4c03554543497786a378bf23cebc67c17b6729a",
+    "medical_uav/env/map_gen.py": "bbb6bb2860490f369ae6db9b0bd12b04fb4d741ce4401fc15ff108c52afd5792",
+    "medical_uav/env/masks.py": "b5f2c426d8090088d14f6c716db3cfec6a678640db6aef17e987d58c90597729",
+    "medical_uav/env/observation.py": "151ee0e4acfb188b9ba335837b7d8bfeb474eeb48935be48005d0d0ec568b137",
+    "medical_uav/env/orders.py": "17a64222f429bf07e0c8eca7ed1152eeefdff27c38d3209219ed396193aa1891",
+    "medical_uav/env/physics.py": "8f30978426a18a0d43067b44bfe7ecfc9022ca56edc1712d55363fad5645ec4f",
+    "medical_uav/env/render.py": "9ea9cf45b818afe57cb8befd39ce8c8821dea004084c1e51d8374a7b04161118",
+    "medical_uav/env/simulator.py": "7c1cca791da62c1120b15cac4d7af625f14006e3bce1388145647a821f4d7329",
+    "medical_uav/env/uav_env.py": "6920244dbc36c49e71b99ddb5f8259b114138fe21cd222ed5125f78c8dd72c16",
+    "medical_uav/evaluation/__init__.py": "525c5649edc6c38fee138c371f50ec5ed79dbd8a0ce3c6d0f393d53a382db224",
+    "medical_uav/evaluation/congestion.py": "0873053a74f7f6f5472fe820c3a417cc3eb8cc470bee3020dc8f3a986bc70535",
+    "medical_uav/evaluation/diagnostics.py": "d159892e628d4ff85070c35c569b2c0421656f6cc30651cd99aa291583e5ed0e",
+    "medical_uav/evaluation/evaluate.py": "dd6e2aa3ee5edd4356cdbb3638b73027b157915e07ced4a0eae17415d041340c",
+    "medical_uav/evaluation/failures.py": "71eb16cf0d184b98f1c098d3cd4483046e7e032af2ed33c80279bbc65f0909f4",
+    "medical_uav/evaluation/final_stats.py": "4bb527f1547747d1c0347dd16b5c61236ef6b3d5a5baa736da2187127ba3b41f",
+    "medical_uav/evaluation/type_stats.py": "b29b3063358493e5638c7703fa4e53b35b4672d7634781ec6cafe4d68c4bf7e1",
+    "medical_uav/metrics.py": "df796c12a740e4480278f03a079b1ec719525a2e43273b3cee446a081795ad46",
+    "medical_uav/splits.py": "65d40022912a27f77a8449d6fa09ea90b5dadc4258d0e5ea8a19e0a1abad38e9",
+    "medical_uav/training/__init__.py": "d040a1819ba759c1802944709f3abf2cb13d371137e69d14003b7e399e566110",
+    "medical_uav/training/collector.py": "efd3e6301a13b028d05d38cd6aedc4b5d3ca7b47cff9956249552c91e49c9ccd",
+    "medical_uav/training/io.py": "8911a69f780b9ed4d52140977030e799af3840bed129e8e2d1c827b5bd232196",
+    "medical_uav/training/trainer.py": "c35a6d4fd08d596ab7deb00c06b6ce024598b92d96ec7adcda1d8cc5d04d1bed",
+    "results/gen3_development.json": "94314575c78105c531c29361c037d572076479b137c4ed8fa0d28c322617edf4",
+    "results/gen3_inference.json": "cd9a73bc95b56864b8ab4c32992e0af6e9ad919196083d8431603a12d816f580",
+    "results/gen3_initial_diagnostics.json": "fc56b2396f2de9e10b36d6cdbca04414a736b30d6d0147d9d6bf2d738fd4cbee",
+    "results/gen3_training_audit.json": "d5550de3cb294f29b177142f2dc2ef979a055112be0c25fffdab2b9cd9f6a96c",
+    "scripts/analyze_gen2.py": "a6c68d0d562e78642633a10e53353911481d25fc7dbb87197488cb9272f29d3b",
+    "scripts/analyze_gen3.py": "4b18e5e40c4d7a738acce8a50c374b7dc9eef119c4ca233f70628f580d1d80ce",
+    "scripts/analyze_gen3_initial.py": "a1453b745765556527675b251c761c112776c2a5e9db20913021f1d82156c0fc",
+    "scripts/evaluate.py": "1b178b8811e14679357930436c3eec1f699d4a0863cdea918acf8f8b396a7c69",
+    "scripts/evaluate_suite.py": "aa1527ba5e3e95996cd39e4ec67be80b58de8c361b19c9fe26e1c4e7dbf3f04e",
+    "scripts/freeze_gen3_final.py": "a0ca236e5121be7e8be19dc8e647bc96dc93691b0cd099c8c2642c392d8e6804",
+    "scripts/inference_gen3.py": "0440bcba1dd928923861ed1d83cd942437616ee9e07b3d4f9491fabb94be5d16",
+    "scripts/run_gen3.py": "5b34bffcbe7e216ee3fe1a7ef459b92e042753b53fc4b34d610ce2c91b4953d7",
+    "scripts/train.py": "58570a20f1711ffb8ab7578956a8bb0d80719d8f31e411d55e137536d02b8795"
+  }
+}

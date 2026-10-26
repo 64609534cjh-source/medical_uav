@@ -1,0 +1,94 @@
+{
+  "entries": [
+    {
+      "name": "destination_s1_best",
+      "method": "destination",
+      "checkpoint": "outputs/gen2_architectures/destination_s1/best.pt",
+      "checkpoint_sha256": "d4031b08b89ce776ee4f097c88d840345d7becf0fdf0725b004a9c9d8b19a9e1"
+    },
+    {
+      "name": "destination_s2_best",
+      "method": "destination",
+      "checkpoint": "outputs/gen2_architectures/destination_s2/best.pt",
+      "checkpoint_sha256": "9b404353817903f28fb1a290404dc2796bd32b4ab1b3b600a3372f386d42ca1c"
+    },
+    {
+      "name": "destination_s3_best",
+      "method": "destination",
+      "checkpoint": "outputs/gen2_architectures/destination_s3/best.pt",
+      "checkpoint_sha256": "62f64cfc0fa2f7bef51c1acb8001eb3ec121a6c23fc6493660c2b2e1a28f565e"
+    },
+    {
+      "name": "destination_s4_best",
+      "method": "destination",
+      "checkpoint": "outputs/gen2_architectures/destination_s4/best.pt",
+      "checkpoint_sha256": "88b8f1e788d46003102109e1f3ab86b0d39f9deb0686a9182895509dd996b69f"
+    },
+    {
+      "name": "destination_s5_best",
+      "method": "destination",
+      "checkpoint": "outputs/gen2_architectures/destination_s5/best.pt",
+      "checkpoint_sha256": "0d23228638a7d0c370a64409b6a3160628627d513598313310ba9cdf0b299ec5"
+    },
+    {
+      "name": "urgency_s1_best",
+      "method": "urgency",
+      "checkpoint": "outputs/gen3_architectures/urgency_s1/best.pt",
+      "checkpoint_sha256": "e387c9429fb06fbd06ec72adcf480078015120e23f40da7f7272f25e27161039"
+    },
+    {
+      "name": "urgency_s2_best",
+      "method": "urgency",
+      "checkpoint": "outputs/gen3_architectures/urgency_s2/best.pt",
+      "checkpoint_sha256": "cb4f799f461e83e6a200234fb0c21e941e6f16050d341e7b606594ae96423ce5"
+    },
+    {
+      "name": "urgency_s3_best",
+      "method": "urgency",
+      "checkpoint": "outputs/gen3_architectures/urgency_s3/best.pt",
+      "checkpoint_sha256": "9d0ce5f8da23e96803634eac8b7ba7f15252dcef3e099d3fc3bc904492c6d98f"
+    },
+    {
+      "name": "urgency_s4_best",
+      "method": "urgency",
+      "checkpoint": "outputs/gen3_architectures/urgency_s4/best.pt",
+      "checkpoint_sha256": "8d5fa52645da2c0d416dd5807d4ca5a2c5128151990b9dbe4e013d37613c2e22"
+    },
+    {
+      "name": "urgency_s5_best",
+      "method": "urgency",
+      "checkpoint": "outputs/gen3_architectures/urgency_s5/best.pt",
+      "checkpoint_sha256": "60e4b2757bb1ec3782bab3c2a1a65fc9614124e14895851af777ae093281e64f"
+    },
+    {
+      "name": "coordinated_s1_best",
+      "method": "coordinated",
+      "checkpoint": "outputs/gen3_architectures/coordinated_s1/best.pt",
+      "checkpoint_sha256": "96cd02805ae8b3a8764c5e023914c6d5b3aeb016533359bfbc566f1009156055"
+    },
+    {
+      "name": "coordinated_s2_best",
+      "method": "coordinated",
+      "checkpoint": "outputs/gen3_architectures/coordinated_s2/best.pt",
+      "checkpoint_sha256": "78f377377a2c9d3f9a35a30a848dde8b9afc2ed30c732a849724f584a56971ea"
+    },
+    {
+      "name": "coordinated_s3_best",
+      "method": "coordinated",
+      "checkpoint": "outputs/gen3_architectures/coordinated_s3/best.pt",
+      "checkpoint_sha256": "0bdad0160a3667571dcde03d877508db19b99e8252955a42858d12d706a4cd70"
+    },
+    {
+      "name": "coordinated_s4_best",
+      "method": "coordinated",
+      "checkpoint": "outputs/gen3_architectures/coordinated_s4/best.pt",
+      "checkpoint_sha256": "492aec6877e265a2ffbbafec78c3a7b746103be8958a7c195a77fb7625d43aed"
+    },
+    {
+      "name": "coordinated_s5_best",
+      "method": "coordinated",
+      "checkpoint": "outputs/gen3_architectures/coordinated_s5/best.pt",
+      "checkpoint_sha256": "aaa061ac8ffcb3423ee92546203f936ec8dc3088a0b01fc2dd7eebb8c0ff8c58"
+    }
+  ]
+}

@@ -1,0 +1,510 @@
+{
+  "scope": "observational Dev-extra; five learner repetitions of 100 shared days; no causal attribution",
+  "methods": {
+    "m5": {
+      "low": {
+        "congestion": {
+          "states": 43670,
+          "over_12_states": 0,
+          "hidden_direct_on_time_matching_states": 0
+        },
+        "types": {
+          "plasma": {
+            "released_repeated": 2285,
+            "eligible_unique_days": 100,
+            "mean_daily_rates": {
+              "on_time": 0.9844420634920635,
+              "late": 0.015307936507936508,
+              "expired_unpicked": 0.0,
+              "expired_after_pick": 0.00025
+            },
+            "counts": {
+              "on_time": 2240,
+              "late": 44,
+              "expired_unpicked": 0,
+              "expired_after_pick": 1
+            },
+            "failed_never_visible": 0
+          },
+          "medicine": {
+            "released_repeated": 3405,
+            "eligible_unique_days": 100,
+            "mean_daily_rates": {
+              "on_time": 1.0,
+              "late": 0.0,
+              "expired_unpicked": 0.0,
+              "expired_after_pick": 0.0
+            },
+            "counts": {
+              "on_time": 3405,
+              "late": 0,
+              "expired_unpicked": 0,
+              "expired_after_pick": 0
+            },
+            "failed_never_visible": 0
+          },
+          "sample": {
+            "released_repeated": 3340,
+            "eligible_unique_days": 100,
+            "mean_daily_rates": {
+              "on_time": 0.9981476190476191,
+              "late": 0.0018523809523809524,
+              "expired_unpicked": 0.0,
+              "expired_after_pick": 0.0
+            },
+            "counts": {
+              "on_time": 3332,
+              "late": 8,
+              "expired_unpicked": 0,
+              "expired_after_pick": 0
+            },
+            "failed_never_visible": 0
+          },
+          "supplies": {
+            "released_repeated": 2100,
+            "eligible_unique_days": 98,
+            "mean_daily_rates": {
+              "on_time": 0.9990362811791383,
+              "late": 0.000963718820861678,
+              "expired_unpicked": 0.0,
+              "expired_after_pick": 0.0
+            },
+            "counts": {
+              "on_time": 2097,
+              "late": 3,
+              "expired_unpicked": 0,
+              "expired_after_pick": 0
+            },
+            "failed_never_visible": 0
+          }
+        }
+      },
+      "medium": {
+        "congestion": {
+          "states": 55742,
+          "over_12_states": 299,
+          "hidden_direct_on_time_matching_states": 58
+        },
+        "types": {
+          "plasma": {
+            "released_repeated": 5515,
+            "eligible_unique_days": 100,
+            "mean_daily_rates": {
+              "on_time": 0.7296595667490404,
+              "late": 0.16694106325391156,
+              "expired_unpicked": 0.09239641568441878,
+              "expired_after_pick": 0.011002954312629236
+            },
+            "counts": {
+              "on_time": 3955,
+              "late": 931,
+              "expired_unpicked": 564,
+              "expired_after_pick": 65
+            },
+            "failed_never_visible": 0
+          },
+          "medicine": {
+            "released_repeated": 7390,
+            "eligible_unique_days": 100,
+            "mean_daily_rates": {
+              "on_time": 0.9352444134382989,
+              "late": 0.059489282320706466,
+              "expired_unpicked": 0.004674240748931151,
+              "expired_after_pick": 0.000592063492063492
+            },
+            "counts": {
+              "on_time": 6872,
+              "late": 468,
+              "expired_unpicked": 45,
+              "expired_after_pick": 5
+            },
+            "failed_never_visible": 0
+          },
+          "sample": {
+            "released_repeated": 7725,
+            "eligible_unique_days": 100,
+            "mean_daily_rates": {
+              "on_time": 0.8852345543539534,
+              "late": 0.09432980950471932,
+              "expired_unpicked": 0.01720370142338779,
+              "expired_after_pick": 0.003231934717939564
+            },
+            "counts": {
+              "on_time": 6789,
+              "late": 760,
+              "expired_unpicked": 147,
+              "expired_after_pick": 29
+            },
+            "failed_never_visible": 0
+          },
+          "supplies": {
+            "released_repeated": 5340,
+            "eligible_unique_days": 100,
+            "mean_daily_rates": {
+              "on_time": 0.8284508873479461,
+              "late": 0.13838347110405932,
+              "expired_unpicked": 0.03048037403772698,
+              "expired_after_pick": 0.0026852675102675104
+            },
+            "counts": {
+              "on_time": 4432,
+              "late": 722,
+              "expired_unpicked": 172,
+              "expired_after_pick": 14
+            },
+            "failed_never_visible": 0
+          }
+        }
+      },
+      "high": {
+        "congestion": {
+          "states": 60576,
+          "over_12_states": 4016,
+          "hidden_direct_on_time_matching_states": 1144
+        },
+        "types": {
+          "plasma": {
+            "released_repeated": 6965,
+            "eligible_unique_days": 100,
+            "mean_daily_rates": {
+              "on_time": 0.5827969957821452,
+              "late": 0.18404641749495027,
+              "expired_unpicked": 0.22272404331471163,
+              "expired_after_pick": 0.01043254340819289
+            },
+            "counts": {
+              "on_time": 3956,
+              "late": 1302,
+              "expired_unpicked": 1636,
+              "expired_after_pick": 71
+            },
+            "failed_never_visible": 0
+          },
+          "medicine": {
+            "released_repeated": 9985,
+            "eligible_unique_days": 100,
+            "mean_daily_rates": {
+              "on_time": 0.8244208822233033,
+              "late": 0.14054653788471735,
+              "expired_unpicked": 0.03114718655962198,
+              "expired_after_pick": 0.0038853933323572576
+            },
+            "counts": {
+              "on_time": 8162,
+              "late": 1440,
+              "expired_unpicked": 343,
+              "expired_after_pick": 40
+            },
+            "failed_never_visible": 0
+          },
+          "sample": {
+            "released_repeated": 10160,
+            "eligible_unique_days": 100,
+            "mean_daily_rates": {
+              "on_time": 0.769628581982482,
+              "late": 0.15014206743402891,
+              "expired_unpicked": 0.07242042566890597,
+              "expired_after_pick": 0.007808924914583186
+            },
+            "counts": {
+              "on_time": 7733,
+              "late": 1550,
+              "expired_unpicked": 791,
+              "expired_after_pick": 86
+            },
+            "failed_never_visible": 0
+          },
+          "supplies": {
+            "released_repeated": 6820,
+            "eligible_unique_days": 100,
+            "mean_daily_rates": {
+              "on_time": 0.6961263790747773,
+              "late": 0.20267279921063067,
+              "expired_unpicked": 0.0927203814697589,
+              "expired_after_pick": 0.008480440244833165
+            },
+            "counts": {
+              "on_time": 4717,
+              "late": 1365,
+              "expired_unpicked": 677,
+              "expired_after_pick": 61
+            },
+            "failed_never_visible": 0
+          }
+        }
+      }
+    },
+    "destination": {
+      "low": {
+        "congestion": {
+          "states": 49430,
+          "over_12_states": 0,
+          "hidden_direct_on_time_matching_states": 0
+        },
+        "types": {
+          "plasma": {
+            "released_repeated": 2285,
+            "eligible_unique_days": 100,
+            "mean_daily_rates": {
+              "on_time": 0.9890563492063492,
+              "late": 0.010407936507936508,
+              "expired_unpicked": 0.0005357142857142857,
+              "expired_after_pick": 0.0
+            },
+            "counts": {
+              "on_time": 2252,
+              "late": 31,
+              "expired_unpicked": 2,
+              "expired_after_pick": 0
+            },
+            "failed_never_visible": 0
+          },
+          "medicine": {
+            "released_repeated": 3405,
+            "eligible_unique_days": 100,
+            "mean_daily_rates": {
+              "on_time": 0.9986437728937729,
+              "late": 0.001356227106227106,
+              "expired_unpicked": 0.0,
+              "expired_after_pick": 0.0
+            },
+            "counts": {
+              "on_time": 3401,
+              "late": 4,
+              "expired_unpicked": 0,
+              "expired_after_pick": 0
+            },
+            "failed_never_visible": 0
+          },
+          "sample": {
+            "released_repeated": 3340,
+            "eligible_unique_days": 100,
+            "mean_daily_rates": {
+              "on_time": 0.9959722222222223,
+              "late": 0.004027777777777778,
+              "expired_unpicked": 0.0,
+              "expired_after_pick": 0.0
+            },
+            "counts": {
+              "on_time": 3324,
+              "late": 16,
+              "expired_unpicked": 0,
+              "expired_after_pick": 0
+            },
+            "failed_never_visible": 0
+          },
+          "supplies": {
+            "released_repeated": 2100,
+            "eligible_unique_days": 98,
+            "mean_daily_rates": {
+              "on_time": 0.9935123096857791,
+              "late": 0.006487690314220926,
+              "expired_unpicked": 0.0,
+              "expired_after_pick": 0.0
+            },
+            "counts": {
+              "on_time": 2084,
+              "late": 16,
+              "expired_unpicked": 0,
+              "expired_after_pick": 0
+            },
+            "failed_never_visible": 0
+          }
+        }
+      },
+      "medium": {
+        "congestion": {
+          "states": 56355,
+          "over_12_states": 307,
+          "hidden_direct_on_time_matching_states": 73
+        },
+        "types": {
+          "plasma": {
+            "released_repeated": 5515,
+            "eligible_unique_days": 100,
+            "mean_daily_rates": {
+              "on_time": 0.7550637678111363,
+              "late": 0.13873462242951407,
+              "expired_unpicked": 0.10027105697879692,
+              "expired_after_pick": 0.005930552780552781
+            },
+            "counts": {
+              "on_time": 4098,
+              "late": 783,
+              "expired_unpicked": 600,
+              "expired_after_pick": 34
+            },
+            "failed_never_visible": 0
+          },
+          "medicine": {
+            "released_repeated": 7390,
+            "eligible_unique_days": 100,
+            "mean_daily_rates": {
+              "on_time": 0.9383950224526076,
+              "late": 0.056619725673363444,
+              "expired_unpicked": 0.0044027121914892815,
+              "expired_after_pick": 0.0005825396825396825
+            },
+            "counts": {
+              "on_time": 6892,
+              "late": 450,
+              "expired_unpicked": 43,
+              "expired_after_pick": 5
+            },
+            "failed_never_visible": 0
+          },
+          "sample": {
+            "released_repeated": 7725,
+            "eligible_unique_days": 100,
+            "mean_daily_rates": {
+              "on_time": 0.8782918849545334,
+              "late": 0.09802352454680022,
+              "expired_unpicked": 0.022838674612704765,
+              "expired_after_pick": 0.0008459158859616525
+            },
+            "counts": {
+              "on_time": 6721,
+              "late": 789,
+              "expired_unpicked": 208,
+              "expired_after_pick": 7
+            },
+            "failed_never_visible": 0
+          },
+          "supplies": {
+            "released_repeated": 5340,
+            "eligible_unique_days": 100,
+            "mean_daily_rates": {
+              "on_time": 0.8647207806898983,
+              "late": 0.11271591513062101,
+              "expired_unpicked": 0.020954154995331466,
+              "expired_after_pick": 0.0016091491841491842
+            },
+            "counts": {
+              "on_time": 4603,
+              "late": 607,
+              "expired_unpicked": 120,
+              "expired_after_pick": 10
+            },
+            "failed_never_visible": 0
+          }
+        }
+      },
+      "high": {
+        "congestion": {
+          "states": 60286,
+          "over_12_states": 4148,
+          "hidden_direct_on_time_matching_states": 1256
+        },
+        "types": {
+          "plasma": {
+            "released_repeated": 6965,
+            "eligible_unique_days": 100,
+            "mean_daily_rates": {
+              "on_time": 0.5956296559806387,
+              "late": 0.16259439989125007,
+              "expired_unpicked": 0.23659757107357726,
+              "expired_after_pick": 0.005178373054534045
+            },
+            "counts": {
+              "on_time": 4066,
+              "late": 1131,
+              "expired_unpicked": 1732,
+              "expired_after_pick": 36
+            },
+            "failed_never_visible": 0
+          },
+          "medicine": {
+            "released_repeated": 9985,
+            "eligible_unique_days": 100,
+            "mean_daily_rates": {
+              "on_time": 0.8333231707973707,
+              "late": 0.12972760480603274,
+              "expired_unpicked": 0.034269396163627855,
+              "expired_after_pick": 0.0026798282329686287
+            },
+            "counts": {
+              "on_time": 8249,
+              "late": 1334,
+              "expired_unpicked": 374,
+              "expired_after_pick": 28
+            },
+            "failed_never_visible": 0
+          },
+          "sample": {
+            "released_repeated": 10160,
+            "eligible_unique_days": 100,
+            "mean_daily_rates": {
+              "on_time": 0.7593651265872117,
+              "late": 0.14500038925929043,
+              "expired_unpicked": 0.09130117573479943,
+              "expired_after_pick": 0.004333308418698479
+            },
+            "counts": {
+              "on_time": 7643,
+              "late": 1483,
+              "expired_unpicked": 990,
+              "expired_after_pick": 44
+            },
+            "failed_never_visible": 0
+          },
+          "supplies": {
+            "released_repeated": 6820,
+            "eligible_unique_days": 100,
+            "mean_daily_rates": {
+              "on_time": 0.7484171404192942,
+              "late": 0.15825388801085397,
+              "expired_unpicked": 0.09052335260161684,
+              "expired_after_pick": 0.0028056189682350674
+            },
+            "counts": {
+              "on_time": 5068,
+              "late": 1082,
+              "expired_unpicked": 651,
+              "expired_after_pick": 19
+            },
+            "failed_never_visible": 0
+          }
+        }
+      }
+    }
+  },
+  "representative_selection": "learner 1; fixed buckets; median absolute paired daily gap, then load/day tie-break",
+  "representatives": [
+    {
+      "bucket": "success",
+      "learner_seed": 1,
+      "load": "low",
+      "day": 100088,
+      "destination_rate": 1.0,
+      "m5_rate": 1.0,
+      "delta_pp": 0.0
+    },
+    {
+      "bucket": "failure_both",
+      "learner_seed": 1,
+      "load": "medium",
+      "day": 100104,
+      "destination_rate": 0.8421052631578947,
+      "m5_rate": 0.8070175438596491,
+      "delta_pp": 3.508771929824561
+    },
+    {
+      "bucket": "improvement",
+      "learner_seed": 1,
+      "load": "low",
+      "day": 100073,
+      "destination_rate": 1.0,
+      "m5_rate": 0.9629629629629629,
+      "delta_pp": 3.703703703703709
+    },
+    {
+      "bucket": "regression",
+      "learner_seed": 1,
+      "load": "high",
+      "day": 100117,
+      "destination_rate": 0.6710526315789473,
+      "m5_rate": 0.7105263157894737,
+      "delta_pp": -3.9473684210526327
+    }
+  ]
+}

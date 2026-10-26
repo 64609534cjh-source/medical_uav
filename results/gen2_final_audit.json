@@ -1,0 +1,19 @@
+{
+  "checked_utc": "2026-10-26T11:51:43.044673+00:00",
+  "all_checks_passed": true,
+  "generation1_files_unchanged": 65,
+  "generation1_selected_model_hashes_unchanged": 15,
+  "test_v2_selected_model_hashes_unchanged": 15,
+  "frozen_code_and_development_files_unchanged": 55,
+  "complete_test_v2_episodes": 5400,
+  "test_v2_decisions": 595586,
+  "test_v2_illegal_actions": 0,
+  "test_v2_status": "consumed; no post-holdout architecture/hyperparameter changes or learner-seed selection",
+  "generation1_commit": "3c05ad345409302a8c14e7e1f83bc622245973ee",
+  "training_source_commits": [
+    "705806aba80a06a992286464e31a363f698d726d"
+  ],
+  "frozen_test_v2_protocol_sha256": "3829e1d94cbe35f63fad484da6d04aba7d91236c7d50b687f23c76bd9a18b38a",
+  "result_sha256": "e5e622c90f8f3098bfa94f054f85b361788479082386cf88e4f94c8e036815cc",
+  "training_suite_wall_seconds": 2845.6742798880005
+}

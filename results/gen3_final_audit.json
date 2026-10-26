@@ -1,0 +1,26 @@
+{
+  "checked_utc": "2026-10-26T13:43:24.402722+00:00",
+  "all_checks_passed": true,
+  "prior_result_and_config_files_unchanged": 98,
+  "prior_environment_PPO_collector_and_network_modules_unchanged": 22,
+  "prior_model_entries_verified": 30,
+  "distinct_prior_selected_models_verified": 25,
+  "test_v3_selected_models_unchanged": 15,
+  "frozen_code_and_development_files_unchanged": 64,
+  "complete_test_v3_episodes": 5400,
+  "test_v3_decisions": 585562,
+  "test_v3_illegal_actions": 0,
+  "inference_validated_models": 20,
+  "inference_modes_per_model": 2,
+  "inference_full_Dev_days": 4800,
+  "inference_max_logit_abs_error": 3.814697265625e-06,
+  "inference_max_value_abs_error": 0.0,
+  "test_v3_status": "consumed; no post-holdout architecture/hyperparameter changes or learner-seed selection",
+  "generation2_commit": "91369571450bb122de2e5f8e7fb53117cf21d20d",
+  "training_source_commits": [
+    "8d5f1d3945f6e4086be4e108e227ee7d70d32776"
+  ],
+  "frozen_test_v3_protocol_sha256": "cc756ab8cc2083956d15b0ae2d007f9703d518b18e0e91e7fabb85813dbcd131",
+  "result_sha256": "27f3db5ab77e4562f153803cf413ece1f00935677e4fc645956d234c168e41b4",
+  "training_suite_wall_seconds": 3013.039623016997
+}

@@ -1,0 +1,107 @@
+{
+  "split": "dev-extra",
+  "jobs": 5,
+  "failure_diagnostics": true,
+  "entries": [
+    {
+      "name": "coordinated_s1",
+      "method": "coordinated",
+      "learner_seed": 1,
+      "checkpoint": "outputs/gen3_architectures/coordinated_s1/best.pt",
+      "checkpoint_sha256": "96cd02805ae8b3a8764c5e023914c6d5b3aeb016533359bfbc566f1009156055",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "coordinated_last_s1",
+      "method": "coordinated",
+      "learner_seed": 1,
+      "checkpoint": "outputs/gen3_architectures/coordinated_s1/last.pt",
+      "checkpoint_sha256": "2a050973863502181f57a4b9c71e5a188716c563ed80935055a8a497afa66eca",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "coordinated_s2",
+      "method": "coordinated",
+      "learner_seed": 2,
+      "checkpoint": "outputs/gen3_architectures/coordinated_s2/best.pt",
+      "checkpoint_sha256": "78f377377a2c9d3f9a35a30a848dde8b9afc2ed30c732a849724f584a56971ea",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "coordinated_last_s2",
+      "method": "coordinated",
+      "learner_seed": 2,
+      "checkpoint": "outputs/gen3_architectures/coordinated_s2/last.pt",
+      "checkpoint_sha256": "8416fe4d63f476663891be1022aba8c6fe967593c74e3fc52dab8a829650be47",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "coordinated_s3",
+      "method": "coordinated",
+      "learner_seed": 3,
+      "checkpoint": "outputs/gen3_architectures/coordinated_s3/best.pt",
+      "checkpoint_sha256": "0bdad0160a3667571dcde03d877508db19b99e8252955a42858d12d706a4cd70",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "coordinated_last_s3",
+      "method": "coordinated",
+      "learner_seed": 3,
+      "checkpoint": "outputs/gen3_architectures/coordinated_s3/last.pt",
+      "checkpoint_sha256": "ecd0e7669f00504f14cf472887df2cf50687bc6da0d90a43a0f5e53f4f1d1c37",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "coordinated_s4",
+      "method": "coordinated",
+      "learner_seed": 4,
+      "checkpoint": "outputs/gen3_architectures/coordinated_s4/best.pt",
+      "checkpoint_sha256": "492aec6877e265a2ffbbafec78c3a7b746103be8958a7c195a77fb7625d43aed",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "coordinated_last_s4",
+      "method": "coordinated",
+      "learner_seed": 4,
+      "checkpoint": "outputs/gen3_architectures/coordinated_s4/last.pt",
+      "checkpoint_sha256": "b4331b060c75bce771b38d9941b4a542ae9c561dcc75db7a83e899dcce9a1903",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "coordinated_s5",
+      "method": "coordinated",
+      "learner_seed": 5,
+      "checkpoint": "outputs/gen3_architectures/coordinated_s5/best.pt",
+      "checkpoint_sha256": "aaa061ac8ffcb3423ee92546203f936ec8dc3088a0b01fc2dd7eebb8c0ff8c58",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "coordinated_last_s5",
+      "method": "coordinated",
+      "learner_seed": 5,
+      "checkpoint": "outputs/gen3_architectures/coordinated_s5/last.pt",
+      "checkpoint_sha256": "cbadd5f68712da9991ac88b9b44e38e88c0dc61ad260e9c71c8b0897e3355e21",
+      "policies": [
+        "ppo"
+      ]
+    }
+  ]
+}

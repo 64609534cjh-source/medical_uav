@@ -9,9 +9,11 @@ dependencies:
   - python=3.11.17
   - pip
   - pip:
+      - --extra-index-url https://download.pytorch.org/whl/cpu
       - numpy==2.4.6
       - gymnasium==1.4.0
       - matplotlib==3.11.2
       - imageio==2.38.1
       - imageio-ffmpeg==0.6.0
       - pytest==9.1.1
+      - torch==2.10.0+cpu

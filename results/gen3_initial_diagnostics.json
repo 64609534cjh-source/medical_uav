@@ -1,0 +1,1960 @@
+{
+  "stage": "Gen3 pre-training Dev-extra diagnostic",
+  "unchanged_full_day_records_verified": 3000,
+  "selection": "user confirmed original overall Dev rule; no service/reward guardrails",
+  "types": {
+    "plasma": {
+      "on_time": {
+        "loads": {
+          "low": {
+            "estimate": 0.004614285714285715,
+            "learner_sample_sd": 0.007514803040614507,
+            "learner_mean_values": [
+              -0.002261904761904762,
+              0.006071428571428571,
+              0.0017500000000000005,
+              0.016940476190476193,
+              0.0005714285714285728
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.005181071428571424,
+              0.014302499999999992
+            ],
+            "seed_only_95_percentile": [
+              -0.00032619047619047547,
+              0.010926190476190478
+            ],
+            "day_only_95_percentile": [
+              -0.00111220238095238,
+              0.010776309523809518
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "medium": {
+            "estimate": 0.0254042010620958,
+            "learner_sample_sd": 0.039466265802234446,
+            "learner_mean_values": [
+              -0.005915639915639914,
+              0.054965401643420224,
+              0.05136249225490712,
+              0.0545893795746737,
+              -0.02798062824688212
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.01218962963163426,
+              0.059945836418483445
+            ],
+            "seed_only_95_percentile": [
+              -0.007053629016322514,
+              0.054094410938219
+            ],
+            "day_only_95_percentile": [
+              0.011869153446312886,
+              0.0393625585615794
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "high": {
+            "estimate": 0.012832660198493417,
+            "learner_sample_sd": 0.01466785750638816,
+            "learner_mean_values": [
+              0.014230663828102917,
+              0.01769248872491233,
+              0.015478908591221823,
+              0.02823468590681539,
+              -0.011473446058585378
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.008466772079670594,
+              0.03462733764762964
+            ],
+            "seed_only_95_percentile": [
+              -0.0004994371245481765,
+              0.02288272602795418
+            ],
+            "day_only_95_percentile": [
+              -0.0013178210882068217,
+              0.026876783109111294
+            ],
+            "valid_joint_replicates": 10000
+          }
+        },
+        "repetitions": 10000,
+        "rng_seed": 20261026,
+        "method": "paired crossed learner/day product bootstrap; per-load weighted normalization on nonzero-release days",
+        "scope": "exploratory pointwise intervals, no multiplicity correction; five learners limit uncertainty estimates"
+      },
+      "late": {
+        "loads": {
+          "low": {
+            "estimate": -0.0049,
+            "learner_sample_sd": 0.007074547372202828,
+            "learner_mean_values": [
+              0.0008333333333333326,
+              -0.004821428571428571,
+              -0.003,
+              -0.01694047619047619,
+              -0.0005714285714285719
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.014509583333333327,
+              0.004640535714285708
+            ],
+            "seed_only_95_percentile": [
+              -0.011242857142857143,
+              -0.0004952380952380958
+            ],
+            "day_only_95_percentile": [
+              -0.011114464285714278,
+              0.0009261904761904754
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "medium": {
+            "estimate": -0.028206440824397477,
+            "learner_sample_sd": 0.02356412806109139,
+            "learner_mean_values": [
+              -0.012908809757493967,
+              -0.05049374786719989,
+              -0.02756487342207157,
+              -0.05214114991475672,
+              0.0020763768395347347
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.0541233273649295,
+              -0.0029538569323263658
+            ],
+            "seed_only_95_percentile": [
+              -0.04656693379719696,
+              -0.009780123265107786
+            ],
+            "day_only_95_percentile": [
+              -0.04192498340110181,
+              -0.014330052101751012
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "high": {
+            "estimate": -0.021452017603700198,
+            "learner_sample_sd": 0.025419202553027577,
+            "learner_mean_values": [
+              -0.005026532918779521,
+              -0.026752931981495722,
+              0.0007229482614123862,
+              -0.06300648933782599,
+              -0.013197082041812152
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.04797025996179488,
+              0.003602403129215866
+            ],
+            "seed_only_95_percentile": [
+              -0.04301171124852996,
+              -0.004360850271309284
+            ],
+            "day_only_95_percentile": [
+              -0.03435404874194506,
+              -0.008636383663206416
+            ],
+            "valid_joint_replicates": 10000
+          }
+        },
+        "repetitions": 10000,
+        "rng_seed": 20261026,
+        "method": "paired crossed learner/day product bootstrap; per-load weighted normalization on nonzero-release days",
+        "scope": "exploratory pointwise intervals, no multiplicity correction; five learners limit uncertainty estimates"
+      },
+      "expired_unpicked": {
+        "loads": {
+          "low": {
+            "estimate": 0.0005357142857142857,
+            "learner_sample_sd": 0.0007362688617174394,
+            "learner_mean_values": [
+              0.0014285714285714286,
+              0.0,
+              0.00125,
+              0.0,
+              0.0
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              0.0,
+              0.002142857142857142
+            ],
+            "seed_only_95_percentile": [
+              0.0,
+              0.001107142857142857
+            ],
+            "day_only_95_percentile": [
+              0.0,
+              0.0013571428571428565
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "medium": {
+            "estimate": 0.007874641294378138,
+            "learner_sample_sd": 0.01885367796830681,
+            "learner_mean_values": [
+              0.022718161353610277,
+              0.003611461637777426,
+              -0.01967912784669751,
+              0.004527483352560752,
+              0.02819522797463974
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.010557307658801458,
+              0.027093683914125068
+            ],
+            "seed_only_95_percentile": [
+              -0.006541552109740964,
+              0.022183061383061385
+            ],
+            "day_only_95_percentile": [
+              -0.001215249925727866,
+              0.016942666286027343
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "high": {
+            "estimate": 0.013873527758865625,
+            "learner_sample_sd": 0.021028935277428235,
+            "learner_mean_values": [
+              -0.00378881114996339,
+              0.018328294686199523,
+              -0.010751450978315293,
+              0.04037336385029547,
+              0.025206242386111816
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.0070876681698934015,
+              0.03445637968777865
+            ],
+            "seed_only_95_percentile": [
+              -0.002150445914071569,
+              0.02989750143180282
+            ],
+            "day_only_95_percentile": [
+              0.0035346018428894623,
+              0.023871115398563215
+            ],
+            "valid_joint_replicates": 10000
+          }
+        },
+        "repetitions": 10000,
+        "rng_seed": 20261026,
+        "method": "paired crossed learner/day product bootstrap; per-load weighted normalization on nonzero-release days",
+        "scope": "exploratory pointwise intervals, no multiplicity correction; five learners limit uncertainty estimates"
+      },
+      "expired_after_pick": {
+        "loads": {
+          "low": {
+            "estimate": -0.00025,
+            "learner_sample_sd": 0.0005590169943749475,
+            "learner_mean_values": [
+              0.0,
+              -0.00125,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.001499999999999999,
+              0.0
+            ],
+            "seed_only_95_percentile": [
+              -0.00075,
+              0.0
+            ],
+            "day_only_95_percentile": [
+              -0.0007499999999999997,
+              0.0
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "medium": {
+            "estimate": -0.005072401532076455,
+            "learner_sample_sd": 0.002383409983661155,
+            "learner_mean_values": [
+              -0.003893711680476386,
+              -0.008083115413997767,
+              -0.004118490986138045,
+              -0.006975713012477718,
+              -0.0022909765672923564
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.0104915411549235,
+              0.000182171262475055
+            ],
+            "seed_only_95_percentile": [
+              -0.00702375418698948,
+              -0.0032975734963351065
+            ],
+            "day_only_95_percentile": [
+              -0.008971340352758692,
+              -0.0010690410894145413
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "high": {
+            "estimate": -0.005254170353658845,
+            "learner_sample_sd": 0.0031047794129713435,
+            "learner_mean_values": [
+              -0.005415319759360006,
+              -0.009267851429616135,
+              -0.005450405874318918,
+              -0.005601560419284878,
+              -0.0005357142857142856
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.01008382362413128,
+              -0.000914397567946336
+            ],
+            "seed_only_95_percentile": [
+              -0.007733855984505465,
+              -0.0025248046071575485
+            ],
+            "day_only_95_percentile": [
+              -0.008109889772567954,
+              -0.0024908625652925015
+            ],
+            "valid_joint_replicates": 10000
+          }
+        },
+        "repetitions": 10000,
+        "rng_seed": 20261026,
+        "method": "paired crossed learner/day product bootstrap; per-load weighted normalization on nonzero-release days",
+        "scope": "exploratory pointwise intervals, no multiplicity correction; five learners limit uncertainty estimates"
+      }
+    },
+    "medicine": {
+      "on_time": {
+        "loads": {
+          "low": {
+            "estimate": -0.0013562271062271063,
+            "learner_sample_sd": 0.002318081047993292,
+            "learner_mean_values": [
+              -0.001428571428571429,
+              0.0,
+              -0.005352564102564103,
+              0.0,
+              0.0
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.0049999999999999975,
+              0.0
+            ],
+            "seed_only_95_percentile": [
+              -0.0034972527472527473,
+              0.0
+            ],
+            "day_only_95_percentile": [
+              -0.003106227106227105,
+              -0.00015384615384615363
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "medium": {
+            "estimate": 0.0031506090143087044,
+            "learner_sample_sd": 0.004543579602666601,
+            "learner_mean_values": [
+              0.0067368866943170345,
+              0.003620666571130969,
+              -0.003722322740898597,
+              0.0015348105626743413,
+              0.007583003984319772
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.007772875199276122,
+              0.014360082935425398
+            ],
+            "seed_only_95_percentile": [
+              -0.0005680427587548341,
+              0.006452089585680916
+            ],
+            "day_only_95_percentile": [
+              -0.005241015593668455,
+              0.011631606589145279
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "high": {
+            "estimate": 0.008902288574067366,
+            "learner_sample_sd": 0.025791876222696956,
+            "learner_mean_values": [
+              0.002500648282201818,
+              -0.001758955460997786,
+              -0.02508541834479772,
+              0.029528873209843053,
+              0.03932629518408746
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.01372147944692192,
+              0.03251518602040845
+            ],
+            "seed_only_95_percentile": [
+              -0.01023761986587784,
+              0.029149760660221527
+            ],
+            "day_only_95_percentile": [
+              0.0010130788414255201,
+              0.01673732128111309
+            ],
+            "valid_joint_replicates": 10000
+          }
+        },
+        "repetitions": 10000,
+        "rng_seed": 20261026,
+        "method": "paired crossed learner/day product bootstrap; per-load weighted normalization on nonzero-release days",
+        "scope": "exploratory pointwise intervals, no multiplicity correction; five learners limit uncertainty estimates"
+      },
+      "late": {
+        "loads": {
+          "low": {
+            "estimate": 0.0013562271062271063,
+            "learner_sample_sd": 0.002318081047993292,
+            "learner_mean_values": [
+              0.0014285714285714286,
+              0.0,
+              0.005352564102564103,
+              0.0,
+              0.0
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              0.0,
+              0.004999999999999997
+            ],
+            "seed_only_95_percentile": [
+              0.0,
+              0.0034972527472527473
+            ],
+            "day_only_95_percentile": [
+              0.00015384615384615374,
+              0.003106227106227104
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "medium": {
+            "estimate": -0.002869556647343025,
+            "learner_sample_sd": 0.006247440326874867,
+            "learner_mean_values": [
+              -0.008539407702720398,
+              -0.00599108781655221,
+              0.007026305737606046,
+              -0.0006206501616718325,
+              -0.006222943293376731
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.014388736509233791,
+              0.008510031697533622
+            ],
+            "seed_only_95_percentile": [
+              -0.007103157961749294,
+              0.0024381321980393193
+            ],
+            "day_only_95_percentile": [
+              -0.011293088107927498,
+              0.005410005052137396
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "high": {
+            "estimate": -0.010818933078684612,
+            "learner_sample_sd": 0.02305331664123841,
+            "learner_mean_values": [
+              -0.01591736979224679,
+              0.005546595718049389,
+              0.019359138005562312,
+              -0.025954462954514937,
+              -0.037128566370273036
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.03168436592249405,
+              0.009621724497431056
+            ],
+            "seed_only_95_percentile": [
+              -0.02841668568836455,
+              0.007533909356044277
+            ],
+            "day_only_95_percentile": [
+              -0.018517020856262056,
+              -0.003296679290871195
+            ],
+            "valid_joint_replicates": 10000
+          }
+        },
+        "repetitions": 10000,
+        "rng_seed": 20261026,
+        "method": "paired crossed learner/day product bootstrap; per-load weighted normalization on nonzero-release days",
+        "scope": "exploratory pointwise intervals, no multiplicity correction; five learners limit uncertainty estimates"
+      },
+      "expired_unpicked": {
+        "loads": {
+          "low": {
+            "estimate": 0.0,
+            "learner_sample_sd": 0.0,
+            "learner_mean_values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              0.0,
+              0.0
+            ],
+            "seed_only_95_percentile": [
+              0.0,
+              0.0
+            ],
+            "day_only_95_percentile": [
+              0.0,
+              0.0
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "medium": {
+            "estimate": -0.0002715285574418701,
+            "learner_sample_sd": 0.0019448687992619613,
+            "learner_mean_values": [
+              0.0018025210084033614,
+              0.0016005799755799755,
+              -0.0025896972824217403,
+              -0.0016443191311612366,
+              -0.0005267273576097103
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.0032972946766425854,
+              0.0021263348699803787
+            ],
+            "seed_only_95_percentile": [
+              -0.001798952036955133,
+              0.0012558949220713928
+            ],
+            "day_only_95_percentile": [
+              -0.0018295443265025299,
+              0.0011340963078888767
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "high": {
+            "estimate": 0.003122209604005873,
+            "learner_sample_sd": 0.005582961365630937,
+            "learner_mean_values": [
+              0.010829586243114309,
+              -0.000675315316247056,
+              0.007341317793517699,
+              -0.001020089861762872,
+              -0.0008644508385927149
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.0037960389806501625,
+              0.010325580781165624
+            ],
+            "seed_only_95_percentile": [
+              -0.000888879343391646,
+              0.007793125136853581
+            ],
+            "day_only_95_percentile": [
+              -0.0011799620955889314,
+              0.007276037100245635
+            ],
+            "valid_joint_replicates": 10000
+          }
+        },
+        "repetitions": 10000,
+        "rng_seed": 20261026,
+        "method": "paired crossed learner/day product bootstrap; per-load weighted normalization on nonzero-release days",
+        "scope": "exploratory pointwise intervals, no multiplicity correction; five learners limit uncertainty estimates"
+      },
+      "expired_after_pick": {
+        "loads": {
+          "low": {
+            "estimate": 0.0,
+            "learner_sample_sd": 0.0,
+            "learner_mean_values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              0.0,
+              0.0
+            ],
+            "seed_only_95_percentile": [
+              0.0,
+              0.0
+            ],
+            "day_only_95_percentile": [
+              0.0,
+              0.0
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "medium": {
+            "estimate": -9.523809523809528e-06,
+            "learner_sample_sd": 0.0007632139875742085,
+            "learner_mean_values": [
+              0.0,
+              0.0007698412698412697,
+              -0.0007142857142857143,
+              0.0007301587301587302,
+              -0.0008333333333333333
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.0011428571428571419,
+              0.0012238095238095228
+            ],
+            "seed_only_95_percentile": [
+              -0.0006190476190476191,
+              0.0006000000000000001
+            ],
+            "day_only_95_percentile": [
+              -0.0007238095238095233,
+              0.0006794047619047611
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "high": {
+            "estimate": -0.0012055650993886289,
+            "learner_sample_sd": 0.0022373772699949453,
+            "learner_mean_values": [
+              0.0025871352669306637,
+              -0.0031123249408045485,
+              -0.0016150374542823053,
+              -0.0025543203935652447,
+              -0.001333277975221709
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.0037674096282189536,
+              0.0016738110884045726
+            ],
+            "seed_only_95_percentile": [
+              -0.0026449146382401196,
+              0.0007747614864010074
+            ],
+            "day_only_95_percentile": [
+              -0.0026162458298644845,
+              0.00023013589772488978
+            ],
+            "valid_joint_replicates": 10000
+          }
+        },
+        "repetitions": 10000,
+        "rng_seed": 20261026,
+        "method": "paired crossed learner/day product bootstrap; per-load weighted normalization on nonzero-release days",
+        "scope": "exploratory pointwise intervals, no multiplicity correction; five learners limit uncertainty estimates"
+      }
+    },
+    "sample": {
+      "on_time": {
+        "loads": {
+          "low": {
+            "estimate": -0.0021753968253968256,
+            "learner_sample_sd": 0.005169016301855565,
+            "learner_mean_values": [
+              0.0019444444444444442,
+              0.0,
+              -0.011130952380952382,
+              -0.001690476190476191,
+              0.0
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.008285714285714282,
+              0.002104940476190473
+            ],
+            "seed_only_95_percentile": [
+              -0.006678571428571429,
+              0.0008285714285714283
+            ],
+            "day_only_95_percentile": [
+              -0.004865099206349204,
+              0.0001063888888888886
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "medium": {
+            "estimate": -0.006942669399419973,
+            "learner_sample_sd": 0.01399063583777183,
+            "learner_mean_values": [
+              -0.021764127441759023,
+              0.011980559605313945,
+              4.7726137051748995e-05,
+              -0.019373650670558063,
+              -0.005603854627148476
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.023564206737604003,
+              0.009840742170941691
+            ],
+            "seed_only_95_percentile": [
+              -0.01757588217035653,
+              0.003690543371516583
+            ],
+            "day_only_95_percentile": [
+              -0.016438382265480708,
+              0.0025774193790908577
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "high": {
+            "estimate": -0.010263455395270252,
+            "learner_sample_sd": 0.021783748125168523,
+            "learner_mean_values": [
+              -0.014102593733569946,
+              -0.013397084107716655,
+              0.0006876783660111779,
+              0.01729162537920338,
+              -0.04179690288027921
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.0318841470709117,
+              0.010183079425999641
+            ],
+            "seed_only_95_percentile": [
+              -0.027761124801679277,
+              0.00547391972730686
+            ],
+            "day_only_95_percentile": [
+              -0.018549088518182176,
+              -0.0024528274961129067
+            ],
+            "valid_joint_replicates": 10000
+          }
+        },
+        "repetitions": 10000,
+        "rng_seed": 20261026,
+        "method": "paired crossed learner/day product bootstrap; per-load weighted normalization on nonzero-release days",
+        "scope": "exploratory pointwise intervals, no multiplicity correction; five learners limit uncertainty estimates"
+      },
+      "late": {
+        "loads": {
+          "low": {
+            "estimate": 0.0021753968253968256,
+            "learner_sample_sd": 0.005169016301855565,
+            "learner_mean_values": [
+              -0.0019444444444444442,
+              0.0,
+              0.011130952380952382,
+              0.0016904761904761906,
+              0.0
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.0021049404761904742,
+              0.00828571428571428
+            ],
+            "seed_only_95_percentile": [
+              -0.0008285714285714284,
+              0.006678571428571429
+            ],
+            "day_only_95_percentile": [
+              -0.00010638888888888874,
+              0.004865099206349203
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "medium": {
+            "estimate": 0.003693715042080905,
+            "learner_sample_sd": 0.015436995148722705,
+            "learner_mean_values": [
+              0.01934080068376407,
+              -0.020391589386070472,
+              0.007945784972868027,
+              0.012908168500509324,
+              -0.001334589560666425
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.013533617274768043,
+              0.019969461214513828
+            ],
+            "seed_only_95_percentile": [
+              -0.008959870744619718,
+              0.014488744668282965
+            ],
+            "day_only_95_percentile": [
+              -0.005054505348736604,
+              0.012445772403298893
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "high": {
+            "estimate": -0.0051416781747385025,
+            "learner_sample_sd": 0.016115362636790875,
+            "learner_mean_values": [
+              -0.008483045973786709,
+              -0.03072905519772316,
+              0.012104966745401813,
+              -0.001205695140716835,
+              0.0026044386931323793
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.022371116300264653,
+              0.012137575407890767
+            ],
+            "seed_only_95_percentile": [
+              -0.018157684408150784,
+              0.006087258591110222
+            ],
+            "day_only_95_percentile": [
+              -0.01278140305064841,
+              0.0025165770212050467
+            ],
+            "valid_joint_replicates": 10000
+          }
+        },
+        "repetitions": 10000,
+        "rng_seed": 20261026,
+        "method": "paired crossed learner/day product bootstrap; per-load weighted normalization on nonzero-release days",
+        "scope": "exploratory pointwise intervals, no multiplicity correction; five learners limit uncertainty estimates"
+      },
+      "expired_unpicked": {
+        "loads": {
+          "low": {
+            "estimate": 0.0,
+            "learner_sample_sd": 0.0,
+            "learner_mean_values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              0.0,
+              0.0
+            ],
+            "seed_only_95_percentile": [
+              0.0,
+              0.0
+            ],
+            "day_only_95_percentile": [
+              0.0,
+              0.0
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "medium": {
+            "estimate": 0.005634973189316977,
+            "learner_sample_sd": 0.006528252997284339,
+            "learner_mean_values": [
+              0.0029496425474686344,
+              0.01277091092639282,
+              -0.00424294671554397,
+              0.008209746677471135,
+              0.008487512510796262
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.0021229346519680346,
+              0.01343843023622167
+            ],
+            "seed_only_95_percentile": [
+              0.0005983426654459095,
+              0.01014531871036986
+            ],
+            "day_only_95_percentile": [
+              0.001002912033461669,
+              0.010097466736689067
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "high": {
+            "estimate": 0.018880750065893463,
+            "learner_sample_sd": 0.029434488118586923,
+            "learner_mean_values": [
+              0.024238777418094878,
+              0.04879886956298576,
+              -0.012590962657535289,
+              -0.010806791096360367,
+              0.04476385710228233
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.005619164490364994,
+              0.04316754822692667
+            ],
+            "seed_only_95_percentile": [
+              -0.004511346017939287,
+              0.04227284614972621
+            ],
+            "day_only_95_percentile": [
+              0.012325850876729926,
+              0.025350488283814646
+            ],
+            "valid_joint_replicates": 10000
+          }
+        },
+        "repetitions": 10000,
+        "rng_seed": 20261026,
+        "method": "paired crossed learner/day product bootstrap; per-load weighted normalization on nonzero-release days",
+        "scope": "exploratory pointwise intervals, no multiplicity correction; five learners limit uncertainty estimates"
+      },
+      "expired_after_pick": {
+        "loads": {
+          "low": {
+            "estimate": 0.0,
+            "learner_sample_sd": 0.0,
+            "learner_mean_values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              0.0,
+              0.0
+            ],
+            "seed_only_95_percentile": [
+              0.0,
+              0.0
+            ],
+            "day_only_95_percentile": [
+              0.0,
+              0.0
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "medium": {
+            "estimate": -0.002386018831977911,
+            "learner_sample_sd": 0.0016069339749220698,
+            "learner_mean_values": [
+              -0.0005263157894736842,
+              -0.004359881145636294,
+              -0.0037505643943758094,
+              -0.001744264507422402,
+              -0.0015490683229813665
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.004911931617401581,
+              -0.00046853195139340774
+            ],
+            "seed_only_95_percentile": [
+              -0.0036758552308532116,
+              -0.0011790065464665008
+            ],
+            "day_only_95_percentile": [
+              -0.0038645756533534654,
+              -0.0010086934498007487
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "high": {
+            "estimate": -0.003475616495884707,
+            "learner_sample_sd": 0.002404065677507252,
+            "learner_mean_values": [
+              -0.001653137710738211,
+              -0.004672730257545938,
+              -0.00020168245387770388,
+              -0.005279139142126167,
+              -0.0055713929151355165
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.006960338764819352,
+              0.0003060366606185519
+            ],
+            "seed_only_95_percentile": [
+              -0.005274758874413861,
+              -0.0015644543286363424
+            ],
+            "day_only_95_percentile": [
+              -0.0060242667033590545,
+              -0.0010995838457728503
+            ],
+            "valid_joint_replicates": 10000
+          }
+        },
+        "repetitions": 10000,
+        "rng_seed": 20261026,
+        "method": "paired crossed learner/day product bootstrap; per-load weighted normalization on nonzero-release days",
+        "scope": "exploratory pointwise intervals, no multiplicity correction; five learners limit uncertainty estimates"
+      }
+    },
+    "supplies": {
+      "on_time": {
+        "loads": {
+          "low": {
+            "estimate": -0.005523971493359249,
+            "learner_sample_sd": 0.007968659258793082,
+            "learner_mean_values": [
+              0.0,
+              0.0,
+              -0.008021541950113379,
+              -0.018464528668610303,
+              -0.0011337868480725628
+            ],
+            "eligible_days": 98,
+            "joint_95_percentile": [
+              -0.014801178203240048,
+              0.0
+            ],
+            "seed_only_95_percentile": [
+              -0.012683025591188857,
+              -0.00022675736961451256
+            ],
+            "day_only_95_percentile": [
+              -0.009233937201624272,
+              -0.002434402332361515
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "medium": {
+            "estimate": 0.036269893341952165,
+            "learner_sample_sd": 0.042979424677434104,
+            "learner_mean_values": [
+              0.018945853982618693,
+              0.06523060109824816,
+              -0.006331099456099465,
+              0.007278245447363087,
+              0.09622586563763035
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              0.0005930403909815693,
+              0.07656624708216615
+            ],
+            "seed_only_95_percentile": [
+              0.004168029193029187,
+              0.07223728869170046
+            ],
+            "day_only_95_percentile": [
+              0.022370495823620808,
+              0.05015646711948177
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "high": {
+            "estimate": 0.05229076134451689,
+            "learner_sample_sd": 0.06712386319133544,
+            "learner_mean_values": [
+              0.022116117212008315,
+              0.11646643238942002,
+              -0.03207096980695379,
+              0.029468904203811316,
+              0.12547332272429862
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.001979500186542258,
+              0.1091839820334968
+            ],
+            "seed_only_95_percentile": [
+              0.0019118398027840725,
+              0.10300050355486484
+            ],
+            "day_only_95_percentile": [
+              0.038868211327473146,
+              0.06639378946114456
+            ],
+            "valid_joint_replicates": 10000
+          }
+        },
+        "repetitions": 10000,
+        "rng_seed": 20261026,
+        "method": "paired crossed learner/day product bootstrap; per-load weighted normalization on nonzero-release days",
+        "scope": "exploratory pointwise intervals, no multiplicity correction; five learners limit uncertainty estimates"
+      },
+      "late": {
+        "loads": {
+          "low": {
+            "estimate": 0.005523971493359248,
+            "learner_sample_sd": 0.00796865925879308,
+            "learner_mean_values": [
+              0.0,
+              0.0,
+              0.00802154195011338,
+              0.0184645286686103,
+              0.0011337868480725624
+            ],
+            "eligible_days": 98,
+            "joint_95_percentile": [
+              0.0,
+              0.014801178203240048
+            ],
+            "seed_only_95_percentile": [
+              0.00022675736961451248,
+              0.012683025591188855
+            ],
+            "day_only_95_percentile": [
+              0.002434402332361515,
+              0.00923393720162427
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "medium": {
+            "estimate": -0.025667555973438328,
+            "learner_sample_sd": 0.02822473533085296,
+            "learner_mean_values": [
+              -0.015886122047886753,
+              -0.047834520871285584,
+              0.005858516483516482,
+              -0.00856931956931957,
+              -0.061906333862216216
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.05355046403351548,
+              0.0009674719316631006
+            ],
+            "seed_only_95_percentile": [
+              -0.04842456840545076,
+              -0.004261545643898586
+            ],
+            "day_only_95_percentile": [
+              -0.038113693071634216,
+              -0.013626568154068151
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "high": {
+            "estimate": -0.04441891119977672,
+            "learner_sample_sd": 0.04692008184770018,
+            "learner_mean_values": [
+              -0.03083442303086602,
+              -0.093741201883398,
+              0.025895680643745655,
+              -0.04372355432254141,
+              -0.07969105740582384
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.08422948932779836,
+              -0.004003398465233348
+            ],
+            "seed_only_95_percentile": [
+              -0.07834981721737677,
+              -0.006567687701090581
+            ],
+            "day_only_95_percentile": [
+              -0.055787894259014176,
+              -0.03371751456496382
+            ],
+            "valid_joint_replicates": 10000
+          }
+        },
+        "repetitions": 10000,
+        "rng_seed": 20261026,
+        "method": "paired crossed learner/day product bootstrap; per-load weighted normalization on nonzero-release days",
+        "scope": "exploratory pointwise intervals, no multiplicity correction; five learners limit uncertainty estimates"
+      },
+      "expired_unpicked": {
+        "loads": {
+          "low": {
+            "estimate": 0.0,
+            "learner_sample_sd": 0.0,
+            "learner_mean_values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "eligible_days": 98,
+            "joint_95_percentile": [
+              0.0,
+              0.0
+            ],
+            "seed_only_95_percentile": [
+              0.0,
+              0.0
+            ],
+            "day_only_95_percentile": [
+              0.0,
+              0.0
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "medium": {
+            "estimate": -0.009526219042395515,
+            "learner_sample_sd": 0.015267378822306553,
+            "learner_mean_values": [
+              -0.00248967698967699,
+              -0.015098461179343532,
+              0.0018892496392496389,
+              0.0019021852330675848,
+              -0.03383439191527427
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.025075343398431635,
+              0.0031711240720064208
+            ],
+            "seed_only_95_percentile": [
+              -0.02293989033841975,
+              0.0010186385509914915
+            ],
+            "day_only_95_percentile": [
+              -0.015600854700854691,
+              -0.004049665334665334
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "high": {
+            "estimate": -0.0021970288681420745,
+            "learner_sample_sd": 0.02557527577345371,
+            "learner_mean_values": [
+              0.013855991518614347,
+              -0.016331478834726246,
+              0.008271109263823627,
+              0.02301502716858081,
+              -0.03979579345700291
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.02667109146857202,
+              0.01993037143175878
+            ],
+            "seed_only_95_percentile": [
+              -0.024372573537424124,
+              0.01640262932764279
+            ],
+            "day_only_95_percentile": [
+              -0.01198445852188709,
+              0.007084230625475237
+            ],
+            "valid_joint_replicates": 10000
+          }
+        },
+        "repetitions": 10000,
+        "rng_seed": 20261026,
+        "method": "paired crossed learner/day product bootstrap; per-load weighted normalization on nonzero-release days",
+        "scope": "exploratory pointwise intervals, no multiplicity correction; five learners limit uncertainty estimates"
+      },
+      "expired_after_pick": {
+        "loads": {
+          "low": {
+            "estimate": 0.0,
+            "learner_sample_sd": 0.0,
+            "learner_mean_values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "eligible_days": 98,
+            "joint_95_percentile": [
+              0.0,
+              0.0
+            ],
+            "seed_only_95_percentile": [
+              0.0,
+              0.0
+            ],
+            "day_only_95_percentile": [
+              0.0,
+              0.0
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "medium": {
+            "estimate": -0.0010761183261183262,
+            "learner_sample_sd": 0.0007793626543191142,
+            "learner_mean_values": [
+              -0.000570054945054945,
+              -0.002297619047619048,
+              -0.0014166666666666666,
+              -0.0006111111111111112,
+              -0.00048513986013986015
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.003918057359307356,
+              0.0015117166167166157
+            ],
+            "seed_only_95_percentile": [
+              -0.001769047619047619,
+              -0.0005443001443001443
+            ],
+            "day_only_95_percentile": [
+              -0.003390744949494948,
+              0.0009670869408369373
+            ],
+            "valid_joint_replicates": 10000
+          },
+          "high": {
+            "estimate": -0.005674821276598097,
+            "learner_sample_sd": 0.002410000283968791,
+            "learner_mean_values": [
+              -0.0051376856997566375,
+              -0.0063937516712957556,
+              -0.002095820100615497,
+              -0.008760377049850734,
+              -0.00598647186147186
+            ],
+            "eligible_days": 100,
+            "joint_95_percentile": [
+              -0.009856261779446,
+              -0.001687949305176137
+            ],
+            "seed_only_95_percentile": [
+              -0.0074810577421561405,
+              -0.0036520808049580423
+            ],
+            "day_only_95_percentile": [
+              -0.008378356968669592,
+              -0.003037876213651889
+            ],
+            "valid_joint_replicates": 10000
+          }
+        },
+        "repetitions": 10000,
+        "rng_seed": 20261026,
+        "method": "paired crossed learner/day product bootstrap; per-load weighted normalization on nonzero-release days",
+        "scope": "exploratory pointwise intervals, no multiplicity correction; five learners limit uncertainty estimates"
+      }
+    }
+  },
+  "failure_counts": {
+    "m5": {
+      "low": {
+        "plasma": {
+          "counts": {
+            "released": 2285,
+            "ever_visible": 2285,
+            "late": 44,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 14,
+            "deadline_cross_onboard_pick": 6,
+            "deadline_cross_onboard_charge": 10,
+            "deadline_cross_onboard_deliver": 22,
+            "deadline_cross_pending_pick": 3,
+            "deadline_cross_pending_deliver": 2,
+            "expired_after_pick": 1,
+            "deadline_cross_pending_charge": 2
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 313,
+            "urgent_cargo_deliver": 221,
+            "urgent_cargo_charge": 20,
+            "urgent_cargo_pick": 72
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        },
+        "medicine": {
+          "counts": {
+            "released": 3405,
+            "ever_visible": 3405
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 5,
+            "urgent_cargo_pick": 1,
+            "urgent_cargo_deliver": 4
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        },
+        "sample": {
+          "counts": {
+            "released": 3340,
+            "ever_visible": 3340,
+            "late": 8,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 2,
+            "deadline_cross_onboard_pick": 3,
+            "deadline_cross_onboard_deliver": 5
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 45,
+            "urgent_cargo_pick": 11,
+            "urgent_cargo_deliver": 32,
+            "urgent_cargo_charge": 2
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        },
+        "supplies": {
+          "counts": {
+            "released": 2100,
+            "ever_visible": 2100,
+            "late": 3,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 3,
+            "deadline_cross_pending_pick": 1,
+            "deadline_cross_onboard_deliver": 2
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 18,
+            "urgent_cargo_deliver": 15,
+            "urgent_cargo_pick": 2,
+            "urgent_cargo_charge": 1
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        }
+      },
+      "medium": {
+        "plasma": {
+          "counts": {
+            "released": 5515,
+            "ever_visible": 5515,
+            "expired_unpicked": 564,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 459,
+            "deadline_cross_pending_deliver": 416,
+            "deadline_cross_pending_pick": 307,
+            "late": 931,
+            "deadline_cross_onboard_deliver": 421,
+            "deadline_cross_pending_charge": 132,
+            "expired_after_pick": 65,
+            "deadline_cross_onboard_charge": 168,
+            "deadline_cross_onboard_pick": 116
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 5375,
+            "urgent_cargo_deliver": 3094,
+            "urgent_cargo_pick": 1852,
+            "urgent_cargo_charge": 429
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        },
+        "medicine": {
+          "counts": {
+            "released": 7390,
+            "ever_visible": 7390,
+            "late": 468,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 292,
+            "deadline_cross_onboard_deliver": 153,
+            "deadline_cross_onboard_pick": 29,
+            "deadline_cross_pending_pick": 107,
+            "deadline_cross_pending_deliver": 119,
+            "deadline_cross_pending_charge": 56,
+            "expired_unpicked": 45,
+            "deadline_cross_onboard_charge": 54,
+            "expired_after_pick": 5
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 1782,
+            "urgent_cargo_deliver": 1062,
+            "urgent_cargo_charge": 169,
+            "urgent_cargo_pick": 551
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        },
+        "sample": {
+          "counts": {
+            "released": 7725,
+            "ever_visible": 7725,
+            "late": 760,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 529,
+            "deadline_cross_onboard_charge": 47,
+            "deadline_cross_onboard_deliver": 257,
+            "deadline_cross_pending_deliver": 235,
+            "deadline_cross_pending_pick": 207,
+            "deadline_cross_onboard_pick": 76,
+            "expired_unpicked": 147,
+            "deadline_cross_pending_charge": 114,
+            "expired_after_pick": 29
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 3022,
+            "urgent_cargo_deliver": 1802,
+            "urgent_cargo_pick": 1032,
+            "urgent_cargo_charge": 188
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        },
+        "supplies": {
+          "counts": {
+            "released": 5340,
+            "ever_visible": 5340,
+            "late": 722,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 627,
+            "deadline_cross_pending_pick": 240,
+            "deadline_cross_pending_deliver": 315,
+            "deadline_cross_onboard_deliver": 114,
+            "deadline_cross_pending_charge": 165,
+            "deadline_cross_onboard_charge": 48,
+            "expired_unpicked": 172,
+            "deadline_cross_onboard_pick": 26,
+            "expired_after_pick": 14
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 1839,
+            "urgent_cargo_pick": 432,
+            "urgent_cargo_deliver": 1232,
+            "urgent_cargo_charge": 175
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        }
+      },
+      "high": {
+        "plasma": {
+          "counts": {
+            "released": 6965,
+            "ever_visible": 6965,
+            "expired_after_pick": 71,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 593,
+            "deadline_cross_pending_pick": 699,
+            "late": 1302,
+            "deadline_cross_onboard_pick": 159,
+            "expired_unpicked": 1636,
+            "deadline_cross_pending_deliver": 936,
+            "deadline_cross_onboard_charge": 274,
+            "deadline_cross_pending_charge": 366,
+            "deadline_cross_onboard_deliver": 575
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 7146,
+            "urgent_cargo_deliver": 3857,
+            "urgent_cargo_pick": 2710,
+            "urgent_cargo_charge": 579
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        },
+        "medicine": {
+          "counts": {
+            "released": 9985,
+            "ever_visible": 9985,
+            "late": 1440,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 970,
+            "deadline_cross_onboard_pick": 117,
+            "deadline_cross_pending_charge": 273,
+            "deadline_cross_onboard_charge": 176,
+            "expired_unpicked": 343,
+            "deadline_cross_pending_deliver": 513,
+            "deadline_cross_pending_pick": 387,
+            "expired_after_pick": 40,
+            "deadline_cross_onboard_deliver": 357
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 5570,
+            "urgent_cargo_pick": 1896,
+            "urgent_cargo_deliver": 3064,
+            "urgent_cargo_charge": 610
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        },
+        "sample": {
+          "counts": {
+            "released": 10160,
+            "ever_visible": 10160,
+            "late": 1550,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 1089,
+            "deadline_cross_pending_charge": 307,
+            "deadline_cross_onboard_charge": 112,
+            "deadline_cross_onboard_deliver": 486,
+            "expired_unpicked": 791,
+            "deadline_cross_pending_pick": 629,
+            "deadline_cross_pending_deliver": 783,
+            "deadline_cross_onboard_pick": 110,
+            "expired_after_pick": 86
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 6309,
+            "urgent_cargo_deliver": 3682,
+            "urgent_cargo_pick": 2179,
+            "urgent_cargo_charge": 448
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        },
+        "supplies": {
+          "counts": {
+            "released": 6820,
+            "ever_visible": 6820,
+            "expired_unpicked": 677,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 1256,
+            "deadline_cross_pending_pick": 586,
+            "deadline_cross_pending_deliver": 846,
+            "late": 1365,
+            "expired_after_pick": 61,
+            "deadline_cross_pending_charge": 365,
+            "deadline_cross_onboard_deliver": 194,
+            "deadline_cross_onboard_charge": 76,
+            "deadline_cross_onboard_pick": 36
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 3442,
+            "urgent_cargo_charge": 343,
+            "urgent_cargo_deliver": 2309,
+            "urgent_cargo_pick": 790
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        }
+      }
+    },
+    "destination": {
+      "low": {
+        "plasma": {
+          "counts": {
+            "released": 2285,
+            "ever_visible": 2285,
+            "late": 31,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 14,
+            "deadline_cross_onboard_deliver": 14,
+            "deadline_cross_onboard_charge": 6,
+            "expired_unpicked": 2,
+            "deadline_cross_pending_deliver": 3,
+            "deadline_cross_onboard_pick": 7,
+            "deadline_cross_pending_pick": 1,
+            "deadline_cross_pending_charge": 2
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 273,
+            "urgent_cargo_charge": 16,
+            "urgent_cargo_deliver": 203,
+            "urgent_cargo_pick": 54
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        },
+        "medicine": {
+          "counts": {
+            "released": 3405,
+            "ever_visible": 3405,
+            "late": 4,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 0,
+            "deadline_cross_onboard_pick": 1,
+            "deadline_cross_onboard_deliver": 3
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 29,
+            "urgent_cargo_deliver": 20,
+            "urgent_cargo_pick": 7,
+            "urgent_cargo_charge": 2
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        },
+        "sample": {
+          "counts": {
+            "released": 3340,
+            "ever_visible": 3340,
+            "late": 16,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 4,
+            "deadline_cross_onboard_pick": 2,
+            "deadline_cross_onboard_deliver": 7,
+            "deadline_cross_onboard_charge": 6,
+            "deadline_cross_pending_pick": 1
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 132,
+            "urgent_cargo_deliver": 91,
+            "urgent_cargo_pick": 25,
+            "urgent_cargo_charge": 16
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        },
+        "supplies": {
+          "counts": {
+            "released": 2100,
+            "ever_visible": 2100,
+            "late": 16,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 8,
+            "deadline_cross_onboard_charge": 6,
+            "deadline_cross_onboard_pick": 1,
+            "deadline_cross_onboard_deliver": 5,
+            "deadline_cross_pending_deliver": 1,
+            "deadline_cross_pending_charge": 2,
+            "deadline_cross_pending_pick": 1
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 67,
+            "urgent_cargo_deliver": 47,
+            "urgent_cargo_charge": 9,
+            "urgent_cargo_pick": 10,
+            "urgent_cargo_return": 1
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        }
+      },
+      "medium": {
+        "plasma": {
+          "counts": {
+            "released": 5515,
+            "ever_visible": 5515,
+            "expired_unpicked": 600,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 396,
+            "deadline_cross_pending_charge": 135,
+            "deadline_cross_pending_pick": 316,
+            "late": 783,
+            "deadline_cross_pending_deliver": 382,
+            "expired_after_pick": 34,
+            "deadline_cross_onboard_deliver": 337,
+            "deadline_cross_onboard_pick": 53,
+            "deadline_cross_onboard_charge": 194
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 4037,
+            "urgent_cargo_deliver": 2371,
+            "urgent_cargo_pick": 1290,
+            "urgent_cargo_charge": 371,
+            "urgent_cargo_return": 5
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        },
+        "medicine": {
+          "counts": {
+            "released": 7390,
+            "ever_visible": 7390,
+            "late": 450,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 253,
+            "deadline_cross_onboard_charge": 70,
+            "deadline_cross_pending_deliver": 104,
+            "deadline_cross_onboard_deliver": 142,
+            "deadline_cross_pending_pick": 89,
+            "deadline_cross_onboard_pick": 42,
+            "expired_unpicked": 43,
+            "deadline_cross_pending_charge": 50,
+            "expired_after_pick": 5,
+            "deadline_cross_onboard_return": 1
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 1846,
+            "urgent_cargo_pick": 593,
+            "urgent_cargo_deliver": 1059,
+            "urgent_cargo_charge": 190,
+            "urgent_cargo_return": 3,
+            "urgent_cargo_wait": 1
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        },
+        "sample": {
+          "counts": {
+            "released": 7725,
+            "ever_visible": 7725,
+            "late": 789,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 530,
+            "deadline_cross_onboard_deliver": 278,
+            "deadline_cross_pending_pick": 207,
+            "deadline_cross_onboard_pick": 72,
+            "expired_unpicked": 208,
+            "deadline_cross_pending_charge": 116,
+            "deadline_cross_pending_deliver": 280,
+            "deadline_cross_onboard_charge": 51,
+            "expired_after_pick": 7
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 2837,
+            "urgent_cargo_deliver": 1806,
+            "urgent_cargo_pick": 879,
+            "urgent_cargo_charge": 152
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        },
+        "supplies": {
+          "counts": {
+            "released": 5340,
+            "ever_visible": 5340,
+            "late": 607,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 496,
+            "deadline_cross_onboard_charge": 48,
+            "expired_unpicked": 120,
+            "deadline_cross_pending_deliver": 236,
+            "deadline_cross_pending_pick": 184,
+            "deadline_cross_onboard_deliver": 141,
+            "deadline_cross_pending_charge": 96,
+            "deadline_cross_onboard_pick": 31,
+            "expired_after_pick": 10,
+            "deadline_cross_pending_return": 1
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 1700,
+            "urgent_cargo_deliver": 1142,
+            "urgent_cargo_charge": 164,
+            "urgent_cargo_pick": 388,
+            "urgent_cargo_return": 6
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        }
+      },
+      "high": {
+        "plasma": {
+          "counts": {
+            "released": 6965,
+            "ever_visible": 6965,
+            "expired_unpicked": 1732,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 494,
+            "deadline_cross_pending_pick": 714,
+            "expired_after_pick": 36,
+            "late": 1131,
+            "deadline_cross_onboard_charge": 285,
+            "deadline_cross_onboard_pick": 98,
+            "deadline_cross_pending_deliver": 927,
+            "deadline_cross_pending_charge": 382,
+            "deadline_cross_onboard_deliver": 492,
+            "deadline_cross_pending_return": 1
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 5689,
+            "urgent_cargo_pick": 1949,
+            "urgent_cargo_deliver": 3178,
+            "urgent_cargo_charge": 561,
+            "urgent_cargo_wait": 1
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        },
+        "medicine": {
+          "counts": {
+            "released": 9985,
+            "ever_visible": 9985,
+            "late": 1334,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 867,
+            "deadline_cross_pending_charge": 234,
+            "deadline_cross_pending_pick": 360,
+            "deadline_cross_onboard_deliver": 382,
+            "deadline_cross_pending_deliver": 477,
+            "expired_after_pick": 28,
+            "deadline_cross_onboard_charge": 188,
+            "expired_unpicked": 374,
+            "deadline_cross_onboard_pick": 94,
+            "deadline_cross_pending_return": 1
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 5148,
+            "urgent_cargo_pick": 1633,
+            "urgent_cargo_charge": 620,
+            "urgent_cargo_deliver": 2887,
+            "urgent_cargo_return": 8
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        },
+        "sample": {
+          "counts": {
+            "released": 10160,
+            "ever_visible": 10160,
+            "late": 1483,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 1105,
+            "deadline_cross_pending_deliver": 843,
+            "deadline_cross_onboard_deliver": 438,
+            "expired_unpicked": 990,
+            "deadline_cross_pending_pick": 685,
+            "deadline_cross_onboard_pick": 105,
+            "deadline_cross_pending_charge": 338,
+            "deadline_cross_onboard_charge": 108,
+            "expired_after_pick": 44
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 5156,
+            "urgent_cargo_deliver": 3246,
+            "urgent_cargo_pick": 1572,
+            "urgent_cargo_charge": 335,
+            "urgent_cargo_return": 3
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        },
+        "supplies": {
+          "counts": {
+            "released": 6820,
+            "ever_visible": 6820,
+            "late": 1082,
+            "failed_never_visible": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_pick_already_direct_late": 893,
+            "deadline_cross_pending_deliver": 683,
+            "expired_unpicked": 651,
+            "deadline_cross_pending_charge": 276,
+            "deadline_cross_pending_pick": 461,
+            "deadline_cross_onboard_deliver": 208,
+            "deadline_cross_onboard_pick": 39,
+            "expired_after_pick": 19,
+            "deadline_cross_onboard_charge": 85
+          },
+          "urgent_cargo_order_state_counts": {
+            "urgent_cargo_decisions": 2956,
+            "urgent_cargo_deliver": 1942,
+            "urgent_cargo_pick": 693,
+            "urgent_cargo_charge": 313,
+            "urgent_cargo_return": 8
+          },
+          "unique_day_ids": 100,
+          "learner_repetitions": 5
+        }
+      }
+    }
+  },
+  "scope": "exploratory pointwise intervals, no multiplicity correction; five independent learners; 100 shared demand-day IDs; diagnostic full-simulator fields never supplied to policies"
+}

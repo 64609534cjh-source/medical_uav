@@ -1,0 +1,107 @@
+{
+  "split": "dev-extra",
+  "congestion": true,
+  "jobs": 2,
+  "entries": [
+    {
+      "name": "destination_s1",
+      "method": "destination",
+      "learner_seed": 1,
+      "checkpoint": "outputs/gen2_architectures/destination_s1/best.pt",
+      "policies": [
+        "ppo"
+      ],
+      "checkpoint_sha256": "d4031b08b89ce776ee4f097c88d840345d7becf0fdf0725b004a9c9d8b19a9e1"
+    },
+    {
+      "name": "destination_last_s1",
+      "method": "destination",
+      "learner_seed": 1,
+      "checkpoint": "outputs/gen2_architectures/destination_s1/last.pt",
+      "policies": [
+        "ppo"
+      ],
+      "checkpoint_sha256": "37cc494313f89d3bf6e1ecd2d3170212be9ffdb663b05281d86eea84bc32b8e0"
+    },
+    {
+      "name": "destination_s2",
+      "method": "destination",
+      "learner_seed": 2,
+      "checkpoint": "outputs/gen2_architectures/destination_s2/best.pt",
+      "policies": [
+        "ppo"
+      ],
+      "checkpoint_sha256": "9b404353817903f28fb1a290404dc2796bd32b4ab1b3b600a3372f386d42ca1c"
+    },
+    {
+      "name": "destination_last_s2",
+      "method": "destination",
+      "learner_seed": 2,
+      "checkpoint": "outputs/gen2_architectures/destination_s2/last.pt",
+      "policies": [
+        "ppo"
+      ],
+      "checkpoint_sha256": "872372352ef41c0d957069644d3f75a4d3590bb80ffd663d87ed556ee4463923"
+    },
+    {
+      "name": "destination_s3",
+      "method": "destination",
+      "learner_seed": 3,
+      "checkpoint": "outputs/gen2_architectures/destination_s3/best.pt",
+      "policies": [
+        "ppo"
+      ],
+      "checkpoint_sha256": "62f64cfc0fa2f7bef51c1acb8001eb3ec121a6c23fc6493660c2b2e1a28f565e"
+    },
+    {
+      "name": "destination_last_s3",
+      "method": "destination",
+      "learner_seed": 3,
+      "checkpoint": "outputs/gen2_architectures/destination_s3/last.pt",
+      "policies": [
+        "ppo"
+      ],
+      "checkpoint_sha256": "e818a76f2321fd67842d062de612351c2d44a1a11bd4c4b9fa3d579e77134792"
+    },
+    {
+      "name": "destination_s4",
+      "method": "destination",
+      "learner_seed": 4,
+      "checkpoint": "outputs/gen2_architectures/destination_s4/best.pt",
+      "policies": [
+        "ppo"
+      ],
+      "checkpoint_sha256": "88b8f1e788d46003102109e1f3ab86b0d39f9deb0686a9182895509dd996b69f"
+    },
+    {
+      "name": "destination_last_s4",
+      "method": "destination",
+      "learner_seed": 4,
+      "checkpoint": "outputs/gen2_architectures/destination_s4/last.pt",
+      "policies": [
+        "ppo"
+      ],
+      "checkpoint_sha256": "782342bb9e750128c0fa0bfabe8e2fd900b70a657529e314954a247da9338194"
+    },
+    {
+      "name": "destination_s5",
+      "method": "destination",
+      "learner_seed": 5,
+      "checkpoint": "outputs/gen2_architectures/destination_s5/best.pt",
+      "policies": [
+        "ppo"
+      ],
+      "checkpoint_sha256": "0d23228638a7d0c370a64409b6a3160628627d513598313310ba9cdf0b299ec5"
+    },
+    {
+      "name": "destination_last_s5",
+      "method": "destination",
+      "learner_seed": 5,
+      "checkpoint": "outputs/gen2_architectures/destination_s5/last.pt",
+      "policies": [
+        "ppo"
+      ],
+      "checkpoint_sha256": "c38bd338e96a23e462066565eaac38af5a78875f7f49c8cacdfea3bc2c828c06"
+    }
+  ]
+}

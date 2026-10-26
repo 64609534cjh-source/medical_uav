@@ -1,0 +1,32 @@
+{
+  "total_steps": 1024000,
+  "num_envs": 8,
+  "rollout_steps": 128,
+  "learner_seed": 5,
+  "loads": [
+    "low",
+    "medium",
+    "high"
+  ],
+  "train_seeds": null,
+  "map_seed": 0,
+  "threads": 1,
+  "eval_split": "dev",
+  "eval_interval_updates": 100,
+  "evaluate_initial": true,
+  "evaluate_baselines": true,
+  "ppo": {
+    "learning_rate": 0.0003,
+    "epochs": 4,
+    "minibatch_size": 256,
+    "clip_coef": 0.2,
+    "gamma": 1.0,
+    "gae_lambda": 0.95,
+    "value_coef": 0.5,
+    "entropy_coef": 0.01,
+    "max_grad_norm": 0.5,
+    "target_kl": 0.02
+  },
+  "architecture": "destination",
+  "learning_rate_schedule": "late_linear_10pct"
+}

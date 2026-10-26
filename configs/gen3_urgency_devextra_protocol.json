@@ -1,0 +1,107 @@
+{
+  "split": "dev-extra",
+  "jobs": 2,
+  "failure_diagnostics": true,
+  "entries": [
+    {
+      "name": "urgency_s1",
+      "method": "urgency",
+      "learner_seed": 1,
+      "checkpoint": "outputs/gen3_architectures/urgency_s1/best.pt",
+      "checkpoint_sha256": "e387c9429fb06fbd06ec72adcf480078015120e23f40da7f7272f25e27161039",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "urgency_last_s1",
+      "method": "urgency",
+      "learner_seed": 1,
+      "checkpoint": "outputs/gen3_architectures/urgency_s1/last.pt",
+      "checkpoint_sha256": "1ec29cd1e8d212d4bf10d4fdb47441f937228ba5ee826faa77f5366d3d7950c1",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "urgency_s2",
+      "method": "urgency",
+      "learner_seed": 2,
+      "checkpoint": "outputs/gen3_architectures/urgency_s2/best.pt",
+      "checkpoint_sha256": "cb4f799f461e83e6a200234fb0c21e941e6f16050d341e7b606594ae96423ce5",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "urgency_last_s2",
+      "method": "urgency",
+      "learner_seed": 2,
+      "checkpoint": "outputs/gen3_architectures/urgency_s2/last.pt",
+      "checkpoint_sha256": "30a6f85043243e57f36cc0495f39ae90f5dea67160459131121134643b99a9a6",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "urgency_s3",
+      "method": "urgency",
+      "learner_seed": 3,
+      "checkpoint": "outputs/gen3_architectures/urgency_s3/best.pt",
+      "checkpoint_sha256": "9d0ce5f8da23e96803634eac8b7ba7f15252dcef3e099d3fc3bc904492c6d98f",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "urgency_last_s3",
+      "method": "urgency",
+      "learner_seed": 3,
+      "checkpoint": "outputs/gen3_architectures/urgency_s3/last.pt",
+      "checkpoint_sha256": "e56f5f4aa643d4c9c2e6ba701287aba2c29541137cb1a6478aad2c9508b6b47f",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "urgency_s4",
+      "method": "urgency",
+      "learner_seed": 4,
+      "checkpoint": "outputs/gen3_architectures/urgency_s4/best.pt",
+      "checkpoint_sha256": "8d5fa52645da2c0d416dd5807d4ca5a2c5128151990b9dbe4e013d37613c2e22",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "urgency_last_s4",
+      "method": "urgency",
+      "learner_seed": 4,
+      "checkpoint": "outputs/gen3_architectures/urgency_s4/last.pt",
+      "checkpoint_sha256": "e75c7d4c1f7fb07fe360c8625f44fc363405cbd711b84e26661a8d9680372c17",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "urgency_s5",
+      "method": "urgency",
+      "learner_seed": 5,
+      "checkpoint": "outputs/gen3_architectures/urgency_s5/best.pt",
+      "checkpoint_sha256": "60e4b2757bb1ec3782bab3c2a1a65fc9614124e14895851af777ae093281e64f",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "urgency_last_s5",
+      "method": "urgency",
+      "learner_seed": 5,
+      "checkpoint": "outputs/gen3_architectures/urgency_s5/last.pt",
+      "checkpoint_sha256": "4622e98e399836578ee845b05e4ce71a0525e5ad09ac7d4206b3e7009035898f",
+      "policies": [
+        "ppo"
+      ]
+    }
+  ]
+}

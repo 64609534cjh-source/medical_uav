@@ -1,0 +1,2244 @@
+{
+  "milestone": "M4",
+  "source_commit": "8a5a76a8407bac3ed66e2169ab5361324733512e",
+  "standalone_reload_verification": {
+    "episodes": 4,
+    "all_fields_exact": true,
+    "checkpoint_sha256": "2b167423e210e33de8181fc13fc309cd6679a4a8d82f5f7fd91b55a77787ac77",
+    "method": "standalone scripts/evaluate.py, explicit Dev subset"
+  },
+  "seed_deltas": {
+    "best": {
+      "low": {
+        "mean": 0.01009111632710031,
+        "sample_sd_across_seeds": 0.004887045779813639,
+        "values": [
+          0.008925787980135807,
+          0.010390543423438158,
+          0.009959326492221232,
+          0.017429923739706345,
+          0.0037500000000000007
+        ]
+      },
+      "medium": {
+        "mean": 0.1144660808643647,
+        "sample_sd_across_seeds": 0.010095399228782808,
+        "values": [
+          0.11754141330262932,
+          0.12857501601561744,
+          0.10294852925385968,
+          0.10661083122171165,
+          0.11665461452800542
+        ]
+      },
+      "high": {
+        "mean": 0.13372086983153578,
+        "sample_sd_across_seeds": 0.019954417291426895,
+        "values": [
+          0.14291485442226345,
+          0.10149922074155893,
+          0.13075836736248678,
+          0.13886005602033052,
+          0.15457185061103923
+        ]
+      },
+      "mean": {
+        "mean": 0.08609268900766694,
+        "sample_sd_across_seeds": 0.005148689144685071,
+        "values": [
+          0.08979401856834286,
+          0.08015492672687151,
+          0.08122207436952257,
+          0.08763360366058284,
+          0.09165882171301488
+        ]
+      }
+    },
+    "last": {
+      "low": {
+        "mean": 0.011625621697865606,
+        "sample_sd_across_seeds": 0.004917961990779872,
+        "values": [
+          0.0122942944736423,
+          0.00615530021508282,
+          0.01161783465072939,
+          0.019265244702551206,
+          0.008795434447322314
+        ]
+      },
+      "medium": {
+        "mean": 0.09924494033147917,
+        "sample_sd_across_seeds": 0.00967059140054259,
+        "values": [
+          0.11498439618243374,
+          0.08925840902397346,
+          0.09684181944630113,
+          0.09481010264785436,
+          0.10032997435683316
+        ]
+      },
+      "high": {
+        "mean": 0.11665138771261906,
+        "sample_sd_across_seeds": 0.023740942145741926,
+        "values": [
+          0.13218659427495588,
+          0.09610168431910168,
+          0.11122443445610335,
+          0.09442277194690933,
+          0.14932145356602503
+        ]
+      },
+      "mean": {
+        "mean": 0.07584064991398794,
+        "sample_sd_across_seeds": 0.010133192385373477,
+        "values": [
+          0.08648842831034398,
+          0.06383846451938599,
+          0.07322802951771129,
+          0.06949937309910496,
+          0.08614895412339349
+        ]
+      }
+    }
+  },
+  "paired_summary": {
+    "best": {
+      "low": {
+        "mean_delta": 0.01009111632710031,
+        "win_pairs": 40,
+        "tie_pairs": 154,
+        "loss_pairs": 6,
+        "days_all_five_win": 0,
+        "days_all_five_lose": 0
+      },
+      "medium": {
+        "mean_delta": 0.1144660808643647,
+        "win_pairs": 185,
+        "tie_pairs": 8,
+        "loss_pairs": 7,
+        "days_all_five_win": 30,
+        "days_all_five_lose": 0
+      },
+      "high": {
+        "mean_delta": 0.13372086983153578,
+        "win_pairs": 196,
+        "tie_pairs": 1,
+        "loss_pairs": 3,
+        "days_all_five_win": 36,
+        "days_all_five_lose": 0
+      }
+    },
+    "last": {
+      "low": {
+        "mean_delta": 0.011625621697865606,
+        "win_pairs": 41,
+        "tie_pairs": 151,
+        "loss_pairs": 8,
+        "days_all_five_win": 1,
+        "days_all_five_lose": 0
+      },
+      "medium": {
+        "mean_delta": 0.09924494033147917,
+        "win_pairs": 181,
+        "tie_pairs": 6,
+        "loss_pairs": 13,
+        "days_all_five_win": 29,
+        "days_all_five_lose": 0
+      },
+      "high": {
+        "mean_delta": 0.11665138771261906,
+        "win_pairs": 192,
+        "tie_pairs": 2,
+        "loss_pairs": 6,
+        "days_all_five_win": 34,
+        "days_all_five_lose": 0
+      }
+    }
+  },
+  "best_across_seed_stats": {
+    "low": {
+      "mean": 0.99686417008917,
+      "sample_sd": 0.002566700358403419,
+      "min": 0.9939198532948533,
+      "max": 1.0
+    },
+    "medium": {
+      "mean": 0.8575325288215738,
+      "sample_sd": 0.006249567644070963,
+      "min": 0.851975051126293,
+      "max": 0.864603003646032
+    },
+    "high": {
+      "mean": 0.7429765017797872,
+      "sample_sd": 0.008773187118392258,
+      "min": 0.7279654322588106,
+      "max": 0.7510864066635228
+    },
+    "mean": {
+      "mean": 0.8657910668968437,
+      "sample_sd": 0.0022134776032096274,
+      "min": 0.8641894786349475,
+      "max": 0.8694020607242887
+    }
+  },
+  "last_across_seed_stats": {
+    "low": {
+      "mean": 0.9968180370798791,
+      "sample_sd": 0.00036537263034060424,
+      "min": 0.9962792022792023,
+      "max": 0.9972883597883598
+    },
+    "medium": {
+      "mean": 0.8360920937382202,
+      "sample_sd": 0.014137156733511099,
+      "min": 0.8155979878708024,
+      "max": 0.8517136858697864
+    },
+    "high": {
+      "mean": 0.7110950235547138,
+      "sample_sd": 0.02674474988706454,
+      "min": 0.6722220123123916,
+      "max": 0.7403581465162152
+    },
+    "mean": {
+      "mean": 0.848001718124271,
+      "sample_sd": 0.012943684750101348,
+      "min": 0.8280330674874654,
+      "max": 0.8631200640581205
+    }
+  },
+  "service": {
+    "structured_best": {
+      "low": {
+        "on_time_rate": 0.99686417008917,
+        "reward": 20.97179584360477,
+        "on_time": 21.495,
+        "late_deliveries": 0.07,
+        "expired": 0.01,
+        "energy_used": 568.3843058413137,
+        "served_rate": 0.9996148148148148,
+        "expiry_rate": 0.0003851851851851852,
+        "charge_minutes": 110.53352287999394,
+        "wait_minutes": 131.89991100006196,
+        "km_flown": 155.2099842140338,
+        "action_minutes_per_day": {
+          "pick": 69.24632565064226,
+          "deliver": 90.60142980402308,
+          "charge": 186.94462159191738,
+          "return": 5.211130047445289,
+          "wait": 131.89991100006196
+        },
+        "type_daily_rates": {
+          "plasma": {
+            "nonempty_days": 190,
+            "on_time": 0.9872368421052632,
+            "delivered": 0.9988157894736842,
+            "expired": 0.0011842105263157896,
+            "late_deliveries": 0.011578947368421053
+          },
+          "medicine": {
+            "nonempty_days": 200,
+            "on_time": 1.0,
+            "delivered": 1.0,
+            "expired": 0.0,
+            "late_deliveries": 0.0
+          },
+          "sample": {
+            "nonempty_days": 200,
+            "on_time": 1.0,
+            "delivered": 1.0,
+            "expired": 0.0,
+            "late_deliveries": 0.0
+          },
+          "supplies": {
+            "nonempty_days": 200,
+            "on_time": 0.9985714285714286,
+            "delivered": 1.0,
+            "expired": 0.0,
+            "late_deliveries": 0.0014285714285714286
+          }
+        }
+      },
+      "medium": {
+        "on_time_rate": 0.8575325288215739,
+        "reward": 45.13153840548167,
+        "on_time": 44.15,
+        "late_deliveries": 5.13,
+        "expired": 2.545,
+        "energy_used": 588.1583724029861,
+        "served_rate": 0.9536780154535729,
+        "expiry_rate": 0.046321984546427074,
+        "charge_minutes": 109.00252124176096,
+        "wait_minutes": 36.20810336559032,
+        "km_flown": 148.7477060766099,
+        "action_minutes_per_day": {
+          "pick": 128.09422932966098,
+          "deliver": 183.41587972722456,
+          "charge": 143.43135671809065,
+          "return": 0.9887615433949907,
+          "wait": 36.20810336559032
+        },
+        "type_daily_rates": {
+          "plasma": {
+            "nonempty_days": 200,
+            "on_time": 0.6889334831834831,
+            "delivered": 0.8539755244755245,
+            "expired": 0.14602447552447553,
+            "late_deliveries": 0.16504204129204128
+          },
+          "medicine": {
+            "nonempty_days": 200,
+            "on_time": 0.9417611625560542,
+            "delivered": 0.9944104225023342,
+            "expired": 0.0055895774976657325,
+            "late_deliveries": 0.05264925994628007
+          },
+          "sample": {
+            "nonempty_days": 200,
+            "on_time": 0.9026175171026682,
+            "delivered": 0.9829896477688492,
+            "expired": 0.017010352231150792,
+            "late_deliveries": 0.08037213066618101
+          },
+          "supplies": {
+            "nonempty_days": 200,
+            "on_time": 0.8406930613246403,
+            "delivered": 0.9578593833067517,
+            "expired": 0.04214061669324827,
+            "late_deliveries": 0.11716632198211145
+          }
+        }
+      },
+      "high": {
+        "on_time_rate": 0.7429765017797872,
+        "reward": 50.37448327980456,
+        "on_time": 49.845,
+        "late_deliveries": 10.26,
+        "expired": 7.795,
+        "energy_used": 577.2333518227148,
+        "served_rate": 0.8913727143586587,
+        "expiry_rate": 0.10862728564134128,
+        "charge_minutes": 105.39540980691456,
+        "wait_minutes": 21.959465088889072,
+        "km_flown": 141.71573557280382,
+        "action_minutes_per_day": {
+          "pick": 146.37756257538567,
+          "deliver": 211.56783977082537,
+          "charge": 131.1653635244686,
+          "return": 0.5603795090390244,
+          "wait": 21.959465088889072
+        },
+        "type_daily_rates": {
+          "plasma": {
+            "nonempty_days": 200,
+            "on_time": 0.5664893558239147,
+            "delivered": 0.7423497556365204,
+            "expired": 0.25765024436347966,
+            "late_deliveries": 0.1758603998126057
+          },
+          "medicine": {
+            "nonempty_days": 200,
+            "on_time": 0.8277110864100675,
+            "delivered": 0.953434983208353,
+            "expired": 0.04656501679164707,
+            "late_deliveries": 0.12572389679828544
+          },
+          "sample": {
+            "nonempty_days": 200,
+            "on_time": 0.7961319051161377,
+            "delivered": 0.9288963047479415,
+            "expired": 0.07110369525205847,
+            "late_deliveries": 0.1327643996318038
+          },
+          "supplies": {
+            "nonempty_days": 200,
+            "on_time": 0.7113007632034587,
+            "delivered": 0.8921291258387519,
+            "expired": 0.10787087416124803,
+            "late_deliveries": 0.18082836263529325
+          }
+        }
+      }
+    },
+    "mlp_best": {
+      "low": {
+        "on_time_rate": 0.9867730537620698,
+        "reward": 20.770988173742552,
+        "on_time": 21.24,
+        "late_deliveries": 0.27,
+        "expired": 0.065,
+        "energy_used": 603.2741607071853,
+        "served_rate": 0.9975032639663074,
+        "expiry_rate": 0.0024967360336925555,
+        "charge_minutes": 115.01282296574648,
+        "wait_minutes": 117.39108572291867,
+        "km_flown": 164.48756131955764,
+        "action_minutes_per_day": {
+          "pick": 79.36230526226078,
+          "deliver": 90.0472203885629,
+          "charge": 182.60271497337266,
+          "return": 13.708143661108137,
+          "wait": 117.39108572291867
+        },
+        "type_daily_rates": {
+          "plasma": {
+            "nonempty_days": 190,
+            "on_time": 0.9654385964912281,
+            "delivered": 0.9884795321637427,
+            "expired": 0.01152046783625731,
+            "late_deliveries": 0.02304093567251462
+          },
+          "medicine": {
+            "nonempty_days": 200,
+            "on_time": 1.0,
+            "delivered": 1.0,
+            "expired": 0.0,
+            "late_deliveries": 0.0
+          },
+          "sample": {
+            "nonempty_days": 200,
+            "on_time": 0.9815482295482295,
+            "delivered": 0.9987857142857143,
+            "expired": 0.0012142857142857142,
+            "late_deliveries": 0.017237484737484737
+          },
+          "supplies": {
+            "nonempty_days": 200,
+            "on_time": 0.996875,
+            "delivered": 1.0,
+            "expired": 0.0,
+            "late_deliveries": 0.0031249999999999997
+          }
+        }
+      },
+      "medium": {
+        "on_time_rate": 0.7430664479572092,
+        "reward": 38.44705567522137,
+        "on_time": 38,
+        "late_deliveries": 7.9,
+        "expired": 5.925,
+        "energy_used": 664.4760286104572,
+        "served_rate": 0.8926706842039714,
+        "expiry_rate": 0.1073293157960286,
+        "charge_minutes": 122.46824149708223,
+        "wait_minutes": 30.068990694349537,
+        "km_flown": 169.40554841739262,
+        "action_minutes_per_day": {
+          "pick": 158.91315255756578,
+          "deliver": 177.36770954391133,
+          "charge": 140.96965355328396,
+          "return": 1.2032742597140715,
+          "wait": 30.068990694349537
+        },
+        "type_daily_rates": {
+          "plasma": {
+            "nonempty_days": 200,
+            "on_time": 0.65518416999667,
+            "delivered": 0.8620188908313908,
+            "expired": 0.13798110916860917,
+            "late_deliveries": 0.20683472083472082
+          },
+          "medicine": {
+            "nonempty_days": 200,
+            "on_time": 0.8763039554399848,
+            "delivered": 0.9787802852247511,
+            "expired": 0.02121971477524883,
+            "late_deliveries": 0.10247632978476631
+          },
+          "sample": {
+            "nonempty_days": 200,
+            "on_time": 0.6521703992732564,
+            "delivered": 0.8350439012480169,
+            "expired": 0.1649560987519831,
+            "late_deliveries": 0.18287350197476054
+          },
+          "supplies": {
+            "nonempty_days": 200,
+            "on_time": 0.7553270380934854,
+            "delivered": 0.873015096380228,
+            "expired": 0.12698490361977205,
+            "late_deliveries": 0.1176880582867425
+          }
+        }
+      },
+      "high": {
+        "on_time_rate": 0.6092556319482515,
+        "reward": 37.72805962399771,
+        "on_time": 40.58,
+        "late_deliveries": 11.17,
+        "expired": 16.15,
+        "energy_used": 677.5011027590456,
+        "served_rate": 0.7718345885115537,
+        "expiry_rate": 0.2281654114884463,
+        "charge_minutes": 124.43923792504394,
+        "wait_minutes": 20.044536868895044,
+        "km_flown": 171.71130373722966,
+        "action_minutes_per_day": {
+          "pick": 170.8969798489356,
+          "deliver": 199.20443401516155,
+          "charge": 137.60875460242997,
+          "return": 0.7803731957466686,
+          "wait": 20.044536868895044
+        },
+        "type_daily_rates": {
+          "plasma": {
+            "nonempty_days": 200,
+            "on_time": 0.574594392535569,
+            "delivered": 0.796881631440455,
+            "expired": 0.20311836855954504,
+            "late_deliveries": 0.22228723890488597
+          },
+          "medicine": {
+            "nonempty_days": 200,
+            "on_time": 0.743285727932473,
+            "delivered": 0.922586508258873,
+            "expired": 0.07741349174112694,
+            "late_deliveries": 0.1793007803264
+          },
+          "sample": {
+            "nonempty_days": 200,
+            "on_time": 0.5264228660679108,
+            "delivered": 0.6601408198332399,
+            "expired": 0.3398591801667601,
+            "late_deliveries": 0.1337179537653291
+          },
+          "supplies": {
+            "nonempty_days": 200,
+            "on_time": 0.5865728593638305,
+            "delivered": 0.7079517272812215,
+            "expired": 0.2920482727187785,
+            "late_deliveries": 0.12137886791739093
+          }
+        }
+      }
+    },
+    "structured_last": {
+      "low": {
+        "on_time_rate": 0.9968180370798791,
+        "reward": 21.110032497963555,
+        "on_time": 21.495,
+        "late_deliveries": 0.075,
+        "expired": 0.005,
+        "energy_used": 441.9456905741275,
+        "served_rate": 0.9998,
+        "expiry_rate": 0.0002,
+        "charge_minutes": 86.01164524977472,
+        "wait_minutes": 195.2624986827925,
+        "km_flown": 119.50824180911621,
+        "action_minutes_per_day": {
+          "pick": 67.94384828876035,
+          "deliver": 91.61795153842021,
+          "charge": 131.25957695097415,
+          "return": 0.97851028073652,
+          "wait": 195.2624986827925
+        },
+        "type_daily_rates": {
+          "plasma": {
+            "nonempty_days": 190,
+            "on_time": 0.9905263157894737,
+            "delivered": 0.9973684210526316,
+            "expired": 0.002631578947368421,
+            "late_deliveries": 0.006842105263157895
+          },
+          "medicine": {
+            "nonempty_days": 200,
+            "on_time": 1.0,
+            "delivered": 1.0,
+            "expired": 0.0,
+            "late_deliveries": 0.0
+          },
+          "sample": {
+            "nonempty_days": 200,
+            "on_time": 0.9966190476190476,
+            "delivered": 1.0,
+            "expired": 0.0,
+            "late_deliveries": 0.0033809523809523808
+          },
+          "supplies": {
+            "nonempty_days": 200,
+            "on_time": 0.997452380952381,
+            "delivered": 1.0,
+            "expired": 0.0,
+            "late_deliveries": 0.0025476190476190477
+          }
+        }
+      },
+      "medium": {
+        "on_time_rate": 0.8360920937382202,
+        "reward": 45.497013591419794,
+        "on_time": 42.965,
+        "late_deliveries": 6.98,
+        "expired": 1.88,
+        "energy_used": 587.4055044185419,
+        "served_rate": 0.9663509586318773,
+        "expiry_rate": 0.03364904136812276,
+        "charge_minutes": 109.12042700471454,
+        "wait_minutes": 40.14277292713536,
+        "km_flown": 149.0553547947291,
+        "action_minutes_per_day": {
+          "pick": 125.19728344450647,
+          "deliver": 190.53614189876018,
+          "charge": 143.15694907891756,
+          "return": 0.14540737725975617,
+          "wait": 40.14277292713536
+        },
+        "type_daily_rates": {
+          "plasma": {
+            "nonempty_days": 200,
+            "on_time": 0.7353133394383394,
+            "delivered": 0.9038377941502942,
+            "expired": 0.09616220584970585,
+            "late_deliveries": 0.1685244547119547
+          },
+          "medicine": {
+            "nonempty_days": 200,
+            "on_time": 0.9206774224657351,
+            "delivered": 0.99371921838911,
+            "expired": 0.00628078161088997,
+            "late_deliveries": 0.07304179592337487
+          },
+          "sample": {
+            "nonempty_days": 200,
+            "on_time": 0.818885666937533,
+            "delivered": 0.9835106909652693,
+            "expired": 0.01648930903473069,
+            "late_deliveries": 0.16462502402773638
+          },
+          "supplies": {
+            "nonempty_days": 200,
+            "on_time": 0.8373970923082765,
+            "delivered": 0.9705702134123186,
+            "expired": 0.029429786587681323,
+            "late_deliveries": 0.13317312110404214
+          }
+        }
+      },
+      "high": {
+        "on_time_rate": 0.7110950235547137,
+        "reward": 50.80478781087196,
+        "on_time": 47.635,
+        "late_deliveries": 13.355,
+        "expired": 6.91,
+        "energy_used": 573.738072014432,
+        "served_rate": 0.904645169222691,
+        "expiry_rate": 0.09535483077730898,
+        "charge_minutes": 104.91270523150142,
+        "wait_minutes": 26.091118361971734,
+        "km_flown": 140.60839168740512,
+        "action_minutes_per_day": {
+          "pick": 146.52700278176565,
+          "deliver": 217.6968987504588,
+          "charge": 127.30885907723447,
+          "return": 0.12833630944789065,
+          "wait": 26.091118361971734
+        },
+        "type_daily_rates": {
+          "plasma": {
+            "nonempty_days": 200,
+            "on_time": 0.6039912713920067,
+            "delivered": 0.7930355228921405,
+            "expired": 0.20696447710785945,
+            "late_deliveries": 0.18904425150013385
+          },
+          "medicine": {
+            "nonempty_days": 200,
+            "on_time": 0.7909872466447213,
+            "delivered": 0.9601198689682462,
+            "expired": 0.03988013103175381,
+            "late_deliveries": 0.1691326223235249
+          },
+          "sample": {
+            "nonempty_days": 200,
+            "on_time": 0.7037093029163728,
+            "delivered": 0.9196524239739812,
+            "expired": 0.08034757602601877,
+            "late_deliveries": 0.21594312105760838
+          },
+          "supplies": {
+            "nonempty_days": 200,
+            "on_time": 0.7195462604065966,
+            "delivered": 0.9197131100006318,
+            "expired": 0.08028688999936813,
+            "late_deliveries": 0.20016684959403527
+          }
+        }
+      }
+    },
+    "mlp_last": {
+      "low": {
+        "on_time_rate": 0.9851924153820136,
+        "reward": 20.924801560248383,
+        "on_time": 21.21,
+        "late_deliveries": 0.345,
+        "expired": 0.02,
+        "energy_used": 479.12990555007565,
+        "served_rate": 0.9991886693017128,
+        "expiry_rate": 0.00081133069828722,
+        "charge_minutes": 93.34762873356041,
+        "wait_minutes": 176.2186118062235,
+        "km_flown": 128.77180502539693,
+        "action_minutes_per_day": {
+          "pick": 79.36914923739386,
+          "deliver": 90.40867854136462,
+          "charge": 125.92149794273132,
+          "return": 12.700108037467814,
+          "wait": 176.2186118062235
+        },
+        "type_daily_rates": {
+          "plasma": {
+            "nonempty_days": 190,
+            "on_time": 0.9649644945697577,
+            "delivered": 0.9978070175438597,
+            "expired": 0.0021929824561403508,
+            "late_deliveries": 0.03284252297410192
+          },
+          "medicine": {
+            "nonempty_days": 200,
+            "on_time": 1.0,
+            "delivered": 1.0,
+            "expired": 0.0,
+            "late_deliveries": 0.0
+          },
+          "sample": {
+            "nonempty_days": 200,
+            "on_time": 0.9756236263736263,
+            "delivered": 0.9976190476190476,
+            "expired": 0.0023809523809523807,
+            "late_deliveries": 0.021995421245421243
+          },
+          "supplies": {
+            "nonempty_days": 200,
+            "on_time": 0.9966666666666667,
+            "delivered": 1.0,
+            "expired": 0.0,
+            "late_deliveries": 0.003333333333333333
+          }
+        }
+      },
+      "medium": {
+        "on_time_rate": 0.736847153406741,
+        "reward": 38.926108755422405,
+        "on_time": 37.635,
+        "late_deliveries": 8.61,
+        "expired": 5.58,
+        "energy_used": 645.219896035034,
+        "served_rate": 0.8991086121856612,
+        "expiry_rate": 0.1008913878143388,
+        "charge_minutes": 118.61558090734648,
+        "wait_minutes": 38.90470199750097,
+        "km_flown": 161.8842076020943,
+        "action_minutes_per_day": {
+          "pick": 161.6823419499592,
+          "deliver": 174.36803395102672,
+          "charge": 132.4240420277598,
+          "return": 0.16537058069535276,
+          "wait": 38.90470199750097
+        },
+        "type_daily_rates": {
+          "plasma": {
+            "nonempty_days": 200,
+            "on_time": 0.6993710317460318,
+            "delivered": 0.8960353188478188,
+            "expired": 0.10396468115218115,
+            "late_deliveries": 0.1966642871017871
+          },
+          "medicine": {
+            "nonempty_days": 200,
+            "on_time": 0.8642667048293984,
+            "delivered": 0.9775408351538383,
+            "expired": 0.02245916484616175,
+            "late_deliveries": 0.11327413032443992
+          },
+          "sample": {
+            "nonempty_days": 200,
+            "on_time": 0.6213540051793602,
+            "delivered": 0.8339257693640098,
+            "expired": 0.1660742306359903,
+            "late_deliveries": 0.2125717641846495
+          },
+          "supplies": {
+            "nonempty_days": 200,
+            "on_time": 0.7468698399553663,
+            "delivered": 0.8757035318482687,
+            "expired": 0.1242964681517313,
+            "late_deliveries": 0.12883369189290242
+          }
+        }
+      },
+      "high": {
+        "on_time_rate": 0.5944436358420947,
+        "reward": 37.757046230048395,
+        "on_time": 39.535,
+        "late_deliveries": 12.455,
+        "expired": 15.91,
+        "energy_used": 668.7203012613736,
+        "served_rate": 0.7756792756603457,
+        "expiry_rate": 0.22432072433965433,
+        "charge_minutes": 122.67632044668277,
+        "wait_minutes": 25.226128862959605,
+        "km_flown": 167.51420435252518,
+        "action_minutes_per_day": {
+          "pick": 175.87810728132956,
+          "deliver": 195.0662087299247,
+          "charge": 133.5938344192831,
+          "return": 0.022374368670764682,
+          "wait": 25.226128862959605
+        },
+        "type_daily_rates": {
+          "plasma": {
+            "nonempty_days": 200,
+            "on_time": 0.6015615132416603,
+            "delivered": 0.8095055414356885,
+            "expired": 0.1904944585643115,
+            "late_deliveries": 0.20794402819402819
+          },
+          "medicine": {
+            "nonempty_days": 200,
+            "on_time": 0.7157362025676056,
+            "delivered": 0.9090309572838364,
+            "expired": 0.09096904271616355,
+            "late_deliveries": 0.19329475471623078
+          },
+          "sample": {
+            "nonempty_days": 200,
+            "on_time": 0.4827530373423433,
+            "delivered": 0.6722995366627709,
+            "expired": 0.3277004633372292,
+            "late_deliveries": 0.1895464993204275
+          },
+          "supplies": {
+            "nonempty_days": 200,
+            "on_time": 0.5864649217153003,
+            "delivered": 0.7113249182690897,
+            "expired": 0.2886750817309102,
+            "late_deliveries": 0.12485999655378946
+          }
+        }
+      }
+    },
+    "slack": {
+      "low": {
+        "on_time_rate": 0.9926334850737024,
+        "reward": 21.142631552789272,
+        "on_time": 21.4,
+        "late_deliveries": 0.175,
+        "expired": 0,
+        "energy_used": 355.20636286025183,
+        "served_rate": 1.0,
+        "expiry_rate": 0.0,
+        "charge_minutes": 66.3539644563605,
+        "wait_minutes": 237.40535105257354,
+        "km_flown": 94.4136412642421,
+        "action_minutes_per_day": {
+          "pick": 79.59974429571668,
+          "deliver": 91.30146551739777,
+          "charge": 76.1663959074884,
+          "return": 0,
+          "wait": 237.40535105257354
+        },
+        "type_daily_rates": {
+          "plasma": {
+            "nonempty_days": 38,
+            "on_time": 0.9808479532163743,
+            "delivered": 1.0,
+            "expired": 0.0,
+            "late_deliveries": 0.01915204678362573
+          },
+          "medicine": {
+            "nonempty_days": 40,
+            "on_time": 1.0,
+            "delivered": 1.0,
+            "expired": 0.0,
+            "late_deliveries": 0.0
+          },
+          "sample": {
+            "nonempty_days": 40,
+            "on_time": 0.9902777777777778,
+            "delivered": 1.0,
+            "expired": 0.0,
+            "late_deliveries": 0.009722222222222222
+          },
+          "supplies": {
+            "nonempty_days": 40,
+            "on_time": 1.0,
+            "delivered": 1.0,
+            "expired": 0.0,
+            "late_deliveries": 0.0
+          }
+        }
+      },
+      "medium": {
+        "on_time_rate": 0.8098680385391948,
+        "reward": 40.433790037872704,
+        "on_time": 41.55,
+        "late_deliveries": 5.075,
+        "expired": 5.2,
+        "energy_used": 604.7698093654827,
+        "served_rate": 0.90584934610903,
+        "expiry_rate": 0.09415065389096998,
+        "charge_minutes": 112.1456738822387,
+        "wait_minutes": 49.77242893771236,
+        "km_flown": 152.601605243401,
+        "action_minutes_per_day": {
+          "pick": 160.28040760819968,
+          "deliver": 176.1839316756906,
+          "charge": 118.33293984174973,
+          "return": 0,
+          "wait": 49.77242893771236
+        },
+        "type_daily_rates": {
+          "plasma": {
+            "nonempty_days": 40,
+            "on_time": 0.7425365953490953,
+            "delivered": 0.8533747155622156,
+            "expired": 0.14662528443778444,
+            "late_deliveries": 0.11083812021312021
+          },
+          "medicine": {
+            "nonempty_days": 40,
+            "on_time": 0.8790155143918689,
+            "delivered": 0.978952083026193,
+            "expired": 0.021047916973807066,
+            "late_deliveries": 0.09993656863432406
+          },
+          "sample": {
+            "nonempty_days": 40,
+            "on_time": 0.8007122548802956,
+            "delivered": 0.8976501352142421,
+            "expired": 0.1023498647857579,
+            "late_deliveries": 0.09693788033394643
+          },
+          "supplies": {
+            "nonempty_days": 40,
+            "on_time": 0.7914720020476599,
+            "delivered": 0.8732876133369555,
+            "expired": 0.12671238666304455,
+            "late_deliveries": 0.0818156112892955
+          }
+        }
+      },
+      "high": {
+        "on_time_rate": 0.658933380173023,
+        "reward": 40.551137431538294,
+        "on_time": 44.025,
+        "late_deliveries": 10.125,
+        "expired": 13.75,
+        "energy_used": 628.5387436611353,
+        "served_rate": 0.8065562862246506,
+        "expiry_rate": 0.19344371377534939,
+        "charge_minutes": 116.56834750905408,
+        "wait_minutes": 32.74802065348907,
+        "km_flown": 156.1011741448334,
+        "action_minutes_per_day": {
+          "pick": 179.33847894521463,
+          "deliver": 194.37817049123305,
+          "charge": 122.35287221744002,
+          "return": 0,
+          "wait": 32.74802065348907
+        },
+        "type_daily_rates": {
+          "plasma": {
+            "nonempty_days": 40,
+            "on_time": 0.6358730321965617,
+            "delivered": 0.7625265992177757,
+            "expired": 0.23747340078222431,
+            "late_deliveries": 0.12665356702121408
+          },
+          "medicine": {
+            "nonempty_days": 40,
+            "on_time": 0.7355653884852315,
+            "delivered": 0.9186974031541928,
+            "expired": 0.08130259684580715,
+            "late_deliveries": 0.1831320146689614
+          },
+          "sample": {
+            "nonempty_days": 40,
+            "on_time": 0.6556017604337597,
+            "delivered": 0.7712428215174483,
+            "expired": 0.2287571784825517,
+            "late_deliveries": 0.11564106108368856
+          },
+          "supplies": {
+            "nonempty_days": 40,
+            "on_time": 0.5947125570255787,
+            "delivered": 0.7503535969823912,
+            "expired": 0.24964640301760876,
+            "late_deliveries": 0.1556410399568126
+          }
+        }
+      }
+    }
+  },
+  "behavior": {
+    "structured_best_medium": {
+      "episodes": 200,
+      "event_totals": {
+        "decisions": 22341,
+        "legal_count_sum": 181245,
+        "single_legal_states": 0,
+        "pending_sum": 64490,
+        "hidden_sum": 185,
+        "hidden_present_states": 94,
+        "entropy_sum": 8766.580558116424,
+        "normalized_entropy_sum": 4501.771584021304,
+        "wait_actions": 1005,
+        "wait_with_legal_service": 2,
+        "picks": 9909,
+        "pickup_slack_sum": 379836.5569688824,
+        "negative_slack_picks": 721,
+        "matching_destination_picks": 2424,
+        "flights": 13081,
+        "departure_kg_sum": 7075.080897788365,
+        "departure_boxes_sum": 14976,
+        "empty_flights": 4349,
+        "drop_calls": 7469,
+        "delivered_at_drops": 9856,
+        "batch_drop_calls": 1814,
+        "charge_actions": 3882,
+        "charge_start_battery_sum": 239609.26294190245,
+        "charge_arrival_battery_sum": 215257.4787582392,
+        "charge_target_sum": 324260.0,
+        "charge_target_100": 2155,
+        "charge_pending_sum": 5440,
+        "charge_with_legal_service": 1364,
+        "charge_target_80": 257,
+        "expired_after_pick": 53,
+        "charge_target_60": 1470
+      },
+      "event_weighted_means": {
+        "departure_kg": 0.5408669748328389,
+        "departure_boxes": 1.1448666004128125,
+        "empty_flight_fraction": 0.33246693677853373,
+        "boxes_per_delivery_action": 1.3195876288659794,
+        "batch_delivery_action_fraction": 0.24287053153032534,
+        "pickup_slack_minutes": 38.33248127650443,
+        "negative_slack_pick_fraction": 0.07276213543243516,
+        "matching_destination_pick_fraction": 0.2446260974871329,
+        "expired_after_pick_fraction": 0.005348672923604803,
+        "charge_start_battery": 61.72314861975849,
+        "charge_arrival_battery": 55.450149087645336,
+        "charge_target": 83.52910870685214,
+        "pending_at_charge": 1.4013395157135498,
+        "charge_with_legal_service_fraction": 0.35136527563111797,
+        "wait_with_legal_service_fraction": 0.001990049751243781,
+        "legal_actions": 8.112662817241842,
+        "single_legal_state_fraction": 0.0,
+        "pending_orders": 2.8866210106978203,
+        "hidden_orders": 0.008280739447652298,
+        "hidden_present_fraction": 0.0042075108544827895,
+        "entropy": 0.39239875377630473,
+        "entropy_over_log_legal_count": 0.20150268940608318
+      }
+    },
+    "structured_last_medium": {
+      "episodes": 200,
+      "event_totals": {
+        "decisions": 22918,
+        "legal_count_sum": 191484,
+        "single_legal_states": 0,
+        "pending_sum": 74466,
+        "hidden_sum": 286,
+        "hidden_present_states": 131,
+        "entropy_sum": 8233.102366796582,
+        "normalized_entropy_sum": 4263.923206063502,
+        "wait_actions": 1095,
+        "wait_with_legal_service": 18,
+        "picks": 10043,
+        "pickup_slack_sum": 337427.26953247393,
+        "negative_slack_picks": 925,
+        "matching_destination_picks": 2184,
+        "flights": 13004,
+        "departure_kg_sum": 6811.7880763587245,
+        "departure_boxes_sum": 14200,
+        "empty_flights": 4317,
+        "drop_calls": 7836,
+        "delivered_at_drops": 9989,
+        "batch_drop_calls": 1703,
+        "charge_actions": 3932,
+        "charge_start_battery_sum": 248497.32989701658,
+        "charge_arrival_battery_sum": 224419.57299528547,
+        "charge_target_sum": 333540.0,
+        "charge_target_100": 2189,
+        "charge_pending_sum": 7241,
+        "charge_with_legal_service": 1944,
+        "charge_target_60": 1240,
+        "expired_after_pick": 54,
+        "charge_target_80": 503
+      },
+      "event_weighted_means": {
+        "departure_kg": 0.5238225220208186,
+        "departure_boxes": 1.0919717010150722,
+        "empty_flight_fraction": 0.33197477699169486,
+        "boxes_per_delivery_action": 1.2747575293517102,
+        "batch_delivery_action_fraction": 0.21733027054619705,
+        "pickup_slack_minutes": 33.59825445907338,
+        "negative_slack_pick_fraction": 0.09210395300209101,
+        "matching_destination_pick_fraction": 0.2174649009260181,
+        "expired_after_pick_fraction": 0.005376879418500448,
+        "charge_start_battery": 63.19871055366647,
+        "charge_arrival_battery": 57.07517115851614,
+        "charge_target": 84.82706002034588,
+        "pending_at_charge": 1.841556459816887,
+        "charge_with_legal_service_fraction": 0.49440488301119023,
+        "wait_with_legal_service_fraction": 0.01643835616438356,
+        "legal_actions": 8.355179335020507,
+        "single_legal_state_fraction": 0.0,
+        "pending_orders": 3.2492364080635308,
+        "hidden_orders": 0.012479273933152981,
+        "hidden_present_fraction": 0.0057160310672833585,
+        "entropy": 0.3592417473949115,
+        "entropy_over_log_legal_count": 0.18605127873564456
+      }
+    },
+    "structured_best_high": {
+      "episodes": 200,
+      "event_totals": {
+        "decisions": 24353,
+        "legal_count_sum": 242470,
+        "single_legal_states": 0,
+        "pending_sum": 132071,
+        "hidden_sum": 5642,
+        "hidden_present_states": 1653,
+        "entropy_sum": 10637.313648644458,
+        "normalized_entropy_sum": 4926.604890996218,
+        "wait_actions": 652,
+        "wait_with_legal_service": 2,
+        "picks": 12129,
+        "pickup_slack_sum": 380855.69963312824,
+        "negative_slack_picks": 1503,
+        "matching_destination_picks": 3801,
+        "flights": 13039,
+        "departure_kg_sum": 8806.658439195755,
+        "departure_boxes_sum": 19226,
+        "empty_flights": 3148,
+        "drop_calls": 8278,
+        "delivered_at_drops": 12021,
+        "batch_drop_calls": 2696,
+        "charge_actions": 3253,
+        "charge_start_battery_sum": 180233.25573840973,
+        "charge_arrival_battery_sum": 161784.5901930855,
+        "charge_target_sum": 267180.0,
+        "charge_target_100": 1685,
+        "charge_pending_sum": 10335,
+        "charge_with_legal_service": 1291,
+        "charge_target_80": 230,
+        "expired_after_pick": 108,
+        "charge_target_60": 1338
+      },
+      "event_weighted_means": {
+        "departure_kg": 0.6754090374411961,
+        "departure_boxes": 1.4744995781885113,
+        "empty_flight_fraction": 0.24142955748140194,
+        "boxes_per_delivery_action": 1.4521623580575018,
+        "batch_delivery_action_fraction": 0.3256825320125634,
+        "pickup_slack_minutes": 31.400420449594215,
+        "negative_slack_pick_fraction": 0.12391788276032649,
+        "matching_destination_pick_fraction": 0.31338115260944843,
+        "expired_after_pick_fraction": 0.008904279000742024,
+        "charge_start_battery": 55.40524307974477,
+        "charge_arrival_battery": 49.733965629598984,
+        "charge_target": 82.13341530894559,
+        "pending_at_charge": 3.1770673224715646,
+        "charge_with_legal_service_fraction": 0.3968644328312327,
+        "wait_with_legal_service_fraction": 0.003067484662576687,
+        "legal_actions": 9.95647353508808,
+        "single_legal_state_fraction": 0.0,
+        "pending_orders": 5.423192214511559,
+        "hidden_orders": 0.23167576889910893,
+        "hidden_present_fraction": 0.06787664764094772,
+        "entropy": 0.43679684838190197,
+        "entropy_over_log_legal_count": 0.20229971219136117
+      }
+    },
+    "structured_last_high": {
+      "episodes": 200,
+      "event_totals": {
+        "decisions": 24703,
+        "legal_count_sum": 252667,
+        "single_legal_states": 0,
+        "pending_sum": 141964,
+        "hidden_sum": 6412,
+        "hidden_present_states": 1788,
+        "entropy_sum": 9466.270222103463,
+        "normalized_entropy_sum": 4409.373385691907,
+        "wait_actions": 770,
+        "wait_with_legal_service": 0,
+        "picks": 12308,
+        "pickup_slack_sum": 336021.49650358706,
+        "negative_slack_picks": 1805,
+        "matching_destination_picks": 3714,
+        "flights": 12885,
+        "departure_kg_sum": 8799.722910095405,
+        "departure_boxes_sum": 18933,
+        "empty_flights": 2970,
+        "drop_calls": 8558,
+        "delivered_at_drops": 12198,
+        "batch_drop_calls": 2670,
+        "charge_actions": 3057,
+        "charge_start_battery_sum": 158716.9637319629,
+        "charge_arrival_battery_sum": 142647.2947684986,
+        "charge_target_sum": 247560.0,
+        "charge_target_100": 1409,
+        "charge_pending_sum": 10644,
+        "charge_with_legal_service": 1384,
+        "charge_target_60": 1259,
+        "expired_after_pick": 110,
+        "charge_target_80": 389
+      },
+      "event_weighted_means": {
+        "departure_kg": 0.6829431827780679,
+        "departure_boxes": 1.4693830034924331,
+        "empty_flight_fraction": 0.23050058207217694,
+        "boxes_per_delivery_action": 1.42533302173405,
+        "batch_delivery_action_fraction": 0.3119887824258004,
+        "pickup_slack_minutes": 27.30106406431484,
+        "negative_slack_pick_fraction": 0.14665258368540787,
+        "matching_destination_pick_fraction": 0.3017549561260969,
+        "expired_after_pick_fraction": 0.008937276568085798,
+        "charge_start_battery": 51.91918996793029,
+        "charge_arrival_battery": 46.662510555609614,
+        "charge_target": 80.98135426889107,
+        "pending_at_charge": 3.4818449460255154,
+        "charge_with_legal_service_fraction": 0.4527314360484135,
+        "wait_with_legal_service_fraction": 0.0,
+        "legal_actions": 10.228190907986884,
+        "single_legal_state_fraction": 0.0,
+        "pending_orders": 5.746832368538234,
+        "hidden_orders": 0.25956361575517145,
+        "hidden_present_fraction": 0.0723798728899324,
+        "entropy": 0.3832032636563763,
+        "entropy_over_log_legal_count": 0.17849546151042006
+      }
+    },
+    "slack_medium": {
+      "episodes": 40,
+      "event_totals": {
+        "decisions": 4084,
+        "legal_count_sum": 38604,
+        "single_legal_states": 0,
+        "pending_sum": 16172,
+        "hidden_sum": 187,
+        "hidden_present_states": 88,
+        "wait_actions": 278,
+        "wait_with_legal_service": 0,
+        "picks": 1902,
+        "pickup_slack_sum": 57343.56195726982,
+        "negative_slack_picks": 112,
+        "matching_destination_picks": 411,
+        "flights": 2718,
+        "departure_kg_sum": 1393.544804621398,
+        "departure_boxes_sum": 2761,
+        "empty_flights": 922,
+        "drop_calls": 1468,
+        "delivered_at_drops": 1865,
+        "batch_drop_calls": 328,
+        "charge_actions": 436,
+        "charge_start_battery_sum": 13437.328509798606,
+        "charge_arrival_battery_sum": 12510.865223552259,
+        "charge_target_sum": 34940.0,
+        "charge_target_80": 433,
+        "charge_pending_sum": 1279,
+        "charge_with_legal_service": 66,
+        "expired_after_pick": 37,
+        "charge_target_100": 3
+      },
+      "event_weighted_means": {
+        "departure_kg": 0.5127096411410589,
+        "departure_boxes": 1.0158204562178073,
+        "empty_flight_fraction": 0.33922001471670343,
+        "boxes_per_delivery_action": 1.2704359673024523,
+        "batch_delivery_action_fraction": 0.22343324250681199,
+        "pickup_slack_minutes": 30.14908620256037,
+        "negative_slack_pick_fraction": 0.058885383806519455,
+        "matching_destination_pick_fraction": 0.21608832807570977,
+        "expired_after_pick_fraction": 0.019453207150368034,
+        "charge_start_battery": 30.819560802290383,
+        "charge_arrival_battery": 28.694645008147383,
+        "charge_target": 80.13761467889908,
+        "pending_at_charge": 2.93348623853211,
+        "charge_with_legal_service_fraction": 0.15137614678899083,
+        "wait_with_legal_service_fraction": 0.0,
+        "legal_actions": 9.452497551420176,
+        "single_legal_state_fraction": 0.0,
+        "pending_orders": 3.959843290891283,
+        "hidden_orders": 0.045788442703232124,
+        "hidden_present_fraction": 0.021547502448579822,
+        "entropy": null,
+        "entropy_over_log_legal_count": null
+      }
+    },
+    "slack_high": {
+      "episodes": 40,
+      "event_totals": {
+        "decisions": 4398,
+        "legal_count_sum": 49647,
+        "single_legal_states": 0,
+        "pending_sum": 31556,
+        "hidden_sum": 2888,
+        "hidden_present_states": 686,
+        "wait_actions": 194,
+        "wait_with_legal_service": 0,
+        "picks": 2237,
+        "pickup_slack_sum": 47364.18984054393,
+        "negative_slack_picks": 233,
+        "matching_destination_picks": 669,
+        "flights": 2816,
+        "departure_kg_sum": 1668.7611229448264,
+        "departure_boxes_sum": 3377,
+        "empty_flights": 856,
+        "drop_calls": 1533,
+        "delivered_at_drops": 2166,
+        "batch_drop_calls": 504,
+        "charge_actions": 434,
+        "charge_start_battery_sum": 12337.07383906062,
+        "charge_arrival_battery_sum": 11466.330498189185,
+        "charge_target_sum": 34780.0,
+        "charge_target_80": 431,
+        "charge_pending_sum": 2581,
+        "charge_with_legal_service": 84,
+        "expired_after_pick": 71,
+        "charge_target_100": 3
+      },
+      "event_weighted_means": {
+        "departure_kg": 0.5925998305912026,
+        "departure_boxes": 1.19921875,
+        "empty_flight_fraction": 0.3039772727272727,
+        "boxes_per_delivery_action": 1.4129158512720157,
+        "batch_delivery_action_fraction": 0.3287671232876712,
+        "pickup_slack_minutes": 21.173084416872566,
+        "negative_slack_pick_fraction": 0.10415735359856951,
+        "matching_destination_pick_fraction": 0.29906124273580686,
+        "expired_after_pick_fraction": 0.03173893607510058,
+        "charge_start_battery": 28.426437417190368,
+        "charge_arrival_battery": 26.42011635527462,
+        "charge_target": 80.13824884792626,
+        "pending_at_charge": 5.947004608294931,
+        "charge_with_legal_service_fraction": 0.1935483870967742,
+        "wait_with_legal_service_fraction": 0.0,
+        "legal_actions": 11.288540245566166,
+        "single_legal_state_fraction": 0.0,
+        "pending_orders": 7.175079581628013,
+        "hidden_orders": 0.6566621191450659,
+        "hidden_present_fraction": 0.1559799909049568,
+        "entropy": null,
+        "entropy_over_log_legal_count": null
+      }
+    },
+    "mlp_best_medium": {
+      "episodes": 200,
+      "event_totals": {
+        "decisions": 21935,
+        "legal_count_sum": 199911,
+        "single_legal_states": 0,
+        "pending_sum": 89797,
+        "hidden_sum": 1541,
+        "hidden_present_states": 597,
+        "entropy_sum": 9157.016211059978,
+        "normalized_entropy_sum": 4358.455850852517,
+        "wait_actions": 834,
+        "wait_with_legal_service": 0,
+        "picks": 9333,
+        "pickup_slack_sum": 282010.99124042375,
+        "negative_slack_picks": 574,
+        "matching_destination_picks": 1343,
+        "flights": 15428,
+        "departure_kg_sum": 7724.599036333245,
+        "departure_boxes_sum": 16950,
+        "empty_flights": 4805,
+        "drop_calls": 7916,
+        "delivered_at_drops": 9180,
+        "batch_drop_calls": 1016,
+        "charge_actions": 3754,
+        "charge_start_battery_sum": 148725.3986121634,
+        "charge_arrival_battery_sum": 135271.75850291786,
+        "charge_target_sum": 257740.0,
+        "charge_target_80": 243,
+        "charge_pending_sum": 10352,
+        "charge_with_legal_service": 54,
+        "charge_target_100": 691,
+        "charge_target_60": 2820,
+        "expired_after_pick": 153
+      },
+      "event_weighted_means": {
+        "departure_kg": 0.5006870000216,
+        "departure_boxes": 1.0986518019185896,
+        "empty_flight_fraction": 0.31144672024889813,
+        "boxes_per_delivery_action": 1.159676604345629,
+        "batch_delivery_action_fraction": 0.12834765032844872,
+        "pickup_slack_minutes": 30.216542509420737,
+        "negative_slack_pick_fraction": 0.06150219650701811,
+        "matching_destination_pick_fraction": 0.14389799635701275,
+        "expired_after_pick_fraction": 0.01639344262295082,
+        "charge_start_battery": 39.61784725950011,
+        "charge_arrival_battery": 36.03403263263662,
+        "charge_target": 68.65743207245605,
+        "pending_at_charge": 2.7575919019712307,
+        "charge_with_legal_service_fraction": 0.014384656366542355,
+        "wait_with_legal_service_fraction": 0.0,
+        "legal_actions": 9.113790745384089,
+        "single_legal_state_fraction": 0.0,
+        "pending_orders": 4.093777068611808,
+        "hidden_orders": 0.07025302028721221,
+        "hidden_present_fraction": 0.0272167768406656,
+        "entropy": 0.4174614183296092,
+        "entropy_over_log_legal_count": 0.1986986939071127
+      }
+    },
+    "mlp_best_high": {
+      "episodes": 200,
+      "event_totals": {
+        "decisions": 23686,
+        "legal_count_sum": 251580,
+        "single_legal_states": 0,
+        "pending_sum": 178858,
+        "hidden_sum": 18860,
+        "hidden_present_states": 4466,
+        "entropy_sum": 11374.498808285893,
+        "normalized_entropy_sum": 5079.437694382389,
+        "wait_actions": 599,
+        "wait_with_legal_service": 0,
+        "picks": 10626,
+        "pickup_slack_sum": 245975.22730650488,
+        "negative_slack_picks": 893,
+        "matching_destination_picks": 1552,
+        "flights": 16045,
+        "departure_kg_sum": 8547.049460388185,
+        "departure_boxes_sum": 18268,
+        "empty_flights": 4702,
+        "drop_calls": 8912,
+        "delivered_at_drops": 10350,
+        "batch_drop_calls": 1214,
+        "charge_actions": 3484,
+        "charge_start_battery_sum": 120611.87216354873,
+        "charge_arrival_battery_sum": 110840.76207495609,
+        "charge_target_sum": 235280.0,
+        "charge_target_80": 114,
+        "charge_pending_sum": 20842,
+        "charge_with_legal_service": 129,
+        "charge_target_100": 599,
+        "charge_target_60": 2771,
+        "expired_after_pick": 276
+      },
+      "event_weighted_means": {
+        "departure_kg": 0.5326923939163718,
+        "departure_boxes": 1.1385478342162667,
+        "empty_flight_fraction": 0.2930507946400748,
+        "boxes_per_delivery_action": 1.1613554757630162,
+        "batch_delivery_action_fraction": 0.13622082585278278,
+        "pickup_slack_minutes": 23.14843095299312,
+        "negative_slack_pick_fraction": 0.08403914925654056,
+        "matching_destination_pick_fraction": 0.14605684170901562,
+        "expired_after_pick_fraction": 0.025974025974025976,
+        "charge_start_battery": 34.61879223982455,
+        "charge_arrival_battery": 31.81422562426983,
+        "charge_target": 67.53157290470723,
+        "pending_at_charge": 5.982204362801378,
+        "charge_with_legal_service_fraction": 0.037026406429391506,
+        "wait_with_legal_service_fraction": 0.0,
+        "legal_actions": 10.621464156041544,
+        "single_legal_state_fraction": 0.0,
+        "pending_orders": 7.551211686228152,
+        "hidden_orders": 0.7962509499282276,
+        "hidden_present_fraction": 0.188550198429452,
+        "entropy": 0.4802203330357972,
+        "entropy_over_log_legal_count": 0.2144489442870214
+      }
+    },
+    "mlp_last_medium": {
+      "episodes": 200,
+      "event_totals": {
+        "decisions": 21736,
+        "legal_count_sum": 195234,
+        "single_legal_states": 0,
+        "pending_sum": 88435,
+        "hidden_sum": 1657,
+        "hidden_present_states": 597,
+        "entropy_sum": 6957.8065066045965,
+        "normalized_entropy_sum": 3403.0483209288273,
+        "wait_actions": 1081,
+        "wait_with_legal_service": 0,
+        "picks": 9411,
+        "pickup_slack_sum": 285058.34765509353,
+        "negative_slack_picks": 508,
+        "matching_destination_picks": 1519,
+        "flights": 14835,
+        "departure_kg_sum": 8490.40044290244,
+        "departure_boxes_sum": 18700,
+        "empty_flights": 3741,
+        "drop_calls": 7814,
+        "delivered_at_drops": 9249,
+        "batch_drop_calls": 1141,
+        "charge_actions": 3416,
+        "charge_start_battery_sum": 121375.41197498828,
+        "charge_arrival_battery_sum": 111164.41909265362,
+        "charge_target_sum": 229780.0,
+        "charge_target_80": 167,
+        "charge_pending_sum": 10259,
+        "charge_with_legal_service": 49,
+        "charge_target_100": 537,
+        "charge_target_60": 2712,
+        "expired_after_pick": 162
+      },
+      "event_weighted_means": {
+        "departure_kg": 0.5723222408427665,
+        "departure_boxes": 1.2605325244354566,
+        "empty_flight_fraction": 0.25217391304347825,
+        "boxes_per_delivery_action": 1.1836447402098798,
+        "batch_delivery_action_fraction": 0.14601996416687996,
+        "pickup_slack_minutes": 30.289910493581292,
+        "negative_slack_pick_fraction": 0.053979385825098286,
+        "matching_destination_pick_fraction": 0.161406864307725,
+        "expired_after_pick_fraction": 0.01721389862926363,
+        "charge_start_battery": 35.53144378658907,
+        "charge_arrival_battery": 32.54227725194778,
+        "charge_target": 67.26580796252928,
+        "pending_at_charge": 3.0032201405152223,
+        "charge_with_legal_service_fraction": 0.014344262295081968,
+        "wait_with_legal_service_fraction": 0.0,
+        "legal_actions": 8.982057416267942,
+        "single_legal_state_fraction": 0.0,
+        "pending_orders": 4.068595877806404,
+        "hidden_orders": 0.07623297754876703,
+        "hidden_present_fraction": 0.027465955097534044,
+        "entropy": 0.3201051944518125,
+        "entropy_over_log_legal_count": 0.15656276780128944
+      }
+    },
+    "mlp_last_high": {
+      "episodes": 200,
+      "event_totals": {
+        "decisions": 23520,
+        "legal_count_sum": 248437,
+        "single_legal_states": 0,
+        "pending_sum": 177391,
+        "hidden_sum": 18986,
+        "hidden_present_states": 4428,
+        "entropy_sum": 8621.094949049299,
+        "normalized_entropy_sum": 3846.27318697791,
+        "wait_actions": 753,
+        "wait_with_legal_service": 0,
+        "picks": 10727,
+        "pickup_slack_sum": 240226.93152784204,
+        "negative_slack_picks": 872,
+        "matching_destination_picks": 1808,
+        "flights": 15774,
+        "departure_kg_sum": 9246.39649495634,
+        "departure_boxes_sum": 20240,
+        "empty_flights": 3859,
+        "drop_calls": 8741,
+        "delivered_at_drops": 10398,
+        "batch_drop_calls": 1344,
+        "charge_actions": 3297,
+        "charge_start_battery_sum": 102018.27320816171,
+        "charge_arrival_battery_sum": 93703.67955331715,
+        "charge_target_sum": 216380.0,
+        "charge_target_80": 124,
+        "charge_pending_sum": 20903,
+        "charge_with_legal_service": 118,
+        "charge_target_100": 402,
+        "charge_target_60": 2771,
+        "expired_after_pick": 329
+      },
+      "event_weighted_means": {
+        "departure_kg": 0.5861795673232116,
+        "departure_boxes": 1.2831241283124128,
+        "empty_flight_fraction": 0.24464308355521744,
+        "boxes_per_delivery_action": 1.1895664111657704,
+        "batch_delivery_action_fraction": 0.15375815124127673,
+        "pickup_slack_minutes": 22.39460534425674,
+        "negative_slack_pick_fraction": 0.08129020229327864,
+        "matching_destination_pick_fraction": 0.16854665796588048,
+        "expired_after_pick_fraction": 0.03067027127808334,
+        "charge_start_battery": 30.942758024920145,
+        "charge_arrival_battery": 28.420891584263618,
+        "charge_target": 65.62936002426449,
+        "pending_at_charge": 6.340006066120716,
+        "charge_with_legal_service_fraction": 0.03579011222323324,
+        "wait_with_legal_service_fraction": 0.0,
+        "legal_actions": 10.562797619047618,
+        "single_legal_state_fraction": 0.0,
+        "pending_orders": 7.542134353741496,
+        "hidden_orders": 0.8072278911564625,
+        "hidden_present_fraction": 0.188265306122449,
+        "entropy": 0.3665431525956334,
+        "entropy_over_log_legal_count": 0.16353202325586352
+      }
+    }
+  },
+  "inference_benchmark": {
+    "threads": 1,
+    "torch": "2.10.0+cpu",
+    "device": "cpu",
+    "warmups": 50,
+    "repeats": 7,
+    "calls_per_repeat": 300,
+    "real_observations": 256,
+    "observation_archive_sha256": "c67ed9e0f7cf95ae8a067b486fc33ee5af41df52e74e53f994e94e148f8c2d44",
+    "historical_mlp_exact_forward_and_act": true,
+    "measurements": {
+      "mlp": {
+        "parameters": 139803,
+        "batch": {
+          "1": {
+            "forward": {
+              "microseconds_per_batch_median": 27.080886666226434,
+              "repeat_us": [
+                28.035326668032212,
+                26.78567666710781,
+                28.15582000039285,
+                27.080886666226434,
+                26.982926665368723,
+                27.607623336128505,
+                27.062519996737443
+              ]
+            },
+            "masked_argmax": {
+              "microseconds_per_batch_median": 93.37732333127254,
+              "repeat_us": [
+                93.53859666589415,
+                92.26042999822917,
+                92.27874000013496,
+                93.37732333127254,
+                91.35133666253144,
+                99.84125333479217,
+                101.23661666511907
+              ]
+            }
+          },
+          "8": {
+            "forward": {
+              "microseconds_per_batch_median": 59.56907666889796,
+              "repeat_us": [
+                61.027286671257265,
+                58.830433335970156,
+                58.71686666675184,
+                58.25649666803656,
+                60.191956666434024,
+                60.26618999991721,
+                59.56907666889796
+              ]
+            },
+            "masked_argmax": {
+              "microseconds_per_batch_median": 128.3303766649624,
+              "repeat_us": [
+                127.046086666572,
+                129.03884333354654,
+                127.82054667089446,
+                128.744913333018,
+                126.2391166649953,
+                128.5959033339168,
+                128.3303766649624
+              ]
+            }
+          },
+          "256": {
+            "forward": {
+              "microseconds_per_batch_median": 714.4523066623757,
+              "repeat_us": [
+                710.1276999977321,
+                707.6586066614254,
+                710.6427833362735,
+                715.6410433344718,
+                720.8040499972412,
+                716.6265166658075,
+                714.4523066623757
+              ]
+            },
+            "masked_argmax": {
+              "microseconds_per_batch_median": 893.1062733305831,
+              "repeat_us": [
+                893.3119066690173,
+                892.7472166639442,
+                900.6341200013898,
+                893.1062733305831,
+                894.5721233370326,
+                889.9263300008897,
+                886.2238933337114
+              ]
+            }
+          }
+        }
+      },
+      "structured": {
+        "parameters": 65232,
+        "batch": {
+          "1": {
+            "forward": {
+              "microseconds_per_batch_median": 126.17520666632724,
+              "repeat_us": [
+                126.17520666632724,
+                126.74917999902391,
+                124.86550666532519,
+                126.6344766615172,
+                125.6064966704192,
+                125.62141999903058,
+                126.94659333040666
+              ]
+            },
+            "masked_argmax": {
+              "microseconds_per_batch_median": 199.96379667039338,
+              "repeat_us": [
+                204.02423666382674,
+                199.33491999836406,
+                199.06665666591533,
+                199.94678332902066,
+                200.56619000267042,
+                199.96379667039338,
+                201.8029033327669
+              ]
+            }
+          },
+          "8": {
+            "forward": {
+              "microseconds_per_batch_median": 201.17921333318614,
+              "repeat_us": [
+                200.7129433332011,
+                202.2512066650961,
+                210.0545566645451,
+                201.17921333318614,
+                199.49695333707496,
+                202.89199666876812,
+                200.70602666843723
+              ]
+            },
+            "masked_argmax": {
+              "microseconds_per_batch_median": 292.8538766658069,
+              "repeat_us": [
+                292.1502933289351,
+                289.57298666379455,
+                300.5832100037272,
+                308.52299333370564,
+                294.15625333664747,
+                291.47688666853355,
+                292.8538766658069
+              ]
+            }
+          },
+          "256": {
+            "forward": {
+              "microseconds_per_batch_median": 2753.419443330737,
+              "repeat_us": [
+                2746.402520000023,
+                2731.8875799998445,
+                2766.0648100027174,
+                2800.042079998093,
+                2753.419443330737,
+                2753.733000002588,
+                2725.2620599999013
+              ]
+            },
+            "masked_argmax": {
+              "microseconds_per_batch_median": 4378.1570433323695,
+              "repeat_us": [
+                4071.7678533352832,
+                4204.743123330748,
+                4524.890030000582,
+                4445.449673330586,
+                4378.1570433323695,
+                4256.096099998103,
+                4383.794950002388
+              ]
+            }
+          }
+        }
+      }
+    },
+    "scope": "isolated microbenchmark; no other experiment process active; same observations for both architectures"
+  },
+  "process_times": {
+    "1": {
+      "real": 998.11,
+      "user": 983.32,
+      "sys": 14.57
+    },
+    "2": {
+      "real": 994.52,
+      "user": 982.56,
+      "sys": 11.94
+    },
+    "3": {
+      "real": 991.11,
+      "user": 980.08,
+      "sys": 10.98
+    },
+    "4": {
+      "real": 996.97,
+      "user": 984.36,
+      "sys": 12.64
+    },
+    "5": {
+      "real": 997.77,
+      "user": 987.72,
+      "sys": 9.97
+    }
+  },
+  "pilot_timing": {
+    "structured_training_seconds": 42.52133454401519,
+    "mlp_training_seconds": 21.99360692600112,
+    "structured_transitions_per_second": 2408.202872701526,
+    "mlp_transitions_per_second": 4655.898431963946
+  },
+  "coverage": {
+    "transitions": 5120000,
+    "updates": 5000,
+    "ppo_dev_episodes": 6600,
+    "evaluation_checkpoints": 55,
+    "test_episodes": 0,
+    "complete_training_days": 46281,
+    "nonfinite_recorded_training_diagnostics": 0,
+    "invalid_actions": 0
+  },
+  "tail_changes": {
+    "1": {
+      "gain_102400_to_last_pp": 4.6737219039029165,
+      "last_interval_gain_pp": 1.3638859639346301,
+      "last_two_intervals_gain_pp": -0.19908915953228412,
+      "best_minus_last_pp": 0.3305590257998814,
+      "best_to_last_reward_change": 0.9605394598864336,
+      "best_to_last_by_load": {
+        "low": {
+          "on_time_rate": 0.0033685064935065068,
+          "served_rate": 0.0009259259259258856,
+          "expiry_rate": -0.0009259259259259259,
+          "reward": 0.4176760243534048
+        },
+        "medium": {
+          "on_time_rate": -0.002557017120195515,
+          "served_rate": 0.020594213464027122,
+          "expiry_rate": -0.020594213464027143,
+          "reward": 1.311002177155899
+        },
+        "high": {
+          "on_time_rate": -0.010728260147307545,
+          "served_rate": 0.011015353523386007,
+          "expiry_rate": -0.011015353523385951,
+          "reward": 1.152940178149997
+        }
+      }
+    },
+    "2": {
+      "gain_102400_to_last_pp": 2.6086278194568435,
+      "last_interval_gain_pp": -1.4375641553044272,
+      "last_two_intervals_gain_pp": -1.3959604116145052,
+      "best_minus_last_pp": 1.93447063172697,
+      "best_to_last_reward_change": 0.3574146170984278,
+      "best_to_last_by_load": {
+        "low": {
+          "on_time_rate": -0.003044871794871784,
+          "served_rate": 0.0,
+          "expiry_rate": 0.0,
+          "reward": -0.1899784581365047
+        },
+        "medium": {
+          "on_time_rate": -0.02515210718035199,
+          "served_rate": 0.01079215855257798,
+          "expiry_rate": -0.010792158552577959,
+          "reward": 0.5414922277619141
+        },
+        "high": {
+          "on_time_rate": -0.029837139976585436,
+          "served_rate": 0.005794824547921018,
+          "expiry_rate": -0.005794824547921018,
+          "reward": 0.7207300816698776
+        }
+      }
+    },
+    "3": {
+      "gain_102400_to_last_pp": 2.205945742154447,
+      "last_interval_gain_pp": 0.33804063207895085,
+      "last_two_intervals_gain_pp": -1.2041889106514603,
+      "best_minus_last_pp": 1.2041889106514603,
+      "best_to_last_reward_change": 0.39046807109078685,
+      "best_to_last_by_load": {
+        "low": {
+          "on_time_rate": 0.0007258771929824492,
+          "served_rate": 0.0,
+          "expiry_rate": 0.0,
+          "reward": 0.06660897369931007
+        },
+        "medium": {
+          "on_time_rate": -0.007284958162102617,
+          "served_rate": 0.008176234271361715,
+          "expiry_rate": -0.008176234271361757,
+          "reward": 0.5562121213292173
+        },
+        "high": {
+          "on_time_rate": -0.02956658635042364,
+          "served_rate": 0.012519510438959602,
+          "expiry_rate": -0.012519510438959533,
+          "reward": 0.5485831182438403
+        }
+      }
+    },
+    "4": {
+      "gain_102400_to_last_pp": 1.554098601851417,
+      "last_interval_gain_pp": -1.846332428168218,
+      "last_two_intervals_gain_pp": -1.4765083257469613,
+      "best_minus_last_pp": 4.13689932368233,
+      "best_to_last_reward_change": -0.33090828588746746,
+      "best_to_last_by_load": {
+        "low": {
+          "on_time_rate": -0.002759259259259239,
+          "served_rate": 0.0,
+          "expiry_rate": 0.0,
+          "reward": -0.10707954596612979
+        },
+        "medium": {
+          "on_time_rate": -0.04842956477531879,
+          "served_rate": 0.01850533645079877,
+          "expiry_rate": -0.018505336450798784,
+          "reward": -0.29718492638939864
+        },
+        "high": {
+          "on_time_rate": -0.07291815567589188,
+          "served_rate": 0.03305415549330326,
+          "expiry_rate": -0.03305415549330329,
+          "reward": -0.5884603853068597
+        }
+      }
+    },
+    "5": {
+      "gain_102400_to_last_pp": 2.605509343989454,
+      "last_interval_gain_pp": -0.14639283523796287,
+      "last_two_intervals_gain_pp": -0.26329694512814417,
+      "best_minus_last_pp": 1.2885564944256966,
+      "best_to_last_reward_change": 0.1791800900856657,
+      "best_to_last_by_load": {
+        "low": {
+          "on_time_rate": 0.0014790823211875415,
+          "served_rate": 0.0,
+          "expiry_rate": 0.0,
+          "reward": 0.503956277843848
+        },
+        "medium": {
+          "on_time_rate": -0.02377852817879933,
+          "served_rate": 0.005296773152755896,
+          "expiry_rate": -0.005296773152755924,
+          "reward": -0.28414567016700687
+        },
+        "high": {
+          "on_time_rate": -0.01635724897515911,
+          "served_rate": 0.00397843031659173,
+          "expiry_rate": -0.003978430316591744,
+          "reward": 0.3177296625801489
+        }
+      }
+    }
+  },
+  "test_episodes": 0,
+  "m4a_seed4_dev_service_and_action_minutes": {
+    "best": {
+      "low": {
+        "on_time_rate": 0.9816085377987552,
+        "reward": 20.539045053924347,
+        "on_time": 21.1,
+        "late_deliveries": 0.35,
+        "expired": 0.125,
+        "energy_used": 712.1045650563677,
+        "served_rate": 0.9952792022792023,
+        "expiry_rate": 0.004720797720797721,
+        "charge_minutes": 141.0777124682893,
+        "wait_minutes": 60.13808131716968,
+        "km_flown": 196.29643747653873,
+        "action_minutes_per_day": {
+          "pick": 80.2141287656552,
+          "deliver": 90.29898445727484,
+          "charge": 203.5477255116599,
+          "return": 49.313311210238446,
+          "wait": 60.13808131716968
+        },
+        "type_daily_rates": {
+          "plasma": {
+            "nonempty_days": 38,
+            "on_time": 0.9371345029239766,
+            "delivered": 0.9694444444444444,
+            "expired": 0.030555555555555555,
+            "late_deliveries": 0.03230994152046784
+          },
+          "medicine": {
+            "nonempty_days": 40,
+            "on_time": 1.0,
+            "delivered": 1.0,
+            "expired": 0.0,
+            "late_deliveries": 0.0
+          },
+          "sample": {
+            "nonempty_days": 40,
+            "on_time": 0.9736904761904762,
+            "delivered": 1.0,
+            "expired": 0.0,
+            "late_deliveries": 0.026309523809523807
+          },
+          "supplies": {
+            "nonempty_days": 40,
+            "on_time": 1.0,
+            "delivered": 1.0,
+            "expired": 0.0,
+            "late_deliveries": 0.0
+          }
+        }
+      },
+      "medium": {
+        "on_time_rate": 0.7574167214244095,
+        "reward": 37.78807734933741,
+        "on_time": 38.8,
+        "late_deliveries": 6.325,
+        "expired": 6.7,
+        "energy_used": 658.4212002031944,
+        "served_rate": 0.877581852767894,
+        "expiry_rate": 0.12241814723210599,
+        "charge_minutes": 123.70880744831439,
+        "wait_minutes": 33.74877200592701,
+        "km_flown": 169.74892936855886,
+        "action_minutes_per_day": {
+          "pick": 152.261936290407,
+          "deliver": 183.53944032845394,
+          "charge": 134.96095976856307,
+          "return": 5.59540042944956,
+          "wait": 33.74877200592701
+        },
+        "type_daily_rates": {
+          "plasma": {
+            "nonempty_days": 40,
+            "on_time": 0.5933914696414696,
+            "delivered": 0.802448489010989,
+            "expired": 0.197551510989011,
+            "late_deliveries": 0.20905701936951937
+          },
+          "medicine": {
+            "nonempty_days": 40,
+            "on_time": 0.8929102271352658,
+            "delivered": 0.9837780112044818,
+            "expired": 0.016221988795518207,
+            "late_deliveries": 0.09086778406921596
+          },
+          "sample": {
+            "nonempty_days": 40,
+            "on_time": 0.72524145916321,
+            "delivered": 0.822435142490584,
+            "expired": 0.177564857509416,
+            "late_deliveries": 0.09719368332737394
+          },
+          "supplies": {
+            "nonempty_days": 40,
+            "on_time": 0.7362785715746242,
+            "delivered": 0.8581720216917585,
+            "expired": 0.14182797830824145,
+            "late_deliveries": 0.12189345011713433
+          }
+        }
+      },
+      "high": {
+        "on_time_rate": 0.6062801119679531,
+        "reward": 36.85616851310265,
+        "on_time": 40.425,
+        "late_deliveries": 10.85,
+        "expired": 16.625,
+        "energy_used": 672.5999451507128,
+        "served_rate": 0.7649195553832899,
+        "expiry_rate": 0.23508044461671007,
+        "charge_minutes": 125.22521640273085,
+        "wait_minutes": 24.583976487978433,
+        "km_flown": 171.33895507040017,
+        "action_minutes_per_day": {
+          "pick": 165.82769792353633,
+          "deliver": 203.4535591914417,
+          "charge": 132.5976537184792,
+          "return": 3.835260639674016,
+          "wait": 24.583976487978433
+        },
+        "type_daily_rates": {
+          "plasma": {
+            "nonempty_days": 40,
+            "on_time": 0.5401941706169647,
+            "delivered": 0.7676076150157033,
+            "expired": 0.23239238498429676,
+            "late_deliveries": 0.2274134443987385
+          },
+          "medicine": {
+            "nonempty_days": 40,
+            "on_time": 0.7364888793785065,
+            "delivered": 0.9315156168938507,
+            "expired": 0.06848438310614932,
+            "late_deliveries": 0.1950267375153442
+          },
+          "sample": {
+            "nonempty_days": 40,
+            "on_time": 0.5681354865842315,
+            "delivered": 0.6529556585057127,
+            "expired": 0.3470443414942873,
+            "late_deliveries": 0.08482017192148116
+          },
+          "supplies": {
+            "nonempty_days": 40,
+            "on_time": 0.5743605500667353,
+            "delivered": 0.7171117558995722,
+            "expired": 0.2828882441004278,
+            "late_deliveries": 0.14275120583283693
+          }
+        }
+      }
+    },
+    "last": {
+      "low": {
+        "on_time_rate": 0.9770139575766511,
+        "reward": 20.607882472392877,
+        "on_time": 21.025,
+        "late_deliveries": 0.5,
+        "expired": 0.05,
+        "energy_used": 702.6812836705685,
+        "served_rate": 0.9978636363636364,
+        "expiry_rate": 0.0021363636363636363,
+        "charge_minutes": 139.60205776772025,
+        "wait_minutes": 66.0748028767631,
+        "km_flown": 192.53539626385827,
+        "action_minutes_per_day": {
+          "pick": 83.91503018856011,
+          "deliver": 90.09713155379808,
+          "charge": 201.17816839473056,
+          "return": 43.14712389449005,
+          "wait": 66.0748028767631
+        },
+        "type_daily_rates": {
+          "plasma": {
+            "nonempty_days": 38,
+            "on_time": 0.9639619883040935,
+            "delivered": 1.0,
+            "expired": 0.0,
+            "late_deliveries": 0.03603801169590643
+          },
+          "medicine": {
+            "nonempty_days": 40,
+            "on_time": 1.0,
+            "delivered": 1.0,
+            "expired": 0.0,
+            "late_deliveries": 0.0
+          },
+          "sample": {
+            "nonempty_days": 40,
+            "on_time": 0.9434126984126984,
+            "delivered": 0.9880952380952381,
+            "expired": 0.011904761904761904,
+            "late_deliveries": 0.04468253968253968
+          },
+          "supplies": {
+            "nonempty_days": 40,
+            "on_time": 0.9958333333333333,
+            "delivered": 1.0,
+            "expired": 0.0,
+            "late_deliveries": 0.004166666666666667
+          }
+        }
+      },
+      "medium": {
+        "on_time_rate": 0.720787885222948,
+        "reward": 38.24452888094065,
+        "on_time": 36.825,
+        "late_deliveries": 9.325,
+        "expired": 5.675,
+        "energy_used": 660.4427067301273,
+        "served_rate": 0.8973051389314469,
+        "expiry_rate": 0.10269486106855306,
+        "charge_minutes": 121.10647768242464,
+        "wait_minutes": 34.508332409720936,
+        "km_flown": 163.4825580699885,
+        "action_minutes_per_day": {
+          "pick": 163.05826970922323,
+          "deliver": 170.39769340493154,
+          "charge": 139.93307263825866,
+          "return": 0,
+          "wait": 34.508332409720936
+        },
+        "type_daily_rates": {
+          "plasma": {
+            "nonempty_days": 40,
+            "on_time": 0.7098001998001998,
+            "delivered": 0.8986046939171939,
+            "expired": 0.10139530608280609,
+            "late_deliveries": 0.18880449411699413
+          },
+          "medicine": {
+            "nonempty_days": 40,
+            "on_time": 0.8329196842674009,
+            "delivered": 0.9686604266906125,
+            "expired": 0.03133957330938755,
+            "late_deliveries": 0.13574074242321146
+          },
+          "sample": {
+            "nonempty_days": 40,
+            "on_time": 0.5866302947577766,
+            "delivered": 0.8244972960233258,
+            "expired": 0.17550270397667422,
+            "late_deliveries": 0.2378670012655492
+          },
+          "supplies": {
+            "nonempty_days": 40,
+            "on_time": 0.7592147892312366,
+            "delivered": 0.8942644964684439,
+            "expired": 0.10573550353155617,
+            "late_deliveries": 0.13504970723720724
+          }
+        }
+      },
+      "high": {
+        "on_time_rate": 0.5777992403654822,
+        "reward": 37.97756787890522,
+        "on_time": 38.325,
+        "late_deliveries": 14.1,
+        "expired": 15.475,
+        "energy_used": 670.4490313218756,
+        "served_rate": 0.7825463975413266,
+        "expiry_rate": 0.21745360245867343,
+        "charge_minutes": 122.88390343130038,
+        "wait_minutes": 24.728453652193693,
+        "km_flown": 165.13692360004998,
+        "action_minutes_per_day": {
+          "pick": 179.4707827844798,
+          "deliver": 190.75400112190647,
+          "charge": 134.74604312496433,
+          "return": 0,
+          "wait": 24.728453652193693
+        },
+        "type_daily_rates": {
+          "plasma": {
+            "nonempty_days": 40,
+            "on_time": 0.571336353597383,
+            "delivered": 0.7937825817972877,
+            "expired": 0.20621741820271233,
+            "late_deliveries": 0.22244622819990467
+          },
+          "medicine": {
+            "nonempty_days": 40,
+            "on_time": 0.702728560203695,
+            "delivered": 0.9105872515620616,
+            "expired": 0.08941274843793848,
+            "late_deliveries": 0.20785869135836646
+          },
+          "sample": {
+            "nonempty_days": 40,
+            "on_time": 0.44497883970250923,
+            "delivered": 0.6881138447046145,
+            "expired": 0.31188615529538555,
+            "late_deliveries": 0.2431350050021052
+          },
+          "supplies": {
+            "nonempty_days": 40,
+            "on_time": 0.6146752399992658,
+            "delivered": 0.73083364908375,
+            "expired": 0.26916635091624996,
+            "late_deliveries": 0.11615840908448426
+          }
+        }
+      }
+    }
+  },
+  "audit_json": "m4_structured_audit.json",
+  "behavior_replay_days": 800,
+  "notes": [
+    "Mean +/- sample SD over five learner seeds is not a confidence interval.",
+    "Day-level paired distributions do not substitute for training repetitions.",
+    "Same seed numbers do not imply same trajectories across architectures.",
+    "Different policies visit different states; behavioral differences are descriptive.",
+    "Test remains unused; these are selected and reused Dev comparisons."
+  ]
+}

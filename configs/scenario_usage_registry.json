@@ -1,0 +1,61 @@
+{
+  "scope": "Known formal experiment scenario ranges from frozen protocols and splits.py; not an exhaustive claim about all debugging/unit-test or external usage",
+  "baseline_commit": "d050c4c100b86bdb6676d57f400a24c9bc80e66b",
+  "formal_map_seeds": [
+    0
+  ],
+  "historical_formal_learner_seeds": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "exploration_learner_seeds": [
+    0
+  ],
+  "demand_ranges": [
+    {
+      "name": "Train",
+      "start_inclusive": 0,
+      "stop_exclusive": 100000,
+      "status": "training pool"
+    },
+    {
+      "name": "Dev-main",
+      "start_inclusive": 100000,
+      "stop_exclusive": 100040,
+      "status": "used checkpoint selection"
+    },
+    {
+      "name": "Dev-extra",
+      "start_inclusive": 100040,
+      "stop_exclusive": 100140,
+      "status": "used development diagnostics"
+    },
+    {
+      "name": "Test",
+      "start_inclusive": 200000,
+      "stop_exclusive": 200100,
+      "status": "consumed"
+    },
+    {
+      "name": "Test-v2",
+      "start_inclusive": 300000,
+      "stop_exclusive": 300100,
+      "status": "consumed"
+    },
+    {
+      "name": "Test-v3",
+      "start_inclusive": 400000,
+      "stop_exclusive": 400100,
+      "status": "consumed"
+    }
+  ],
+  "new_dev_tune": null,
+  "new_dev_confirm": null,
+  "new_final_test": null,
+  "new_confirmation_learner_seeds": null,
+  "pending": "Audit actual run IDs and debugging/stress-map use before reserving new manifests; no new holdout generated or opened",
+  "selection": "Keep overall equal-load daily-rate Dev selection, reward tie-break; no new type guardrail per user decision"
+}
