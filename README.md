@@ -241,7 +241,7 @@ scripts/
   evaluate.py        compare policies on the same days
   analyze_behaviour.py   how policies serve the same days
 checkpoints/
-  ppo_set.pt         the PPO agent (set network)
+  ppo_set.pt         the PPO agent (set network); ppo_set.json, how it was trained and chosen
   bc_mlp.pt, bc_set.pt  the imitation-trained networks; bc_history.json, their training curves
 assets/
   demo.png           the PPO agent at 10:54 (the picture at the top of this page)

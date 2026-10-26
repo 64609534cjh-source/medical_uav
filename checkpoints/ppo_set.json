@@ -1,0 +1,33 @@
+{
+ "file": "ppo_set.pt",
+ "sha256": "155be547e1434aae699c30e35b7c5fdec940e80db0d9ae79339dea5c1418876a",
+ "agent": "set/attention network trained from scratch with masked PPO (medical_uav/agents/ppo.py)",
+ "training": {
+  "command": "python scripts/train_ppo.py --net set --seed 11 --decisions 6e6 --out runs/set_s11",
+  "seed": 11,
+  "decisions": 6000640,
+  "reward": "v2",
+  "environment_version": "v2",
+  "commit": "bfc8fb4",
+  "commit_note": "the run predates run.json; its start time follows commit bfc8fb4 by one second, and that commit and the submitted code both reproduce the run's first three updates exactly"
+ },
+ "selection": {
+  "rule": "one checkpoint per run on the 100 selection days (demand seeds 100040-100139): low-load on-time >= 97 %, every order type within 3 points of Slack-aware at medium and high load, then the highest mean of medium and high on-time; the shipped run is the training seed whose selected checkpoint scores highest",
+  "this_checkpoint": {
+   "low": 0.998,
+   "medium": 0.9219,
+   "high": 0.8267
+  },
+  "score_by_training_seed": {
+   "11": 0.87431,
+   "22": 0.87428,
+   "33": 0.86027,
+   "44": 0.8649,
+   "55": 0.85977
+  },
+  "score_mean_sd": [
+   0.8667,
+   0.0072
+  ]
+ }
+}
