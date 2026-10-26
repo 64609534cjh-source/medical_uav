@@ -96,6 +96,7 @@ def test_analyze_behaviour_runs_the_energy_conditions(tmp_path):
     assert all(r["seed"] == "100040" for r in rows)
     prepeak = next(r for r in rows if r["method"] == "prepeak")
     assert prepeak["overrides"] in ("0", "1", "2")
+    assert float(prepeak["km_to_charger"]) > 0  # distance breakdown in every row
 
 
 def test_boxes_per_stop_counts_only_successful_deliveries(line_map):
@@ -111,3 +112,37 @@ def test_boxes_per_stop_counts_only_successful_deliveries(line_map):
     m = behaviour_metrics(sim, [(0.0, "PICK", 0.0)])
     assert a.status == "expired" and b.status == "delivered"
     assert m["boxes_per_stop"] == 1.0  # one stop, one box actually delivered
+
+
+def test_distance_breakdown_on_a_built_day(line_map):
+    from medical_uav.metrics import distance_breakdown
+
+    a = make_order(0, 1, M, 2, 0.5, 0.0)
+    b = make_order(1, 1, M, 2, 0.5, 0.0)
+    sim = make_sim(line_map, [a, b])
+    sim.do_pick(a)
+    sim.do_pick(b)  # both at M: no flight
+    sim.do_deliver(2)  # loaded flight M -> H2
+    sim.battery = 50.0
+    sim.do_charge(M, 80.0)  # empty flight H2 -> M, then charge
+    d = distance_breakdown(sim)
+    km = line_map.dist_km[M, 2]
+    assert d["km_to_delivery"] == pytest.approx(km) and d["km_to_charger"] == pytest.approx(km)
+    assert d["km_to_pickup"] == 0.0 and d["km_reposition"] == 0.0
+    assert d["km_empty"] == pytest.approx(km) and d["futile_pickups"] == 0
+    assert sum(d[k] for k in ("km_to_pickup", "km_to_delivery", "km_to_charger",
+                              "km_reposition")) == pytest.approx(sim.km_flown)
+
+
+def test_distance_breakdown_sums_to_the_distance_flown():
+    from medical_uav.metrics import distance_breakdown
+
+    env = MedicalUAVEnv(load="high")
+    env.reset(options={"demand_seed": 100_000})
+    done = False
+    while not done:
+        _, _, done, _, _ = env.step(slack_aware_policy(env))
+    d = distance_breakdown(env.sim)
+    parts = [d[k] for k in ("km_to_pickup", "km_to_delivery", "km_to_charger", "km_reposition")]
+    assert sum(parts) == pytest.approx(env.sim.km_flown) and min(parts[:3]) > 0
+    assert 0 < d["km_empty"] < env.sim.km_flown

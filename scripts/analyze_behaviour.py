@@ -27,7 +27,7 @@ from medical_uav.baselines.rollout import rollout_policy
 from medical_uav.env import MedicalUAVEnv
 from medical_uav.env.config import EPS, EnvConfig
 from medical_uav.evaluation import checkpoint_labels
-from medical_uav.metrics import behaviour_metrics, episode_metrics
+from medical_uav.metrics import behaviour_metrics, distance_breakdown, episode_metrics
 from medical_uav.splits import SCREEN_SEEDS, SELECT_SEEDS
 
 RULES = {"slack": slack_aware_policy, "rollout": rollout_policy, "slack100": slack100_policy}
@@ -71,7 +71,7 @@ def run(job) -> dict:
     m = episode_metrics(sim)
     return {"method": label, "load": load, "seed": seed, "on_time_rate": m["on_time_rate"],
             "charge_share": m["charge_share"], "km_flown": m["km_flown"],
-            **behaviour_metrics(sim, env.decision_log),
+            **behaviour_metrics(sim, env.decision_log), **distance_breakdown(sim),
             "overrides": len(rule.used) if rule else float("nan"),
             "hourly": (released, on_time), "trace": trace}
 
