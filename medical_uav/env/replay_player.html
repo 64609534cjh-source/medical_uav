@@ -545,9 +545,11 @@ function stateAt(R, t) {
 
   // ---------- moments worth a look ----------
   const marks = [];
-  const close = decs.filter((d) => d.top.length > 1 && d.text.startsWith("Deliver") && d.top[1][0].startsWith("Charge"))
-    .sort((a, b) => (a.top[0][1] - a.top[1][1]) - (b.top[0][1] - b.top[1][1]))[0];
-  if (close) marks.push(["Deliver now or charge first?", close.t]);
+  // the network's closest call: deliver or charge if there is one, else any
+  const calls = decs.filter((d) => d.top.length > 1).sort((a, b) => (a.top[0][1] - a.top[1][1]) - (b.top[0][1] - b.top[1][1]));
+  const tradeoff = calls.find((d) => d.text.startsWith("Deliver") && d.top[1][0].startsWith("Charge"));
+  const close = tradeoff || calls[0];
+  if (close) marks.push([tradeoff ? "Deliver now or charge first?" : "A close call", close.t]);
   const hub = decs.findIndex((d, i) => d.text.startsWith("Charge at C1") && decs[i + 1] && decs[i + 1].text.includes(" at M for"));
   if (hub >= 0) marks.push(["Charging at the medical center", decs[hub].t + 0.5]);
   const lost = orders.filter((o) => o.status === "expired").sort((a, b) => a.end - b.end)[0];
@@ -563,7 +565,8 @@ function stateAt(R, t) {
   $("title").textContent = M.policy;
   document.title = "UAV Dispatch Replay · " + M.policy;
   $("sub").textContent = `${M.load[0].toUpperCase() + M.load.slice(1)} load · demand seed ${M.seed} · map ${M.map_seed}`;
-  seek(close ? close.t : (decs[0] ? decs[0].t : 0));
+  const peak = decs.find((d) => d.t >= M.peaks[0][0]) || decs[0];
+  seek(close ? close.t : (peak ? peak.t : 0));  // open on a moment worth reading
 })();
 </script>
 </body>
