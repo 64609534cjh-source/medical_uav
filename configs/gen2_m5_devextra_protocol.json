@@ -1,0 +1,62 @@
+{
+  "split": "dev-extra",
+  "congestion": true,
+  "jobs": 2,
+  "entries": [
+    {
+      "name": "m5_s1",
+      "method": "m5",
+      "learner_seed": 1,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m5_s1_development_123/seed_1/best.pt",
+      "checkpoint_sha256": "750bffbc1bcd8322621978bddc83397c57c059829f80b3ad83bf490a3c6ba304",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "m5_s2",
+      "method": "m5",
+      "learner_seed": 2,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m5_s1_development_123/seed_2/best.pt",
+      "checkpoint_sha256": "7f8404be75a5c7b34ede22f61e6a9f5e2ae950524f8a12ef7e82689c1cc6ec8f",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "m5_s3",
+      "method": "m5",
+      "learner_seed": 3,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m5_s1_development_123/seed_3/best.pt",
+      "checkpoint_sha256": "99af3ddad0d1dba486fea0613d8eb80c3f0aa049c82dacc81ff56dc4434611ec",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "m5_s4",
+      "method": "m5",
+      "learner_seed": 4,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m5_s1_extension_45/seed_4/best.pt",
+      "checkpoint_sha256": "aad30b6f837b2bd194d06aafc77b13ce4bd8e1b57d87a1c62845909a4ee4c32c",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "m5_s5",
+      "method": "m5",
+      "learner_seed": 5,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m5_s1_extension_45/seed_5/best.pt",
+      "checkpoint_sha256": "df9f1b7b028a038e98a4ac654a0c2f5c1f13640599f18b8494b8f405cf1394db",
+      "policies": [
+        "ppo"
+      ]
+    }
+  ]
+}
