@@ -189,3 +189,25 @@ def test_plot_training_runs_on_logged_curves(tmp_path):
     assert result.returncode == 0, result.stderr
     assert (tmp_path / "curves.png").exists()
     assert "b_s11" in result.stdout and "0.00 M" in result.stdout  # .84 >= .95 * .86 at 500
+
+
+def test_compare_variants_pairs_runs_by_seed(tmp_path):
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    lines = ["method,load,seed,on_time_rate,served_rate,on_time_count_plasma,released_plasma"]
+    for variant, rate in [("base", 0.80), ("new", 0.85)]:
+        for load in ("medium", "high"):
+            for day in (1, 2, 3):
+                lines.append(f"{variant}_s11/ckpt_1,{load},{day},{rate},0.9,{8 if variant == 'new' else 6},10")
+    lines.append("slack,medium,1,0.7,0.9,5,10")  # not a run: ignored
+    (tmp_path / "eval.csv").write_text("\n".join(lines))
+    repo = Path(__file__).resolve().parents[1]
+    result = subprocess.run([sys.executable, str(repo / "scripts" / "compare_variants.py"),
+                             str(tmp_path / "eval.csv"), "--reference", "base"],
+                            capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    assert "new (seeds 11)" in result.stdout
+    assert "score    +5.0 [ +5.0,  +5.0]" in result.stdout
+    assert "plasma  +20.0 [+20.0, +20.0]" in result.stdout
