@@ -1,6 +1,6 @@
 # GEN4-R4-LOOKAHEAD — public-information feasibility contract
 
-Status: registered design/engineering hypothesis; no planner result or additional training claimed. Owner: Codex implementation; reviewer pending. Category D, online computation. Frozen destination weights and task remain the reference. Hypothesis: a short model-based action comparison helps some pickup/delivery ordering states at measurable extra runtime.
+Status: public-state prototype implemented and engineering tests passed; feasibility protocol frozen before evaluation, no result yet at this registration. Owner: Codex implementation; reviewer pending. Category D, online computation. Frozen destination weights and task remain the reference. Hypothesis: a short model-based action comparison helps some pickup/delivery ordering states at measurable extra runtime.
 
 Actor/critic observe the original 403/26 interface. The planner input adapter must accept only the current public observation/mask and explicitly declared static map/physics/demand-model context. It must not accept a live simulator, environment demand seed, true future order list/arrival, or hidden pending details. Known fixed map context must be disclosed; if new dynamic/full-order information is added, classify that variant separately as B+D.
 
@@ -15,3 +15,11 @@ Record all extra simulator transitions, scenarios, candidate count, reconstructi
 Use only `dev_tune` for feasibility and engineering. No confirmation or Test access before variant/compute/candidate rules freeze. No training transitions, demonstrations or distillation in the feasibility stage. If planning later supplies training demonstrations, account for generation and pretraining separately. Same-state action differences do not establish improved complete-day outcomes.
 
 Advance only after leakage/immutability/legality tests pass and complete-day Dev results show repeatable benefit compatible with the declared compute budget. Practical service/latency thresholds must be frozen before performance screening; they are not fitted from old Test-v3 or selected after viewing confirm. Archive all null/negative results.
+
+## First engineering evaluation (registered 2026-10-27 Singapore time)
+
+`configs/gen4_lookahead_feasibility.json` fixes the first five Dev-tune IDs 100140–100144, all loads, the lowest frozen learner 1, planner RNG 71, M=4/H=30, 20ms soft budget and three sequential variants (reference/no-tail/value-tail). This is 45 complete days, zero training and zero confirmation/Test access. The result answers eligibility/cost feasibility, not five-seed method superiority or the learning-screen promotion threshold.
+
+The conservative adapter rejects unaccounted recent-arrival history: current observation includes the recent count but not timestamps of already completed orders. Only when visible/cargo release timestamps account for that public count does it simulate. Float32 reconstruction must reproduce all legal mask bits and features within declared tolerance. Cargo origin/pickup history are absent but do not affect forward physics; no historical metric is used in the synthetic score. States with no released work skip planning. The policy receives only obs/mask plus declared static model context; tests poison live future orders and day seed while holding its inputs fixed.
+
+Synthetic branches are independent worlds built from reconstructed state, then deep-copied across actions with the same absolute-time synthetic arrivals. The live simulator is never copied or passed into the policy. Budget aborts never select a partially compared action. Latency includes the initial frozen action and public reconstruction; one-time static-map setup is reported separately. Cold first calls and all observed overshoots remain in the raw measurements; no hard timing guarantee is claimed.
