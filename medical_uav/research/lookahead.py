@@ -33,6 +33,29 @@ class BudgetExceeded(RuntimeError):
     pass
 
 
+def clone_public_world(world):
+    """Clone dynamic synthetic state; share only declared static geometry.
+
+    Order fields are scalar dataclass values. Every branch receives its own
+    Order objects and mutable simulator containers, with slots rebound below.
+    """
+    if world.demand_seed is not None:
+        raise ValueError('only public-derived synthetic worlds may be cloned')
+    branch = copy.copy(world)
+    branch.cfg = copy.deepcopy(world.cfg)
+    branch.sim = copy.copy(world.sim)
+    branch.sim.cfg = branch.cfg
+    branch.sim.orders = [Order(**vars(order)) for order in world.sim.orders]
+    by_id = {order.id: order for order in branch.sim.orders}
+    branch.sim.pending = [by_id[order.id] for order in world.sim.pending]
+    branch.sim.onboard = [by_id[order.id] for order in world.sim.onboard]
+    for name in ('segments', 'events', 'release_times_log'):
+        setattr(branch.sim, name, list(getattr(world.sim, name)))
+    branch.decision_log = list(world.decision_log)
+    branch._update_view()
+    return branch
+
+
 def hot_index(values):
     index = int(np.argmax(values))
     expected = np.zeros_like(values)
@@ -230,7 +253,7 @@ class PublicLookaheadPolicy(nn.Module):
                 # These worlds contain only reconstructed current state and
                 # independent futures. Each candidate gets the same absolute-time
                 # scenario, irrespective of how many RNG draws its path would take.
-                value = np.mean([self._score(copy.deepcopy(world), candidate, started) for world in worlds])
+                value = np.mean([self._score(clone_public_world(world), candidate, started) for world in worlds])
                 scores.append(float(value))
             self.last_scores = list(zip(candidates, scores))
             best = int(np.argmax(scores))

@@ -32,12 +32,13 @@ def quantiles(values):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output-dir', type=Path, required=True)
+    parser.add_argument('--protocol', type=Path, default=ROOT / 'configs/gen4_lookahead_feasibility.json')
     args = parser.parse_args()
     if args.output_dir.exists():
         parser.error('fresh output directory required')
     if subprocess.check_output(['git', 'status', '--porcelain'], cwd=ROOT, text=True).strip():
         raise RuntimeError('commit source/protocol before feasibility evaluation')
-    protocol_path = ROOT / 'configs/gen4_lookahead_feasibility.json'
+    protocol_path = args.protocol
     spec = json.loads(protocol_path.read_text())
     registry = json.loads((ROOT / 'configs/gen4_scenario_registry.json').read_text())
     if (spec['split'] != 'dev_tune'

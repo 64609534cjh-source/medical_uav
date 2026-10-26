@@ -10,7 +10,8 @@ from medical_uav.agents.networks import build_network
 from medical_uav.baselines.heuristics import slack_aware_policy
 from medical_uav.env import MedicalUAVEnv
 from medical_uav.env.config import EnvConfig
-from medical_uav.research.lookahead import PublicLookaheadPolicy, PublicSnapshot, Ineligible
+from medical_uav.research.lookahead import PublicLookaheadPolicy, PublicSnapshot, Ineligible, clone_public_world
+from medical_uav.env.orders import generate_orders
 
 
 def state_with_work():
@@ -78,6 +79,34 @@ def test_zero_time_budget_returns_exact_frozen_action_and_no_simulation():
     assert policy.act(obs, mask, True)[0] == model.act(obs, mask, True)[0]
     assert policy.counts['fallback_budget'] == 1
     assert policy.counts['extra_simulator_transitions'] == 0
+    env.close()
+
+
+def test_fast_synthetic_clone_matches_full_copy_scores_and_isolates_order_state():
+    torch.set_num_threads(1)
+    torch.manual_seed(21)
+    env, obs, mask = state_with_work()
+    model = build_network('destination').eval()
+    policy = PublicLookaheadPolicy(model, scenarios=2, horizon=10, budget_ms=None).eval()
+    snapshot = PublicSnapshot(obs.numpy(), mask.numpy(), env.cfg, env.city_map)
+    future = [o for o in generate_orders(71, snapshot.lam, env.cfg) if o.release > snapshot.t]
+    for i, order in enumerate(future):
+        order.id = len(snapshot.current)+i
+    world = snapshot.build_world(future)
+    untouched = [vars(o).copy() for o in world.sim.orders]
+    for action in torch.where(mask)[0].tolist():
+        full, fast = copy.deepcopy(world), clone_public_world(world)
+        assert fast.city_map is world.city_map and fast.sim.city_map is world.sim.city_map
+        assert fast.sim.orders[0] is not world.sim.orders[0]
+        assert all(any(o is candidate for candidate in fast.sim.orders) for o in fast.slots)
+        score_full = policy._score(full, action, time.perf_counter())
+        score_fast = policy._score(fast, action, time.perf_counter())
+        assert score_fast == score_full
+        assert fast.sim.t == full.sim.t and fast.sim.battery == full.sim.battery
+        assert [vars(o) for o in fast.sim.orders] == [vars(o) for o in full.sim.orders]
+    assert [vars(o) for o in world.sim.orders] == untouched
+    with pytest.raises(ValueError, match='public-derived'):
+        clone_public_world(env)
     env.close()
 
 
