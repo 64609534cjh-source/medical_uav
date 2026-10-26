@@ -35,7 +35,7 @@ def overflowing_states(n):
     for k in range(n):
         env = MedicalUAVEnv()
         env.reset(options={"demand_seed": 100_000 + k % 20, "lam": 0.2})
-        for _ in range(20 + k % 40):
+        for _ in range(20 + 8 * (k // 20)):  # 20 days x 5 stopping points
             env.step(slack_aware_policy(env))
         states.append(env)
     return states
@@ -44,6 +44,7 @@ def overflowing_states(n):
 def test_rollout_ignores_future_and_hidden_orders():
     rng = np.random.default_rng(0)
     states = overflowing_states(100)
+    assert len({(env.demand_seed, env.sim.t) for env in states}) == 100  # all distinct
     assert sum(len(env.sim.pending) > len(env.slots) for env in states) >= 50  # hidden orders exist
     for env in states:
         before = rollout_policy(env)
