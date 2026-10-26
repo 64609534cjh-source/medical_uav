@@ -97,8 +97,9 @@ python scripts/evaluate.py --checkpoint outputs/medium_seed0/best.pt --split dev
 Each rollout contains 128 decisions from each of 8 environments, 1,024 total
 transitions. One process advances the environments serially and batches network
 inference. The 10,240-transition integration budget is exactly 10 updates.
-`configs/ppo_mixed_pilot.json` is a proposed next-stage 102,400-transition run;
-it is not a completed experiment or a frozen main-experiment configuration.
+`configs/ppo_mixed_pilot.json` is the completed 102,400-transition scratch pilot
+configuration, evaluating every 25 updates (25,600 transitions). Its results are
+recorded below; it is not a multi-seed main experiment.
 
 The defaults are Adam at 3e-4, four PPO epochs, minibatches of 256, clip 0.2,
 gamma 1, GAE lambda 0.95, value coefficient 0.5 times MSE (no extra 1/2), entropy
@@ -145,6 +146,13 @@ Run directories must be fresh. They contain:
   evaluations, equal-load summaries and the final run status.
 - `last.pt`, and `best.pt` when a Dev candidate improves. An exception produces
   `failure.json` and diagnostic inputs; it never silently continues a failed run.
+
+Every evaluation also saves `checkpoint_<nine-digit-transition-count>.pt`,
+including step 0. Update logs record the current fixed learning rate and per-load
+opened-day counters; final summaries separate collection, GAE, PPO, evaluation,
+checkpoint and remaining wall-clock costs. Opened-day counts include active days
+at the budget boundary. When resuming older checkpoints without these counters,
+`started_counts_include_history=false` discloses the missing earlier history.
 
 Checkpoint continuation restores model, optimizer, Python/NumPy/Torch RNG states,
 minibatch-shuffle RNG and training day/load sampler. It starts **new training
@@ -222,8 +230,88 @@ continuation under `outputs/ppo_medium_resume_11264_seed0/`, tests under
 `outputs/ppo_validation/`, and thread measurements under
 `outputs/ppo_thread_benchmark/`. These generated directories are ignored by Git;
 keep them with the tracked acceptance record when preparing the submission.
-The mixed-load pilot, multiple learner seeds, structural-network comparison,
-two-page report and submission archive remain subsequent stages.
+The subsequent mixed-load pilot is recorded below. Multiple learner seeds,
+structural-network comparison, the two-page report and submission archive remain
+subsequent stages.
+
+### Mixed-load pilot, 26 October 2026
+
+The preregistered scratch run used learner seed 0, source commit `9454004`, the
+accepted MLP/PPO settings and one CPU thread. Each new training day independently
+draws Low/Medium/High with equal probability. Fixed Adam learning rate 3e-4 was
+verified in all 100 update records. No Medium checkpoint was loaded and no Test
+days were read. Network, reward, observation, action set and PPO objective were
+unchanged; this stage added only configuration, checkpoint retention and logging.
+
+The following are mean daily on-time rates over the same full Dev set: 40 days per
+load at each of the five points, with all loads weighted equally for the mean.
+
+| Transitions | Low | Medium | High | Equal-load mean |
+|---:|---:|---:|---:|---:|
+| 0 | 9.80% | 7.33% | 5.00% | 7.37% |
+| 25,600 | 95.75% | 63.03% | 49.64% | 69.47% |
+| 51,200 | 97.28% | 65.85% | 50.15% | 71.09% |
+| 76,800 | 98.16% | 66.82% | 51.64% | 72.21% |
+| 102,400 | 98.02% | 69.27% | 55.13% | 74.14% |
+
+![Five-checkpoint mixed-load PPO curve](results/ppo_mixed_pilot_seed0.png)
+
+**Best and last are both at 102,400 transitions and have identical model
+parameters.** Over the last 25,600 transitions, Medium improved 2.45 percentage
+points and High 3.49; Low decreased 0.14 points. This is continued improvement in
+the observed Medium/High checkpoints, with only a small final Low movement. One
+seed cannot establish the statistical reliability of those changes. Slack-aware
+remains higher at 99.26%/80.99%/65.89%, or 82.05% across loads; the pilot's equal-load
+gap is 7.90 points. Nothing here isolates a causal benefit from mixed loads,
+because the budget increased relative to the Medium integration run as well.
+
+Actual training-day/transition counts were:
+
+| Load | Opened days | Complete days | Active days at end | Transitions | Transition share |
+|---|---:|---:|---:|---:|---:|
+| Low | 320 | 316 | 4 | 30,333 | 29.62% |
+| Medium | 329 | 328 | 1 | 35,069 | 34.25% |
+| High | 330 | 327 | 3 | 36,998 | 36.13% |
+
+Opened-day shares were 32.69%/33.61%/33.71%. Equal-probability day sampling does not
+imply equal transition counts. The 971 complete episodes and eight active days
+reconcile to every one of the 102,400 transitions. Training per-load mean reward
+and on-time rate are retained in [the full pilot record](results/ppo_mixed_pilot_seed0.json);
+these pool evolving stochastic policies and are not substitutes for the Dev rows.
+
+The run had zero illegal actions, finite recorded losses/advantages/returns and
+finite tensors in all five model/optimizer checkpoints. The maximum pre-update
+ratio error was 2.63e-6; final rollout KL ranged 0.00096..0.01425 and no update hit
+the target-KL early-stop threshold. All 1,600 planned minibatch steps completed.
+Explained variance at the final update was 0.969. Existing PPO integration tests
+(13 cases) passed with the new logging/checkpoint assertions.
+
+| Timing component | Seconds |
+|---|---:|
+| Collection + GAE + PPO | 21.99 |
+| Dev evaluation and evaluation-record writes | 19.45 |
+| Checkpoint writes | 0.23 |
+| Initialization, other logging and remaining overhead | 0.73 |
+| Total wall time | 42.40 |
+
+Initial evaluation includes the three rule/random baselines (360 additional Dev
+days). The four subsequent model-only full Dev evaluations took about 2.96..3.14
+seconds each; there were 600 PPO Dev days and no Test days in total.
+
+The pilot meets engineering health criteria and supports keeping this setup for
+the planned scratch main experiment: learner seeds 0, 1 and 2, each with 1,024,000
+transitions and Dev every 102,400. That experiment has not run. An equal-budget
+Medium control is needed before attributing any gain specifically to load mixing;
+it is not required to claim this pilot learned under the mixed distribution.
+
+Raw logs, source snapshot, five archived checkpoints, `best.pt` and `last.pt` are
+under `outputs/ppo_mixed_102400_seed0/`. The JSON record and PNG/SVG figures are
+tracked. Reproduce the analysis from the local raw run with:
+
+```bash
+python scripts/analyze_pilot.py --run-dir outputs/ppo_mixed_102400_seed0 \
+  --output results/ppo_mixed_pilot_seed0
+```
 
 ## Run the demo
 

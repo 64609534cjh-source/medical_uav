@@ -1,0 +1,333 @@
+{
+  "purpose": "Five-checkpoint mixed-load pilot; one learner seed, same-map full Dev only",
+  "source_commit": "945400474113bdd512731989603b6bcfb4d9915b",
+  "config": {
+    "total_steps": 102400,
+    "num_envs": 8,
+    "rollout_steps": 128,
+    "learner_seed": 0,
+    "loads": [
+      "low",
+      "medium",
+      "high"
+    ],
+    "train_seeds": null,
+    "map_seed": 0,
+    "threads": 1,
+    "eval_split": "dev",
+    "eval_interval_updates": 25,
+    "evaluate_initial": true,
+    "evaluate_baselines": true,
+    "ppo": {
+      "learning_rate": 0.0003,
+      "epochs": 4,
+      "minibatch_size": 256,
+      "clip_coef": 0.2,
+      "gamma": 1.0,
+      "gae_lambda": 0.95,
+      "value_coef": 0.5,
+      "entropy_coef": 0.01,
+      "max_grad_norm": 0.5,
+      "target_kl": 0.02
+    }
+  },
+  "run_directory": "/home/liuyu/ME5418-project/medical_uav/outputs/ppo_mixed_102400_seed0",
+  "source_manifest_sha256": "0a1faefca28b444ffa8c2ff4c2928b007997e23e92d0e881ca5b78804b059af4",
+  "curve": [
+    {
+      "transitions": 0,
+      "checkpoint": "checkpoint_000000000.pt",
+      "checkpoint_sha256": "f0e3622b5af50563b0daa6e8dca06f297b87e4a754ccf105cf8d1e742f80cc08",
+      "on_time_rate": {
+        "low": 0.09796008377960862,
+        "medium": 0.07328209801035764,
+        "high": 0.049986925281261946
+      },
+      "mean_on_time_rate": 0.0737430356904094,
+      "reward": {
+        "low": -6.664291533812525,
+        "medium": -16.342763780536313,
+        "high": -25.701457332890612
+      },
+      "mean_reward": -16.23617088241315,
+      "evaluation_seconds": 7.414701257000161
+    },
+    {
+      "transitions": 25600,
+      "checkpoint": "checkpoint_000025600.pt",
+      "checkpoint_sha256": "6cbde42a62b9b22208e9a8b12fe5667b5b9547366dba2232f135077038c444a5",
+      "on_time_rate": {
+        "low": 0.9574708485591175,
+        "medium": 0.6302935343516406,
+        "high": 0.496424589985171
+      },
+      "mean_on_time_rate": 0.6947296576319764,
+      "reward": {
+        "low": 20.397117711316533,
+        "medium": 30.812961482850284,
+        "high": 26.863267272244848
+      },
+      "mean_reward": 26.02444882213722,
+      "evaluation_seconds": 2.9568436949994066
+    },
+    {
+      "transitions": 51200,
+      "checkpoint": "checkpoint_000051200.pt",
+      "checkpoint_sha256": "78ffc0ba483d29287409b587895bdf24c24e8b7d99b07bb03180a462d601dca2",
+      "on_time_rate": {
+        "low": 0.9727562493866841,
+        "medium": 0.6584542036921333,
+        "high": 0.5015429754797763
+      },
+      "mean_on_time_rate": 0.7109178095195312,
+      "reward": {
+        "low": 20.558530680971987,
+        "medium": 33.841375985210036,
+        "high": 30.79673335897081
+      },
+      "mean_reward": 28.39888000838428,
+      "evaluation_seconds": 2.955536811999991
+    },
+    {
+      "transitions": 76800,
+      "checkpoint": "checkpoint_000076800.pt",
+      "checkpoint_sha256": "de034ac07d008fe0f8b15875ced9e8c78e84a127387d94ef4e00a1f4c4d7850a",
+      "on_time_rate": {
+        "low": 0.9815986917883371,
+        "medium": 0.6682035622559341,
+        "high": 0.5164180135024666
+      },
+      "mean_on_time_rate": 0.7220734225155793,
+      "reward": {
+        "low": 20.902551314970527,
+        "medium": 35.96653775545812,
+        "high": 33.515486684693236
+      },
+      "mean_reward": 30.12819191837396,
+      "evaluation_seconds": 2.9867402810004933
+    },
+    {
+      "transitions": 102400,
+      "checkpoint": "checkpoint_000102400.pt",
+      "checkpoint_sha256": "a945f5e8bc87f5d83b61be269046f36e1486fb8f7260c95bdcfef5580cc52e66",
+      "on_time_rate": {
+        "low": 0.9802469882230113,
+        "medium": 0.6927343408876522,
+        "high": 0.5513258556508526
+      },
+      "mean_on_time_rate": 0.7414357282538386,
+      "reward": {
+        "low": 20.537292671578534,
+        "medium": 36.039190877355416,
+        "high": 34.108477084666916
+      },
+      "mean_reward": 30.228320211200288,
+      "evaluation_seconds": 3.13563632900059
+    }
+  ],
+  "best": {
+    "transitions": 102400,
+    "checkpoint": "checkpoint_000102400.pt",
+    "checkpoint_sha256": "a945f5e8bc87f5d83b61be269046f36e1486fb8f7260c95bdcfef5580cc52e66",
+    "on_time_rate": {
+      "low": 0.9802469882230113,
+      "medium": 0.6927343408876522,
+      "high": 0.5513258556508526
+    },
+    "mean_on_time_rate": 0.7414357282538386,
+    "reward": {
+      "low": 20.537292671578534,
+      "medium": 36.039190877355416,
+      "high": 34.108477084666916
+    },
+    "mean_reward": 30.228320211200288,
+    "evaluation_seconds": 3.13563632900059
+  },
+  "last": {
+    "transitions": 102400,
+    "checkpoint": "checkpoint_000102400.pt",
+    "checkpoint_sha256": "a945f5e8bc87f5d83b61be269046f36e1486fb8f7260c95bdcfef5580cc52e66",
+    "on_time_rate": {
+      "low": 0.9802469882230113,
+      "medium": 0.6927343408876522,
+      "high": 0.5513258556508526
+    },
+    "mean_on_time_rate": 0.7414357282538386,
+    "reward": {
+      "low": 20.537292671578534,
+      "medium": 36.039190877355416,
+      "high": 34.108477084666916
+    },
+    "mean_reward": 30.228320211200288,
+    "evaluation_seconds": 3.13563632900059
+  },
+  "slack_on_time_rate": {
+    "low": 0.9926334850737024,
+    "medium": 0.8098680385391948,
+    "high": 0.658933380173023
+  },
+  "slack_mean_on_time_rate": 0.8204783012619734,
+  "paired_dev_comparison": {
+    "best": {
+      "low": {
+        "mean_delta_percentage_points": -1.2386496850691227,
+        "win_days": 1,
+        "tie_days": 28,
+        "loss_days": 11
+      },
+      "medium": {
+        "mean_delta_percentage_points": -11.713369765154262,
+        "win_days": 2,
+        "tie_days": 0,
+        "loss_days": 38
+      },
+      "high": {
+        "mean_delta_percentage_points": -10.760752452217048,
+        "win_days": 1,
+        "tie_days": 1,
+        "loss_days": 38
+      }
+    },
+    "last": {
+      "low": {
+        "mean_delta_percentage_points": -1.2386496850691227,
+        "win_days": 1,
+        "tie_days": 28,
+        "loss_days": 11
+      },
+      "medium": {
+        "mean_delta_percentage_points": -11.713369765154262,
+        "win_days": 2,
+        "tie_days": 0,
+        "loss_days": 38
+      },
+      "high": {
+        "mean_delta_percentage_points": -10.760752452217048,
+        "win_days": 1,
+        "tie_days": 1,
+        "loss_days": 38
+      }
+    }
+  },
+  "training_mix": {
+    "low": {
+      "opened_days": 320,
+      "completed_days": 316,
+      "active_days": 4,
+      "opened_day_share": 0.3268641470888662,
+      "transitions": 30333,
+      "transition_share": 0.296220703125,
+      "mean_completed_day_reward": 20.423178448555454,
+      "mean_completed_day_on_time_rate": 0.883306508343116
+    },
+    "medium": {
+      "opened_days": 329,
+      "completed_days": 328,
+      "active_days": 1,
+      "opened_day_share": 0.33605720122574056,
+      "transitions": 35069,
+      "transition_share": 0.342470703125,
+      "mean_completed_day_reward": 27.043888670581897,
+      "mean_completed_day_on_time_rate": 0.5479596383874542
+    },
+    "high": {
+      "opened_days": 330,
+      "completed_days": 327,
+      "active_days": 3,
+      "opened_day_share": 0.33707865168539325,
+      "transitions": 36998,
+      "transition_share": 0.36130859375,
+      "mean_completed_day_reward": 21.80759919656117,
+      "mean_completed_day_on_time_rate": 0.4080210602262577
+    }
+  },
+  "diagnostics": {
+    "policy_loss": {
+      "min": -0.014358870103023946,
+      "max": 0.0008622873283457011,
+      "mean": -0.0031699571768695023
+    },
+    "value_loss": {
+      "min": 1.9580214396119118,
+      "max": 9.319311022758484,
+      "mean": 3.7617268739640712
+    },
+    "entropy": {
+      "min": 0.7823521941900253,
+      "max": 2.101287826895714,
+      "mean": 1.3227708167955279
+    },
+    "approx_kl": {
+      "min": 0.0003245924090151675,
+      "max": 0.004847763178986497,
+      "mean": 0.001390798539014213
+    },
+    "final_approx_kl": {
+      "min": 0.0009588656248524785,
+      "max": 0.01425464078783989,
+      "mean": 0.0038844211667310447
+    },
+    "gradient_norm": {
+      "min": 1.1488673575222492,
+      "max": 15.905909180641174,
+      "mean": 7.339358990713954
+    },
+    "advantage_mean": {
+      "min": -0.6319937705993652,
+      "max": 1.4501298666000366,
+      "mean": 0.26029595762491226
+    },
+    "advantage_std": {
+      "min": 1.471794605255127,
+      "max": 3.2373225688934326,
+      "mean": 2.044058680534363
+    },
+    "return_mean": {
+      "min": -1.3792181015014648,
+      "max": 15.988505363464355,
+      "mean": 10.80221948981285
+    },
+    "return_std": {
+      "min": 1.803504467010498,
+      "max": 10.11872386932373,
+      "mean": 7.550344591140747
+    },
+    "initial_ratio_max_error": 2.6226043701171875e-06,
+    "explained_variance": {
+      "min": 0.4405403733253479,
+      "max": 0.9851729273796082,
+      "last": 0.9690043330192566
+    },
+    "kl_early_stop_updates": 0,
+    "optimizer_steps": 1600,
+    "invalid_actions": 0
+  },
+  "timings": {
+    "collect_seconds": 16.455096481999135,
+    "gae_seconds": 0.2904057100013233,
+    "update_seconds": 5.248104734000663,
+    "training_seconds": 21.99360692600112,
+    "eval_seconds": 19.449458374000642,
+    "checkpoint_seconds": 0.22965612000461988,
+    "other_seconds": 0.7259802099943045,
+    "wall_seconds": 42.39870163000069
+  },
+  "coverage": {
+    "updates": 100,
+    "complete_training_days": 971,
+    "ppo_dev_days": 600,
+    "baseline_dev_days": 360,
+    "test_days": 0,
+    "learner_seeds": [
+      0
+    ]
+  },
+  "notes": [
+    "Rates are averages over complete days, then equal-weighted across loads.",
+    "Opened days include initial/reset days that may still be active at the budget boundary.",
+    "Training daily averages pool evolving stochastic policies; use Dev for performance comparisons.",
+    "Initial evaluation timing includes three baselines (360 additional Dev days).",
+    "One learner seed does not quantify training-seed uncertainty; no intervals are claimed.",
+    "Increased budget and mixed loads changed together; no causal claim about mixing is supported."
+  ]
+}
