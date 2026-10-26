@@ -1,0 +1,1178 @@
+{
+  "stage": "Gen4 R1 development-only diagnostic",
+  "analysis_source_commit": "181529e441d1447a045af73dd74c541b2b0f7abf",
+  "source_commit": "d21f5992b32f50dffaea5c50f9ee65b2425a628a",
+  "protocol_sha256": "ac826a0afc934120b667c25ffe704238aa9fdbc43a5b5ebb2c89eeac08acf595",
+  "new_training_transitions": 0,
+  "new_test_evaluations": 0,
+  "methods": {
+    "m5": {
+      "low": {
+        "orders_repeated": 11130,
+        "failures_repeated": 56,
+        "failed_first_visible_direct_late": 0,
+        "failed_ever_hidden": 0,
+        "failed_had_legal_pick": 56,
+        "failed_never_visible": 0,
+        "failed_first_visible_delay_p50_p95": [
+          2.075796383988788,
+          6.1934200086529
+        ],
+        "pending_wait_minutes": 86013.9617740877,
+        "decision_held_visible_wait_minutes": 68269.77946326371,
+        "decision_held_hidden_wait_minutes": 0,
+        "unobserved_between_decisions_wait_minutes": 17744.182310823835,
+        "all_first_visible_delay_p50_p95": [
+          0.8260614658947247,
+          5.532072646848917
+        ],
+        "outcomes": {
+          "on_time": 11074,
+          "late": 55,
+          "expired_unpicked": 0,
+          "expired_after_pick": 1
+        },
+        "by_type": {
+          "plasma": {
+            "orders_repeated": 2285,
+            "failures_repeated": 45,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 0,
+            "failed_had_legal_pick": 45,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              2.1492160472123487,
+              5.355457456274347
+            ],
+            "pending_wait_minutes": 11468.280559893512,
+            "decision_held_visible_wait_minutes": 7910.457642240421,
+            "decision_held_hidden_wait_minutes": 0,
+            "unobserved_between_decisions_wait_minutes": 3557.8229176531368,
+            "all_first_visible_delay_p50_p95": [
+              0.8303802463035481,
+              5.397876203119766
+            ],
+            "outcomes": {
+              "on_time": 2240,
+              "late": 44,
+              "expired_unpicked": 0,
+              "expired_after_pick": 1
+            }
+          },
+          "medicine": {
+            "orders_repeated": 3405,
+            "failures_repeated": 0,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 0,
+            "failed_had_legal_pick": 0,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": null,
+            "pending_wait_minutes": 25586.08900146814,
+            "decision_held_visible_wait_minutes": 19904.042930806783,
+            "decision_held_hidden_wait_minutes": 0,
+            "unobserved_between_decisions_wait_minutes": 5682.04607066138,
+            "all_first_visible_delay_p50_p95": [
+              0.8609392439039425,
+              5.6138194126091845
+            ],
+            "outcomes": {
+              "on_time": 3405,
+              "late": 0,
+              "expired_unpicked": 0,
+              "expired_after_pick": 0
+            }
+          },
+          "sample": {
+            "orders_repeated": 3340,
+            "failures_repeated": 8,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 0,
+            "failed_had_legal_pick": 8,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              2.647573784769591,
+              6.596930249168484
+            ],
+            "pending_wait_minutes": 26017.715554227347,
+            "decision_held_visible_wait_minutes": 20741.52577436372,
+            "decision_held_hidden_wait_minutes": 0,
+            "unobserved_between_decisions_wait_minutes": 5276.189779863572,
+            "all_first_visible_delay_p50_p95": [
+              0.8651288583747885,
+              5.383571104552441
+            ],
+            "outcomes": {
+              "on_time": 3332,
+              "late": 8,
+              "expired_unpicked": 0,
+              "expired_after_pick": 0
+            }
+          },
+          "supplies": {
+            "orders_repeated": 2100,
+            "failures_repeated": 3,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 0,
+            "failed_had_legal_pick": 3,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              1.4616392870565846,
+              1.6624362100316887
+            ],
+            "pending_wait_minutes": 22941.876658499277,
+            "decision_held_visible_wait_minutes": 19713.753115853546,
+            "decision_held_hidden_wait_minutes": 0,
+            "unobserved_between_decisions_wait_minutes": 3228.1235426456906,
+            "all_first_visible_delay_p50_p95": [
+              0.6765084776200183,
+              5.771182872779338
+            ],
+            "outcomes": {
+              "on_time": 2097,
+              "late": 3,
+              "expired_unpicked": 0,
+              "expired_after_pick": 0
+            }
+          }
+        },
+        "mean_daily_on_time_rate": 0.9956586729606546
+      },
+      "medium": {
+        "orders_repeated": 25970,
+        "failures_repeated": 3922,
+        "failed_first_visible_direct_late": 0,
+        "failed_ever_hidden": 181,
+        "failed_had_legal_pick": 3922,
+        "failed_never_visible": 0,
+        "failed_first_visible_delay_p50_p95": [
+          2.208062191283645,
+          8.648162519317111
+        ],
+        "pending_wait_minutes": 698340.9834268438,
+        "decision_held_visible_wait_minutes": 626775.5361501664,
+        "decision_held_hidden_wait_minutes": 1534.8156486480934,
+        "unobserved_between_decisions_wait_minutes": 70030.63162808874,
+        "all_first_visible_delay_p50_p95": [
+          1.9607068117467108,
+          7.929472379078662
+        ],
+        "outcomes": {
+          "on_time": 22048,
+          "late": 2881,
+          "expired_unpicked": 928,
+          "expired_after_pick": 113
+        },
+        "by_type": {
+          "plasma": {
+            "orders_repeated": 5515,
+            "failures_repeated": 1560,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 38,
+            "failed_had_legal_pick": 1560,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              2.245595942803604,
+              8.32407290588792
+            ],
+            "pending_wait_minutes": 91481.9056539983,
+            "decision_held_visible_wait_minutes": 76114.2446633362,
+            "decision_held_hidden_wait_minutes": 257.040572416657,
+            "unobserved_between_decisions_wait_minutes": 15110.620418245097,
+            "all_first_visible_delay_p50_p95": [
+              1.9566269577562139,
+              8.067596170672735
+            ],
+            "outcomes": {
+              "on_time": 3955,
+              "late": 931,
+              "expired_unpicked": 564,
+              "expired_after_pick": 65
+            }
+          },
+          "medicine": {
+            "orders_repeated": 7390,
+            "failures_repeated": 518,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 48,
+            "failed_had_legal_pick": 518,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              2.184001326821736,
+              11.046213801954025
+            ],
+            "pending_wait_minutes": 217941.11730243333,
+            "decision_held_visible_wait_minutes": 197568.0555094275,
+            "decision_held_hidden_wait_minutes": 499.0572523944261,
+            "unobserved_between_decisions_wait_minutes": 19874.004540611993,
+            "all_first_visible_delay_p50_p95": [
+              1.9729907466145562,
+              7.943425178511816
+            ],
+            "outcomes": {
+              "on_time": 6872,
+              "late": 468,
+              "expired_unpicked": 45,
+              "expired_after_pick": 5
+            }
+          },
+          "sample": {
+            "orders_repeated": 7725,
+            "failures_repeated": 936,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 44,
+            "failed_had_legal_pick": 936,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              2.1514417827307426,
+              8.109390191483229
+            ],
+            "pending_wait_minutes": 183851.09163526175,
+            "decision_held_visible_wait_minutes": 162573.84665089377,
+            "decision_held_hidden_wait_minutes": 328.47094080075016,
+            "unobserved_between_decisions_wait_minutes": 20948.77404356574,
+            "all_first_visible_delay_p50_p95": [
+              1.9913644804913133,
+              7.894765283272021
+            ],
+            "outcomes": {
+              "on_time": 6789,
+              "late": 760,
+              "expired_unpicked": 147,
+              "expired_after_pick": 29
+            }
+          },
+          "supplies": {
+            "orders_repeated": 5340,
+            "failures_repeated": 908,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 51,
+            "failed_had_legal_pick": 908,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              2.2444212494381404,
+              9.05642948366047
+            ],
+            "pending_wait_minutes": 205066.8688351478,
+            "decision_held_visible_wait_minutes": 190519.38932644657,
+            "decision_held_hidden_wait_minutes": 450.24688303626067,
+            "unobserved_between_decisions_wait_minutes": 14097.23262566574,
+            "all_first_visible_delay_p50_p95": [
+              1.8874140918857805,
+              7.779608095933233
+            ],
+            "outcomes": {
+              "on_time": 4432,
+              "late": 722,
+              "expired_unpicked": 172,
+              "expired_after_pick": 14
+            }
+          }
+        },
+        "mean_daily_on_time_rate": 0.8554732705745755
+      },
+      "high": {
+        "orders_repeated": 33930,
+        "failures_repeated": 9362,
+        "failed_first_visible_direct_late": 0,
+        "failed_ever_hidden": 2290,
+        "failed_had_legal_pick": 9361,
+        "failed_never_visible": 0,
+        "failed_first_visible_delay_p50_p95": [
+          2.1767404470634375,
+          9.752232361662234
+        ],
+        "pending_wait_minutes": 1356310.82204613,
+        "decision_held_visible_wait_minutes": 1216572.2644846644,
+        "decision_held_hidden_wait_minutes": 42227.58124894727,
+        "unobserved_between_decisions_wait_minutes": 97510.97631267023,
+        "all_first_visible_delay_p50_p95": [
+          2.021878249974179,
+          8.92403963065059
+        ],
+        "outcomes": {
+          "on_time": 24568,
+          "late": 5657,
+          "expired_unpicked": 3447,
+          "expired_after_pick": 258
+        },
+        "by_type": {
+          "plasma": {
+            "orders_repeated": 6965,
+            "failures_repeated": 3009,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 551,
+            "failed_had_legal_pick": 3008,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              1.996747193178706,
+              8.907480162901152
+            ],
+            "pending_wait_minutes": 165682.92634250195,
+            "decision_held_visible_wait_minutes": 138630.48934318512,
+            "decision_held_hidden_wait_minutes": 6766.078639166704,
+            "unobserved_between_decisions_wait_minutes": 20286.358360149294,
+            "all_first_visible_delay_p50_p95": [
+              1.9460703967200175,
+              8.579470150576933
+            ],
+            "outcomes": {
+              "on_time": 3956,
+              "late": 1302,
+              "expired_unpicked": 1636,
+              "expired_after_pick": 71
+            }
+          },
+          "medicine": {
+            "orders_repeated": 9985,
+            "failures_repeated": 1823,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 595,
+            "failed_had_legal_pick": 1823,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              2.495351486666152,
+              16.615880514880203
+            ],
+            "pending_wait_minutes": 462242.4807497815,
+            "decision_held_visible_wait_minutes": 420421.2244881611,
+            "decision_held_hidden_wait_minutes": 13217.648939361243,
+            "unobserved_between_decisions_wait_minutes": 28603.607322264634,
+            "all_first_visible_delay_p50_p95": [
+              2.1191313138287455,
+              10.304802999938332
+            ],
+            "outcomes": {
+              "on_time": 8162,
+              "late": 1440,
+              "expired_unpicked": 343,
+              "expired_after_pick": 40
+            }
+          },
+          "sample": {
+            "orders_repeated": 10160,
+            "failures_repeated": 2427,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 596,
+            "failed_had_legal_pick": 2427,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              2.233111268579421,
+              8.525874550777917
+            ],
+            "pending_wait_minutes": 356978.1124217552,
+            "decision_held_visible_wait_minutes": 316181.2522213888,
+            "decision_held_hidden_wait_minutes": 11503.408706006041,
+            "unobserved_between_decisions_wait_minutes": 29293.451494370704,
+            "all_first_visible_delay_p50_p95": [
+              2.0284819835179064,
+              8.424827639454321
+            ],
+            "outcomes": {
+              "on_time": 7733,
+              "late": 1550,
+              "expired_unpicked": 791,
+              "expired_after_pick": 86
+            }
+          },
+          "supplies": {
+            "orders_repeated": 6820,
+            "failures_repeated": 2103,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 548,
+            "failed_had_legal_pick": 2103,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              2.138597235355519,
+              9.094262290938637
+            ],
+            "pending_wait_minutes": 371407.3025320982,
+            "decision_held_visible_wait_minutes": 341339.2984318045,
+            "decision_held_hidden_wait_minutes": 10740.444964413358,
+            "unobserved_between_decisions_wait_minutes": 19327.55913588613,
+            "all_first_visible_delay_p50_p95": [
+              2.012754456851127,
+              8.695943927153882
+            ],
+            "outcomes": {
+              "on_time": 4717,
+              "late": 1365,
+              "expired_unpicked": 677,
+              "expired_after_pick": 61
+            }
+          }
+        },
+        "mean_daily_on_time_rate": 0.7312764327181924
+      }
+    },
+    "destination": {
+      "low": {
+        "orders_repeated": 11130,
+        "failures_repeated": 69,
+        "failed_first_visible_direct_late": 0,
+        "failed_ever_hidden": 0,
+        "failed_had_legal_pick": 69,
+        "failed_never_visible": 0,
+        "failed_first_visible_delay_p50_p95": [
+          2.3598837860754855,
+          5.253429718732882
+        ],
+        "pending_wait_minutes": 100010.51628608746,
+        "decision_held_visible_wait_minutes": 81233.26399669326,
+        "decision_held_hidden_wait_minutes": 0,
+        "unobserved_between_decisions_wait_minutes": 18777.25228939342,
+        "all_first_visible_delay_p50_p95": [
+          1.1602258055942798,
+          5.1153884351722745
+        ],
+        "outcomes": {
+          "on_time": 11061,
+          "late": 67,
+          "expired_unpicked": 2,
+          "expired_after_pick": 0
+        },
+        "by_type": {
+          "plasma": {
+            "orders_repeated": 2285,
+            "failures_repeated": 33,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 0,
+            "failed_had_legal_pick": 33,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              2.374246142208193,
+              4.8619939168893325
+            ],
+            "pending_wait_minutes": 12369.738455188237,
+            "decision_held_visible_wait_minutes": 8596.427820713538,
+            "decision_held_hidden_wait_minutes": 0,
+            "unobserved_between_decisions_wait_minutes": 3773.31063447474,
+            "all_first_visible_delay_p50_p95": [
+              1.1407982725668262,
+              4.976495204962257
+            ],
+            "outcomes": {
+              "on_time": 2252,
+              "late": 31,
+              "expired_unpicked": 2,
+              "expired_after_pick": 0
+            }
+          },
+          "medicine": {
+            "orders_repeated": 3405,
+            "failures_repeated": 4,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 0,
+            "failed_had_legal_pick": 4,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              3.377799305806988,
+              4.219327215850343
+            ],
+            "pending_wait_minutes": 27357.863075471454,
+            "decision_held_visible_wait_minutes": 21452.349866973287,
+            "decision_held_hidden_wait_minutes": 0,
+            "unobserved_between_decisions_wait_minutes": 5905.5132084981715,
+            "all_first_visible_delay_p50_p95": [
+              1.223549637126439,
+              5.084216335434427
+            ],
+            "outcomes": {
+              "on_time": 3401,
+              "late": 4,
+              "expired_unpicked": 0,
+              "expired_after_pick": 0
+            }
+          },
+          "sample": {
+            "orders_repeated": 3340,
+            "failures_repeated": 16,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 0,
+            "failed_had_legal_pick": 16,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              1.9481669349689241,
+              5.723018292275448
+            ],
+            "pending_wait_minutes": 31950.1278571556,
+            "decision_held_visible_wait_minutes": 26343.091496593708,
+            "decision_held_hidden_wait_minutes": 0,
+            "unobserved_between_decisions_wait_minutes": 5607.036360561939,
+            "all_first_visible_delay_p50_p95": [
+              1.1186202766854763,
+              5.209759548960856
+            ],
+            "outcomes": {
+              "on_time": 3324,
+              "late": 16,
+              "expired_unpicked": 0,
+              "expired_after_pick": 0
+            }
+          },
+          "supplies": {
+            "orders_repeated": 2100,
+            "failures_repeated": 16,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 0,
+            "failed_had_legal_pick": 16,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              1.973993281922958,
+              5.645927649109755
+            ],
+            "pending_wait_minutes": 28332.78689827312,
+            "decision_held_visible_wait_minutes": 24841.394812414495,
+            "decision_held_hidden_wait_minutes": 0,
+            "unobserved_between_decisions_wait_minutes": 3491.3920858586066,
+            "all_first_visible_delay_p50_p95": [
+              1.155686109136596,
+              5.118822557608439
+            ],
+            "outcomes": {
+              "on_time": 2084,
+              "late": 16,
+              "expired_unpicked": 0,
+              "expired_after_pick": 0
+            }
+          }
+        },
+        "mean_daily_on_time_rate": 0.9945876075311113
+      },
+      "medium": {
+        "orders_repeated": 25970,
+        "failures_repeated": 3656,
+        "failed_first_visible_direct_late": 0,
+        "failed_ever_hidden": 175,
+        "failed_had_legal_pick": 3656,
+        "failed_never_visible": 0,
+        "failed_first_visible_delay_p50_p95": [
+          2.1444262818214455,
+          8.849233519742398
+        ],
+        "pending_wait_minutes": 716952.7705647881,
+        "decision_held_visible_wait_minutes": 644459.7590365569,
+        "decision_held_hidden_wait_minutes": 1827.1017400420847,
+        "unobserved_between_decisions_wait_minutes": 70665.9097882426,
+        "all_first_visible_delay_p50_p95": [
+          1.9584093773965492,
+          8.0144188076723
+        ],
+        "outcomes": {
+          "on_time": 22314,
+          "late": 2629,
+          "expired_unpicked": 971,
+          "expired_after_pick": 56
+        },
+        "by_type": {
+          "plasma": {
+            "orders_repeated": 5515,
+            "failures_repeated": 1417,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 54,
+            "failed_had_legal_pick": 1417,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              2.216655115010326,
+              8.69014925997224
+            ],
+            "pending_wait_minutes": 91731.14060156635,
+            "decision_held_visible_wait_minutes": 76148.74199998754,
+            "decision_held_hidden_wait_minutes": 342.7245126542833,
+            "unobserved_between_decisions_wait_minutes": 15239.6740889245,
+            "all_first_visible_delay_p50_p95": [
+              1.9523414911789132,
+              8.072448511825243
+            ],
+            "outcomes": {
+              "on_time": 4098,
+              "late": 783,
+              "expired_unpicked": 600,
+              "expired_after_pick": 34
+            }
+          },
+          "medicine": {
+            "orders_repeated": 7390,
+            "failures_repeated": 498,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 41,
+            "failed_had_legal_pick": 498,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              2.2262078945544346,
+              11.773119076075183
+            ],
+            "pending_wait_minutes": 228119.57092142748,
+            "decision_held_visible_wait_minutes": 207337.38610933712,
+            "decision_held_hidden_wait_minutes": 543.1570788857366,
+            "unobserved_between_decisions_wait_minutes": 20239.027733204464,
+            "all_first_visible_delay_p50_p95": [
+              1.9912931168341004,
+              8.134552218339644
+            ],
+            "outcomes": {
+              "on_time": 6892,
+              "late": 450,
+              "expired_unpicked": 43,
+              "expired_after_pick": 5
+            }
+          },
+          "sample": {
+            "orders_repeated": 7725,
+            "failures_repeated": 1004,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 47,
+            "failed_had_legal_pick": 1004,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              2.0221908477776083,
+              8.455681132448783
+            ],
+            "pending_wait_minutes": 205826.4681199678,
+            "decision_held_visible_wait_minutes": 184564.59997569147,
+            "decision_held_hidden_wait_minutes": 451.3671770905331,
+            "unobserved_between_decisions_wait_minutes": 20810.50096718767,
+            "all_first_visible_delay_p50_p95": [
+              1.9627416200768835,
+              7.892744927416779
+            ],
+            "outcomes": {
+              "on_time": 6721,
+              "late": 789,
+              "expired_unpicked": 208,
+              "expired_after_pick": 7
+            }
+          },
+          "supplies": {
+            "orders_repeated": 5340,
+            "failures_repeated": 737,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 33,
+            "failed_had_legal_pick": 737,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              2.1645408202736007,
+              8.228804203871551
+            ],
+            "pending_wait_minutes": 191275.59092182523,
+            "decision_held_visible_wait_minutes": 176409.03095148818,
+            "decision_held_hidden_wait_minutes": 489.85297141153205,
+            "unobserved_between_decisions_wait_minutes": 14376.706998926376,
+            "all_first_visible_delay_p50_p95": [
+              1.9223497227462616,
+              7.856263704799765
+            ],
+            "outcomes": {
+              "on_time": 4603,
+              "late": 607,
+              "expired_unpicked": 120,
+              "expired_after_pick": 10
+            }
+          }
+        },
+        "mean_daily_on_time_rate": 0.8658847564847301
+      },
+      "high": {
+        "orders_repeated": 33930,
+        "failures_repeated": 8904,
+        "failed_first_visible_direct_late": 0,
+        "failed_ever_hidden": 2335,
+        "failed_had_legal_pick": 8903,
+        "failed_never_visible": 0,
+        "failed_first_visible_delay_p50_p95": [
+          2.2134542026508726,
+          10.8796176078814
+        ],
+        "pending_wait_minutes": 1364064.0944029563,
+        "decision_held_visible_wait_minutes": 1220047.7439200962,
+        "decision_held_hidden_wait_minutes": 44460.110557231,
+        "unobserved_between_decisions_wait_minutes": 99556.23992576958,
+        "all_first_visible_delay_p50_p95": [
+          2.0747108692062,
+          9.466687910642037
+        ],
+        "outcomes": {
+          "on_time": 25026,
+          "late": 5030,
+          "expired_unpicked": 3747,
+          "expired_after_pick": 127
+        },
+        "by_type": {
+          "plasma": {
+            "orders_repeated": 6965,
+            "failures_repeated": 2899,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 565,
+            "failed_had_legal_pick": 2898,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              2.104698080568369,
+              9.74841399821158
+            ],
+            "pending_wait_minutes": 168638.82402911474,
+            "decision_held_visible_wait_minutes": 140933.73489008954,
+            "decision_held_hidden_wait_minutes": 7068.701237952671,
+            "unobserved_between_decisions_wait_minutes": 20636.387901070804,
+            "all_first_visible_delay_p50_p95": [
+              1.9708294754144902,
+              8.790462398128478
+            ],
+            "outcomes": {
+              "on_time": 4066,
+              "late": 1131,
+              "expired_unpicked": 1732,
+              "expired_after_pick": 36
+            }
+          },
+          "medicine": {
+            "orders_repeated": 9985,
+            "failures_repeated": 1736,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 611,
+            "failed_had_legal_pick": 1736,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              2.618483926408601,
+              16.830656358091804
+            ],
+            "pending_wait_minutes": 468602.51936328196,
+            "decision_held_visible_wait_minutes": 425270.84911150305,
+            "decision_held_hidden_wait_minutes": 13935.92481123418,
+            "unobserved_between_decisions_wait_minutes": 29395.745440549763,
+            "all_first_visible_delay_p50_p95": [
+              2.226853969843603,
+              11.540862270985507
+            ],
+            "outcomes": {
+              "on_time": 8249,
+              "late": 1334,
+              "expired_unpicked": 374,
+              "expired_after_pick": 28
+            }
+          },
+          "sample": {
+            "orders_repeated": 10160,
+            "failures_repeated": 2517,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 647,
+            "failed_had_legal_pick": 2517,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              2.036402079301368,
+              8.893411558745289
+            ],
+            "pending_wait_minutes": 384778.9563038895,
+            "decision_held_visible_wait_minutes": 342409.4322555618,
+            "decision_held_hidden_wait_minutes": 12872.431456464754,
+            "unobserved_between_decisions_wait_minutes": 29497.092591874065,
+            "all_first_visible_delay_p50_p95": [
+              1.9875875836488888,
+              8.645702731538274
+            ],
+            "outcomes": {
+              "on_time": 7643,
+              "late": 1483,
+              "expired_unpicked": 990,
+              "expired_after_pick": 44
+            }
+          },
+          "supplies": {
+            "orders_repeated": 6820,
+            "failures_repeated": 1752,
+            "failed_first_visible_direct_late": 0,
+            "failed_ever_hidden": 512,
+            "failed_had_legal_pick": 1752,
+            "failed_never_visible": 0,
+            "failed_first_visible_delay_p50_p95": [
+              2.18034976610042,
+              10.869040820106509
+            ],
+            "pending_wait_minutes": 342043.7947066739,
+            "decision_held_visible_wait_minutes": 311433.7276628248,
+            "decision_held_hidden_wait_minutes": 10583.053051579438,
+            "unobserved_between_decisions_wait_minutes": 20027.013992275337,
+            "all_first_visible_delay_p50_p95": [
+              2.069925344728226,
+              9.399835997410037
+            ],
+            "outcomes": {
+              "on_time": 5068,
+              "late": 1082,
+              "expired_unpicked": 651,
+              "expired_after_pick": 19
+            }
+          }
+        },
+        "mean_daily_on_time_rate": 0.7444287140688799
+      }
+    }
+  },
+  "same_state_groups": {
+    "m5": {
+      "low": {
+        "all": {
+          "states": 43670,
+          "chosen_wait": 13448,
+          "other_wait": 12781,
+          "action_disagreements": 6955,
+          "chosen_pick": 11130,
+          "other_pick": 10840,
+          "chosen_deliver": 10290,
+          "other_deliver": 9108,
+          "chosen_charge": 8419,
+          "other_charge": 9268,
+          "other_return": 1673,
+          "chosen_return": 383
+        },
+        "overflow": {},
+        "urgent_live_cargo": {
+          "states": 346,
+          "chosen_deliver": 245,
+          "other_deliver": 253,
+          "action_disagreements": 79,
+          "chosen_charge": 20,
+          "other_charge": 24,
+          "chosen_pick": 81,
+          "other_pick": 69
+        },
+        "battery_below_40": {
+          "states": 1322,
+          "chosen_pick": 392,
+          "other_pick": 352,
+          "action_disagreements": 453,
+          "chosen_deliver": 346,
+          "other_deliver": 283,
+          "chosen_charge": 584,
+          "other_charge": 602,
+          "other_return": 85
+        }
+      },
+      "medium": {
+        "all": {
+          "states": 55742,
+          "chosen_wait": 3301,
+          "other_wait": 2827,
+          "action_disagreements": 9594,
+          "chosen_pick": 25042,
+          "other_pick": 24812,
+          "chosen_deliver": 18890,
+          "other_deliver": 18909,
+          "chosen_charge": 8498,
+          "other_charge": 8689,
+          "other_return": 505,
+          "chosen_return": 11
+        },
+        "overflow": {
+          "states": 299,
+          "chosen_pick": 232,
+          "other_pick": 230,
+          "action_disagreements": 66,
+          "chosen_deliver": 58,
+          "other_deliver": 60,
+          "chosen_charge": 9,
+          "other_charge": 9
+        },
+        "urgent_live_cargo": {
+          "states": 9918,
+          "chosen_deliver": 5685,
+          "other_deliver": 6164,
+          "action_disagreements": 2091,
+          "chosen_pick": 3463,
+          "other_pick": 2974,
+          "chosen_charge": 770,
+          "other_charge": 768,
+          "other_return": 12
+        },
+        "battery_below_40": {
+          "states": 9941,
+          "chosen_charge": 2651,
+          "other_charge": 2592,
+          "action_disagreements": 1617,
+          "chosen_pick": 4903,
+          "other_pick": 4776,
+          "chosen_deliver": 2387,
+          "other_deliver": 2478,
+          "other_return": 95
+        }
+      },
+      "high": {
+        "all": {
+          "states": 60576,
+          "chosen_wait": 1950,
+          "other_wait": 1562,
+          "action_disagreements": 11072,
+          "chosen_pick": 30483,
+          "other_pick": 30603,
+          "chosen_deliver": 20812,
+          "other_deliver": 21230,
+          "chosen_charge": 7331,
+          "other_charge": 7010,
+          "other_return": 171
+        },
+        "overflow": {
+          "states": 4016,
+          "chosen_pick": 2654,
+          "other_pick": 2620,
+          "action_disagreements": 883,
+          "chosen_deliver": 1156,
+          "other_deliver": 1191,
+          "chosen_charge": 206,
+          "other_charge": 205
+        },
+        "urgent_live_cargo": {
+          "states": 17310,
+          "chosen_deliver": 9322,
+          "other_deliver": 10210,
+          "action_disagreements": 3541,
+          "chosen_pick": 6602,
+          "other_pick": 5711,
+          "chosen_charge": 1386,
+          "other_charge": 1378,
+          "other_return": 11
+        },
+        "battery_below_40": {
+          "states": 13850,
+          "chosen_pick": 7550,
+          "other_pick": 7431,
+          "action_disagreements": 2339,
+          "chosen_deliver": 3164,
+          "other_deliver": 3346,
+          "chosen_charge": 3136,
+          "other_charge": 3015,
+          "other_return": 58
+        }
+      }
+    },
+    "destination": {
+      "low": {
+        "all": {
+          "states": 49430,
+          "chosen_wait": 10232,
+          "other_wait": 10462,
+          "action_disagreements": 12011,
+          "chosen_pick": 11128,
+          "other_pick": 12329,
+          "chosen_deliver": 10038,
+          "other_deliver": 11118,
+          "chosen_charge": 14674,
+          "other_charge": 15133,
+          "chosen_return": 3358,
+          "other_return": 388
+        },
+        "overflow": {},
+        "urgent_live_cargo": {
+          "states": 465,
+          "chosen_charge": 38,
+          "other_charge": 22,
+          "action_disagreements": 121,
+          "chosen_deliver": 332,
+          "other_deliver": 337,
+          "chosen_pick": 94,
+          "other_pick": 106,
+          "chosen_return": 1
+        },
+        "battery_below_40": {
+          "states": 2837,
+          "chosen_return": 281,
+          "other_charge": 1478,
+          "action_disagreements": 598,
+          "chosen_charge": 1264,
+          "chosen_deliver": 650,
+          "other_deliver": 677,
+          "chosen_pick": 642,
+          "other_pick": 682
+        }
+      },
+      "medium": {
+        "all": {
+          "states": 56355,
+          "chosen_wait": 2710,
+          "other_wait": 3173,
+          "action_disagreements": 9416,
+          "chosen_pick": 24999,
+          "other_pick": 25898,
+          "chosen_deliver": 18452,
+          "other_deliver": 18275,
+          "chosen_charge": 9599,
+          "other_charge": 9008,
+          "chosen_return": 595,
+          "other_return": 1
+        },
+        "overflow": {
+          "states": 307,
+          "chosen_pick": 222,
+          "other_pick": 217,
+          "action_disagreements": 67,
+          "chosen_deliver": 76,
+          "other_deliver": 82,
+          "chosen_charge": 9,
+          "other_charge": 8
+        },
+        "urgent_live_cargo": {
+          "states": 8687,
+          "chosen_deliver": 5116,
+          "other_deliver": 4741,
+          "action_disagreements": 1743,
+          "chosen_pick": 2866,
+          "other_pick": 3248,
+          "chosen_charge": 693,
+          "other_charge": 697,
+          "chosen_return": 11,
+          "chosen_wait": 1,
+          "other_wait": 1
+        },
+        "battery_below_40": {
+          "states": 9822,
+          "chosen_charge": 2623,
+          "other_charge": 2710,
+          "action_disagreements": 1468,
+          "chosen_pick": 4792,
+          "other_pick": 4914,
+          "chosen_deliver": 2271,
+          "other_deliver": 2198,
+          "chosen_return": 136
+        }
+      },
+      "high": {
+        "all": {
+          "states": 60286,
+          "chosen_wait": 1545,
+          "other_wait": 1942,
+          "action_disagreements": 10570,
+          "chosen_pick": 30183,
+          "other_pick": 30428,
+          "chosen_deliver": 20623,
+          "other_deliver": 20146,
+          "other_charge": 7770,
+          "chosen_charge": 7709,
+          "chosen_return": 226
+        },
+        "overflow": {
+          "states": 4148,
+          "chosen_deliver": 1208,
+          "other_deliver": 1189,
+          "action_disagreements": 847,
+          "chosen_pick": 2731,
+          "other_pick": 2739,
+          "chosen_charge": 209,
+          "other_charge": 220
+        },
+        "urgent_live_cargo": {
+          "states": 15105,
+          "chosen_pick": 5258,
+          "other_pick": 5998,
+          "action_disagreements": 3042,
+          "chosen_deliver": 8496,
+          "other_deliver": 7756,
+          "chosen_charge": 1335,
+          "other_charge": 1350,
+          "chosen_return": 15,
+          "chosen_wait": 1,
+          "other_wait": 1
+        },
+        "battery_below_40": {
+          "states": 14222,
+          "chosen_pick": 7750,
+          "other_pick": 7901,
+          "action_disagreements": 2257,
+          "chosen_deliver": 3184,
+          "other_deliver": 2998,
+          "chosen_charge": 3208,
+          "other_charge": 3323,
+          "chosen_return": 80
+        }
+      }
+    }
+  },
+  "representatives": [
+    {
+      "case": {
+        "bucket": "success",
+        "learner_seed": 1,
+        "load": "low",
+        "day": 100088,
+        "destination_rate": 1.0,
+        "m5_rate": 1.0,
+        "delta_pp": 0.0
+      },
+      "first_divergence_common_state": {
+        "t": 94.18099994522093,
+        "m5": "CHARGE(C1,100)",
+        "destination": "RETURN",
+        "battery": 93.06132753838226,
+        "cargo_ids": []
+      }
+    },
+    {
+      "case": {
+        "bucket": "failure_both",
+        "learner_seed": 1,
+        "load": "medium",
+        "day": 100104,
+        "destination_rate": 0.8421052631578947,
+        "m5_rate": 0.8070175438596491,
+        "delta_pp": 3.508771929824561
+      },
+      "first_divergence_common_state": {
+        "t": 66.41719051657097,
+        "m5": "CHARGE(C1,100)",
+        "destination": "PICK(1)",
+        "battery": 74.47142972520503,
+        "cargo_ids": []
+      }
+    },
+    {
+      "case": {
+        "bucket": "improvement",
+        "learner_seed": 1,
+        "load": "low",
+        "day": 100073,
+        "destination_rate": 1.0,
+        "m5_rate": 0.9629629629629629,
+        "delta_pp": 3.703703703703709
+      },
+      "first_divergence_common_state": {
+        "t": 81.85071894376604,
+        "m5": "CHARGE(C1,100)",
+        "destination": "RETURN",
+        "battery": 89.05268292394756,
+        "cargo_ids": []
+      }
+    },
+    {
+      "case": {
+        "bucket": "regression",
+        "learner_seed": 1,
+        "load": "high",
+        "day": 100117,
+        "destination_rate": 0.6710526315789473,
+        "m5_rate": 0.7105263157894737,
+        "delta_pp": -3.9473684210526327
+      },
+      "first_divergence_common_state": {
+        "t": 88.8998542937389,
+        "m5": "DELIVER(H3)",
+        "destination": "DELIVER(H1)",
+        "battery": 90.58011952122712,
+        "cargo_ids": [
+          6,
+          7
+        ]
+      }
+    }
+  ],
+  "raw_files": {
+    "outputs/gen4_r1_visibility/m5_s1.json.gz": "5ca50859ccda48d6390cbc485172964f917d0330e02ed7fedd3208d2df76f59e",
+    "outputs/gen4_r1_visibility/m5_s2.json.gz": "1e96c4a2bec7ebee2dd17031dbab69d1aa62de62677ff3169682dad6f2be852e",
+    "outputs/gen4_r1_visibility/m5_s3.json.gz": "50516881ce2bf1a95dc63b4d74aa0e112f9902e7c00b84f3494951e0b226fb0d",
+    "outputs/gen4_r1_visibility/m5_s4.json.gz": "9dba8856e2de91b68336f6ec12ab90f5890a14555f0834339fb6e2c7fdfc2fa5",
+    "outputs/gen4_r1_visibility/m5_s5.json.gz": "299fba455b469b2fedf44e8e8979644023d4a93b4c3b78e4a5c0e0f4c84398ab",
+    "outputs/gen4_r1_visibility/destination_s1.json.gz": "1b5eecd08091bcac30206700a165c29900e23d3340c7a5d62670cceb9a5382d0",
+    "outputs/gen4_r1_visibility/destination_s2.json.gz": "08fce1d3a95b84150c910bc158f4f9c7621f9a82c901e2e556dc38d16a7c4e90",
+    "outputs/gen4_r1_visibility/destination_s3.json.gz": "74ca52a3ef7317c9c14437352ea6f37138fc830d120341a840fef8df937aa7ff",
+    "outputs/gen4_r1_visibility/destination_s4.json.gz": "6ea1b8572635e929c4f487e55e9c7b499fb3ba5207d19ef66a12bae6b991aa4c",
+    "outputs/gen4_r1_visibility/destination_s5.json.gz": "b6b0e10556a48121bda99b4b8641a06a4ada9f9abce3023796309033cebf66a3"
+  },
+  "unchanged_original_days": 3000,
+  "wall_seconds": 66.92132895000395,
+  "scope": "Observational, decision-time visibility; no causal attribution. Pooled order percentages include five repetitions of shared demand days and are labelled separately from mean daily rates."
+}

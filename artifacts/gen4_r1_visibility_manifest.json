@@ -1,0 +1,18 @@
+{
+  "archive": "gen4_r1_visibility.tar.gz",
+  "sha256": "0ad455fc891859d54a7c9753811b3d9886ba340994931d93f7d613e7583fd04d",
+  "members": {
+    "outputs/gen4_r1_visibility/m5_s1.json.gz": "5ca50859ccda48d6390cbc485172964f917d0330e02ed7fedd3208d2df76f59e",
+    "outputs/gen4_r1_visibility/m5_s2.json.gz": "1e96c4a2bec7ebee2dd17031dbab69d1aa62de62677ff3169682dad6f2be852e",
+    "outputs/gen4_r1_visibility/m5_s3.json.gz": "50516881ce2bf1a95dc63b4d74aa0e112f9902e7c00b84f3494951e0b226fb0d",
+    "outputs/gen4_r1_visibility/m5_s4.json.gz": "9dba8856e2de91b68336f6ec12ab90f5890a14555f0834339fb6e2c7fdfc2fa5",
+    "outputs/gen4_r1_visibility/m5_s5.json.gz": "299fba455b469b2fedf44e8e8979644023d4a93b4c3b78e4a5c0e0f4c84398ab",
+    "outputs/gen4_r1_visibility/destination_s1.json.gz": "1b5eecd08091bcac30206700a165c29900e23d3340c7a5d62670cceb9a5382d0",
+    "outputs/gen4_r1_visibility/destination_s2.json.gz": "08fce1d3a95b84150c910bc158f4f9c7621f9a82c901e2e556dc38d16a7c4e90",
+    "outputs/gen4_r1_visibility/destination_s3.json.gz": "74ca52a3ef7317c9c14437352ea6f37138fc830d120341a840fef8df937aa7ff",
+    "outputs/gen4_r1_visibility/destination_s4.json.gz": "6ea1b8572635e929c4f487e55e9c7b499fb3ba5207d19ef66a12bae6b991aa4c",
+    "outputs/gen4_r1_visibility/destination_s5.json.gz": "b6b0e10556a48121bda99b4b8641a06a4ada9f9abce3023796309033cebf66a3"
+  },
+  "source_commit": "d21f5992b32f50dffaea5c50f9ee65b2425a628a",
+  "scope": "Observational, decision-time visibility; no causal attribution. Pooled order percentages include five repetitions of shared demand days and are labelled separately from mean daily rates."
+}

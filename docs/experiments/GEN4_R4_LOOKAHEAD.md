@@ -1,0 +1,17 @@
+# GEN4-R4-LOOKAHEAD — public-information feasibility contract
+
+Status: registered design/engineering hypothesis; no planner result or additional training claimed. Owner: Codex implementation; reviewer pending. Category D, online computation. Frozen destination weights and task remain the reference. Hypothesis: a short model-based action comparison helps some pickup/delivery ordering states at measurable extra runtime.
+
+Actor/critic observe the original 403/26 interface. The planner input adapter must accept only the current public observation/mask and explicitly declared static map/physics/demand-model context. It must not accept a live simulator, environment demand seed, true future order list/arrival, or hidden pending details. Known fixed map context must be disclosed; if new dynamic/full-order information is added, classify that variant separately as B+D.
+
+The initial eligible subset has no hidden pending orders and a state that can be reconstructed from unclipped public fields. All ineligible, inconsistent, numerically unsafe or budget-exceeding states fall back to the exact frozen action. Having no hidden pending orders is necessary, not sufficient: other adapter fields and float32 reconstruction must also be validated. Changing the live environment's unreleased orders/demand seed while keeping public input fixed must not change the planner decision under fixed planner RNG. Test that unselected simulated actions cannot mutate the live state.
+
+At most six distinct legal candidates: masked NN top-three including its own chosen action, optional urgent DELIVER, WAIT. Use independent future scenarios from declared public arrival/type/route distributions. Reuse a scenario's absolute-time exogenous arrival list across candidate branches. Planner RNG is independent of real demand generation/day ID; record its own seed/decision counter. A deepcopy of a live future-populated simulator is forbidden.
+
+Small feasibility configuration first: M=4, H=30 simulated minutes. Only later register M=8/H=60 if useful. Gamma stays 1. Finish any macro action crossing H, then add the original critic at the actual action-end state; terminal tail is zero. Compare reference, rollout without tail value, rollout with tail value on a preregistered Dev subset. The retained baseline action and fallback are engineering choices, not a theorem that approximate rollout must improve service.
+
+Record all extra simulator transitions, scenarios, candidate count, reconstruction rejection, timeout/fallback, end-to-end p50/p95/max and actual wall time. Initial 20ms target is a soft experimental budget, not a real-time guarantee; overshoot inside a macro simulation step must be reported. Potential 1/5/20ms tiers are separate compute constraints, not silent parameter tuning.
+
+Use only `dev_tune` for feasibility and engineering. No confirmation or Test access before variant/compute/candidate rules freeze. No training transitions, demonstrations or distillation in the feasibility stage. If planning later supplies training demonstrations, account for generation and pretraining separately. Same-state action differences do not establish improved complete-day outcomes.
+
+Advance only after leakage/immutability/legality tests pass and complete-day Dev results show repeatable benefit compatible with the declared compute budget. Practical service/latency thresholds must be frozen before performance screening; they are not fitted from old Test-v3 or selected after viewing confirm. Archive all null/negative results.

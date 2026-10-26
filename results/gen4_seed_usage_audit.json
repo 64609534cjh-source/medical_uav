@@ -1,0 +1,24 @@
+{
+  "source_commit": "0e3f63e7e2fab9498f409e1445f01e6322630b6b",
+  "scope": "All readable JSON/JSONL in local configs/results/outputs, including debugging records; explicit demand_seed/map_seed/learner_seed fields and plural forms. Formal legacy seed pools remain excluded even where individual IDs were not sampled. No assertion about unrecorded external runs or arbitrary generic seed fields.",
+  "evidence_file_count": 677,
+  "unique_observed_id_counts": {
+    "demand": 39265,
+    "learner": 6,
+    "map": 1
+  },
+  "observed_learner_ids": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "observed_map_ids": [
+    0
+  ],
+  "new_manifest_ids_absent_from_scanned_records": true,
+  "detailed_ids_and_evidence_hashes": "results/gen4_seed_usage_audit.json.gz",
+  "detail_sha256": "9cd1b01f0257258539d9ad1fda14003450e397c7771e387746c84850fb507c70"
+}
