@@ -88,6 +88,8 @@ Scripts and logs: `docs/superpowers/experiments/2026-10-23-pilots/` (spikes, not
 
 8. **Checkpoint selection by the §4 rule** (`python scripts/select_checkpoints.py runs/m3_{set,mlp}_s{11,22,33}`, 12 checkpoints per run × 100 selection days × 3 loads; `runs/selection_m3_scratch.json`). Selected: set s11 6.0 M, s22 5.5 M, s33 4.5 M; MLP all at 6.0 M. Selection-day on-time (medium / high): set .922/.827, .925/.824, .908/.813; MLP .909/.793, .908/.804, .912/.798; Slack-aware .799/.653. Early checkpoints of every run fail the plasma gate (e.g. set s22 at 0.5 M: plasma .526 vs Slack-aware .732 at medium): PPO first learns the easy orders and catches up on plasma later — the rule kept these lopsided checkpoints out.
 
+9. **Selected checkpoints against the audited planner, screen days** (`python scripts/evaluate.py --methods random,edf,fcfs,nearest,slack,rollout --checkpoints checkpoints/bc_set.pt <6 selected> --seeds screen --processes 6`, 40 days; `runs/m3_screen_eval_selected.csv`). On-time (low / medium / high): visible-order rollout planner .999/.897/.768; set (3 selected, mean) 1.000/.922/.833; MLP .998/.907/.808; Slack-aware .993/.810/.659. Set − planner, seeds averaged per day: medium +2.5 [+1.4, +3.5] (better on 32/40 days), high +6.4 [+5.2, +7.7] (37/40); MLP − planner: medium +1.0 [−0.1, +2.0], high +3.9 [+3.0, +5.0]. Served rate is level with the planner (medium .945 vs .946, high .865 vs .854): PPO's gain is mostly in delivering on time rather than delivering more. Per type at high (set / planner / Slack-aware): plasma .70/.62/.61, medicine .90/.85/.73, sample .85/.77/.64, supplies .78/.74/.57. The planner flies the least (medium 131 km vs set 138, Slack 153). Decision time in this parallel run (not a clean benchmark): planner 43 / 67 ms mean at medium / high (p95 106 / 154), set network ≈ 1 ms, MLP ≈ 0.3 ms.
+
 ## 10. Decision log (since M1)
 
 | date | decision | was | why |
@@ -99,6 +101,7 @@ Scripts and logs: `docs/superpowers/experiments/2026-10-23-pilots/` (spikes, not
 | 10/23 | seeds: screen / select / test 300 days; training seeds 11–55 | dev 40 days, test 100 days | separate model selection from screening; more test power |
 | 10/23 | baselines: + visible-order planner (audited), + scenario rollout in the final | rolling-horizon optimizer (proposal); one-step rollout (M1 report) | the M1 report promised the planner; the final asks for a strong conventional comparison |
 | 10/23 | visualization fixed in M2, owner reviews before submission | GIF at 12 simulated minutes per second | TA: "too fast to understand anything"; owner: must be fixed before M2 |
+| 10/26 | BC → PPO: value warm-up of 40 rollouts, judged on exact returns of held-out days | 10 rollouts, judged on the first rollout's own targets | the old measure compared against stale bootstrapped targets (loss seemed to rise 0.37 → 3.1); against day returns 10 rollouts explained 15 % of the variance, 40 explain about 70 % |
 
 ## 11. Report notes (fill in as we go)
 
