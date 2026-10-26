@@ -93,6 +93,7 @@ def _with_arrivals(root: _PlanningEnv, arrivals: list[Order]) -> _PlanningEnv:
 def _rollout(scenario: _PlanningEnv, action: int) -> float:
     """Total reward of one scenario after `action`, with Slack-aware finishing all work."""
     c = _clone(scenario)
+    assert c.action_masks()[action], f"action {action} not allowed in the planning copy"
     c.step(action)
     sim = c.sim
     while (sim._next_release < len(sim.orders) or sim.pending
@@ -102,8 +103,10 @@ def _rollout(scenario: _PlanningEnv, action: int) -> float:
 
 
 class ScenarioRollout:
-    """The planner as a policy(env); its random streams depend only on its seed, the decision's
-    index within the day and the scenario index, so scenarios 1-4 are shared by S = 4 and 16."""
+    """The planner as a policy(env). It reads the environment only through planning_root and
+    the action mask, which is authoritative for the candidates. Its random streams depend only
+    on its seed, the decision's index within the day and the scenario index, so scenarios 1-4
+    are shared by S = 4 and 16."""
 
     def __init__(self, scenarios: int = 4, horizon: float = HORIZON, seed: int = MASTER_SEED):
         self.scenarios, self.horizon, self.seed = scenarios, horizon, seed
@@ -122,12 +125,13 @@ class ScenarioRollout:
         scenarios = [_with_arrivals(root, self.arrivals(root, s)) for s in range(self.scenarios)]
         self.decision += 1
         return {int(a): float(np.mean([_rollout(sc, int(a)) for sc in scenarios]))
-                for a in np.flatnonzero(root.action_masks())}
+                for a in np.flatnonzero(env.action_masks())}
 
     def __call__(self, env) -> int:
+        """The best-scoring action; among those within 1e-9 of the best, Slack-aware's choice
+        (on the planning copy), else the lowest index."""
         scores = self.scores(env)
-        best = slack_aware_policy(env)
-        for a in sorted(scores):
-            if scores[a] > scores[best] + 1e-9:
-                best = a
-        return best
+        top = max(scores.values())
+        near = [a for a in sorted(scores) if scores[a] >= top - 1e-9]
+        slack = slack_aware_policy(planning_root(env))
+        return slack if slack in near else near[0]

@@ -140,3 +140,77 @@ def test_planner_runs_a_day_with_valid_actions_and_leaves_the_env_alone():
         assert info["action_mask"][a]
         obs, _, done, _, info = env.step(a)
     assert planner.decision == len(env.decision_log)
+
+
+def observable_view(env, mask=None):
+    """An object holding only what the planner may read: time, place, battery, cargo, the
+    visible orders, the arrival rate, the public settings and map, and the action mask."""
+    from types import SimpleNamespace
+
+    sim = SimpleNamespace(t=env.sim.t, location=env.sim.location, battery=env.sim.battery,
+                          onboard=list(env.sim.onboard))
+    mask = env.action_masks() if mask is None else mask
+    return SimpleNamespace(sim=sim, slots=list(env.slots), lam=env.lam, cfg=env.cfg,
+                           city_map=env.city_map, action_space=env.action_space,
+                           action_masks=lambda: mask.copy())
+
+
+def test_planner_needs_only_the_observable_view():
+    from medical_uav.baselines.scenario import ScenarioRollout
+
+    for k in range(5):
+        env = busy_state(seed=100_000 + k, steps=30 + 5 * k)
+        assert ScenarioRollout(4).scores(observable_view(env)) == ScenarioRollout(4).scores(env)
+        assert ScenarioRollout(4)(observable_view(env)) == ScenarioRollout(4)(env)
+
+
+def test_an_action_value_does_not_depend_on_the_other_candidates():
+    from medical_uav.baselines.scenario import ScenarioRollout
+
+    env = busy_state()
+    full = ScenarioRollout(4).scores(env)
+    some = env.action_masks()
+    some[sorted(full)[::2]] = False  # drop every second candidate
+    part = ScenarioRollout(4).scores(observable_view(env, some))
+    assert part and all(part[a] == full[a] for a in part)
+
+
+def test_ties_prefer_slack_then_the_lowest_index():
+    from medical_uav.baselines.scenario import ScenarioRollout
+
+    env = busy_state()
+    slack = slack_aware_policy(env)
+    low, high = [a for a in np.flatnonzero(env.action_masks()) if a != slack][:2]
+
+    class Fixed(ScenarioRollout):
+        def __init__(self, scores):
+            super().__init__()
+            self.fixed = scores
+
+        def scores(self, env):
+            return self.fixed
+
+    # both others within 1e-9 of the best, Slack-aware not: the lower index wins
+    assert Fixed({low: 0.9e-9, high: 1.8e-9, slack: 0.0})(env) == low
+    assert Fixed({low: 1e-9, slack: 0.5e-9})(env) == slack  # Slack-aware within the tolerance
+
+
+def test_planner_at_the_edges_of_the_day():
+    from medical_uav.baselines.scenario import ScenarioRollout, planning_root
+
+    # a box that expired on board (as if during a flight)
+    env = next(e for e in (busy_state(seed=100_000 + k) for k in range(10)) if e.sim.onboard)
+    env.sim.onboard[0].status = "expired"
+    env._update_view()
+    assert [o.status for o in planning_root(env).sim.onboard] == \
+        [o.status for o in env.sim.onboard]
+    scores = ScenarioRollout(4).scores(env)
+    assert scores and all(np.isfinite(v) for v in scores.values())
+
+    # the last minutes of the release window: arrivals stop at its end and rollouts finish
+    env = MedicalUAVEnv(load="high")
+    env.reset(options={"demand_seed": 100_003})
+    while env.sim.t <= env.cfg.release_window - 15:
+        env.step(slack_aware_policy(env))
+    scores = ScenarioRollout(16).scores(env)
+    assert scores and all(np.isfinite(v) for v in scores.values())
