@@ -45,10 +45,10 @@ details ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 3px; }
 .chip .n { font-size: 14px; }
 .chip small { color: var(--muted); font-weight: 500; font-size: 12px; }
 
-.main { display: grid; grid-template-columns: minmax(0, 55fr) minmax(0, 45fr); gap: 10px; align-items: start; }
+.main { display: grid; grid-template-columns: minmax(0, 56fr) minmax(0, 44fr); gap: 10px; align-items: start; }
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
-.mapwrap { padding: 8px; display: grid; gap: 6px; align-content: start; justify-items: center; }
-#map { width: 100%; height: auto; max-height: min(58vh, 560px); display: block; }
+.mapwrap { padding: 8px; display: grid; gap: 6px; align-content: start; }
+#map { width: 100%; height: auto; display: block; }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--muted); font-size: 12px; padding: 0 4px; }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 .legend svg { width: 14px; height: 14px; }
@@ -275,7 +275,7 @@ function stateAt(R, t) {
   text(map, { x: S - 0.08, y: S - 0.1, "font-size": 0.1, "text-anchor": "end", fill: color("muted") }, `${S} × ${S} km`);
   const routeDone = el("polyline", { fill: "none", stroke: color("ink"), "stroke-width": 0.03, "stroke-linecap": "round", "stroke-linejoin": "round" }, map);
   const routeLeft = el("polyline", { fill: "none", stroke: color("ink"), "stroke-width": 0.022, "stroke-dasharray": "0.06 0.05", opacity: 0.6, "stroke-linecap": "round" }, map);
-  const target = el("circle", { r: 0.2, fill: "none", stroke: color("ink"), "stroke-width": 0.022, "stroke-dasharray": "0.05 0.04" }, map);
+  const target = el("circle", { r: 0.165, fill: "none", stroke: color("ink"), "stroke-width": 0.022, "stroke-dasharray": "0.05 0.04" }, map);
   const nodeLayer = el("g", {}, map), waitLayer = el("g", {}, map), popLayer = el("g", {}, map);
   const boltPath = (x, y, s) => `M${x + 0.015 * s} ${y - 0.09 * s} L${x - 0.045 * s} ${y + 0.01 * s} L${x + 0.005 * s} ${y + 0.01 * s} L${x - 0.015 * s} ${y + 0.09 * s} L${x + 0.05 * s} ${y - 0.015 * s} L${x} ${y - 0.015 * s} Z`;
   nodes.forEach((n) => {
@@ -287,7 +287,7 @@ function stateAt(R, t) {
       el("path", { d: boltPath(n.x, n.y, 1), fill: color("ontime") }, nodeLayer);
     } else el("circle", { cx: n.x, cy: n.y, r: 0.09, fill: color("panel"), stroke: color("ink"), "stroke-width": 0.03 }, nodeLayer);
     const up = n.y > 0.45;
-    text(nodeLayer, { x: n.x, y: up ? n.y - 0.22 : n.y + 0.32, "font-size": 0.13, "font-weight": 650, "text-anchor": "middle", fill: color("ink") },
+    text(nodeLayer, { x: n.x, y: up ? n.y - 0.27 : n.y + 0.37, "font-size": 0.13, "font-weight": 650, "text-anchor": "middle", fill: color("ink") },
       n.role === "center" ? "M · C1" : n.name);
   });
   const drone = el("g", {}, map);
@@ -331,9 +331,9 @@ function stateAt(R, t) {
     for (const id of s.waiting) { const o = byId.get(id); (byNode[o.from] = byNode[o.from] || []).push(o); }
     for (const k in byNode) {
       const n = nodes[k], list = byNode[k].sort((a, b) => a.deadline - b.deadline);
-      list.slice(0, 6).forEach((o, j) => el("rect", { x: n.x + 0.16 + (j % 3) * 0.085, y: n.y - 0.1 + Math.floor(j / 3) * 0.085,
+      list.slice(0, 6).forEach((o, j) => el("rect", { x: n.x + 0.22 + (j % 3) * 0.085, y: n.y - 0.1 + Math.floor(j / 3) * 0.085,
         width: 0.065, height: 0.065, rx: 0.012, fill: color(TYPE[o.type]), stroke: t > o.deadline ? color("late") : "none", "stroke-width": 0.02 }, waitLayer));
-      if (list.length > 6) text(waitLayer, { x: n.x + 0.16, y: n.y + 0.17, "font-size": 0.085, fill: color("muted") }, "+" + (list.length - 6));
+      if (list.length > 6) text(waitLayer, { x: n.x + 0.22, y: n.y + 0.17, "font-size": 0.085, fill: color("muted") }, "+" + (list.length - 6));
     }
     // outcomes of the last few simulated minutes, where they happened
     popLayer.replaceChildren();
