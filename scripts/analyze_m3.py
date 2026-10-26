@@ -99,8 +99,6 @@ def analyze(root, output):
     assert manifest["status"] == "complete" and manifest["completed_seeds"] == list(SEEDS)
     assert protocol["learner_seeds"] == list(SEEDS) and protocol["evaluation_transitions"] == list(STEPS)
     repo = Path(__file__).resolve().parents[1] if Path(__file__).parent.name == "scripts" else Path.cwd()
-    for relative, expected in protocol["frozen_file_sha256"].items():
-        assert digest(repo / relative) == expected, f"frozen file changed: {relative}"
     reference = repo / protocol["baseline_reference"]["run_directory"]
     baseline_rows = [r for r in records(reference / "evaluation_episodes.jsonl")
                      if r["transitions"] == 0 and r["policy"] != "ppo"]
@@ -111,6 +109,14 @@ def analyze(root, output):
     for seed in SEEDS:
         run = root / f"seed_{seed}"
         metadata, config, summary = (read(run / name) for name in ("metadata.json", "config.json", "summary.json"))
+        # Audit the actual historical source, allowing later architectures to coexist.
+        import tarfile
+        saved_manifest = read(run / "source_manifest.json")
+        with tarfile.open(run / "source.tar.gz") as archive:
+            for relative, expected in protocol["frozen_file_sha256"].items():
+                assert saved_manifest[relative] == expected
+                assert hashlib.sha256(archive.extractfile(relative).read()).hexdigest() == expected
+
         assert metadata["git_commit"] == manifest["source_commit"] and not metadata["git_dirty"]
         assert metadata["resume_mode"] == "fresh" and metadata["resume_from"] is None
         assert metadata["learning_rate_schedule"] == "constant"

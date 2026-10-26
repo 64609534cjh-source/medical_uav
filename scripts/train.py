@@ -13,6 +13,7 @@ def main():
     parser.add_argument("--config", type=Path, help="JSON TrainConfig, including nested ppo settings")
     parser.add_argument("--output-dir", type=Path, required=True, help="fresh directory for this run")
     parser.add_argument("--resume", type=Path, help="update-boundary checkpoint; start new training days")
+    parser.add_argument("--architecture", choices=("mlp", "structured"))
     parser.add_argument("--total-steps", type=int)
     parser.add_argument("--learner-seed", type=int)
     parser.add_argument("--threads", type=int)
@@ -27,7 +28,7 @@ def main():
         parser.error("use the checkpoint config when resuming; do not also pass --config")
     data = (load_checkpoint(args.resume)["config"] if args.resume else
             json.loads(args.config.read_text()) if args.config else asdict(TrainConfig()))
-    for key in ("total_steps", "learner_seed", "threads", "num_envs", "rollout_steps", "loads",
+    for key in ("architecture", "total_steps", "learner_seed", "threads", "num_envs", "rollout_steps", "loads",
                 "train_seeds", "eval_split", "eval_interval_updates"):
         if getattr(args, key) is not None:
             data[key] = getattr(args, key)

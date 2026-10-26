@@ -15,7 +15,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from medical_uav.agents.networks import MLPActorCritic
+from medical_uav.agents.networks import build_network, NETWORKS
 from medical_uav.algorithms.ppo import PPOConfig, PPOUpdater
 from medical_uav.env import MedicalUAVEnv
 from medical_uav.env.config import EnvConfig
@@ -26,6 +26,7 @@ from medical_uav.training.io import append_json, restore_rng, rng_state, write_j
 
 @dataclass
 class TrainConfig:
+    architecture: str = "mlp"
     total_steps: int = 10_240
     num_envs: int = 8
     rollout_steps: int = 128
@@ -42,6 +43,8 @@ class TrainConfig:
 
     def validate(self):
         self.ppo.validate()
+        if self.architecture not in ("mlp", "structured"):
+            raise ValueError("architecture must be mlp or structured")
         if min(self.total_steps, self.num_envs, self.rollout_steps, self.threads,
                self.eval_interval_updates) < 1 or self.learner_seed < 0 or self.map_seed < 0:
             raise ValueError("positive budgets/counts and nonnegative seeds required")
@@ -67,14 +70,17 @@ class TrainConfig:
 
 def load_checkpoint(path):
     state = torch.load(path, map_location="cpu", weights_only=True)
-    if state.get("format_version") != 1 or state.get("architecture") != "mlp_403_256_128_26":
+    if state.get("format_version") != 1 or state.get("architecture") not in NETWORKS:
         raise ValueError("unsupported training checkpoint")
+    configured = TrainConfig.from_dict(state["config"]).architecture
+    if NETWORKS[configured].architecture != state["architecture"]:
+        raise ValueError("checkpoint architecture disagrees with its configuration")
     return state
 
 
 def _save_checkpoint(path, network, updater, collector, config, steps, updates, best_score):
     state = {
-        "format_version": 1, "architecture": "mlp_403_256_128_26",
+        "format_version": 1, "architecture": network.architecture,
         "model_state_dict": network.state_dict(), "optimizer_state_dict": updater.optimizer.state_dict(),
         "config": asdict(config), "env_config": asdict(EnvConfig(map_seed=config.map_seed)),
         "steps": steps, "updates": updates, "best_score": best_score,
@@ -119,7 +125,7 @@ def train(config, output_dir, resume=None):
         raise ValueError("use a fresh output directory to avoid overwriting run evidence")
     checkpoint = load_checkpoint(resume) if resume else None
     if checkpoint:
-        old, new = dict(checkpoint["config"]), asdict(config)
+        old, new = asdict(TrainConfig.from_dict(checkpoint["config"])), asdict(config)
         old.pop("total_steps")
         new.pop("total_steps")
         if old != new:
@@ -141,7 +147,7 @@ def train(config, output_dir, resume=None):
     np.random.seed(config.learner_seed)
     torch.manual_seed(config.learner_seed)
     started = time.perf_counter()
-    network = MLPActorCritic()
+    network = build_network(config.architecture)
     updater = PPOUpdater(network, config.ppo, config.learner_seed)
     steps, updates, best_score = 0, 0, None
     if checkpoint:
@@ -236,6 +242,8 @@ def train(config, output_dir, resume=None):
             checkpoint_total += checkpoint_seconds
             row = {"transitions": steps, "update_index": updates, "learner_seed": config.learner_seed,
                    "invalid_actions": 0, "completed_episodes": len(episodes),
+                   "legal_actions_mean": float(buffer.action_mask.sum(-1).float().mean()),
+                   "single_legal_fraction": float((buffer.action_mask.sum(-1) == 1).float().mean()),
                    "terminated_count": int(buffer.terminated.sum()), "truncated_count": int(buffer.truncated.sum()),
                    "elapsed_minutes_mean": float(buffer.elapsed.mean()),
                    "collect_seconds": collect_seconds, "gae_seconds": gae_seconds,

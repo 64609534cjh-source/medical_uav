@@ -5,7 +5,7 @@ from pathlib import Path
 
 import torch
 
-from medical_uav.agents.networks import MLPActorCritic
+from medical_uav.agents.networks import build_network
 from medical_uav.env.config import EnvConfig
 from medical_uav.evaluation.evaluate import evaluate
 from medical_uav.training.io import isolated_rng, write_json
@@ -37,7 +37,7 @@ def main():
         config = EnvConfig(**state["env_config"])
         seed = state["config"]["learner_seed"]
         with isolated_rng():
-            network = MLPActorCritic()
+            network = build_network(state["architecture"])
         network.load_state_dict(state["model_state_dict"])
     records, summary = evaluate(network, args.policies, args.seeds, args.split,
                                 args.loads, seed, env_config=config)
