@@ -115,6 +115,13 @@ NETWORKS = {"mlp": MLPActorCritic, "structured": StructuredActorCritic,
             StructuredActorCritic.architecture: StructuredActorCritic}
 
 
+# Imported after the frozen base classes to keep legacy initialization unchanged.
+from medical_uav.agents.relational import DestinationActorCritic, RelationalActorCritic
+NETWORKS.update({"destination": DestinationActorCritic, "relational": RelationalActorCritic,
+                 DestinationActorCritic.architecture: DestinationActorCritic,
+                 RelationalActorCritic.architecture: RelationalActorCritic})
+
+
 def build_network(architecture="mlp"):
     if architecture not in NETWORKS:
         raise ValueError(f"unsupported network architecture: {architecture}")

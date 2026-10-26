@@ -46,8 +46,8 @@ class TrainConfig:
         self.ppo.validate()
         if self.learning_rate_schedule not in ("constant", "late_linear_10pct"):
             raise ValueError("unknown learning rate schedule")
-        if self.architecture not in ("mlp", "structured"):
-            raise ValueError("architecture must be mlp or structured")
+        if self.architecture not in NETWORKS:
+            raise ValueError("unknown architecture")
         if min(self.total_steps, self.num_envs, self.rollout_steps, self.threads,
                self.eval_interval_updates) < 1 or self.learner_seed < 0 or self.map_seed < 0:
             raise ValueError("positive budgets/counts and nonnegative seeds required")

@@ -11,7 +11,7 @@ from medical_uav.env.actions import decode
 from medical_uav.evaluation.diagnostics import EpisodeDiagnostics
 from medical_uav.env.config import EnvConfig
 from medical_uav.metrics import episode_record
-from medical_uav.splits import DEV_SEEDS, DEV_EXTRA_SEEDS, TEST_SEEDS, TRAIN_SEED_RANGE
+from medical_uav.splits import DEV_SEEDS, DEV_EXTRA_SEEDS, TEST_SEEDS, TEST_V2_SEEDS, TRAIN_SEED_RANGE
 from medical_uav.training.io import isolated_rng
 
 LOADS = ("low", "medium", "high")
@@ -22,11 +22,13 @@ def split_seeds(split):
         return tuple(DEV_SEEDS)
     if split == "dev-extra":
         return tuple(DEV_EXTRA_SEEDS)
+    if split == "test-v2":
+        return tuple(TEST_V2_SEEDS)
     if split == "test":
         return tuple(TEST_SEEDS)
     if split == "train":
         return tuple(range(3))  # cheap diagnostics, not checkpoint selection
-    raise ValueError("split must be train, dev, dev-extra or test")
+    raise ValueError("split must be train, dev, dev-extra, test or test-v2")
 
 
 def validate_days(seeds, split):
@@ -56,7 +58,7 @@ def summarize(records):
 
 @torch.no_grad()
 def evaluate(network=None, policies=("ppo",), seeds=None, split="dev", loads=LOADS,
-             learner_seed=0, map_seed=0, env_config=None, diagnostics=False):
+             learner_seed=0, map_seed=0, env_config=None, diagnostics=False, diagnostic_factory=None):
     """Evaluate complete days without changing the training random-number stream.
 
     Each Random baseline day has its own Generator, independent of loop ordering.
@@ -83,7 +85,7 @@ def evaluate(network=None, policies=("ppo",), seeds=None, split="dev", loads=LOA
                     for day in seeds:
                         obs, info = env.reset(options={"demand_seed": day, "load": load})
                         rng = np.random.default_rng(np.random.SeedSequence([learner_seed, day, LOADS.index(load), config.map_seed]))
-                        observer = EpisodeDiagnostics() if diagnostics else None
+                        observer = (diagnostic_factory or EpisodeDiagnostics)() if diagnostics else None
                         counts, minutes, decisions = Counter(), Counter(), 0
                         while True:
                             if policy == "ppo":

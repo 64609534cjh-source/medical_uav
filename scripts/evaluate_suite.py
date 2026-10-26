@@ -26,7 +26,7 @@ def main():
     if args.output_dir.exists() and any(args.output_dir.iterdir()):
         parser.error('choose a fresh output directory')
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    if protocol['split'] == 'test' and not protocol.get('final_candidates_frozen'):
+    if protocol['split'] in ('test', 'test-v2') and not protocol.get('final_candidates_frozen'):
         raise ValueError('Test requires a frozen final-comparison protocol')
     for path, expected in protocol.get('frozen_files', {}).items():
         assert digest(repo / path) == expected, path
@@ -45,6 +45,8 @@ def main():
                    '--output', str((args.output_dir / (entry['name'] + '.json')).resolve())]
         if checkpoint:
             command += ['--checkpoint', str((repo / checkpoint).resolve())]
+        if protocol.get('congestion'):
+            command += ['--congestion']
         if protocol.get('diagnostics'):
             command += ['--diagnostics']
         with (args.output_dir / (entry['name'] + '.log')).open('w') as log:
