@@ -84,6 +84,23 @@ def paired_ci(diffs: np.ndarray, n_boot: int = 10_000, seed: int = 0) -> tuple[f
     return float(diffs.mean()), float(np.percentile(boot, 2.5)), float(np.percentile(boot, 97.5))
 
 
+def first_sustained_crossing(decisions, scores, target: float):
+    """Decisions at the first evaluation reaching target whose next evaluation also reaches it;
+    None if there is none (a crossing at the last evaluation cannot be confirmed)."""
+    for i in range(len(scores) - 1):
+        if scores[i] >= target and scores[i + 1] >= target:
+            return decisions[i]
+    return None
+
+
+def curve_mean(decisions, scores, start: float, end: float) -> float:
+    """Mean of a learning curve between two logged evaluations: trapezoid area / width."""
+    d, s = np.asarray(decisions, float), np.asarray(scores, float)
+    keep = (d >= start) & (d <= end)
+    d, s = d[keep], s[keep]
+    return float(((s[1:] + s[:-1]) / 2 * np.diff(d)).sum() / (d[-1] - d[0]))
+
+
 LOW_LOAD_FLOOR = 0.97  # a selected checkpoint keeps the low load almost fully on time
 TYPE_TOLERANCE = 0.03  # and no order type more than 3 points below Slack-aware (medium, high)
 

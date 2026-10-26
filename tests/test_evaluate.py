@@ -150,3 +150,39 @@ def test_select_rejects_missing_rates():
 
     chosen, rows = select_checkpoint({"a.pt": fake(0.99, 0.9, float("nan"))}, SLACK)
     assert chosen is None and "not finite" in rows[0]["reason"]
+
+
+def test_first_sustained_crossing():
+    from medical_uav.evaluation import first_sustained_crossing
+
+    decisions = [1, 2, 3, 4, 5]
+    assert first_sustained_crossing(decisions, [.5, .9, .7, .9, .95], .8) == 4  # 2 dips back
+    assert first_sustained_crossing(decisions, [.5, .6, .7, .8, .9], .85) is None  # last: unconfirmed
+    assert first_sustained_crossing(decisions, [.9, .9, .9, .9, .9], .8) == 1
+
+
+def test_curve_mean_over_a_window():
+    from medical_uav.evaluation import curve_mean
+
+    # trapezoid over [1, 3] of a straight line from .5 to .9, divided by the width: .7
+    assert curve_mean([0, 1, 2, 3], [.1, .5, .7, .9], 1, 3) == pytest.approx(.7)
+
+
+def test_plot_training_runs_on_logged_curves(tmp_path):
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    for name, scores in [("a_s11", (.80, .85, .86)), ("b_s11", (.84, .86, .87))]:
+        (tmp_path / name).mkdir()
+        lines = ["decisions,seconds,on_time_medium,on_time_high"]
+        lines += [f"{d},0,{s},{s}" for d, s in zip((500, 1000, 1500), scores)]
+        (tmp_path / name / "evals.csv").write_text("\n".join(lines))
+    repo = Path(__file__).resolve().parents[1]
+    result = subprocess.run([sys.executable, str(repo / "scripts" / "plot_training.py"),
+                             f"A:{tmp_path / 'a_s11'}", f"B:{tmp_path / 'b_s11'}",
+                             "--eval-days", "1", "--out", str(tmp_path / "curves.png")],
+                            capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    assert (tmp_path / "curves.png").exists()
+    assert "b_s11" in result.stdout and "0.00 M" in result.stdout  # .84 >= .95 * .86 at 500
