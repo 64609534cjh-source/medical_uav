@@ -1,0 +1,45 @@
+{
+  "validated_source_commit": "c8aa7bd02771c0b7b33ce73163cf42300c3b4a69",
+  "author_remote_fresh_clone": true,
+  "independent_reviewer": "pending",
+  "environment_install_scope": "Author-run fresh remote clone with isolated venv; exact existing CPU dependencies reused through system-site-packages; not a clean OS install or independent teammate review",
+  "python": "3.11.17",
+  "locked_package_versions_all_match": true,
+  "imports_resolve_inside_new_clone": true,
+  "source_checkout_clean_after_checks": true,
+  "all_commands_passed": true,
+  "test_summary": "200 passed in 31.89s",
+  "artifact_selected_models": 35,
+  "artifact_evidence_files": 288,
+  "cpu_demo": {
+    "checkpoint_reload_exact": true,
+    "transitions": 256,
+    "changed_parameter_tensors": 8
+  },
+  "dev_replay": {
+    "canonical_day_exact": true,
+    "archived_dev_day_exact": true,
+    "fallback_states": 0
+  },
+  "historical_tables_recomputed": [
+    "test",
+    "test-v2",
+    "test-v3"
+  ],
+  "new_test_evaluations": 0,
+  "new_training_experiments": 0,
+  "wall_seconds": 127.57518649101257,
+  "history_audit_before_packaging": {
+    "scope": "all locally known Git history before packaging; pattern scan is not a guarantee against every secret format",
+    "blobs_scanned": 669,
+    "largest_blob_bytes": 4800748,
+    "blobs_over_50_MiB": [],
+    "credential_pattern_findings": []
+  },
+  "packaged_members_credential_pattern_scan": "no matches for scanned GitHub-token/private-key patterns; not a guarantee against every secret format",
+  "protected_prior_source_files_unchanged": 22,
+  "protected_prior_results_config_files_unchanged": 98,
+  "source_plan_checksum_files_verified": 5,
+  "github_ci": "not run by this receipt; no claim of remote CI success",
+  "followup_changes": "After this tested source commit, only publication receipts/documentation may be added; record any source change with another validation run."
+}
