@@ -1,0 +1,1601 @@
+{
+  "threads": 1,
+  "device": "cpu",
+  "torch": "2.10.0+cpu",
+  "scope": "isolated from project training/evaluation processes; identical archived real observations;3 round variant order rotation;200 warmups+2000 calls per round,model,variant,batch; inference_mode; medians of per-model round-median quantiles, not pooled p95",
+  "models": [
+    {
+      "name": "destination_s1_best",
+      "method": "destination",
+      "checkpoint": "outputs/gen2_architectures/destination_s1/best.pt",
+      "checkpoint_sha256": "d4031b08b89ce776ee4f097c88d840345d7becf0fdf0725b004a9c9d8b19a9e1",
+      "parameters": 79675,
+      "rounds": {
+        "canonical": {
+          "1": [
+            {
+              "p50_us_per_batch": 264.876,
+              "p95_us_per_batch": 286.42795
+            },
+            {
+              "p50_us_per_batch": 264.333,
+              "p95_us_per_batch": 285.53164999999996
+            },
+            {
+              "p50_us_per_batch": 264.641,
+              "p95_us_per_batch": 285.46355
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 373.961,
+              "p95_us_per_batch": 397.85825
+            },
+            {
+              "p50_us_per_batch": 371.755,
+              "p95_us_per_batch": 397.02765
+            },
+            {
+              "p50_us_per_batch": 369.2875,
+              "p95_us_per_batch": 391.78515000000004
+            }
+          ]
+        },
+        "argmax_only": {
+          "1": [
+            {
+              "p50_us_per_batch": 205.52550000000002,
+              "p95_us_per_batch": 221.1891
+            },
+            {
+              "p50_us_per_batch": 205.32,
+              "p95_us_per_batch": 219.22820000000002
+            },
+            {
+              "p50_us_per_batch": 203.31650000000002,
+              "p95_us_per_batch": 216.36749999999998
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 303.624,
+              "p95_us_per_batch": 326.11674999999997
+            },
+            {
+              "p50_us_per_batch": 302.4135,
+              "p95_us_per_batch": 332.057
+            },
+            {
+              "p50_us_per_batch": 302.84000000000003,
+              "p95_us_per_batch": 322.76365
+            }
+          ]
+        },
+        "factored_guarded": {
+          "1": [
+            {
+              "p50_us_per_batch": 209.5115,
+              "p95_us_per_batch": 224.94559999999998
+            },
+            {
+              "p50_us_per_batch": 210.42950000000002,
+              "p95_us_per_batch": 225.0899
+            },
+            {
+              "p50_us_per_batch": 210.3435,
+              "p95_us_per_batch": 224.3202
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 301.608,
+              "p95_us_per_batch": 324.7522
+            },
+            {
+              "p50_us_per_batch": 298.3185,
+              "p95_us_per_batch": 326.1589
+            },
+            {
+              "p50_us_per_batch": 299.4395,
+              "p95_us_per_batch": 320.4282
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "destination_s2_best",
+      "method": "destination",
+      "checkpoint": "outputs/gen2_architectures/destination_s2/best.pt",
+      "checkpoint_sha256": "9b404353817903f28fb1a290404dc2796bd32b4ab1b3b600a3372f386d42ca1c",
+      "parameters": 79675,
+      "rounds": {
+        "canonical": {
+          "1": [
+            {
+              "p50_us_per_batch": 273.064,
+              "p95_us_per_batch": 301.38625
+            },
+            {
+              "p50_us_per_batch": 275.964,
+              "p95_us_per_batch": 300.66685
+            },
+            {
+              "p50_us_per_batch": 269.3105,
+              "p95_us_per_batch": 289.84955
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 377.658,
+              "p95_us_per_batch": 403.72130000000004
+            },
+            {
+              "p50_us_per_batch": 390.7845,
+              "p95_us_per_batch": 431.42615
+            },
+            {
+              "p50_us_per_batch": 385.1145,
+              "p95_us_per_batch": 422.86305
+            }
+          ]
+        },
+        "argmax_only": {
+          "1": [
+            {
+              "p50_us_per_batch": 206.4885,
+              "p95_us_per_batch": 219.13295
+            },
+            {
+              "p50_us_per_batch": 205.555,
+              "p95_us_per_batch": 217.58185
+            },
+            {
+              "p50_us_per_batch": 214.833,
+              "p95_us_per_batch": 237.522
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 306.768,
+              "p95_us_per_batch": 326.28409999999997
+            },
+            {
+              "p50_us_per_batch": 318.701,
+              "p95_us_per_batch": 352.44259999999997
+            },
+            {
+              "p50_us_per_batch": 315.6315,
+              "p95_us_per_batch": 340.16655000000003
+            }
+          ]
+        },
+        "factored_guarded": {
+          "1": [
+            {
+              "p50_us_per_batch": 209.41899999999998,
+              "p95_us_per_batch": 222.08305
+            },
+            {
+              "p50_us_per_batch": 219.447,
+              "p95_us_per_batch": 247.12654999999998
+            },
+            {
+              "p50_us_per_batch": 211.55349999999999,
+              "p95_us_per_batch": 224.3811
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 303.8275,
+              "p95_us_per_batch": 322.40295000000003
+            },
+            {
+              "p50_us_per_batch": 316.51700000000005,
+              "p95_us_per_batch": 344.89745
+            },
+            {
+              "p50_us_per_batch": 306.696,
+              "p95_us_per_batch": 323.67815
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "destination_s3_best",
+      "method": "destination",
+      "checkpoint": "outputs/gen2_architectures/destination_s3/best.pt",
+      "checkpoint_sha256": "62f64cfc0fa2f7bef51c1acb8001eb3ec121a6c23fc6493660c2b2e1a28f565e",
+      "parameters": 79675,
+      "rounds": {
+        "canonical": {
+          "1": [
+            {
+              "p50_us_per_batch": 264.8295,
+              "p95_us_per_batch": 279.2189
+            },
+            {
+              "p50_us_per_batch": 269.366,
+              "p95_us_per_batch": 290.24545
+            },
+            {
+              "p50_us_per_batch": 271.96500000000003,
+              "p95_us_per_batch": 297.44895
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 378.6655,
+              "p95_us_per_batch": 400.37024999999994
+            },
+            {
+              "p50_us_per_batch": 377.76250000000005,
+              "p95_us_per_batch": 400.0227
+            },
+            {
+              "p50_us_per_batch": 382.299,
+              "p95_us_per_batch": 410.74924999999996
+            }
+          ]
+        },
+        "argmax_only": {
+          "1": [
+            {
+              "p50_us_per_batch": 208.0385,
+              "p95_us_per_batch": 223.2506
+            },
+            {
+              "p50_us_per_batch": 206.5505,
+              "p95_us_per_batch": 217.931
+            },
+            {
+              "p50_us_per_batch": 206.887,
+              "p95_us_per_batch": 219.56835
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 316.1865,
+              "p95_us_per_batch": 339.28159999999997
+            },
+            {
+              "p50_us_per_batch": 309.0025,
+              "p95_us_per_batch": 326.63745
+            },
+            {
+              "p50_us_per_batch": 309.649,
+              "p95_us_per_batch": 326.325
+            }
+          ]
+        },
+        "factored_guarded": {
+          "1": [
+            {
+              "p50_us_per_batch": 210.382,
+              "p95_us_per_batch": 222.33815
+            },
+            {
+              "p50_us_per_batch": 213.257,
+              "p95_us_per_batch": 226.70874999999998
+            },
+            {
+              "p50_us_per_batch": 212.4835,
+              "p95_us_per_batch": 230.38219999999998
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 306.377,
+              "p95_us_per_batch": 330.6123
+            },
+            {
+              "p50_us_per_batch": 304.84950000000003,
+              "p95_us_per_batch": 322.62115
+            },
+            {
+              "p50_us_per_batch": 309.65250000000003,
+              "p95_us_per_batch": 333.3512
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "destination_s4_best",
+      "method": "destination",
+      "checkpoint": "outputs/gen2_architectures/destination_s4/best.pt",
+      "checkpoint_sha256": "88b8f1e788d46003102109e1f3ab86b0d39f9deb0686a9182895509dd996b69f",
+      "parameters": 79675,
+      "rounds": {
+        "canonical": {
+          "1": [
+            {
+              "p50_us_per_batch": 278.1265,
+              "p95_us_per_batch": 305.6339
+            },
+            {
+              "p50_us_per_batch": 269.337,
+              "p95_us_per_batch": 285.0066
+            },
+            {
+              "p50_us_per_batch": 272.038,
+              "p95_us_per_batch": 290.60325
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 390.58050000000003,
+              "p95_us_per_batch": 426.611
+            },
+            {
+              "p50_us_per_batch": 380.095,
+              "p95_us_per_batch": 401.78535
+            },
+            {
+              "p50_us_per_batch": 384.664,
+              "p95_us_per_batch": 406.19565
+            }
+          ]
+        },
+        "argmax_only": {
+          "1": [
+            {
+              "p50_us_per_batch": 217.52550000000002,
+              "p95_us_per_batch": 242.99135
+            },
+            {
+              "p50_us_per_batch": 208.74450000000002,
+              "p95_us_per_batch": 220.1634
+            },
+            {
+              "p50_us_per_batch": 210.31900000000002,
+              "p95_us_per_batch": 222.21065000000002
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 323.6115,
+              "p95_us_per_batch": 353.58869999999996
+            },
+            {
+              "p50_us_per_batch": 318.75699999999995,
+              "p95_us_per_batch": 346.3214
+            },
+            {
+              "p50_us_per_batch": 312.54949999999997,
+              "p95_us_per_batch": 332.30649999999997
+            }
+          ]
+        },
+        "factored_guarded": {
+          "1": [
+            {
+              "p50_us_per_batch": 214.23950000000002,
+              "p95_us_per_batch": 225.1289
+            },
+            {
+              "p50_us_per_batch": 220.7015,
+              "p95_us_per_batch": 245.94809999999998
+            },
+            {
+              "p50_us_per_batch": 215.161,
+              "p95_us_per_batch": 230.46295
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 308.2125,
+              "p95_us_per_batch": 325.09475000000003
+            },
+            {
+              "p50_us_per_batch": 313.3285,
+              "p95_us_per_batch": 336.5281
+            },
+            {
+              "p50_us_per_batch": 308.615,
+              "p95_us_per_batch": 328.51535
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "destination_s5_best",
+      "method": "destination",
+      "checkpoint": "outputs/gen2_architectures/destination_s5/best.pt",
+      "checkpoint_sha256": "0d23228638a7d0c370a64409b6a3160628627d513598313310ba9cdf0b299ec5",
+      "parameters": 79675,
+      "rounds": {
+        "canonical": {
+          "1": [
+            {
+              "p50_us_per_batch": 270.435,
+              "p95_us_per_batch": 285.88375
+            },
+            {
+              "p50_us_per_batch": 272.926,
+              "p95_us_per_batch": 287.8678
+            },
+            {
+              "p50_us_per_batch": 270.16949999999997,
+              "p95_us_per_batch": 283.462
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 384.6815,
+              "p95_us_per_batch": 410.5714
+            },
+            {
+              "p50_us_per_batch": 383.311,
+              "p95_us_per_batch": 406.43885
+            },
+            {
+              "p50_us_per_batch": 386.065,
+              "p95_us_per_batch": 411.6618
+            }
+          ]
+        },
+        "argmax_only": {
+          "1": [
+            {
+              "p50_us_per_batch": 214.50349999999997,
+              "p95_us_per_batch": 226.8566
+            },
+            {
+              "p50_us_per_batch": 209.777,
+              "p95_us_per_batch": 220.08515
+            },
+            {
+              "p50_us_per_batch": 213.75,
+              "p95_us_per_batch": 228.34005
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 315.99850000000004,
+              "p95_us_per_batch": 332.78655
+            },
+            {
+              "p50_us_per_batch": 314.4525,
+              "p95_us_per_batch": 334.96295
+            },
+            {
+              "p50_us_per_batch": 313.2685,
+              "p95_us_per_batch": 330.4648
+            }
+          ]
+        },
+        "factored_guarded": {
+          "1": [
+            {
+              "p50_us_per_batch": 214.30399999999997,
+              "p95_us_per_batch": 226.8346
+            },
+            {
+              "p50_us_per_batch": 216.09750000000003,
+              "p95_us_per_batch": 227.275
+            },
+            {
+              "p50_us_per_batch": 213.1505,
+              "p95_us_per_batch": 224.21974999999998
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 307.55550000000005,
+              "p95_us_per_batch": 324.9946
+            },
+            {
+              "p50_us_per_batch": 312.25800000000004,
+              "p95_us_per_batch": 331.46664999999996
+            },
+            {
+              "p50_us_per_batch": 307.8365,
+              "p95_us_per_batch": 327.1635
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "urgency_s1_best",
+      "method": "urgency",
+      "checkpoint": "outputs/gen3_architectures/urgency_s1/best.pt",
+      "checkpoint_sha256": "e387c9429fb06fbd06ec72adcf480078015120e23f40da7f7272f25e27161039",
+      "parameters": 80379,
+      "rounds": {
+        "canonical": {
+          "1": [
+            {
+              "p50_us_per_batch": 417.881,
+              "p95_us_per_batch": 436.2418
+            },
+            {
+              "p50_us_per_batch": 437.3745,
+              "p95_us_per_batch": 453.96815000000004
+            },
+            {
+              "p50_us_per_batch": 432.93600000000004,
+              "p95_us_per_batch": 447.00874999999996
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 564.3715,
+              "p95_us_per_batch": 601.2799
+            },
+            {
+              "p50_us_per_batch": 592.9525,
+              "p95_us_per_batch": 613.6299
+            },
+            {
+              "p50_us_per_batch": 592.6800000000001,
+              "p95_us_per_batch": 614.66965
+            }
+          ]
+        },
+        "argmax_only": {
+          "1": [
+            {
+              "p50_us_per_batch": 378.594,
+              "p95_us_per_batch": 392.28254999999996
+            },
+            {
+              "p50_us_per_batch": 363.3635,
+              "p95_us_per_batch": 513.5355
+            },
+            {
+              "p50_us_per_batch": 359.3885,
+              "p95_us_per_batch": 368.80235
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 568.5070000000001,
+              "p95_us_per_batch": 654.2897
+            },
+            {
+              "p50_us_per_batch": 550.9865,
+              "p95_us_per_batch": 592.27235
+            },
+            {
+              "p50_us_per_batch": 492.10749999999996,
+              "p95_us_per_batch": 516.5813499999999
+            }
+          ]
+        },
+        "factored_guarded": {
+          "1": [
+            {
+              "p50_us_per_batch": 409.519,
+              "p95_us_per_batch": 437.75
+            },
+            {
+              "p50_us_per_batch": 380.084,
+              "p95_us_per_batch": 402.98965
+            },
+            {
+              "p50_us_per_batch": 370.924,
+              "p95_us_per_batch": 381.73095
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 518.6775,
+              "p95_us_per_batch": 551.29765
+            },
+            {
+              "p50_us_per_batch": 501.9855,
+              "p95_us_per_batch": 521.43015
+            },
+            {
+              "p50_us_per_batch": 491.1635,
+              "p95_us_per_batch": 506.91934999999995
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "urgency_s2_best",
+      "method": "urgency",
+      "checkpoint": "outputs/gen3_architectures/urgency_s2/best.pt",
+      "checkpoint_sha256": "cb4f799f461e83e6a200234fb0c21e941e6f16050d341e7b606594ae96423ce5",
+      "parameters": 80379,
+      "rounds": {
+        "canonical": {
+          "1": [
+            {
+              "p50_us_per_batch": 442.08299999999997,
+              "p95_us_per_batch": 459.22790000000003
+            },
+            {
+              "p50_us_per_batch": 429.6485,
+              "p95_us_per_batch": 444.2074
+            },
+            {
+              "p50_us_per_batch": 431.6,
+              "p95_us_per_batch": 452.5114
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 604.377,
+              "p95_us_per_batch": 632.27535
+            },
+            {
+              "p50_us_per_batch": 578.0260000000001,
+              "p95_us_per_batch": 600.73425
+            },
+            {
+              "p50_us_per_batch": 594.0150000000001,
+              "p95_us_per_batch": 624.2468
+            }
+          ]
+        },
+        "argmax_only": {
+          "1": [
+            {
+              "p50_us_per_batch": 359.4765,
+              "p95_us_per_batch": 369.53425
+            },
+            {
+              "p50_us_per_batch": 360.3615,
+              "p95_us_per_batch": 379.8318
+            },
+            {
+              "p50_us_per_batch": 365.9805,
+              "p95_us_per_batch": 381.7239
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 489.9015,
+              "p95_us_per_batch": 506.4652
+            },
+            {
+              "p50_us_per_batch": 502.5015,
+              "p95_us_per_batch": 525.3768
+            },
+            {
+              "p50_us_per_batch": 506.4465,
+              "p95_us_per_batch": 529.4019999999999
+            }
+          ]
+        },
+        "factored_guarded": {
+          "1": [
+            {
+              "p50_us_per_batch": 372.76750000000004,
+              "p95_us_per_batch": 387.83735
+            },
+            {
+              "p50_us_per_batch": 370.5375,
+              "p95_us_per_batch": 382.15345
+            },
+            {
+              "p50_us_per_batch": 372.01300000000003,
+              "p95_us_per_batch": 388.45149999999995
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 504.808,
+              "p95_us_per_batch": 526.0756
+            },
+            {
+              "p50_us_per_batch": 499.9675,
+              "p95_us_per_batch": 518.0198
+            },
+            {
+              "p50_us_per_batch": 514.9925000000001,
+              "p95_us_per_batch": 546.16505
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "urgency_s3_best",
+      "method": "urgency",
+      "checkpoint": "outputs/gen3_architectures/urgency_s3/best.pt",
+      "checkpoint_sha256": "9d0ce5f8da23e96803634eac8b7ba7f15252dcef3e099d3fc3bc904492c6d98f",
+      "parameters": 80379,
+      "rounds": {
+        "canonical": {
+          "1": [
+            {
+              "p50_us_per_batch": 435.153,
+              "p95_us_per_batch": 456.35859999999997
+            },
+            {
+              "p50_us_per_batch": 445.0845,
+              "p95_us_per_batch": 470.2455
+            },
+            {
+              "p50_us_per_batch": 447.3165,
+              "p95_us_per_batch": 476.4174
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 657.447,
+              "p95_us_per_batch": 759.1156
+            },
+            {
+              "p50_us_per_batch": 581.0675000000001,
+              "p95_us_per_batch": 607.5296
+            },
+            {
+              "p50_us_per_batch": 581.588,
+              "p95_us_per_batch": 613.9078
+            }
+          ]
+        },
+        "argmax_only": {
+          "1": [
+            {
+              "p50_us_per_batch": 413.956,
+              "p95_us_per_batch": 447.94259999999997
+            },
+            {
+              "p50_us_per_batch": 367.66949999999997,
+              "p95_us_per_batch": 380.8732
+            },
+            {
+              "p50_us_per_batch": 358.8875,
+              "p95_us_per_batch": 371.9688
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 521.6625,
+              "p95_us_per_batch": 558.5819
+            },
+            {
+              "p50_us_per_batch": 492.3755,
+              "p95_us_per_batch": 514.22735
+            },
+            {
+              "p50_us_per_batch": 497.861,
+              "p95_us_per_batch": 532.15305
+            }
+          ]
+        },
+        "factored_guarded": {
+          "1": [
+            {
+              "p50_us_per_batch": 367.921,
+              "p95_us_per_batch": 378.5043
+            },
+            {
+              "p50_us_per_batch": 365.9035,
+              "p95_us_per_batch": 379.6922
+            },
+            {
+              "p50_us_per_batch": 368.822,
+              "p95_us_per_batch": 382.80519999999996
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 499.60350000000005,
+              "p95_us_per_batch": 530.7081
+            },
+            {
+              "p50_us_per_batch": 499.693,
+              "p95_us_per_batch": 527.3629
+            },
+            {
+              "p50_us_per_batch": 497.908,
+              "p95_us_per_batch": 527.4073999999999
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "urgency_s4_best",
+      "method": "urgency",
+      "checkpoint": "outputs/gen3_architectures/urgency_s4/best.pt",
+      "checkpoint_sha256": "8d5fa52645da2c0d416dd5807d4ca5a2c5128151990b9dbe4e013d37613c2e22",
+      "parameters": 80379,
+      "rounds": {
+        "canonical": {
+          "1": [
+            {
+              "p50_us_per_batch": 440.976,
+              "p95_us_per_batch": 468.25915
+            },
+            {
+              "p50_us_per_batch": 433.512,
+              "p95_us_per_batch": 453.30769999999995
+            },
+            {
+              "p50_us_per_batch": 429.9235,
+              "p95_us_per_batch": 447.1834
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 579.201,
+              "p95_us_per_batch": 603.91665
+            },
+            {
+              "p50_us_per_batch": 591.4169999999999,
+              "p95_us_per_batch": 627.67085
+            },
+            {
+              "p50_us_per_batch": 594.1995,
+              "p95_us_per_batch": 637.36965
+            }
+          ]
+        },
+        "argmax_only": {
+          "1": [
+            {
+              "p50_us_per_batch": 359.6495,
+              "p95_us_per_batch": 382.6288
+            },
+            {
+              "p50_us_per_batch": 367.53700000000003,
+              "p95_us_per_batch": 390.2152
+            },
+            {
+              "p50_us_per_batch": 364.08050000000003,
+              "p95_us_per_batch": 383.43105
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 504.4175,
+              "p95_us_per_batch": 550.53575
+            },
+            {
+              "p50_us_per_batch": 498.82500000000005,
+              "p95_us_per_batch": 526.1169500000001
+            },
+            {
+              "p50_us_per_batch": 488.6305,
+              "p95_us_per_batch": 510.11735000000004
+            }
+          ]
+        },
+        "factored_guarded": {
+          "1": [
+            {
+              "p50_us_per_batch": 375.43449999999996,
+              "p95_us_per_batch": 410.89285
+            },
+            {
+              "p50_us_per_batch": 375.91049999999996,
+              "p95_us_per_batch": 400.77975
+            },
+            {
+              "p50_us_per_batch": 369.2665,
+              "p95_us_per_batch": 389.71475000000004
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 494.499,
+              "p95_us_per_batch": 533.6634
+            },
+            {
+              "p50_us_per_batch": 494.854,
+              "p95_us_per_batch": 526.6539
+            },
+            {
+              "p50_us_per_batch": 487.3355,
+              "p95_us_per_batch": 509.55225
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "urgency_s5_best",
+      "method": "urgency",
+      "checkpoint": "outputs/gen3_architectures/urgency_s5/best.pt",
+      "checkpoint_sha256": "60e4b2757bb1ec3782bab3c2a1a65fc9614124e14895851af777ae093281e64f",
+      "parameters": 80379,
+      "rounds": {
+        "canonical": {
+          "1": [
+            {
+              "p50_us_per_batch": 434.11699999999996,
+              "p95_us_per_batch": 455.68165
+            },
+            {
+              "p50_us_per_batch": 457.832,
+              "p95_us_per_batch": 505.86869999999993
+            },
+            {
+              "p50_us_per_batch": 433.71299999999997,
+              "p95_us_per_batch": 452.78790000000004
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 594.7875,
+              "p95_us_per_batch": 627.8103
+            },
+            {
+              "p50_us_per_batch": 581.1424999999999,
+              "p95_us_per_batch": 606.049
+            },
+            {
+              "p50_us_per_batch": 581.918,
+              "p95_us_per_batch": 606.4313
+            }
+          ]
+        },
+        "argmax_only": {
+          "1": [
+            {
+              "p50_us_per_batch": 360.12350000000004,
+              "p95_us_per_batch": 378.585
+            },
+            {
+              "p50_us_per_batch": 361.5555,
+              "p95_us_per_batch": 375.92064999999997
+            },
+            {
+              "p50_us_per_batch": 368.558,
+              "p95_us_per_batch": 397.30769999999995
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 500.59450000000004,
+              "p95_us_per_batch": 529.54015
+            },
+            {
+              "p50_us_per_batch": 499.3025,
+              "p95_us_per_batch": 667.7583500000001
+            },
+            {
+              "p50_us_per_batch": 509.783,
+              "p95_us_per_batch": 545.2542
+            }
+          ]
+        },
+        "factored_guarded": {
+          "1": [
+            {
+              "p50_us_per_batch": 371.3985,
+              "p95_us_per_batch": 390.47144999999995
+            },
+            {
+              "p50_us_per_batch": 544.0515,
+              "p95_us_per_batch": 649.934
+            },
+            {
+              "p50_us_per_batch": 370.48400000000004,
+              "p95_us_per_batch": 390.4487
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 505.7555,
+              "p95_us_per_batch": 539.94665
+            },
+            {
+              "p50_us_per_batch": 659.0605,
+              "p95_us_per_batch": 719.2419
+            },
+            {
+              "p50_us_per_batch": 503.1735,
+              "p95_us_per_batch": 531.2929
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "coordinated_s1_best",
+      "method": "coordinated",
+      "checkpoint": "outputs/gen3_architectures/coordinated_s1/best.pt",
+      "checkpoint_sha256": "96cd02805ae8b3a8764c5e023914c6d5b3aeb016533359bfbc566f1009156055",
+      "parameters": 86523,
+      "rounds": {
+        "canonical": {
+          "1": [
+            {
+              "p50_us_per_batch": 298.5325,
+              "p95_us_per_batch": 316.21009999999995
+            },
+            {
+              "p50_us_per_batch": 296.701,
+              "p95_us_per_batch": 317.4906
+            },
+            {
+              "p50_us_per_batch": 303.17449999999997,
+              "p95_us_per_batch": 333.26425
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 444.1635,
+              "p95_us_per_batch": 466.8716
+            },
+            {
+              "p50_us_per_batch": 436.1365,
+              "p95_us_per_batch": 473.3139
+            },
+            {
+              "p50_us_per_batch": 445.2025,
+              "p95_us_per_batch": 478.89985
+            }
+          ]
+        },
+        "argmax_only": {
+          "1": [
+            {
+              "p50_us_per_batch": 230.579,
+              "p95_us_per_batch": 242.138
+            },
+            {
+              "p50_us_per_batch": 235.144,
+              "p95_us_per_batch": 247.1171
+            },
+            {
+              "p50_us_per_batch": 230.415,
+              "p95_us_per_batch": 241.3859
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 365.1165,
+              "p95_us_per_batch": 387.52615
+            },
+            {
+              "p50_us_per_batch": 361.991,
+              "p95_us_per_batch": 378.16295
+            },
+            {
+              "p50_us_per_batch": 359.1085,
+              "p95_us_per_batch": 375.48544999999996
+            }
+          ]
+        },
+        "factored_guarded": {
+          "1": [
+            {
+              "p50_us_per_batch": 246.187,
+              "p95_us_per_batch": 261.4058
+            },
+            {
+              "p50_us_per_batch": 261.46349999999995,
+              "p95_us_per_batch": 278.64775
+            },
+            {
+              "p50_us_per_batch": 242.1015,
+              "p95_us_per_batch": 253.01815
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 359.3785,
+              "p95_us_per_batch": 378.6988
+            },
+            {
+              "p50_us_per_batch": 368.2355,
+              "p95_us_per_batch": 398.27869999999996
+            },
+            {
+              "p50_us_per_batch": 357.85400000000004,
+              "p95_us_per_batch": 379.34315
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "coordinated_s2_best",
+      "method": "coordinated",
+      "checkpoint": "outputs/gen3_architectures/coordinated_s2/best.pt",
+      "checkpoint_sha256": "78f377377a2c9d3f9a35a30a848dde8b9afc2ed30c732a849724f584a56971ea",
+      "parameters": 86523,
+      "rounds": {
+        "canonical": {
+          "1": [
+            {
+              "p50_us_per_batch": 297.9825,
+              "p95_us_per_batch": 311.28595
+            },
+            {
+              "p50_us_per_batch": 298.51099999999997,
+              "p95_us_per_batch": 311.71939999999995
+            },
+            {
+              "p50_us_per_batch": 301.9615,
+              "p95_us_per_batch": 333.7217
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 438.879,
+              "p95_us_per_batch": 463.29295
+            },
+            {
+              "p50_us_per_batch": 438.1865,
+              "p95_us_per_batch": 470.05105
+            },
+            {
+              "p50_us_per_batch": 438.29449999999997,
+              "p95_us_per_batch": 461.00955
+            }
+          ]
+        },
+        "argmax_only": {
+          "1": [
+            {
+              "p50_us_per_batch": 236.588,
+              "p95_us_per_batch": 250.24125
+            },
+            {
+              "p50_us_per_batch": 230.9025,
+              "p95_us_per_batch": 241.2499
+            },
+            {
+              "p50_us_per_batch": 230.913,
+              "p95_us_per_batch": 242.13715
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 363.384,
+              "p95_us_per_batch": 380.91125
+            },
+            {
+              "p50_us_per_batch": 363.365,
+              "p95_us_per_batch": 383.4206
+            },
+            {
+              "p50_us_per_batch": 362.914,
+              "p95_us_per_batch": 383.1491
+            }
+          ]
+        },
+        "factored_guarded": {
+          "1": [
+            {
+              "p50_us_per_batch": 239.94299999999998,
+              "p95_us_per_batch": 250.87404999999998
+            },
+            {
+              "p50_us_per_batch": 246.976,
+              "p95_us_per_batch": 273.45595
+            },
+            {
+              "p50_us_per_batch": 240.9015,
+              "p95_us_per_batch": 268.18165
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 350.73199999999997,
+              "p95_us_per_batch": 368.46005
+            },
+            {
+              "p50_us_per_batch": 363.994,
+              "p95_us_per_batch": 390.7286
+            },
+            {
+              "p50_us_per_batch": 368.4135,
+              "p95_us_per_batch": 405.98675
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "coordinated_s3_best",
+      "method": "coordinated",
+      "checkpoint": "outputs/gen3_architectures/coordinated_s3/best.pt",
+      "checkpoint_sha256": "0bdad0160a3667571dcde03d877508db19b99e8252955a42858d12d706a4cd70",
+      "parameters": 86523,
+      "rounds": {
+        "canonical": {
+          "1": [
+            {
+              "p50_us_per_batch": 300.654,
+              "p95_us_per_batch": 329.7596
+            },
+            {
+              "p50_us_per_batch": 292.4465,
+              "p95_us_per_batch": 306.95385
+            },
+            {
+              "p50_us_per_batch": 292.421,
+              "p95_us_per_batch": 304.763
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 448.4715,
+              "p95_us_per_batch": 477.86725
+            },
+            {
+              "p50_us_per_batch": 440.8825,
+              "p95_us_per_batch": 485.4672499999999
+            },
+            {
+              "p50_us_per_batch": 434.389,
+              "p95_us_per_batch": 454.8438
+            }
+          ]
+        },
+        "argmax_only": {
+          "1": [
+            {
+              "p50_us_per_batch": 234.74,
+              "p95_us_per_batch": 257.8379
+            },
+            {
+              "p50_us_per_batch": 234.87849999999997,
+              "p95_us_per_batch": 253.60225
+            },
+            {
+              "p50_us_per_batch": 228.3545,
+              "p95_us_per_batch": 242.61909999999997
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 372.1675,
+              "p95_us_per_batch": 395.70835
+            },
+            {
+              "p50_us_per_batch": 371.352,
+              "p95_us_per_batch": 390.62555
+            },
+            {
+              "p50_us_per_batch": 371.51099999999997,
+              "p95_us_per_batch": 393.5158
+            }
+          ]
+        },
+        "factored_guarded": {
+          "1": [
+            {
+              "p50_us_per_batch": 237.58100000000002,
+              "p95_us_per_batch": 248.46104999999997
+            },
+            {
+              "p50_us_per_batch": 241.69150000000002,
+              "p95_us_per_batch": 257.47895
+            },
+            {
+              "p50_us_per_batch": 243.734,
+              "p95_us_per_batch": 256.66325
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 355.407,
+              "p95_us_per_batch": 374.84139999999996
+            },
+            {
+              "p50_us_per_batch": 354.48,
+              "p95_us_per_batch": 375.21085
+            },
+            {
+              "p50_us_per_batch": 355.705,
+              "p95_us_per_batch": 372.78685
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "coordinated_s4_best",
+      "method": "coordinated",
+      "checkpoint": "outputs/gen3_architectures/coordinated_s4/best.pt",
+      "checkpoint_sha256": "492aec6877e265a2ffbbafec78c3a7b746103be8958a7c195a77fb7625d43aed",
+      "parameters": 86523,
+      "rounds": {
+        "canonical": {
+          "1": [
+            {
+              "p50_us_per_batch": 304.8365,
+              "p95_us_per_batch": 329.06145000000004
+            },
+            {
+              "p50_us_per_batch": 301.87350000000004,
+              "p95_us_per_batch": 321.92724999999996
+            },
+            {
+              "p50_us_per_batch": 295.1775,
+              "p95_us_per_batch": 313.87649999999996
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 447.4875,
+              "p95_us_per_batch": 471.4358
+            },
+            {
+              "p50_us_per_batch": 447.49350000000004,
+              "p95_us_per_batch": 472.59409999999997
+            },
+            {
+              "p50_us_per_batch": 448.8245,
+              "p95_us_per_batch": 478.2409
+            }
+          ]
+        },
+        "argmax_only": {
+          "1": [
+            {
+              "p50_us_per_batch": 230.883,
+              "p95_us_per_batch": 241.3658
+            },
+            {
+              "p50_us_per_batch": 235.757,
+              "p95_us_per_batch": 254.77015
+            },
+            {
+              "p50_us_per_batch": 237.685,
+              "p95_us_per_batch": 250.2184
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 364.8845,
+              "p95_us_per_batch": 381.46889999999996
+            },
+            {
+              "p50_us_per_batch": 369.841,
+              "p95_us_per_batch": 404.48695
+            },
+            {
+              "p50_us_per_batch": 365.226,
+              "p95_us_per_batch": 391.0493
+            }
+          ]
+        },
+        "factored_guarded": {
+          "1": [
+            {
+              "p50_us_per_batch": 242.3775,
+              "p95_us_per_batch": 262.96075
+            },
+            {
+              "p50_us_per_batch": 239.8835,
+              "p95_us_per_batch": 249.14485
+            },
+            {
+              "p50_us_per_batch": 240.075,
+              "p95_us_per_batch": 251.31834999999998
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 368.85,
+              "p95_us_per_batch": 393.92924999999997
+            },
+            {
+              "p50_us_per_batch": 358.82349999999997,
+              "p95_us_per_batch": 382.5691
+            },
+            {
+              "p50_us_per_batch": 358.0845,
+              "p95_us_per_batch": 376.9902
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "coordinated_s5_best",
+      "method": "coordinated",
+      "checkpoint": "outputs/gen3_architectures/coordinated_s5/best.pt",
+      "checkpoint_sha256": "aaa061ac8ffcb3423ee92546203f936ec8dc3088a0b01fc2dd7eebb8c0ff8c58",
+      "parameters": 86523,
+      "rounds": {
+        "canonical": {
+          "1": [
+            {
+              "p50_us_per_batch": 299.591,
+              "p95_us_per_batch": 316.6342
+            },
+            {
+              "p50_us_per_batch": 299.258,
+              "p95_us_per_batch": 314.644
+            },
+            {
+              "p50_us_per_batch": 306.03200000000004,
+              "p95_us_per_batch": 331.17845
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 437.35450000000003,
+              "p95_us_per_batch": 463.19804999999997
+            },
+            {
+              "p50_us_per_batch": 441.98400000000004,
+              "p95_us_per_batch": 472.18175
+            },
+            {
+              "p50_us_per_batch": 444.3295,
+              "p95_us_per_batch": 477.59864999999996
+            }
+          ]
+        },
+        "argmax_only": {
+          "1": [
+            {
+              "p50_us_per_batch": 231.812,
+              "p95_us_per_batch": 244.18820000000002
+            },
+            {
+              "p50_us_per_batch": 231.3645,
+              "p95_us_per_batch": 240.70704999999998
+            },
+            {
+              "p50_us_per_batch": 230.608,
+              "p95_us_per_batch": 238.93704999999997
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 372.296,
+              "p95_us_per_batch": 395.71035
+            },
+            {
+              "p50_us_per_batch": 363.248,
+              "p95_us_per_batch": 378.8736
+            },
+            {
+              "p50_us_per_batch": 362.07,
+              "p95_us_per_batch": 385.49105000000003
+            }
+          ]
+        },
+        "factored_guarded": {
+          "1": [
+            {
+              "p50_us_per_batch": 239.34449999999998,
+              "p95_us_per_batch": 249.06145
+            },
+            {
+              "p50_us_per_batch": 238.80900000000003,
+              "p95_us_per_batch": 249.89659999999998
+            },
+            {
+              "p50_us_per_batch": 238.3155,
+              "p95_us_per_batch": 249.12855000000002
+            }
+          ],
+          "8": [
+            {
+              "p50_us_per_batch": 356.3605,
+              "p95_us_per_batch": 375.60880000000003
+            },
+            {
+              "p50_us_per_batch": 365.605,
+              "p95_us_per_batch": 389.7542
+            },
+            {
+              "p50_us_per_batch": 366.7025,
+              "p95_us_per_batch": 397.53135000000003
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "aggregate": {
+    "destination": {
+      "parameters": 79675,
+      "variants": {
+        "canonical": {
+          "1": {
+            "p50_us_per_batch": 270.435,
+            "p95_us_per_batch": 290.24545
+          },
+          "8": {
+            "p50_us_per_batch": 384.664,
+            "p95_us_per_batch": 406.19565
+          }
+        },
+        "argmax_only": {
+          "1": {
+            "p50_us_per_batch": 206.887,
+            "p95_us_per_batch": 219.56835
+          },
+          "8": {
+            "p50_us_per_batch": 314.4525,
+            "p95_us_per_batch": 332.78655
+          }
+        },
+        "factored_guarded": {
+          "1": {
+            "p50_us_per_batch": 212.4835,
+            "p95_us_per_batch": 226.70874999999998
+          },
+          "8": {
+            "p50_us_per_batch": 306.696,
+            "p95_us_per_batch": 327.1635
+          }
+        }
+      }
+    },
+    "urgency": {
+      "parameters": 80379,
+      "variants": {
+        "canonical": {
+          "1": {
+            "p50_us_per_batch": 433.512,
+            "p95_us_per_batch": 453.30769999999995
+          },
+          "8": {
+            "p50_us_per_batch": 591.4169999999999,
+            "p95_us_per_batch": 613.9078
+          }
+        },
+        "argmax_only": {
+          "1": {
+            "p50_us_per_batch": 363.3635,
+            "p95_us_per_batch": 380.8732
+          },
+          "8": {
+            "p50_us_per_batch": 500.59450000000004,
+            "p95_us_per_batch": 532.15305
+          }
+        },
+        "factored_guarded": {
+          "1": {
+            "p50_us_per_batch": 372.01300000000003,
+            "p95_us_per_batch": 390.47144999999995
+          },
+          "8": {
+            "p50_us_per_batch": 501.9855,
+            "p95_us_per_batch": 526.6539
+          }
+        }
+      }
+    },
+    "coordinated": {
+      "parameters": 86523,
+      "variants": {
+        "canonical": {
+          "1": {
+            "p50_us_per_batch": 298.5325,
+            "p95_us_per_batch": 316.6342
+          },
+          "8": {
+            "p50_us_per_batch": 441.98400000000004,
+            "p95_us_per_batch": 472.59409999999997
+          }
+        },
+        "argmax_only": {
+          "1": {
+            "p50_us_per_batch": 231.3645,
+            "p95_us_per_batch": 242.138
+          },
+          "8": {
+            "p50_us_per_batch": 363.365,
+            "p95_us_per_batch": 385.49105000000003
+          }
+        },
+        "factored_guarded": {
+          "1": {
+            "p50_us_per_batch": 240.9015,
+            "p95_us_per_batch": 256.66325
+          },
+          "8": {
+            "p50_us_per_batch": 359.3785,
+            "p95_us_per_batch": 382.5691
+          }
+        }
+      }
+    }
+  },
+  "implementation": "original already vectorizes all6 destinations; factored_guarded reuses context in PICK and DELIVER, same underlying parameters, near-tie fallback1e-5; argmax_only is existing generic helper, observed Dev equivalence checked separately; training/scientific final evaluation remain canonical"
+}
