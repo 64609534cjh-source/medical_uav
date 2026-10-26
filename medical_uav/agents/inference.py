@@ -60,3 +60,19 @@ def masked_argmax(model, observations, action_masks, tie_tolerance=1e-5):
             actions = actions.clone()
             actions.reshape(-1)[flat_close] = historical
     return actions
+
+
+class ActionOnlyEvaluationPolicy(torch.nn.Module):
+    """Adapter for the existing evaluator, which consumes only the action.
+
+    There are deliberately no log probabilities or values in this interface;
+    collector/PPO continue to use the original full actor-critic model instead.
+    """
+    def __init__(self, model):
+        super().__init__()
+        self.model = model
+
+    def act(self, observations, action_masks, deterministic=False):
+        if not deterministic:
+            raise ValueError('action-only policy is for deterministic evaluation only')
+        return masked_argmax(self.model, observations, action_masks), None, None

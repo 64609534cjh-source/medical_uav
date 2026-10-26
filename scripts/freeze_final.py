@@ -4,12 +4,16 @@ import hashlib,json
 from pathlib import Path
 from datetime import datetime,timezone
 
+import torch
+from medical_uav.training.trainer import load_checkpoint
+
 
 def read(path):return json.loads(Path(path).read_text())
 def digest(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
 def main():
+    torch.set_num_threads(1)
     gate=read('results/m5_development_gate.json')
     method='s1' if gate['gate_pass'] else 'm4'
     if method=='s1':
@@ -28,6 +32,19 @@ def main():
     for name,models in roots.items():
         for seed,root in models.items():
             checkpoint=root/'best.pt'
+            state=load_checkpoint(checkpoint)
+            if name=='s1':
+                selected=next(a['best'] for a in tuning['audits'] if a['seed']==seed)
+                expected_step=selected['steps']
+            else:
+                reference=read('results/m3_mlp_ppo.json' if name=='mlp' else 'results/m4_structured_audit.json')
+                selected=next(a for a in reference['best_per_seed'] if a['learner_seed']==seed)
+                expected_step=selected['transitions']
+            archive=root/f'checkpoint_{expected_step:09d}.pt'
+            assert digest(archive)==selected['checkpoint_sha256']
+            archived=load_checkpoint(archive)
+            assert state['steps']==expected_step
+            assert all(torch.equal(v,archived['model_state_dict'][k]) for k,v in state['model_state_dict'].items())
             entries.append({'name':f'{name}_s{seed}','method':name,'learner_seed':seed,'selection':'preselected best on Dev-main','checkpoint':str(checkpoint),'checkpoint_sha256':digest(checkpoint),'policies':['ppo']})
     entries.append({'name':'fixed_rules','method':'rules','learner_seed':0,'policies':['random','edf','slack']})
     files=sorted(str(p) for p in Path('medical_uav').rglob('*.py'))+['scripts/evaluate.py','scripts/evaluate_suite.py','scripts/analyze_final.py','environment.yml','requirements-lock.txt']
@@ -41,6 +58,7 @@ def main():
                             'learner_sample_sd_ddof':1,'bootstrap_repetitions':10000,'bootstrap_seed':20261026,'confidence_level':.95,
                             'bootstrap':'paired crossed learner-ID and demand-day-ID product bootstrap; same day draws across all loads and methods, common learner-ID pairing across methods; baselines fixed learner dimension 1',
                             'report_intervals':['joint percentile','conditional learner-only percentile','conditional demand-day-only percentile'],
+                            'multiplicity':'pointwise 95% intervals, no familywise adjustment; all primary comparisons predeclared',
                             'limitations':'only five learner repetitions; fixed map; not 1500 independent training runs'},
               'random_protocol':'uniform legal actions, per-day isolated SeedSequence([0,day,load_index,0])',
               'evaluation':'canonical original network forward and deterministic masked categorical argmax; optional inference optimization not used for scientific Test',

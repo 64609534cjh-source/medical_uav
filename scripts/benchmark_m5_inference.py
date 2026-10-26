@@ -12,7 +12,7 @@ from medical_uav.agents.networks import build_network,StructuredActorCritic
 from medical_uav.agents.inference import FactoredStructuredInference,masked_argmax
 from medical_uav.evaluation.evaluate import evaluate
 from medical_uav.training.trainer import load_checkpoint
-from medical_uav.training.io import write_json
+from medical_uav.training.io import clean_json, write_json
 
 class EvaluationAdapter(nn.Module):
     """Private action-only evaluator; never used by collector or PPO updater."""
@@ -57,6 +57,7 @@ def main():
             actual,_=evaluate(adapter,('ppo',),split='dev',learner_seed=state['config']['learner_seed'])
             original={(r['episode_load'],r['demand_seed']):r for r in records(run/'evaluation_episodes.jsonl') if r['policy']=='ppo' and r['transitions']==state['steps']}
             for r in actual:
+                r=clean_json(r)  # absent order types are serialized as null
                 old=original[(r['episode_load'],r['demand_seed'])]
                 assert r=={k:v for k,v in old.items() if k not in ('transitions','update_index')}
             verified.append({'model':name,'days':120,'decisions':adapter.checked_decisions,'logit_max_abs_error':adapter.logit_max_error,'value_max_abs_error':adapter.value_max_error,'all_actions_and_day_fields_exact':True})

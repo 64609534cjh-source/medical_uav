@@ -1,0 +1,231 @@
+{
+  "threads": 1,
+  "device": "cpu",
+  "torch": "2.10.0+cpu",
+  "scope": "isolated; no learner/evaluation suite concurrent; same archived real observation inputs",
+  "parameters": {
+    "mlp": 139803,
+    "structured": 65232
+  },
+  "linear_multiply_accumulates": {
+    "mlp": 139392,
+    "structured_original": 267584,
+    "structured_factored": 177472,
+    "reuse_saved": 90112
+  },
+  "validated_models": [
+    {
+      "model": "m4_best_s1",
+      "days": 120,
+      "decisions": 13722,
+      "logit_max_abs_error": 1.9073486328125e-06,
+      "value_max_abs_error": 0.0,
+      "all_actions_and_day_fields_exact": true
+    },
+    {
+      "model": "m4_last_s1",
+      "days": 120,
+      "decisions": 12891,
+      "logit_max_abs_error": 3.814697265625e-06,
+      "value_max_abs_error": 0.0,
+      "all_actions_and_day_fields_exact": true
+    },
+    {
+      "model": "candidate_best_s1",
+      "days": 120,
+      "decisions": 12721,
+      "logit_max_abs_error": 3.814697265625e-06,
+      "value_max_abs_error": 0.0,
+      "all_actions_and_day_fields_exact": true
+    },
+    {
+      "model": "m4_best_s2",
+      "days": 120,
+      "decisions": 12513,
+      "logit_max_abs_error": 1.9073486328125e-06,
+      "value_max_abs_error": 0.0,
+      "all_actions_and_day_fields_exact": true
+    },
+    {
+      "model": "m4_last_s2",
+      "days": 120,
+      "decisions": 13311,
+      "logit_max_abs_error": 3.814697265625e-06,
+      "value_max_abs_error": 0.0,
+      "all_actions_and_day_fields_exact": true
+    },
+    {
+      "model": "candidate_best_s2",
+      "days": 120,
+      "decisions": 12513,
+      "logit_max_abs_error": 1.9073486328125e-06,
+      "value_max_abs_error": 0.0,
+      "all_actions_and_day_fields_exact": true
+    },
+    {
+      "model": "m4_best_s3",
+      "days": 120,
+      "decisions": 12915,
+      "logit_max_abs_error": 3.814697265625e-06,
+      "value_max_abs_error": 0.0,
+      "all_actions_and_day_fields_exact": true
+    },
+    {
+      "model": "m4_last_s3",
+      "days": 120,
+      "decisions": 13169,
+      "logit_max_abs_error": 3.814697265625e-06,
+      "value_max_abs_error": 0.0,
+      "all_actions_and_day_fields_exact": true
+    },
+    {
+      "model": "candidate_best_s3",
+      "days": 120,
+      "decisions": 13058,
+      "logit_max_abs_error": 3.814697265625e-06,
+      "value_max_abs_error": 0.0,
+      "all_actions_and_day_fields_exact": true
+    },
+    {
+      "model": "m4_best_s4",
+      "days": 120,
+      "decisions": 12990,
+      "logit_max_abs_error": 1.9073486328125e-06,
+      "value_max_abs_error": 0.0,
+      "all_actions_and_day_fields_exact": true
+    },
+    {
+      "model": "m4_last_s4",
+      "days": 120,
+      "decisions": 13459,
+      "logit_max_abs_error": 3.814697265625e-06,
+      "value_max_abs_error": 0.0,
+      "all_actions_and_day_fields_exact": true
+    },
+    {
+      "model": "candidate_best_s4",
+      "days": 120,
+      "decisions": 12922,
+      "logit_max_abs_error": 3.814697265625e-06,
+      "value_max_abs_error": 0.0,
+      "all_actions_and_day_fields_exact": true
+    },
+    {
+      "model": "m4_best_s5",
+      "days": 120,
+      "decisions": 14069,
+      "logit_max_abs_error": 2.384185791015625e-06,
+      "value_max_abs_error": 0.0,
+      "all_actions_and_day_fields_exact": true
+    },
+    {
+      "model": "m4_last_s5",
+      "days": 120,
+      "decisions": 13009,
+      "logit_max_abs_error": 3.814697265625e-06,
+      "value_max_abs_error": 0.0,
+      "all_actions_and_day_fields_exact": true
+    },
+    {
+      "model": "candidate_best_s5",
+      "days": 120,
+      "decisions": 12743,
+      "logit_max_abs_error": 3.814697265625e-06,
+      "value_max_abs_error": 0.0,
+      "all_actions_and_day_fields_exact": true
+    }
+  ],
+  "validated_days": 1800,
+  "latency": {
+    "mlp_original": {
+      "1": {
+        "p50_us_per_batch": 92.7065,
+        "p95_us_per_batch": 106.63229999999999,
+        "states_per_second_at_p50": 10786.730164551567,
+        "calls": 2000,
+        "warmups": 200
+      },
+      "8": {
+        "p50_us_per_batch": 134.5045,
+        "p95_us_per_batch": 147.9577,
+        "states_per_second_at_p50": 59477.56394767461,
+        "calls": 2000,
+        "warmups": 200
+      }
+    },
+    "structured_original": {
+      "1": {
+        "p50_us_per_batch": 201.872,
+        "p95_us_per_batch": 216.1112,
+        "states_per_second_at_p50": 4953.63398589205,
+        "calls": 2000,
+        "warmups": 200
+      },
+      "8": {
+        "p50_us_per_batch": 304.57349999999997,
+        "p95_us_per_batch": 322.91610000000003,
+        "states_per_second_at_p50": 26266.237870333436,
+        "calls": 2000,
+        "warmups": 200
+      }
+    },
+    "structured_argmax_only": {
+      "1": {
+        "p50_us_per_batch": 141.195,
+        "p95_us_per_batch": 146.42165,
+        "states_per_second_at_p50": 7082.403767838805,
+        "calls": 2000,
+        "warmups": 200
+      },
+      "8": {
+        "p50_us_per_batch": 228.473,
+        "p95_us_per_batch": 238.5131,
+        "states_per_second_at_p50": 35015.07836812227,
+        "calls": 2000,
+        "warmups": 200
+      }
+    },
+    "structured_factored_argmax": {
+      "1": {
+        "p50_us_per_batch": 149.623,
+        "p95_us_per_batch": 156.1979,
+        "states_per_second_at_p50": 6683.464440627444,
+        "calls": 2000,
+        "warmups": 200
+      },
+      "8": {
+        "p50_us_per_batch": 226.0455,
+        "p95_us_per_batch": 236.75005,
+        "states_per_second_at_p50": 35391.10488817517,
+        "calls": 2000,
+        "warmups": 200
+      }
+    }
+  },
+  "full_dev": {
+    "original": {
+      "seconds": [
+        4.43383415900098,
+        4.421606132000306,
+        4.459519723997801
+      ],
+      "median_seconds": 4.43383415900098,
+      "episodes": 120,
+      "decisions": 12721
+    },
+    "factored_argmax": {
+      "seconds": [
+        3.694474708998314,
+        4.058422835998499,
+        3.6436591209967446
+      ],
+      "median_seconds": 3.694474708998314,
+      "episodes": 120,
+      "decisions": 12721
+    }
+  },
+  "implementation": "optional inference subclass; original state_dict keys and all training forwards unchanged; reference fallback for legal-logit gaps <=1e-5",
+  "logits_real_arithmetic_equivalent": true,
+  "floating_point_bitwise_logits_claimed": false,
+  "selected_candidate_checkpoint": "/home/liuyu/ME5418-project/medical_uav/outputs/m5_s1_development_123/seed_1/best.pt"
+}

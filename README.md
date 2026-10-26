@@ -598,3 +598,37 @@ python scripts/run_m5.py --stage extension --output-dir outputs/m5_s1_extension_
 PICK projection reuse and argmax-only evaluation will be treated separately as
 engineering changes. They must pass numerical, action and complete-day checks
 before benchmarking; the training network and on-policy data will remain separate.
+
+### M5 finite tuning completed
+
+The preregistered seeds 1–3 gate passed, so seeds 4–5 also completed from scratch.
+All five reached 1,024,000 transitions; their midpoint tensors and collector state
+exactly match corresponding M4 runs. Training source is `e333eac`; optional
+inference/statistics modules were developed separately and did not alter its frozen
+training files. All 55 S1 checkpoints passed finite, source, budget and selection
+audits. Relative to the corresponding M4 learners, mean Dev-main changes are
++0.14 pp (best), +1.48 pp (last) and +0.92 pp (tail). Dev-extra changes are +0.12 pp
+(best) and +1.36 pp (last). Per-type changes include tradeoffs; no claim is made
+that every class improves. See [the fixed development gate](results/m5_development_gate.json)
+and [all five tuning runs](results/m5_tuning.json).
+
+Optional fast development evaluation preserves the original checkpoint weight keys:
+
+```bash
+python scripts/evaluate_fast.py --checkpoint outputs/m5_s1_development_123/seed_1/best.pt \
+  --split dev --output outputs/my_fast_dev.json
+```
+
+This separate action-only path uses context projection reuse, inference mode and a
+near-tie fallback. It is never used by the collector/PPO optimizer. Full-Dev
+numerical/action/day equivalence and isolated B=1/B=8 p50/p95 timing are recorded
+before the final Test freeze. The scientific Test will use the canonical evaluator.
+
+The isolated inference measurement verified 1,800 complete Dev days over 15
+checkpoints, with every action and serialized day metric unchanged. Maximum
+PICK-logit error was 3.81e-6, value error zero. Original structured B=1 p50/p95 was
+201.87/216.11 µs; factored argmax was 149.62/156.20 µs. Argmax-only was slightly
+faster at B=1 (141.19 µs p50), so the MAC reduction is not presented as proportional
+CPU speedup. Full Dev (120 days, 12,721 decisions) median time fell from 4.434 to
+3.694 s. [All latency/equivalence measurements](results/m5_inference.json) include
+B=8 throughput and the timing scope.
