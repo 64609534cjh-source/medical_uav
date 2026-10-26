@@ -77,6 +77,7 @@ All four order types and three loads are reported in the development and Test-v2
 - New Test-v2: 5,400 full episodes, 595,586 decisions, no illegal actions.
 - [Development detail](gen2_development.md), [Test-v2 detail](gen2_test_v2.md), [learning curves](gen2_learning_curves.png), [focused tail curves](gen2_tail_curves.png), [Test-v2 paired differences](gen2_test_v2_paired.png).
 - [Architecture and reproduction notes](../docs/gen2_architectures.md), [training protocol](../configs/gen2_protocol.json), [Test-v2 protocol](../configs/gen2_test_v2_protocol.json).
+- [Final integrity audit](gen2_final_audit.json) confirms 65 first-generation files, 15 original selected models, all 15 Test-v2 models and 55 frozen source/development files retain their recorded hashes.
 - Raw checkpoints, complete daily metrics and update logs are retained under `outputs/gen2_architectures`, `outputs/gen2_destination_devextra`, `outputs/gen2_relational_devextra`, `outputs/gen2_m5_devextra` and `outputs/gen2_test_v2`.
 
 No method has been proved theoretically optimal. New-map generalization and an aligned optimality bound remain untested. Test-v2 is now consumed; no architecture or hyperparameter changes followed its results.

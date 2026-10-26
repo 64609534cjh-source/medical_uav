@@ -8,7 +8,7 @@
   "complete_test_v2_episodes": 5400,
   "test_v2_decisions": 595586,
   "test_v2_illegal_actions": 0,
-  "test_v2_status": "consumed, no post-holdout architecture/hyperparameter/seed selection",
+  "test_v2_status": "consumed; no post-holdout architecture/hyperparameter changes or learner-seed selection",
   "generation1_commit": "3c05ad345409302a8c14e7e1f83bc622245973ee",
   "training_source_commits": [
     "705806aba80a06a992286464e31a363f698d726d"
