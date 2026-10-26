@@ -1,0 +1,270 @@
+{
+  "generation": 2,
+  "frozen_utc": "2026-10-26T11:46:13.993056+00:00",
+  "source_commit": "ee2d7b8d319b5e09eb9028c0fe78ff9ef757cb15",
+  "split": "test-v2",
+  "final_candidates_frozen": true,
+  "demand_seed_range": [
+    300000,
+    300099
+  ],
+  "loads": [
+    "low",
+    "medium",
+    "high"
+  ],
+  "map_seed": 0,
+  "jobs": 5,
+  "diagnostics": true,
+  "entries": [
+    {
+      "name": "m5_s1",
+      "method": "m5",
+      "learner_seed": 1,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m5_s1_development_123/seed_1/best.pt",
+      "checkpoint_sha256": "750bffbc1bcd8322621978bddc83397c57c059829f80b3ad83bf490a3c6ba304",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "m5_s2",
+      "method": "m5",
+      "learner_seed": 2,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m5_s1_development_123/seed_2/best.pt",
+      "checkpoint_sha256": "7f8404be75a5c7b34ede22f61e6a9f5e2ae950524f8a12ef7e82689c1cc6ec8f",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "m5_s3",
+      "method": "m5",
+      "learner_seed": 3,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m5_s1_development_123/seed_3/best.pt",
+      "checkpoint_sha256": "99af3ddad0d1dba486fea0613d8eb80c3f0aa049c82dacc81ff56dc4434611ec",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "m5_s4",
+      "method": "m5",
+      "learner_seed": 4,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m5_s1_extension_45/seed_4/best.pt",
+      "checkpoint_sha256": "aad30b6f837b2bd194d06aafc77b13ce4bd8e1b57d87a1c62845909a4ee4c32c",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "m5_s5",
+      "method": "m5",
+      "learner_seed": 5,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m5_s1_extension_45/seed_5/best.pt",
+      "checkpoint_sha256": "df9f1b7b028a038e98a4ac654a0c2f5c1f13640599f18b8494b8f405cf1394db",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "destination_s1",
+      "method": "destination",
+      "learner_seed": 1,
+      "checkpoint": "outputs/gen2_architectures/destination_s1/best.pt",
+      "checkpoint_sha256": "d4031b08b89ce776ee4f097c88d840345d7becf0fdf0725b004a9c9d8b19a9e1",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "preselected best on Dev-main only"
+    },
+    {
+      "name": "destination_s2",
+      "method": "destination",
+      "learner_seed": 2,
+      "checkpoint": "outputs/gen2_architectures/destination_s2/best.pt",
+      "checkpoint_sha256": "9b404353817903f28fb1a290404dc2796bd32b4ab1b3b600a3372f386d42ca1c",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "preselected best on Dev-main only"
+    },
+    {
+      "name": "destination_s3",
+      "method": "destination",
+      "learner_seed": 3,
+      "checkpoint": "outputs/gen2_architectures/destination_s3/best.pt",
+      "checkpoint_sha256": "62f64cfc0fa2f7bef51c1acb8001eb3ec121a6c23fc6493660c2b2e1a28f565e",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "preselected best on Dev-main only"
+    },
+    {
+      "name": "destination_s4",
+      "method": "destination",
+      "learner_seed": 4,
+      "checkpoint": "outputs/gen2_architectures/destination_s4/best.pt",
+      "checkpoint_sha256": "88b8f1e788d46003102109e1f3ab86b0d39f9deb0686a9182895509dd996b69f",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "preselected best on Dev-main only"
+    },
+    {
+      "name": "destination_s5",
+      "method": "destination",
+      "learner_seed": 5,
+      "checkpoint": "outputs/gen2_architectures/destination_s5/best.pt",
+      "checkpoint_sha256": "0d23228638a7d0c370a64409b6a3160628627d513598313310ba9cdf0b299ec5",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "preselected best on Dev-main only"
+    },
+    {
+      "name": "relational_s1",
+      "method": "relational",
+      "learner_seed": 1,
+      "checkpoint": "outputs/gen2_architectures/relational_s1/best.pt",
+      "checkpoint_sha256": "4e5e55f8889f7bab7461baecc7aa4b139cdc09435dba2e165e7403764d645747",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "preselected best on Dev-main only"
+    },
+    {
+      "name": "relational_s2",
+      "method": "relational",
+      "learner_seed": 2,
+      "checkpoint": "outputs/gen2_architectures/relational_s2/best.pt",
+      "checkpoint_sha256": "eb9df613daa78245119c78b7594b6d4e0aa19d2285f925feee50e6a163b4dc26",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "preselected best on Dev-main only"
+    },
+    {
+      "name": "relational_s3",
+      "method": "relational",
+      "learner_seed": 3,
+      "checkpoint": "outputs/gen2_architectures/relational_s3/best.pt",
+      "checkpoint_sha256": "fb9a4082d6d84816858fbfec6acd73be623904be5b1b11f4212a23229f8eec07",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "preselected best on Dev-main only"
+    },
+    {
+      "name": "relational_s4",
+      "method": "relational",
+      "learner_seed": 4,
+      "checkpoint": "outputs/gen2_architectures/relational_s4/best.pt",
+      "checkpoint_sha256": "e0fabd5e5eb1a40c800156a1fb8fb1f3b26f904f0885209ff18f64f214d0a3a7",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "preselected best on Dev-main only"
+    },
+    {
+      "name": "relational_s5",
+      "method": "relational",
+      "learner_seed": 5,
+      "checkpoint": "outputs/gen2_architectures/relational_s5/best.pt",
+      "checkpoint_sha256": "fc1693796002efd7572e090f265e48d5fbf500feac573004aec3f0c6f73fe91a",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "preselected best on Dev-main only"
+    },
+    {
+      "name": "baselines",
+      "policies": [
+        "slack",
+        "edf",
+        "random"
+      ],
+      "learner_seed": 0
+    }
+  ],
+  "statistics": {
+    "repetitions": 10000,
+    "rng_seed": 20261026,
+    "method": "paired crossed learner-ID and day-ID product bootstrap; shared day weights all loads; paired learner IDs; mean daily rate, equal loads; sample SD across 5 learners",
+    "intervals": "pointwise 95% percentile; no multiplicity correction, exploratory method comparisons, five learners limit precision",
+    "per_type": "daily type on-time / released; exclude days with zero type releases and report denominators"
+  },
+  "comparisons": {
+    "primary": [
+      "destination - m5",
+      "relational - m5"
+    ],
+    "secondary": [
+      "relational - destination",
+      "each method - slack"
+    ]
+  },
+  "scope": "all three predeclared methods regardless of development ranking; no model or seed selected on Test-v2",
+  "frozen_files": {
+    "configs/gen2_holdout_freeze.json": "69952f177c3d1f6796254afe30cdfeaf1fe99698d52440843b72bd8120588690",
+    "configs/gen2_protocol.json": "4cd72f280165255ad469856300c77284de4b97410c43f591402f7ff3aea9a52e",
+    "configs/ppo_gen2_destination_seed1.json": "f5761bc4ee2fb92abbefe2bc605e00110ae5a6969e343d1fffb26852784b5635",
+    "configs/ppo_gen2_destination_seed2.json": "ec1158e576a8e7b58740042ba26c8b712049d4d72a089f05a0d861faf464127f",
+    "configs/ppo_gen2_destination_seed3.json": "9d8450e563a492ee3304dc7542beb716422624f6a8b366d34266067a5c67fd35",
+    "configs/ppo_gen2_destination_seed4.json": "1d5f6fd6a6293509460fb738eb85b9522d1845450ab318d5f73dafbbb6562a4e",
+    "configs/ppo_gen2_destination_seed5.json": "db1a4d08f8e1d350dd3a572f5766aabbccbe9d7dba0ac5226d8c1e0ce61c35f7",
+    "configs/ppo_gen2_relational_seed1.json": "d5923c1cbdee3a3256132f2bcfb2bfe002fac40f0ab460ac13854a81d000ec0c",
+    "configs/ppo_gen2_relational_seed2.json": "a238efb6f3028768087998f726fa735a37f8e84a897ff26dda0af1f913cebfe6",
+    "configs/ppo_gen2_relational_seed3.json": "98892561c0ba6a33cbe04593dd1ef4789a70539ba386c1259d86336648eac87c",
+    "configs/ppo_gen2_relational_seed4.json": "b7a447e1b075a0f851102cd64b1e72e2f56c6a07b504378e1372fc43bd425524",
+    "configs/ppo_gen2_relational_seed5.json": "c1083c99289522b938dea77b0671cd49793d7a3fc1980f8e55e1675bede0504c",
+    "medical_uav/__init__.py": "ba19badf7f8059a7a7c58ed5abc38c3e551132e7953ff2e09ef2bbe28cb487c7",
+    "medical_uav/agents/__init__.py": "8af1254008002658691f71235317c2f3deebc2a60fa7b5df16fd9fa0c217bb05",
+    "medical_uav/agents/inference.py": "f55ee053319069c317b77ddeaf9f9163f24d83a31ed01002730322a6bacf9216",
+    "medical_uav/agents/networks.py": "018fe050dd7ec36d41695d420128d7a78afbee0629e1b6061516973778205c01",
+    "medical_uav/agents/relational.py": "ffc7d724396f2d1949a0252fabcc11e5ae391fb2a38eaff0072470809fb15c6e",
+    "medical_uav/algorithms/__init__.py": "7aad7f1a03ee1e880ccd9fc6b00999a761a6d8ebeaa441dacd371b5414dad8ea",
+    "medical_uav/algorithms/ppo.py": "6d2e9e06a7b6e7ff49d109a96af8f2c0824e16f67d6788807819ae0f6e3cf6c0",
+    "medical_uav/algorithms/returns.py": "8900663b4f601e64d57fd6e3b029b8c2938f879f450a775c0a63f31937c78fc0",
+    "medical_uav/algorithms/rollout_buffer.py": "a4dc17d97ad379d095824262a1b603da2dff9cb86df449d772e47a2fc6be1fd9",
+    "medical_uav/baselines/__init__.py": "5f9fe415a722625d656ed95a9b9a536ef8eafee9f79b2210cda8e9bb02a77234",
+    "medical_uav/baselines/heuristics.py": "1cd143d9ace7d6d011993420c933e1c8585603b315955d6d138f80d905d777c8",
+    "medical_uav/env/__init__.py": "7fa956f33796af454577dd4906e8ea9464ee71ceb4e28fe7e7a83e2d20e3994a",
+    "medical_uav/env/actions.py": "fbc28e03339b196b83ff24ac639b22c39074ff3b6e9acfd7f3015296af2a090d",
+    "medical_uav/env/astar.py": "c05dd7486f0722f5b4e53f294d77034fb52a2a86e0ff7d405f3d81697d01c114",
+    "medical_uav/env/config.py": "823dca2125c67c13ac9507a6e4c03554543497786a378bf23cebc67c17b6729a",
+    "medical_uav/env/map_gen.py": "bbb6bb2860490f369ae6db9b0bd12b04fb4d741ce4401fc15ff108c52afd5792",
+    "medical_uav/env/masks.py": "b5f2c426d8090088d14f6c716db3cfec6a678640db6aef17e987d58c90597729",
+    "medical_uav/env/observation.py": "151ee0e4acfb188b9ba335837b7d8bfeb474eeb48935be48005d0d0ec568b137",
+    "medical_uav/env/orders.py": "17a64222f429bf07e0c8eca7ed1152eeefdff27c38d3209219ed396193aa1891",
+    "medical_uav/env/physics.py": "8f30978426a18a0d43067b44bfe7ecfc9022ca56edc1712d55363fad5645ec4f",
+    "medical_uav/env/render.py": "9ea9cf45b818afe57cb8befd39ce8c8821dea004084c1e51d8374a7b04161118",
+    "medical_uav/env/simulator.py": "7c1cca791da62c1120b15cac4d7af625f14006e3bce1388145647a821f4d7329",
+    "medical_uav/env/uav_env.py": "6920244dbc36c49e71b99ddb5f8259b114138fe21cd222ed5125f78c8dd72c16",
+    "medical_uav/evaluation/__init__.py": "525c5649edc6c38fee138c371f50ec5ed79dbd8a0ce3c6d0f393d53a382db224",
+    "medical_uav/evaluation/congestion.py": "0873053a74f7f6f5472fe820c3a417cc3eb8cc470bee3020dc8f3a986bc70535",
+    "medical_uav/evaluation/diagnostics.py": "d159892e628d4ff85070c35c569b2c0421656f6cc30651cd99aa291583e5ed0e",
+    "medical_uav/evaluation/evaluate.py": "6aacb3e31c6e7e3961511a1816d1cd2ec483c20639d7295223b04904bdbd5b31",
+    "medical_uav/evaluation/final_stats.py": "4bb527f1547747d1c0347dd16b5c61236ef6b3d5a5baa736da2187127ba3b41f",
+    "medical_uav/metrics.py": "df796c12a740e4480278f03a079b1ec719525a2e43273b3cee446a081795ad46",
+    "medical_uav/splits.py": "fd34d1a4909a61f13b8ec587c560cd3c3c1948956ed51bfdb3e779d96a145e0e",
+    "medical_uav/training/__init__.py": "d040a1819ba759c1802944709f3abf2cb13d371137e69d14003b7e399e566110",
+    "medical_uav/training/collector.py": "efd3e6301a13b028d05d38cd6aedc4b5d3ca7b47cff9956249552c91e49c9ccd",
+    "medical_uav/training/io.py": "8911a69f780b9ed4d52140977030e799af3840bed129e8e2d1c827b5bd232196",
+    "medical_uav/training/trainer.py": "c35a6d4fd08d596ab7deb00c06b6ce024598b92d96ec7adcda1d8cc5d04d1bed",
+    "results/gen2_development.json": "90f062c5d8ee849956245f99d32a5d844a07d1e13061df66fc0bf9fe970cff1e",
+    "results/gen2_latency.json": "20f5f231fc4a1b598f0fad6956d93cb71c7165c36a40dccbe28dcf60ff51cace",
+    "results/gen2_training_audit.json": "152cfc745e29470dfb07129c8447765a7fda2f24be76fd2815884b8e057c54f9",
+    "scripts/analyze_gen2.py": "a6c68d0d562e78642633a10e53353911481d25fc7dbb87197488cb9272f29d3b",
+    "scripts/evaluate.py": "8190f895f0b3c52540068d9c857d7873bd8e46735b269167e99133b0616177d4",
+    "scripts/evaluate_suite.py": "57090d8a22cff775ae909a87795ac25bc0c180b0f2048b1cc4c21bfeef68eba7",
+    "scripts/freeze_gen2_final.py": "f6ff5dde18f02a5d86788d945a85997e1cb355b4637405c2e17386d49ba1a0aa",
+    "scripts/run_gen2.py": "d188dcc82b8163f7ce741c17602156a67d48a025f6c009aea7b00d7293879999",
+    "scripts/train.py": "8706e575f22a58e840c2b77a0fa0f6fcc4b1f5e9b3f2bf8ad3a45cbb6883e5e0"
+  }
+}
