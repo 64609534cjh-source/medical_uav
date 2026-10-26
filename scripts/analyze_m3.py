@@ -93,7 +93,7 @@ def point_stats(curves, step):
     return {"transitions": step, "rates": seed_stats(selected)}
 
 
-def analyze(root, output):
+def analyze(root, output, render=True):
     manifest = read(root / "manifest.json")
     protocol = manifest["protocol"]
     assert manifest["status"] == "complete" and manifest["completed_seeds"] == list(SEEDS)
@@ -120,7 +120,7 @@ def analyze(root, output):
         assert metadata["git_commit"] == manifest["source_commit"] and not metadata["git_dirty"]
         assert metadata["resume_mode"] == "fresh" and metadata["resume_from"] is None
         assert metadata["learning_rate_schedule"] == "constant"
-        assert config == read(repo / f"configs/ppo_m3_seed{seed}.json")
+        assert config == read(repo / protocol["configurations"][list(SEEDS).index(seed)])
         assert summary["status"] == "complete" and summary["transitions"] == 1_024_000 and summary["updates"] == 1000
         eval_summaries = list(records(run / "evaluations.jsonl"))
         assert [r["transitions"] for r in eval_summaries] == list(STEPS)
@@ -273,6 +273,8 @@ def analyze(root, output):
     output.parent.mkdir(parents=True, exist_ok=True)
     write_json(output.with_suffix(".json"), result)
     write_json(output.parent / (output.name + "_paired.json"), {"unit": "learner_seed x selection x load x Dev day", "pairs": paired})
+    if not render:
+        return result
     draw_curves(result, output.parent / (output.name + "_curves"))
     draw_pairs(paired, output.parent / (output.name + "_paired"))
     write_markdown(result, output.with_suffix(".md"))

@@ -469,3 +469,43 @@ environment.yml      conda environment
 requirements.txt     the same packages for pip
 pyproject.toml       package definition for `pip install -e .`
 ```
+
+
+## M4: shared-order architecture comparison (Dev only)
+
+M4-A reproduced both Random protocols on the same 120 Dev demand days. The old
+`default_rng(day)` and current isolated `SeedSequence([learner_seed,day,load_index,map_seed])`
+produce different legal-action sequences, with identical orders. No MLP retraining
+was required. The [diagnostic](results/m4a_diagnostics.md) compares reward, service,
+charging, batching, congestion and update windows; behavior is descriptive because
+policies visit different states.
+
+The structured network follows the supplied 31 + 12×27 + 3×16 layout. Global,
+pending and cargo encoders use Tanh hidden layers; presence-masked means feed a
+128-dimensional context. A shared PICK scorer preserves order/output correspondence.
+Real but currently unpickable orders remain in the context. All absent embeddings
+are masked after the biased encoder. The architecture contains 65,232 parameters
+versus the MLP's 139,803. Checkpoints carry an explicit architecture identifier;
+old MLP checkpoints remain supported. The historical M3 implementation and current
+MLP produce bit-identical forward/act results on 256 archived real observations.
+
+The seed-0 [pilot](results/m4_structured_pilot.json) completed 102,400 transitions
+and five full-Dev checkpoints, reaching 81.25% equal-load on-time rate. This was an
+engineering/learning-response gate, with no MLP-relative threshold. Structural
+acceptance covers empty sets, presence versus feasibility, order/cargo permutation,
+masked probabilities, real PPO updates, resume and checkpoint rejection.
+
+The [frozen M4 protocol](configs/m4_protocol.json) changes only the network choice
+in each M3 learner configuration. Environment, reward, slots, masks, collector,
+GAE, PPO loss, hyperparameters, constant LR, evaluation and selection are unchanged.
+Five scratch seeds (1–5), each 1,024,000 transitions and 11 full-Dev checkpoints:
+
+```bash
+python scripts/run_m4.py --output-dir outputs/m4_structured_ppo
+```
+
+Five independent CPU learner processes each use one torch thread. M3 was serial,
+so elapsed completion time is not an architecture speed comparison. Formal logs
+retain process CPU time and actual throughput. An isolated one-thread inference
+[benchmark](results/m4_inference_benchmark.json) uses identical real observations;
+parameter count is not treated as a compute-cost proxy. Test remains unused.
