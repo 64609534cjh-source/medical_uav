@@ -1,5 +1,13 @@
 # Medical UAV Delivery Environment
 
+**Current milestone: M5 and frozen final Test completed (26 October 2026).**
+[Full M5 report](results/m5_summary.md) · [Final Test results](results/final_test.md).
+The final S1 structured method reaches **86.42 ± 0.37%** equal-load Test on-time
+rate; Slack-aware reaches **82.12%**. The paired gap is **+4.30 pp** with a joint
+95% learner/day bootstrap interval of **[+3.77, +4.83] pp**. SD is across five
+learners. Test is now consumed; historical milestone sections below describe its
+status at those earlier stages. No post-Test tuning was performed.
+
 A Gymnasium environment in which one drone picks up and delivers medical orders between a medical
 center and five hospitals over one simulated day. Orders arrive at random and have deadlines; the
 drone must avoid no-fly zones, carry at most 3 boxes and 2 kg, and never run out of battery. Three
@@ -80,8 +88,14 @@ after the driver is working and CPU/GPU throughput has been compared.
 - The supplied assignment screenshot shows Friday 30 October 2026 at 23:59 as the
   deadline. Verify the course portal's displayed timezone before uploading.
 
-The runnable learning pipeline covers part of this deliverable; experiments and
-the two-page report still need to be completed.
+Experiments are complete through M5 and the frozen final Test. The group still
+needs to prepare its final two-page submission report and archive.
+
+AI-use disclosure for this development: OpenAI Codex assisted with environment
+setup, actor–critic/PPO implementation, reproducibility checks, experiment
+execution, inference optimization, statistical analysis, and draft documentation
+and figures. The group remains responsible for reviewing the submitted code,
+claims and report. This disclosure should accompany the final submission.
 
 ## Continuous PPO training and evaluation
 
@@ -632,3 +646,44 @@ faster at B=1 (141.19 µs p50), so the MAC reduction is not presented as proport
 CPU speedup. Full Dev (120 days, 12,721 decisions) median time fell from 4.434 to
 3.694 s. [All latency/equivalence measurements](results/m5_inference.json) include
 B=8 throughput and the timing scope.
+
+### Frozen final Test completed
+
+The final comparison protocol was committed at `8959ab3` **before** Test was
+opened. S1 was selected using development data, and all five Dev-main-selected
+checkpoints per method were fixed by hash. The Test suite reran 100 new demand days
+at each load for MLP, M4 S0 and S1, plus Slack, EDF and the fixed seed-0 Random
+protocol: 5,400 complete episodes, 584,040 decisions, zero illegal actions. The
+canonical evaluator was retained for scientific comparison.
+
+| Test method | Low | Medium | High | Equal-load mean |
+|---|---:|---:|---:|---:|
+| MLP | 98.04 ± 0.75% | 76.39 ± 0.97% | 58.72 ± 1.49% | 77.72 ± 0.76% |
+| M4 structured S0 | 99.10 ± 0.33% | 86.61 ± 0.81% | 72.94 ± 0.85% | 86.22 ± 0.32% |
+| Final structured S1 | 99.41 ± 0.13% | 87.00 ± 0.50% | 72.84 ± 1.05% | **86.42 ± 0.37%** |
+| Slack-aware | 99.57% | 81.66% | 65.12% | 82.12% |
+
+S1 − Slack is +4.30 pp, with paired crossed-bootstrap 95% interval
+[+3.77, +4.83] pp. M4 − MLP remains +8.50 pp [ +7.78, +9.23 ].
+S1 − M4 is +0.20 pp [−0.17, +0.61], so there is no clear additional selected-model
+Test gain. The M5 contribution is the demonstrated main/extra development-set
+last/tail stability improvement while retaining the structural Test advantage.
+Low does not show a clear advantage over Slack; Medium/High provide the final gain.
+
+[All seed/load/type results](results/final_test.md), [paired Test figure](results/final_test_paired.png),
+[complete M5 report](results/m5_summary.md) and [S1 learning curves](results/m5_tuning_curves.png)
+retain denominators, failure modes, compute measurements and the limited tuning
+budget. Bootstrap uses 10,000 predeclared paired learner/day resamples, preserving
+day IDs across loads; pointwise intervals do not treat 1,500 records as independent
+training repetitions. Five learners limit uncertainty estimation.
+
+Raw final data and the frozen protocol/manifest remain under `outputs/final_test/`.
+Reproduce reports without reevaluating Test or changing models:
+
+```bash
+python scripts/analyze_final.py --run-dir outputs/final_test --output results/final_test
+python scripts/write_m5_report.py
+```
+
+Test is now used. Future model changes would be a new exploratory phase, and the
+same Test could not be described as untouched.

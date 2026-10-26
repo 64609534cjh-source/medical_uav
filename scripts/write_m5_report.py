@@ -59,6 +59,15 @@ def main():
     for name,r in final['performance'].items():
         v=r['loads']['equal'];ci=v['joint_95_percentile'];sd='—' if v['learner_sample_sd'] is None else f"{100*v['learner_sample_sd']:.2f}"
         lines.append(f"| {name} | {100*v['estimate']:.2f} | {sd} | [{100*ci[0]:.2f}, {100*ci[1]:.2f}] |")
+    final_vs_slack=final['comparisons'][selected+'_minus_slack']['loads']['equal']
+    architecture=final['comparisons']['m4_minus_mlp']['loads']['equal']
+    lo,hi=final_vs_slack['joint_95_percentile']
+    lines += ['', f"The original same-PPO architecture advantage repeats on Test: M4 − MLP is {100*architecture['estimate']:+.2f} pp. Final {selected.upper()} − Slack is {100*final_vs_slack['estimate']:+.2f} pp, joint 95% interval [{100*lo:+.2f}, {100*hi:+.2f}] pp."]
+    if selected=='s1':
+        change=final['comparisons']['s1_minus_m4']['loads']['equal'];a,b=change['joint_95_percentile']
+        lines += [f"S1 − M4 on Test is {100*change['estimate']:+.2f} pp, with interval [{100*a:+.2f}, {100*b:+.2f}] pp. It includes zero: there is no clear additional selected-checkpoint performance gain. The demonstrated M5 benefit is the predeclared main/extra development-set last/tail stability improvement, while retaining the architecture's Test advantage."]
+    low=final['comparisons'][selected+'_minus_slack']['loads']['low']
+    lines += [f"Low does not show a clear advantage over Slack ({100*low['estimate']:+.2f} pp; interval [{100*low['joint_95_percentile'][0]:+.2f}, {100*low['joint_95_percentile'][1]:+.2f}] pp). Medium and High provide the positive final aggregate gain. No claim is made that every load or order type improves."]
     lines += ['', 'The [final Test report](final_test.md) includes all learner/load/type results and paired comparison intervals, with seed-only, day-only and joint uncertainty retained separately. The 100 demand-day IDs are resampled as common blocks across all loads/policies, and five learner repetitions retain their own level. No 1,500-independent-training-run assumption is made.','',
               'M3→M4 remains the original same-PPO architecture comparison. M4→M5 is a separately budgeted, explicitly limited tuning experiment. A failed or successful S1 result does not alter the original M4 claim. Test is now consumed; no model or schedule was revised after observing it. Fixed-map demand-day generalization does not establish new-map or real-world performance.','']
     (ROOT/'results/m5_summary.md').write_text('\n'.join(lines))
