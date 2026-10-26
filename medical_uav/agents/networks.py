@@ -24,6 +24,25 @@ class MLPActorCritic(nn.Module):
         features = self.encoder(observations)
         return self.actor(features), self.critic(features).squeeze(-1)
 
+    def act(self, observations, action_masks, deterministic=False):
+        """Sample from legal actions, or select the legal argmax for evaluation."""
+        logits, values = self(observations)
+        distribution = masked_distribution(logits, action_masks)
+        actions = distribution.probs.argmax(-1) if deterministic else distribution.sample()
+        return actions, distribution.log_prob(actions), values
+
+    def evaluate_actions(self, observations, action_masks, actions):
+        """Recompute probabilities with the historical mask, never a live env mask."""
+        logits, values = self(observations)
+        if actions.shape != logits.shape[:-1] or actions.dtype != torch.int64:
+            raise ValueError("actions must be int64 with one index per observation")
+        if ((actions < 0) | (actions >= logits.shape[-1])).any():
+            raise ValueError("action index outside the action space")
+        distribution = masked_distribution(logits, action_masks)
+        if not action_masks.gather(-1, actions.unsqueeze(-1)).all():
+            raise ValueError("historical action is illegal under its saved mask")
+        return distribution.log_prob(actions), distribution.entropy(), values
+
 
 def masked_distribution(logits, action_masks):
     """Use the mask saved with these observations for every probability calculation."""
