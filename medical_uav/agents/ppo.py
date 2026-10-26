@@ -133,30 +133,55 @@ def ppo_update(net, opt, buf: RolloutBuffer, adv, ret, clip: float = 0.2, epochs
     return {k: float(np.mean(v)) for k, v in stats.items()}
 
 
+def day_returns(buf: RolloutBuffer):
+    """The decisions of days that finished within the rollout and their exact return to go
+    (gamma = 1, scaled rewards), as flat tensors (obs, mask, return); the unfinished tail of
+    each environment is left out because its return is not known."""
+    obs, mask, ret = [], [], []
+    for k in range(buf.reward.shape[1]):
+        ends = np.flatnonzero(buf.done[:, k])
+        if len(ends) == 0:
+            continue
+        last = ends[-1] + 1
+        to_go, g = np.zeros(last, np.float32), 0.0
+        for t in reversed(range(last)):
+            g = buf.reward[t, k] + (0.0 if buf.done[t, k] else g)
+            to_go[t] = g
+        obs.append(buf.obs[:last, k])
+        mask.append(buf.mask[:last, k])
+        ret.append(to_go)
+    return tuple(torch.as_tensor(np.concatenate(x)) for x in (obs, mask, ret))
+
+
 VALUE_PARTS = ("value_head", "critic")  # the value part of each network (SetNet, MLPNet)
 
 
-def warm_up_value(net, envs, state: dict, rng, rollouts: int = 10, epochs: int = 4,
-                  n_steps: int = 128, minibatch: int = 512) -> dict:
+def warm_up_value(net, envs, state: dict, rng, rollouts: int = 40, epochs: int = 4,
+                  n_steps: int = 128, minibatch: int = 512, check_steps: int = 512) -> dict:
     """Train only the value part of a network on returns of its own policy, with every other
     parameter frozen, so a network trained by imitation starts PPO with a sensible critic and
-    unchanged action probabilities. Returns the value loss of the first and last rollout."""
+    unchanged action probabilities. Progress is measured on a held-out rollout of check_steps
+    decisions: the mean squared error and explained variance of the values against the exact
+    returns of the days that finished in it, before and after the warm-up."""
     value_params = [p for name, p in net.named_parameters() if name.startswith(VALUE_PARTS)]
     frozen = [p for name, p in net.named_parameters() if not name.startswith(VALUE_PARTS)]
     for p in frozen:
         p.requires_grad_(False)
+    check_obs, check_mask, check_ret = day_returns(collect(envs, net, state, check_steps, rng))
+
+    def check():
+        with torch.no_grad():
+            error = check_ret - net(check_obs, check_mask)[1]
+        return (error ** 2).mean().item(), 1 - (error.var() / check_ret.var()).item()
+
+    error_before, explained_before = check()
     opt = torch.optim.Adam(value_params, lr=3e-4, eps=1e-5)
-    first = None  # the first rollout's data and returns, to measure the loss before and after
     for _ in range(rollouts):
         buf = collect(envs, net, state, n_steps, rng)
         _, ret = compute_gae(buf.reward, buf.value, buf.done, buf.last_value)
         obs = torch.as_tensor(buf.obs.reshape(-1, buf.obs.shape[-1]))
         mask = torch.as_tensor(buf.mask.reshape(-1, buf.mask.shape[-1]))
         target = torch.as_tensor(ret.reshape(-1))
-        if first is None:
-            first = (obs, mask, target)
-            with torch.no_grad():
-                before = ((net(obs, mask)[1] - target) ** 2).mean().item()
         index = np.arange(len(target))
         for _ in range(epochs):
             rng.shuffle(index)
@@ -169,8 +194,8 @@ def warm_up_value(net, envs, state: dict, rng, rollouts: int = 10, epochs: int =
     for p in frozen:
         p.requires_grad_(True)
     state["finished"] = []  # warm-up days are not training results
-    obs, mask, target = first
-    with torch.no_grad():
-        after = ((net(obs, mask)[1] - target) ** 2).mean().item()
-    return {"value_loss_before": before, "value_loss_after": after,
-            "decisions": rollouts * n_steps * len(envs)}
+    error_after, explained_after = check()
+    return {"value_error_before": error_before, "value_error_after": error_after,
+            "explained_variance_before": explained_before,
+            "explained_variance_after": explained_after,
+            "decisions": (rollouts * n_steps + check_steps) * len(envs)}

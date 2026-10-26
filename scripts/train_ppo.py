@@ -50,7 +50,7 @@ def main():
     parser.add_argument("--reward", choices=list(REWARDS), default="v2",
                         help="reward variant: v2 (default), m1 (Milestone 1 reward), ontime")
     parser.add_argument("--init", default=None, help="start from this checkpoint (e.g. BC)")
-    parser.add_argument("--warmup-rollouts", type=int, default=10,
+    parser.add_argument("--warmup-rollouts", type=int, default=40,
                         help="value warm-up rollouts before PPO when --init is given")
     parser.add_argument("--out", required=True)
     args = parser.parse_args()
@@ -69,9 +69,11 @@ def main():
         assert info["kind"] == args.net, f"{args.init} holds a {info['kind']} network"
         net.train()
         meta["warmup"] = warm_up_value(net, envs, state, rng, rollouts=args.warmup_rollouts)
-        print(f"value warm-up: loss {meta['warmup']['value_loss_before']:.3f} -> "
-              f"{meta['warmup']['value_loss_after']:.3f} "
-              f"({meta['warmup']['decisions']} decisions, not counted below)", flush=True)
+        w = meta["warmup"]
+        print(f"value warm-up: error against day returns {w['value_error_before']:.3f} -> "
+              f"{w['value_error_after']:.3f}, explained variance "
+              f"{w['explained_variance_before']:.2f} -> {w['explained_variance_after']:.2f} "
+              f"({w['decisions']} decisions, not counted below)", flush=True)
     else:
         net = NETWORKS[args.net]()
     (out / "run.json").write_text(json.dumps(meta, indent=1))

@@ -126,15 +126,31 @@ def test_warm_up_keeps_the_policy():
     assert torch.allclose(before, after, atol=1e-6)
 
 
-def test_warm_up_reduces_value_loss():
+def test_day_returns_cover_finished_days_only():
+    from medical_uav.agents.ppo import RolloutBuffer, day_returns
+
+    # two envs, 4 steps; env 0 finishes a day after step 1, env 1 never finishes
+    reward = np.array([[1.0, 5.0], [2.0, 5.0], [3.0, 5.0], [4.0, 5.0]], np.float32)
+    done = np.array([[False, False], [True, False], [False, False], [False, False]])
+    obs = np.arange(8, dtype=np.float32).reshape(4, 2, 1)
+    buf = RolloutBuffer(obs=obs, mask=np.ones((4, 2, 1), bool), action=np.zeros((4, 2)),
+                        log_prob=np.zeros((4, 2)), value=np.zeros((4, 2)), reward=reward,
+                        done=done, last_value=np.zeros(2))
+    obs, mask, ret = day_returns(buf)
+    assert obs[:, 0].tolist() == [0.0, 2.0]  # env 0, steps 0 and 1
+    assert ret.tolist() == [3.0, 2.0]
+
+
+def test_warm_up_brings_values_closer_to_day_returns():
     from medical_uav.agents.ppo import warm_up_value
 
     torch.manual_seed(0)
     net = SetNet()
     envs, state = make_envs(2, np.random.default_rng(1))
     stats = warm_up_value(net, envs, state, np.random.default_rng(1), rollouts=4, epochs=4,
-                          n_steps=64)
-    assert stats["value_loss_after"] < stats["value_loss_before"]
+                          n_steps=64, check_steps=400)
+    assert stats["value_error_after"] < stats["value_error_before"]
+    assert stats["decisions"] == 2 * (4 * 64 + 400)
 
 
 def test_train_ppo_from_a_bc_checkpoint(tmp_path):
@@ -153,6 +169,6 @@ def test_train_ppo_from_a_bc_checkpoint(tmp_path):
                             capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
     meta = json.loads((tmp_path / "run" / "run.json").read_text())
-    assert meta["init"].endswith("bc_set.pt") and meta["warmup"]["decisions"] == 16 * 128
+    assert meta["init"].endswith("bc_set.pt") and meta["warmup"]["decisions"] == 16 * (128 + 512)
     _, info = load_checkpoint(next((tmp_path / "run").glob("ckpt_*.pt")))
     assert info["reward"] == "v2" and info["init"].endswith("bc_set.pt") and info["git_revision"]
