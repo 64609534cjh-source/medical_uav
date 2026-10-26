@@ -8,9 +8,10 @@ import torch
 from medical_uav.baselines.heuristics import edf_policy, random_policy, slack_aware_policy
 from medical_uav.env import MedicalUAVEnv
 from medical_uav.env.actions import decode
+from medical_uav.evaluation.diagnostics import EpisodeDiagnostics
 from medical_uav.env.config import EnvConfig
 from medical_uav.metrics import episode_record
-from medical_uav.splits import DEV_SEEDS, TEST_SEEDS, TRAIN_SEED_RANGE
+from medical_uav.splits import DEV_SEEDS, DEV_EXTRA_SEEDS, TEST_SEEDS, TRAIN_SEED_RANGE
 from medical_uav.training.io import isolated_rng
 
 LOADS = ("low", "medium", "high")
@@ -19,11 +20,13 @@ LOADS = ("low", "medium", "high")
 def split_seeds(split):
     if split == "dev":
         return tuple(DEV_SEEDS)
+    if split == "dev-extra":
+        return tuple(DEV_EXTRA_SEEDS)
     if split == "test":
         return tuple(TEST_SEEDS)
     if split == "train":
         return tuple(range(3))  # cheap diagnostics, not checkpoint selection
-    raise ValueError("split must be train, dev or test")
+    raise ValueError("split must be train, dev, dev-extra or test")
 
 
 def validate_days(seeds, split):
@@ -53,7 +56,7 @@ def summarize(records):
 
 @torch.no_grad()
 def evaluate(network=None, policies=("ppo",), seeds=None, split="dev", loads=LOADS,
-             learner_seed=0, map_seed=0, env_config=None):
+             learner_seed=0, map_seed=0, env_config=None, diagnostics=False):
     """Evaluate complete days without changing the training random-number stream.
 
     Each Random baseline day has its own Generator, independent of loop ordering.
@@ -80,6 +83,7 @@ def evaluate(network=None, policies=("ppo",), seeds=None, split="dev", loads=LOA
                     for day in seeds:
                         obs, info = env.reset(options={"demand_seed": day, "load": load})
                         rng = np.random.default_rng(np.random.SeedSequence([learner_seed, day, LOADS.index(load), config.map_seed]))
+                        observer = EpisodeDiagnostics() if diagnostics else None
                         counts, minutes, decisions = Counter(), Counter(), 0
                         while True:
                             if policy == "ppo":
@@ -91,7 +95,11 @@ def evaluate(network=None, policies=("ppo",), seeds=None, split="dev", loads=LOA
                                           edf_policy(env) if policy == "edf" else slack_aware_policy(env))
                             if not info["action_mask"][action]:
                                 raise RuntimeError("illegal evaluation action")
+                            if observer is not None:
+                                observer.before(env, action)
                             obs, reward, terminated, truncated, info = env.step(action)
+                            if observer is not None:
+                                observer.after(env, action)
                             if info["invalid_action"] or not np.isfinite(reward):
                                 raise RuntimeError("invalid evaluation transition")
                             env.sim.check_invariant()
@@ -107,6 +115,8 @@ def evaluate(network=None, policies=("ppo",), seeds=None, split="dev", loads=LOA
                                 if not record["complete_day"]:
                                     raise RuntimeError("evaluation requires completed days")
                                 record.update({"policy": policy, "split": split})
+                                if observer is not None:
+                                    record["diagnostics"] = observer.finish(env)
                                 records.append(record)
                                 break
         finally:

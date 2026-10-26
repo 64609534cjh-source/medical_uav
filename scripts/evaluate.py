@@ -17,10 +17,11 @@ def main():
     parser.add_argument("--checkpoint", type=Path)
     parser.add_argument("--policies", nargs="+", default=["ppo", "random", "edf", "slack"],
                         choices=("ppo", "random", "edf", "slack"))
-    parser.add_argument("--split", choices=("train", "dev", "test"), default="dev")
+    parser.add_argument("--split", choices=("train", "dev", "dev-extra", "test"), default="dev")
     parser.add_argument("--seeds", nargs="+", type=int, help="optional subset within the selected split")
     parser.add_argument("--loads", nargs="+", choices=("low", "medium", "high"), default=["low", "medium", "high"])
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--diagnostics", action="store_true")
     parser.add_argument("--threads", type=int, default=1)
     parser.add_argument("--learner-seed", type=int, default=0)
     args = parser.parse_args()
@@ -40,7 +41,7 @@ def main():
             network = build_network(state["architecture"])
         network.load_state_dict(state["model_state_dict"])
     records, summary = evaluate(network, args.policies, args.seeds, args.split,
-                                args.loads, seed, env_config=config)
+                                args.loads, seed, env_config=config, diagnostics=args.diagnostics)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     write_json(args.output, {"checkpoint": str(args.checkpoint) if args.checkpoint else None,
                              "split": args.split, "summary": summary, "episodes": records})
