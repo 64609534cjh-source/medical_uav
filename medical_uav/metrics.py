@@ -117,14 +117,17 @@ def behaviour_metrics(sim: Simulator, decision_log: list) -> dict:
 def distance_breakdown(sim: Simulator) -> dict:
     """Kilometres flown by purpose, read from what follows each flight (expired boxes unloaded
     on arrival are skipped): to a pickup, to a delivery (or only to unload expired boxes), to a
-    charger, or repositioning (anything else). Also the km flown with no box on board and the
-    number of boxes picked up that expired on board."""
+    charger, or repositioning (anything else). Also the km flown with no box on board, the
+    number of boxes picked up that expired on board, and the share of pickups made where the
+    drone already was (no flight just before)."""
     km = {"km_to_pickup": 0.0, "km_to_delivery": 0.0, "km_to_charger": 0.0, "km_reposition": 0.0}
-    km_empty, boxes = 0.0, 0
+    km_empty, boxes, pickups, in_place = 0.0, 0, 0, 0
     segments = sim.segments
     for i, seg in enumerate(segments):
         if seg.kind == "load":
             boxes += 1
+            pickups += 1
+            in_place += i == 0 or segments[i - 1].kind != "fly"
         elif seg.kind in ("unload", "dispose"):
             boxes -= 1
         if seg.kind != "fly":
@@ -138,7 +141,8 @@ def distance_breakdown(sim: Simulator) -> dict:
                    }.get(nxt, "km_to_delivery" if disposed else "km_reposition")
         km[purpose] += dist
     futile = sum(1 for o in sim.orders if o.status == "expired" and o.pickup_time is not None)
-    return {**km, "km_empty": km_empty, "futile_pickups": futile}
+    return {**km, "km_empty": km_empty, "futile_pickups": futile,
+            "pickups_in_place": in_place / pickups if pickups else math.nan}
 
 
 def share(count: int, total: int) -> str:

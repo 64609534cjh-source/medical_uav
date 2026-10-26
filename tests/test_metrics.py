@@ -130,6 +130,7 @@ def test_distance_breakdown_on_a_built_day(line_map):
     assert d["km_to_delivery"] == pytest.approx(km) and d["km_to_charger"] == pytest.approx(km)
     assert d["km_to_pickup"] == 0.0 and d["km_reposition"] == 0.0
     assert d["km_empty"] == pytest.approx(km) and d["futile_pickups"] == 0
+    assert d["pickups_in_place"] == 1.0  # both boxes loaded at M without a flight first
     assert sum(d[k] for k in ("km_to_pickup", "km_to_delivery", "km_to_charger",
                               "km_reposition")) == pytest.approx(sim.km_flown)
 
