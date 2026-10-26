@@ -83,7 +83,8 @@ def main():
     extra = {label: float(cost) for label, cost in (e.split("=") for e in args.extra_cost)}
     ref_label = next(iter(groups))
     reference = {r["seed"]: r["score"][-1] for r in groups[ref_label].values()}
-    print(f"score = mean of medium and high on-time; Slack-aware {np.mean(list(slack.values())):.3f}")
+    print("score = mean of medium and high on-time; "
+          f"Slack-aware {np.mean(list(slack.values())):.3f}")
     print(f"{'run':28s} {'final':>6s} {'curve mean':>10s} {'reaches target at':>18s}")
     hits = {}  # group -> seed -> decisions at the confirmed crossing, or None
     for label, runs in groups.items():

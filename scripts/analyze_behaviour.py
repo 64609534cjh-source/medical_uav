@@ -3,7 +3,8 @@
 Writes behaviour.csv (one row per policy, load and day), prints the means, and draws the battery
 over one day for each policy and the on-time rate by hour of release.
 
-Methods: slack, rollout, scenario16 (scenario rollout), and the energy-study interventions slack100 and prepeak
+Methods: slack, rollout, scenario16 (scenario rollout), and the energy-study interventions
+slack100 and prepeak
 (medical_uav/baselines/energy.py); --mask-full-charge adds each checkpoint with CHARGE(*, 100)
 hidden, labelled <checkpoint>/no100.
 

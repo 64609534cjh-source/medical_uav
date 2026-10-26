@@ -77,7 +77,8 @@ def main():
         for load in LOADS:
             d = diff(lambda rows: float(rows[load]["on_time_rate"]))
             print(f"  {load:7s} {fmt(paired_ci(d.mean(0)))}")
-        print("  seeds   " + "  ".join(f"s{s} {v * 100:+.1f}" for s, v in zip(seeds, d_score.mean(1))))
+        per_seed = zip(seeds, d_score.mean(1))
+        print("  seeds   " + "  ".join(f"s{s} {v * 100:+.1f}" for s, v in per_seed))
         print(f"  served  {fmt(paired_ci(diff(served).mean(0)))}")
         print(f"  plasma  {fmt(plasma_ci(runs, ref, seeds, days))}  (high load, pooled)")
 

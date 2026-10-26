@@ -177,7 +177,8 @@ def test_first_sustained_crossing():
 
     decisions = [1, 2, 3, 4, 5]
     assert first_sustained_crossing(decisions, [.5, .9, .7, .9, .95], .8) == 4  # 2 dips back
-    assert first_sustained_crossing(decisions, [.5, .6, .7, .8, .9], .85) is None  # last: unconfirmed
+    # the last evaluation cannot be confirmed
+    assert first_sustained_crossing(decisions, [.5, .6, .7, .8, .9], .85) is None
     assert first_sustained_crossing(decisions, [.9, .9, .9, .9, .9], .8) == 1
 
 
@@ -227,7 +228,8 @@ def test_compare_variants_pairs_runs_by_seed(tmp_path):
     for variant, rate in [("base", 0.80), ("new", 0.85)]:
         for load in ("medium", "high"):
             for day in (1, 2, 3):
-                lines.append(f"{variant}_s11/ckpt_1,{load},{day},{rate},0.9,{8 if variant == 'new' else 6},10")
+                plasma = 8 if variant == "new" else 6
+                lines.append(f"{variant}_s11/ckpt_1,{load},{day},{rate},0.9,{plasma},10")
     lines.append("slack,medium,1,0.7,0.9,5,10")  # not a run: ignored
     (tmp_path / "eval.csv").write_text("\n".join(lines))
     repo = Path(__file__).resolve().parents[1]
