@@ -1,6 +1,17 @@
 # Medical UAV Delivery Environment
 
-**Current milestone: Generation 2 architecture comparison completed (26 October 2026).**
+**Current milestone: Generation 3 diagnosis, two independent architecture tests and Test-v3 completed (26 October 2026).**
+[Gen3 report](results/gen3_summary.md) · [new Test-v3](results/gen3_test_v3.md) · [type/failure diagnosis](results/gen3_initial_diagnostics.md).
+On the same new Test-v3, frozen destination/urgency/coordination score **86.00%/86.34%/85.92%**.
+Neither new variant has a clear overall gain: urgency **+0.34pp [−0.21,+0.90]**,
+coordination **−0.08pp [−0.43,+0.24]** (pointwise paired95% intervals).
+Retain Gen2 destination as the formal mainline; subtype tradeoffs remain explicit.
+The optional guarded factored inference reduces reference CPU B1 p50 **270.4→212.5µs**;
+both optional modes matched all validated actions/full-day records. Training and final
+scientific evaluation use the original forward. All three Test cohorts are consumed;
+no model/hyperparameter changes followed Test-v3.
+
+**Generation 2: architecture comparison completed (26 October 2026).**
 [Gen2 report](results/gen2_summary.md) · [new Test-v2](results/gen2_test_v2.md) · [architecture/reproduction notes](docs/gen2_architectures.md).
 On the same new 100-day × three-load Test-v2, destination-conditioned DELIVER reaches
 **85.90 ± 0.34%**, frozen M5 **85.02 ± 0.33%**, and relational attention **84.97 ± 0.36%**.

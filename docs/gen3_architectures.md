@@ -52,3 +52,14 @@ python scripts/analyze_gen3.py --stage dev
 For one real forward/backward/checkpoint demonstration use `scripts/train.py --architecture urgency` or `--architecture coordinated`, `--total-steps 1024 --eval-split train`, and a fresh `--output-dir`. Full selected-model inference verification and timing protocols preserve exact model paths. Test-v3 is final confirmation for this generation, never a repeated screen for future designs. No theoretical optimum, new-map guarantee or causal error decomposition is claimed.
 
 Codex assisted architecture implementation, tests, training orchestration, diagnostics, uncertainty analysis, inference verification and reporting under the supplied study protocol. The submitting authors remain responsible for checking/explaining the code and results and disclosing AI use in coursework.
+
+The guarded inference adapter is optional:
+
+```python
+from medical_uav.agents.destination_inference import DestinationInferencePolicy
+# `model` is an original destination/urgency/coordination network loaded normally.
+policy = DestinationInferencePolicy(model).eval()
+action, _, _ = policy.act(observation_tensor, legal_mask_tensor, deterministic=True)
+```
+
+Keep the original network for stochastic collection, PPO probabilities and canonical scientific evaluation. The adapter owns no additional learned weights; the wrapped model retains the ordinary checkpoint format. Benchmark tables distinguish this guarded path from the pre-existing generic argmax-only helper.
