@@ -3,7 +3,7 @@
 Writes behaviour.csv (one row per policy, load and day), prints the means, and draws the battery
 over one day for each policy and the on-time rate by hour of release.
 
-Methods: slack, rollout, and the energy-study interventions slack100 and prepeak
+Methods: slack, rollout, scenario16 (scenario rollout), and the energy-study interventions slack100 and prepeak
 (medical_uav/baselines/energy.py); --mask-full-charge adds each checkpoint with CHARGE(*, 100)
 hidden, labelled <checkpoint>/no100.
 
@@ -24,13 +24,15 @@ from medical_uav.agents.policy import NetworkPolicy, load_checkpoint
 from medical_uav.baselines.energy import PrePeakTopUp, slack100_policy, without_full_charge
 from medical_uav.baselines.heuristics import slack_aware_policy
 from medical_uav.baselines.rollout import rollout_policy
+from medical_uav.baselines.scenario import ScenarioRollout
 from medical_uav.env import MedicalUAVEnv
 from medical_uav.env.config import EPS, EnvConfig
 from medical_uav.evaluation import checkpoint_labels
 from medical_uav.metrics import behaviour_metrics, distance_breakdown, episode_metrics
 from medical_uav.splits import SCREEN_SEEDS, SELECT_SEEDS
 
-RULES = {"slack": slack_aware_policy, "rollout": rollout_policy, "slack100": slack100_policy}
+RULES = {"slack": slack_aware_policy, "rollout": rollout_policy, "slack100": slack100_policy,
+         "scenario16": ScenarioRollout(16)}
 SEED_SETS = {"screen": SCREEN_SEEDS, "select": SELECT_SEEDS}
 NO_FULL = "#no100"  # suffix of a checkpoint run with full charges hidden
 HOURS = 8  # orders are released over 8 hours
