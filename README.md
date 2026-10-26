@@ -180,6 +180,51 @@ and `evaluation/evaluate.py`. The existing environment, reward and action orderi
 are unchanged. The implementation follows [PPO](https://arxiv.org/abs/1707.06347)
 and [Gymnasium termination/truncation semantics](https://gymnasium.farama.org/tutorials/gymnasium_basics/handling_time_limits/).
 
+### Local integration acceptance, 26 October 2026
+
+Source commit `b76f9bf`, Ubuntu 22.04.5, i7-12800H, Python 3.11.17 and PyTorch
+2.10.0+cpu: the Medium-only learner-seed-0 run completed 10,240 transitions,
+10 updates and 88 complete training days, with zero illegal actions. Its total
+wall time was 13.41 seconds including initial PPO/Random/EDF/Slack Dev evaluation
+and final PPO Dev evaluation. The largest pre-update probability-ratio error was
+7.16e-7. The final suite passed all 169 tests in 17.30 seconds.
+
+Each cell below is the mean daily on-time rate across the same 40 Dev days.
+The final PPO model was selected by the documented full-Dev rule.
+
+| Policy/checkpoint | Low | Medium | High |
+|---|---:|---:|---:|
+| PPO initialization | 9.80% | 7.33% | 5.00% |
+| PPO after 10,240 Medium transitions | 94.91% | 59.58% | 46.41% |
+| EDF | 99.56% | 40.56% | 27.47% |
+| Slack-aware | 99.26% | 80.99% | 65.89% |
+
+This establishes a learning response in one short development run. It does not
+establish superiority to Slack-aware, stable performance across learner seeds,
+or final Test generalization. No Test day was used. Random results and the full
+configuration are recorded in [the acceptance record](results/ppo_integration_2026-10-26.json).
+
+Loading `best.pt` in the standalone evaluator reproduced all 120 PPO Dev day
+records exactly. A separate continuation reached 11,264 transitions/11 updates,
+with optimizer steps continued and the inherited best copied unchanged. The
+continuation discarded eight partial days as declared by the resume convention.
+
+The full-cycle thread benchmark used five warmup plus twenty measured updates per
+setting. Mean collection + GAE + PPO + checkpoint time per 1,024 transitions was
+0.2252 seconds (1 thread), 0.2106 (2), and 0.2155 (4), excluding evaluation.
+One model-only full Dev evaluation took 3.04 seconds in the integration run.
+The short benchmark favors two threads slightly; one remains the conservative
+default. Runtime estimates for larger experiments must include evaluation and
+allow for changing policy behavior and other workloads.
+
+Raw run/checkpoint artifacts are local under `outputs/ppo_medium_10240_seed0/`,
+continuation under `outputs/ppo_medium_resume_11264_seed0/`, tests under
+`outputs/ppo_validation/`, and thread measurements under
+`outputs/ppo_thread_benchmark/`. These generated directories are ignored by Git;
+keep them with the tracked acceptance record when preparing the submission.
+The mixed-load pilot, multiple learner seeds, structural-network comparison,
+two-page report and submission archive remain subsequent stages.
+
 ## Run the demo
 
 ```bash

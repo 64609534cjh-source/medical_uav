@@ -1,0 +1,322 @@
+{
+  "purpose": "Continuous masked PPO integration acceptance; one short Medium learner seed, not a final learning experiment",
+  "date_singapore": "2026-10-26",
+  "source_commit": "b76f9bf0da674a4cd247e8e32d88cfc39e3f1964",
+  "source_clean_at_run_start": true,
+  "configuration": {
+    "total_steps": 10240,
+    "num_envs": 8,
+    "rollout_steps": 128,
+    "learner_seed": 0,
+    "loads": [
+      "medium"
+    ],
+    "train_seeds": null,
+    "map_seed": 0,
+    "threads": 1,
+    "eval_split": "dev",
+    "eval_interval_updates": 100,
+    "evaluate_initial": true,
+    "evaluate_baselines": true,
+    "ppo": {
+      "learning_rate": 0.0003,
+      "epochs": 4,
+      "minibatch_size": 256,
+      "clip_coef": 0.2,
+      "gamma": 1.0,
+      "gae_lambda": 0.95,
+      "value_coef": 0.5,
+      "entropy_coef": 0.01,
+      "max_grad_norm": 0.5,
+      "target_kl": 0.02
+    }
+  },
+  "tests": {
+    "passed": 169,
+    "failures": 0,
+    "errors": 0
+  },
+  "acceptance": {
+    "transitions": 10240,
+    "updates": 10,
+    "complete_training_days": 88,
+    "invalid_actions": 0,
+    "initial_ratio_max_error": 7.152557373046875e-07,
+    "wall_seconds": 13.409165842999755,
+    "full_dev_ppo_episodes_per_checkpoint": 120,
+    "model_only_full_dev_seconds": 3.0368467950002014,
+    "stage_seconds": {
+      "collect_seconds": 1.7098522490005053,
+      "gae_seconds": 0.02852762500060635,
+      "update_seconds": 0.5237143820013443,
+      "checkpoint_seconds": 0.019692478997967555
+    },
+    "initial_dev": {
+      "edf": {
+        "by_load": {
+          "low": {
+            "episodes": 40,
+            "on_time_rate": 0.9955694444444445,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 21.196547958342876,
+            "km_flown": 97.79623686097116,
+            "charge_minutes": 68.89932593652324,
+            "wait_minutes": 231.7666552629753
+          },
+          "medium": {
+            "episodes": 40,
+            "on_time_rate": 0.4055888204991197,
+            "served_rate": 0.8903034362488691,
+            "expiry_rate": 0.10969656375113077,
+            "reward": 23.587034411985655,
+            "km_flown": 184.08335396161092,
+            "charge_minutes": 134.56971838126856,
+            "wait_minutes": 41.23894507198023
+          },
+          "high": {
+            "episodes": 40,
+            "on_time_rate": 0.2747290151887962,
+            "served_rate": 0.7210028069488269,
+            "expiry_rate": 0.2789971930511731,
+            "reward": 10.224539112360686,
+            "km_flown": 191.7869335027174,
+            "charge_minutes": 142.25882245788165,
+            "wait_minutes": 30.722160544110203
+          }
+        },
+        "mean_on_time_rate": 0.5586290933774535,
+        "mean_reward": 18.33604049422974
+      },
+      "ppo": {
+        "by_load": {
+          "low": {
+            "episodes": 40,
+            "on_time_rate": 0.0979600837796086,
+            "served_rate": 0.18445793704190697,
+            "expiry_rate": 0.8155420629580931,
+            "reward": -6.664291533812525,
+            "km_flown": 203.69436902377825,
+            "charge_minutes": 174.17368523502478,
+            "wait_minutes": 168.68072383289874
+          },
+          "medium": {
+            "episodes": 40,
+            "on_time_rate": 0.07328209801035764,
+            "served_rate": 0.1775247650446446,
+            "expiry_rate": 0.8224752349553555,
+            "reward": -16.34276378053631,
+            "km_flown": 199.1755112491363,
+            "charge_minutes": 177.99306222859127,
+            "wait_minutes": 150.3194715922716
+          },
+          "high": {
+            "episodes": 40,
+            "on_time_rate": 0.04998692528126194,
+            "served_rate": 0.12779066598139566,
+            "expiry_rate": 0.8722093340186042,
+            "reward": -25.701457332890612,
+            "km_flown": 187.74037687530935,
+            "charge_minutes": 167.97640010628834,
+            "wait_minutes": 175.54930172917753
+          }
+        },
+        "mean_on_time_rate": 0.0737430356904094,
+        "mean_reward": -16.23617088241315
+      },
+      "random": {
+        "by_load": {
+          "low": {
+            "episodes": 40,
+            "on_time_rate": 0.5114091904985951,
+            "served_rate": 0.8168164465891616,
+            "expiry_rate": 0.18318355341083836,
+            "reward": 11.044501558977137,
+            "km_flown": 153.6153985391037,
+            "charge_minutes": 120.38091083562388,
+            "wait_minutes": 170.11556179112736
+          },
+          "medium": {
+            "episodes": 40,
+            "on_time_rate": 0.23545719748850402,
+            "served_rate": 0.5049988617423957,
+            "expiry_rate": 0.4950011382576044,
+            "reward": 2.078131599933433,
+            "km_flown": 180.89569388594265,
+            "charge_minutes": 152.7498977690087,
+            "wait_minutes": 104.67769598296559
+          },
+          "high": {
+            "episodes": 40,
+            "on_time_rate": 0.21279994686191506,
+            "served_rate": 0.41890773532863956,
+            "expiry_rate": 0.5810922646713603,
+            "reward": -2.878312373210245,
+            "km_flown": 191.76889328349225,
+            "charge_minutes": 163.29386083020918,
+            "wait_minutes": 82.57674862419981
+          }
+        },
+        "mean_on_time_rate": 0.3198887782830047,
+        "mean_reward": 3.4147735952334415
+      },
+      "slack": {
+        "by_load": {
+          "low": {
+            "episodes": 40,
+            "on_time_rate": 0.9926334850737024,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 21.142631552789272,
+            "km_flown": 94.4136412642421,
+            "charge_minutes": 66.3539644563605,
+            "wait_minutes": 237.4053510525735
+          },
+          "medium": {
+            "episodes": 40,
+            "on_time_rate": 0.8098680385391948,
+            "served_rate": 0.90584934610903,
+            "expiry_rate": 0.09415065389096998,
+            "reward": 40.43379003787271,
+            "km_flown": 152.601605243401,
+            "charge_minutes": 112.1456738822387,
+            "wait_minutes": 49.77242893771237
+          },
+          "high": {
+            "episodes": 40,
+            "on_time_rate": 0.658933380173023,
+            "served_rate": 0.8065562862246507,
+            "expiry_rate": 0.19344371377534939,
+            "reward": 40.551137431538294,
+            "km_flown": 156.10117414483344,
+            "charge_minutes": 116.56834750905409,
+            "wait_minutes": 32.748020653489064
+          }
+        },
+        "mean_on_time_rate": 0.8204783012619735,
+        "mean_reward": 34.04251967406676
+      }
+    },
+    "final_dev": {
+      "ppo": {
+        "by_load": {
+          "low": {
+            "episodes": 40,
+            "on_time_rate": 0.9491059837540352,
+            "served_rate": 0.9952606837606837,
+            "expiry_rate": 0.004739316239316239,
+            "reward": 20.593153751650032,
+            "km_flown": 103.612912992262,
+            "charge_minutes": 75.90641581211761,
+            "wait_minutes": 219.30882054850068
+          },
+          "medium": {
+            "episodes": 40,
+            "on_time_rate": 0.5957776426433226,
+            "served_rate": 0.8093074268835962,
+            "expiry_rate": 0.19069257311640375,
+            "reward": 28.613969666285175,
+            "km_flown": 166.0532186904402,
+            "charge_minutes": 128.23702988655265,
+            "wait_minutes": 43.14415457524485
+          },
+          "high": {
+            "episodes": 40,
+            "on_time_rate": 0.4640694855914872,
+            "served_rate": 0.6577412246756336,
+            "expiry_rate": 0.3422587753243663,
+            "reward": 21.491023174006216,
+            "km_flown": 180.8434676008733,
+            "charge_minutes": 144.01096836156836,
+            "wait_minutes": 27.441802182935213
+          }
+        },
+        "mean_on_time_rate": 0.669651037329615,
+        "mean_reward": 23.566048863980473
+      }
+    }
+  },
+  "independent_reload": {
+    "complete_evaluation_days": 480,
+    "ppo_days": 120,
+    "all_ppo_day_records_exactly_match": true
+  },
+  "resume": {
+    "transitions": 11264,
+    "updates": 11,
+    "optimizer_step_count_increased": true,
+    "inherited_best_file_exact": true,
+    "mode": "new_train_days",
+    "discarded_partial_days": 8,
+    "rng_reproducibility": "unit test verifies two resumes from one checkpoint produce identical model state"
+  },
+  "thread_benchmark": {
+    "purpose": "timing comparison on one Medium learner seed; not a learning experiment",
+    "results": [
+      {
+        "threads": 1,
+        "warmup_updates": 5,
+        "measured_updates": 20,
+        "transitions_per_update": 1024,
+        "mean_cycle_seconds_excluding_eval": 0.22518046600011984,
+        "median_cycle_seconds_excluding_eval": 0.22459670650050612,
+        "window_wall_seconds": 4.802298020000308,
+        "stage_mean_seconds": {
+          "collect_seconds": 0.16771171449995564,
+          "gae_seconds": 0.002877321850019143,
+          "update_seconds": 0.05256865595006275,
+          "checkpoint_seconds": 0.0020227737000823253,
+          "eval_seconds": 0.014137997099987842
+        }
+      },
+      {
+        "threads": 2,
+        "warmup_updates": 5,
+        "measured_updates": 20,
+        "transitions_per_update": 1024,
+        "mean_cycle_seconds_excluding_eval": 0.21058961600006115,
+        "median_cycle_seconds_excluding_eval": 0.21130556850039284,
+        "window_wall_seconds": 4.511284627999885,
+        "stage_mean_seconds": {
+          "collect_seconds": 0.1664967448000425,
+          "gae_seconds": 0.002941933550073372,
+          "update_seconds": 0.039073471549954775,
+          "checkpoint_seconds": 0.002077466099990488,
+          "eval_seconds": 0.014174899999989065
+        }
+      },
+      {
+        "threads": 4,
+        "warmup_updates": 5,
+        "measured_updates": 20,
+        "transitions_per_update": 1024,
+        "mean_cycle_seconds_excluding_eval": 0.21548358409995672,
+        "median_cycle_seconds_excluding_eval": 0.21446410500038837,
+        "window_wall_seconds": 4.635109615999681,
+        "stage_mean_seconds": {
+          "collect_seconds": 0.17707589125011508,
+          "gae_seconds": 0.0031397088999256086,
+          "update_seconds": 0.033108683300042685,
+          "checkpoint_seconds": 0.0021593006498733303,
+          "eval_seconds": 0.015429941950014837
+        }
+      }
+    ],
+    "fastest_threads": 2,
+    "scope": "One sequential pass per thread count; timings may vary with other PC workloads."
+  },
+  "artifacts": {
+    "run": "outputs/ppo_medium_10240_seed0",
+    "best_checkpoint_sha256": "d610fe4e599baf01befc944c6475c73b2ce0c991fc9279bfca661b654c6169d7",
+    "resume": "outputs/ppo_medium_resume_11264_seed0",
+    "benchmark": "outputs/ppo_thread_benchmark",
+    "test_log": "outputs/ppo_validation/pytest.log"
+  },
+  "limitations": [
+    "No Test days were evaluated.",
+    "Mixed-load pilot and multi-learner main experiments have not run.",
+    "Results are one 10,240-transition Medium-only debug run, selected on Dev.",
+    "CPU timing uses one sequential pass per thread count and can vary with workload and power/thermal state.",
+    "Continuation preserves RNG and optimizer but intentionally starts fresh days; it is not exact mid-episode replay."
+  ]
+}
