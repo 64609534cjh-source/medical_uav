@@ -18,6 +18,7 @@ def test_demo_network_runs_from_any_directory(tmp_path):
     assert result.returncode == 0, result.stderr
     for word in ("forward", "backward", "logits", "value estimate", "on time"):
         assert word in result.stdout
+    assert "count_" not in result.stdout  # per-type rates only, not the order counts
 
 
 def test_demo_writes_explanation_and_day_videos(tmp_path):

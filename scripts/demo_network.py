@@ -16,6 +16,7 @@ from medical_uav.agents.policy import NetworkPolicy, load_checkpoint
 from medical_uav.baselines.heuristics import slack_aware_policy
 from medical_uav.env import MedicalUAVEnv
 from medical_uav.env.actions import N_SLOTS
+from medical_uav.env.config import ORDER_TYPES
 from medical_uav.evaluation import run_day
 from medical_uav.metrics import summary_lines
 
@@ -115,8 +116,7 @@ def main():
         m = run_day(NetworkPolicy(net), load, 100_000)
         print(f"   BC {kind} network (validation accuracy {info['val_acc']:.3f}): "
               f"{100 * m['on_time_rate']:.1f}% on time")
-        m["on_time_by_type"] = {k[8:]: v for k, v in m.items()
-                                if k.startswith("on_time_") and k != "on_time_rate"}
+        m["on_time_by_type"] = {t.name: m[f"on_time_{t.name}"] for t in ORDER_TYPES}
         for line in summary_lines(m):
             print("     " + line)
     m = run_day(lambda env, o, msk: slack_aware_policy(env), load, 100_000)
