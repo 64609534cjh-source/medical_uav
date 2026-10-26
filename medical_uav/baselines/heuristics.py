@@ -17,8 +17,9 @@ def random_policy(env, rng: np.random.Generator) -> int:
     return int(rng.choice(np.flatnonzero(env.action_masks())))
 
 
-def charging_rule(env, theta: float) -> int | None:
-    """Return a CHARGE action if charging is due, else None; the nearest station is preferred."""
+def charging_rule(env, theta: float, preference=CHARGE_PREFERENCE) -> int | None:
+    """Return a CHARGE action if charging is due, else None; the nearest station is preferred,
+    then the charge targets in the order given."""
     sim, mask = env.sim, env.action_masks()
     has_service = mask[PICK0:CHARGE0].any()  # some PICK or DELIVER is valid
     wanted = sim.battery < theta or (not has_service and sim.battery < IDLE_CHARGE_BELOW)
@@ -27,7 +28,7 @@ def charging_rule(env, theta: float) -> int | None:
     nearest, _ = sim.nearest_charger(sim.location, sim.load_kg())
     stations = [nearest] + [c for c in CHARGERS if c != nearest]
     for station in stations:
-        for target in CHARGE_PREFERENCE:
+        for target in preference:
             a = charge_action(station, target)
             if mask[a]:
                 return a
@@ -52,9 +53,10 @@ def edf_policy(env, theta: float = DEFAULT_THETA) -> int:
     return min(candidates)[2] if candidates else WAIT
 
 
-def slack_aware_policy(env, theta: float = DEFAULT_THETA) -> int:
+def slack_aware_policy(env, theta: float = DEFAULT_THETA, preference=CHARGE_PREFERENCE) -> int:
     """EDF with three extra rules: unload here first, batch pickups going where cargo already
-    goes, and put work that can no longer be on time last."""
+    goes, and put work that can no longer be on time last. `preference` orders the charge
+    targets."""
     sim, mask = env.sim, env.action_masks()
 
     # 1) unload boxes for the current node
@@ -68,7 +70,7 @@ def slack_aware_policy(env, theta: float = DEFAULT_THETA) -> int:
             return PICK0 + k
 
     # 3) charge if needed
-    a = charging_rule(env, theta)
+    a = charging_rule(env, theta, preference)
     if a is not None:
         return a
 
