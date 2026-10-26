@@ -37,3 +37,28 @@ No combined destination+attention network, K=24 expansion, extended budget, rewa
 ## References and AI assistance
 
 These are mechanism hypotheses inspired by set modeling, not exact reproductions or promised improvements: [Deep Sets](https://arxiv.org/abs/1703.06114), [Set Transformer](https://proceedings.mlr.press/v97/lee19d.html). Codex assisted in implementing the architectures, tests, reproducible experiment runners, diagnostics, statistical analysis and reporting under the supplied protocol. The submitting authors remain responsible for checking and explaining the code, results and final coursework submission.
+
+## Local commands
+
+Use the installed `medical-uav-rl` Python environment. These commands assume the project root and the retained Generation 1 output/checkpoint directories. `outputs/` is ignored by Git; the local checkpoints and raw logs must be retained or supplied separately when reproducing elsewhere.
+
+```bash
+# One real rollout/update, backward pass and reloadable checkpoint per new model.
+python scripts/train.py --architecture destination --total-steps 1024 --eval-split train --output-dir outputs/gen2_demo_destination
+python scripts/train.py --architecture relational --total-steps 1024 --eval-split train --output-dir outputs/gen2_demo_relational
+
+# Full preregistered training: ten runs, five concurrent CPU processes.
+# The destination must be fresh; the recorded outputs are never overwritten.
+python scripts/run_gen2.py --output-dir outputs/gen2_architectures
+
+# Development evaluation protocols retain the exact model paths and hashes.
+python scripts/evaluate_suite.py --protocol configs/gen2_m5_devextra_protocol.json --output-dir outputs/gen2_m5_devextra
+python scripts/evaluate_suite.py --protocol configs/gen2_destination_devextra_protocol.json --output-dir outputs/gen2_destination_devextra
+python scripts/evaluate_suite.py --protocol configs/gen2_relational_devextra_protocol.json --output-dir outputs/gen2_relational_devextra
+python scripts/analyze_gen2.py --stage dev
+
+# Run only after all learners and evaluation processes stop.
+python scripts/benchmark_gen2.py --output results/gen2_latency.json
+```
+
+The original paths above document the recorded experiment and require absent/fresh output targets when executing. A reproduction in a separate checkout with the archived Generation 1 inputs can use those paths. An additional run in this checkout must use fresh output destinations and corresponding protocol/model paths. Do not rerun a holdout to screen new designs. The frozen Test-v2 protocol and evaluation output are the record of its one final use; subsequent model development needs a new holdout.
