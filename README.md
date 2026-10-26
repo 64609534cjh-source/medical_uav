@@ -230,8 +230,8 @@ continuation under `outputs/ppo_medium_resume_11264_seed0/`, tests under
 `outputs/ppo_validation/`, and thread measurements under
 `outputs/ppo_thread_benchmark/`. These generated directories are ignored by Git;
 keep them with the tracked acceptance record when preparing the submission.
-The subsequent mixed-load pilot is recorded below. Multiple learner seeds,
-structural-network comparison, the two-page report and submission archive remain
+The subsequent mixed-load pilot and five-seed M3 experiment are recorded below.
+Structural-network comparison, the two-page report and submission archive remain
 subsequent stages.
 
 ### Mixed-load pilot, 26 October 2026
@@ -298,11 +298,11 @@ Initial evaluation includes the three rule/random baselines (360 additional Dev
 days). The four subsequent model-only full Dev evaluations took about 2.96..3.14
 seconds each; there were 600 PPO Dev days and no Test days in total.
 
-The pilot meets engineering health criteria and supports keeping this setup for
-the planned scratch main experiment: learner seeds 0, 1 and 2, each with 1,024,000
-transitions and Dev every 102,400. That experiment has not run. An equal-budget
-Medium control is needed before attributing any gain specifically to load mixing;
-it is not required to claim this pilot learned under the mixed distribution.
+The pilot met engineering health criteria. The same setup was retained for the M3
+experiment below, with five fresh learner seeds 1..5, each with 1,024,000
+transitions and Dev every 102,400. An equal-budget Medium control is needed before
+attributing any gain specifically to load mixing; it is not required to claim
+this pilot learned under the mixed distribution.
 
 Raw logs, source snapshot, five archived checkpoints, `best.pt` and `last.pt` are
 under `outputs/ppo_mixed_102400_seed0/`. The JSON record and PNG/SVG figures are
@@ -312,6 +312,88 @@ tracked. Reproduce the analysis from the local raw run with:
 python scripts/analyze_pilot.py --run-dir outputs/ppo_mixed_102400_seed0 \
   --output results/ppo_mixed_pilot_seed0
 ```
+
+### M3 — Multi-seed MLP-PPO Baseline, 26 October 2026
+
+**Completed:** scratch learner seeds 1, 2, 3, 4 and 5 each ran the full 1,024,000
+transitions / 1,000 updates. No network, observation, action mask, reward or PPO
+setting was changed after the pilot. One CPU thread and a constant 3e-4 learning
+rate were retained. The protocol/configurations were committed before training
+at source commit `6ba5af2`; frozen file hashes are in
+[`configs/m3_protocol.json`](configs/m3_protocol.json).
+
+Every run retained 11 full-Dev checkpoint models (0, then every 102,400 transitions),
+plus `best.pt` and `last.pt`. Best selection uses the previously fixed equal-load
+mean daily on-time rate, reward tie-breaker, and earlier checkpoint for an exact
+tie. All runs finished their fixed budgets irrespective of interim scores.
+
+The primary Dev results below use each seed's independently selected best model.
+SD is sample SD across five learner seeds (ddof=1), in percentage points; no
+pooled-day confidence interval is implied.
+
+| Model | Low | Medium | High | Equal-load mean |
+|---|---:|---:|---:|---:|
+| MLP-PPO, best mean ± SD | 98.68% ± 0.39 | 74.31% ± 0.97 | 60.93% ± 1.33 | 77.97% ± 0.49 |
+| MLP-PPO, last mean ± SD | 98.52% ± 0.51 | 73.68% ± 1.25 | 59.44% ± 1.48 | 77.22% ± 0.98 |
+| Slack-aware | 99.26% | 80.99% | 65.89% | 82.05% |
+| EDF | 99.56% | 40.56% | 27.47% | 55.86% |
+| Random, canonical seed-0 baseline | 51.14% | 23.55% | 21.28% | 31.99% |
+
+The full [M3 result table and analysis](results/m3_mlp_ppo.md) reports all five
+seeds, best checkpoint positions, last results, paired comparisons and timings.
+The fixed common baseline uses the pilot's same 120 Dev scenarios; formal-run
+Random repeats remain in the raw logs but do not replace that preregistered row.
+
+![M3 five-seed curves](results/m3_mlp_ppo_curves.png)
+
+The pointwise equal-load mean increased from 73.79% at 102,400 transitions to
+77.22% at 1,024,000, a 3.42-point increase; Medium/High increased 4.23/5.36 points.
+The final three pointwise means were 77.12%, 77.27% and 77.22%, showing a much
+flatter late trajectory. This is an observed plateau/variation over those
+checkpoints, not proof of convergence. Four seeds selected a best checkpoint
+before the final budget. Seed 4 had the largest best-to-last loss (2.32 points),
+even while mean daily reward increased 0.549; its Medium/High served rates rose
+while on-time rates fell. This supports examining objective/service tradeoffs,
+without changing the frozen experiment or attributing the change to one mechanism.
+
+The best-model paired daily gaps against Slack averaged -0.59 points on Low,
+-6.68 on Medium, and -4.97 on High. Of the 200 matched seed/day pairs per load,
+PPO won/tied/lost 30/11/159 on Medium and 39/12/149 on High. Twenty Medium Dev
+days and seventeen High days were losses for all five seeds, so the remaining
+gap is not confined to a single unlucky learner or one isolated day.
+
+![M3 same-day differences](results/m3_mlp_ppo_paired.png)
+
+All 5,000 update records had zero illegal actions and finite key training
+diagnostics; all 55 model/optimizer checkpoint states passed finite-tensor checks.
+There were 47,780 complete training episodes and 6,600 PPO Dev episode records.
+No Test evaluation was performed. Training stages took 1,149.54 seconds, Dev
+evaluation/logging 202.68 seconds, and the full serial orchestration 1,376.24
+seconds (22.94 minutes), including startup and saves.
+
+Artifacts:
+
+- [`results/m3_mlp_ppo.json`](results/m3_mlp_ppo.json): all 55 checkpoint scores,
+  cross-seed statistics, per-seed sampling/diagnostics/timings and provenance.
+- [`results/m3_mlp_ppo_paired.json`](results/m3_mlp_ppo_paired.json): 1,200 matched
+  best/last seed/load/day comparisons, with both policy rates and their difference.
+- PNG/SVG versions of both figures are tracked under `results/`.
+- `outputs/m3_mixed_mlp_ppo/`: protocol manifest, five raw run directories, logs,
+  exact dependencies, source archives, all checkpoint models and daily records.
+  Generated raw artifacts remain local and are ignored by Git.
+
+Reproduction commands (choose a new output directory for another training run):
+
+```bash
+python scripts/run_m3.py --output-dir outputs/m3_mixed_mlp_ppo_reproduction
+python scripts/analyze_m3.py --run-dir outputs/m3_mixed_mlp_ppo --output results/m3_mlp_ppo
+```
+
+These are results for this MLP/observation/action/reward/training protocol, selected
+on reused Dev. They do not show that PPO generally loses to heuristics. The next
+comparisons can use the same budgets/seeds and Dev opportunity: equal-budget
+Medium-only versus Mixed, then the shared-order encoder. Test should remain
+unopened until candidate methods and their comparison protocol are fixed.
 
 ## Run the demo
 

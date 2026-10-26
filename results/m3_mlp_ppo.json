@@ -1,0 +1,3786 @@
+{
+  "milestone": "M3 \u2014 Multi-seed MLP-PPO Baseline",
+  "source_commit": "6ba5af2f5adb99d9f9f5f6a200d53904b794edc6",
+  "protocol_sha256": "13dd1c92be02f108c704d16b10917a67e1c3cb55e6263bee5dc4c5da1961a9aa",
+  "run_directory": "/home/liuyu/ME5418-project/medical_uav/outputs/m3_mixed_mlp_ppo",
+  "learner_seeds": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "best_per_seed": [
+    {
+      "learner_seed": 1,
+      "transitions": 1024000,
+      "checkpoint": "checkpoint_001024000.pt",
+      "checkpoint_sha256": "8c4895a52d9abc22e462179ad12b21be89c038209a81d753b36008131e9e5977",
+      "by_load": {
+        "low": {
+          "on_time_rate": 0.9849940653147174,
+          "served_rate": 0.9989130434782608,
+          "expiry_rate": 0.0010869565217391304,
+          "reward": 20.831433800994944,
+          "km_flown": 146.15081701108656,
+          "charge_minutes": 99.48439566092166,
+          "wait_minutes": 151.55505136442576
+        },
+        "medium": {
+          "on_time_rate": 0.7367292896873525,
+          "served_rate": 0.8936630173905737,
+          "expiry_rate": 0.1063369826094263,
+          "reward": 38.539764897066775,
+          "km_flown": 164.28344641763684,
+          "charge_minutes": 118.69805795169478,
+          "wait_minutes": 39.2005188105632
+        },
+        "high": {
+          "on_time_rate": 0.6081715522412593,
+          "served_rate": 0.7648868595449427,
+          "expiry_rate": 0.2351131404550573,
+          "reward": 37.54322499593887,
+          "km_flown": 169.52644199514359,
+          "charge_minutes": 122.67823943910533,
+          "wait_minutes": 25.294749506611307
+        }
+      },
+      "mean_on_time_rate": 0.7766316357477764,
+      "mean_reward": 32.3048078980002
+    },
+    {
+      "learner_seed": 2,
+      "transitions": 716800,
+      "checkpoint": "checkpoint_000716800.pt",
+      "checkpoint_sha256": "20342ff06c11f85ea6aa196d73f8391e205f50b2b37d3cc0c2c2719fd927cc58",
+      "by_load": {
+        "low": {
+          "on_time_rate": 0.9896094565765619,
+          "served_rate": 1.0,
+          "expiry_rate": 0.0,
+          "reward": 21.045405248491058,
+          "km_flown": 128.32250307693084,
+          "charge_minutes": 87.29784637851743,
+          "wait_minutes": 181.13866230359457
+        },
+        "medium": {
+          "on_time_rate": 0.7360279876304147,
+          "served_rate": 0.895493839684078,
+          "expiry_rate": 0.10450616031592191,
+          "reward": 38.60933169398636,
+          "km_flown": 164.9848867137512,
+          "charge_minutes": 118.11722097527696,
+          "wait_minutes": 36.22808486829818
+        },
+        "high": {
+          "on_time_rate": 0.6264662115172517,
+          "served_rate": 0.7783954310210396,
+          "expiry_rate": 0.22160456897896044,
+          "reward": 38.255932604856426,
+          "km_flown": 170.20561046712646,
+          "charge_minutes": 122.61546496526799,
+          "wait_minutes": 24.583976487978433
+        }
+      },
+      "mean_on_time_rate": 0.784034551908076,
+      "mean_reward": 32.636889849111284
+    },
+    {
+      "learner_seed": 3,
+      "transitions": 921600,
+      "checkpoint": "checkpoint_000921600.pt",
+      "checkpoint_sha256": "cc42876bc1c08b4803daef958ad8b48c999cd0f91dc5008a0e261059b01709d8",
+      "by_load": {
+        "low": {
+          "on_time_rate": 0.9861240068411121,
+          "served_rate": 0.9961574074074074,
+          "expiry_rate": 0.0038425925925925923,
+          "reward": 20.889257432917248,
+          "km_flown": 116.34158181680512,
+          "charge_minutes": 85.70367066331525,
+          "wait_minutes": 194.12363362940337
+        },
+        "medium": {
+          "on_time_rate": 0.7490265218724333,
+          "served_rate": 0.9012452882615627,
+          "expiry_rate": 0.09875471173843725,
+          "reward": 39.03220959108669,
+          "km_flown": 160.82030518573404,
+          "charge_minutes": 117.65123276675837,
+          "wait_minutes": 41.16757778695929
+        },
+        "high": {
+          "on_time_rate": 0.6152460825119418,
+          "served_rate": 0.7739084305250963,
+          "expiry_rate": 0.22609156947490375,
+          "reward": 38.03064782913582,
+          "km_flown": 165.5247153575139,
+          "charge_minutes": 120.60188148864354,
+          "wait_minutes": 25.75998186190704
+        }
+      },
+      "mean_on_time_rate": 0.7834655370751624,
+      "mean_reward": 32.650704951046585
+    },
+    {
+      "learner_seed": 4,
+      "transitions": 409600,
+      "checkpoint": "checkpoint_000409600.pt",
+      "checkpoint_sha256": "cad1cd2d7ceebd872702eadb99a404faf6e0b373904417294c8ef46187bc49e8",
+      "by_load": {
+        "low": {
+          "on_time_rate": 0.9816085377987552,
+          "served_rate": 0.9952792022792023,
+          "expiry_rate": 0.004720797720797721,
+          "reward": 20.539045053924347,
+          "km_flown": 196.29643747653873,
+          "charge_minutes": 141.0777124682893,
+          "wait_minutes": 60.13808131716968
+        },
+        "medium": {
+          "on_time_rate": 0.7574167214244095,
+          "served_rate": 0.877581852767894,
+          "expiry_rate": 0.12241814723210599,
+          "reward": 37.78807734933741,
+          "km_flown": 169.74892936855886,
+          "charge_minutes": 123.70880744831439,
+          "wait_minutes": 33.74877200592701
+        },
+        "high": {
+          "on_time_rate": 0.6062801119679531,
+          "served_rate": 0.7649195553832899,
+          "expiry_rate": 0.23508044461671007,
+          "reward": 36.85616851310265,
+          "km_flown": 171.33895507040017,
+          "charge_minutes": 125.22521640273085,
+          "wait_minutes": 24.583976487978433
+        }
+      },
+      "mean_on_time_rate": 0.7817684570637059,
+      "mean_reward": 31.727763638788137
+    },
+    {
+      "learner_seed": 5,
+      "transitions": 512000,
+      "checkpoint": "checkpoint_000512000.pt",
+      "checkpoint_sha256": "4313338ba3488959047f8c6befbd1d18a4f37920b4ae448f25b3d1f5241adae8",
+      "by_load": {
+        "low": {
+          "on_time_rate": 0.9915292022792023,
+          "served_rate": 0.9971666666666666,
+          "expiry_rate": 0.0028333333333333335,
+          "reward": 20.549799332385156,
+          "km_flown": 235.326467216427,
+          "charge_minutes": 161.5004896576888,
+          "wait_minutes": 0
+        },
+        "medium": {
+          "on_time_rate": 0.7361317191714358,
+          "served_rate": 0.8953694229157485,
+          "expiry_rate": 0.10463057708425152,
+          "reward": 38.26589484462961,
+          "km_flown": 187.19017440128218,
+          "charge_minutes": 134.16588834336665,
+          "wait_minutes": 0
+        },
+        "high": {
+          "on_time_rate": 0.5901142015028515,
+          "served_rate": 0.7770626660834001,
+          "expiry_rate": 0.22293733391659987,
+          "reward": 37.95432417695476,
+          "km_flown": 181.96079579596412,
+          "charge_minutes": 131.075387329472,
+          "wait_minutes": 0
+        }
+      },
+      "mean_on_time_rate": 0.7725917076511633,
+      "mean_reward": 32.25667278465651
+    }
+  ],
+  "last_per_seed": [
+    {
+      "learner_seed": 1,
+      "transitions": 1024000,
+      "checkpoint": "checkpoint_001024000.pt",
+      "checkpoint_sha256": "8c4895a52d9abc22e462179ad12b21be89c038209a81d753b36008131e9e5977",
+      "by_load": {
+        "low": {
+          "on_time_rate": 0.9849940653147174,
+          "served_rate": 0.9989130434782608,
+          "expiry_rate": 0.0010869565217391304,
+          "reward": 20.831433800994944,
+          "km_flown": 146.15081701108656,
+          "charge_minutes": 99.48439566092166,
+          "wait_minutes": 151.55505136442576
+        },
+        "medium": {
+          "on_time_rate": 0.7367292896873525,
+          "served_rate": 0.8936630173905737,
+          "expiry_rate": 0.1063369826094263,
+          "reward": 38.539764897066775,
+          "km_flown": 164.28344641763684,
+          "charge_minutes": 118.69805795169478,
+          "wait_minutes": 39.2005188105632
+        },
+        "high": {
+          "on_time_rate": 0.6081715522412593,
+          "served_rate": 0.7648868595449427,
+          "expiry_rate": 0.2351131404550573,
+          "reward": 37.54322499593887,
+          "km_flown": 169.52644199514359,
+          "charge_minutes": 122.67823943910533,
+          "wait_minutes": 25.294749506611307
+        }
+      },
+      "mean_on_time_rate": 0.7766316357477764,
+      "mean_reward": 32.3048078980002
+    },
+    {
+      "learner_seed": 2,
+      "transitions": 1024000,
+      "checkpoint": "checkpoint_001024000.pt",
+      "checkpoint_sha256": "2ad38c0937ba83da32de344cd33ca63f0c435ba054c1079ba01ace281bba7522",
+      "by_load": {
+        "low": {
+          "on_time_rate": 0.9907998279900454,
+          "served_rate": 1.0,
+          "expiry_rate": 0.0,
+          "reward": 21.114847042037315,
+          "km_flown": 101.82510815954151,
+          "charge_minutes": 75.74618189204128,
+          "wait_minutes": 221.29911896932717
+        },
+        "medium": {
+          "on_time_rate": 0.7501924874417066,
+          "served_rate": 0.9001863209535577,
+          "expiry_rate": 0.09981367904644235,
+          "reward": 39.31610350178762,
+          "km_flown": 161.19083188103068,
+          "charge_minutes": 116.84436608458722,
+          "wait_minutes": 39.01560942471222
+        },
+        "high": {
+          "on_time_rate": 0.6020266079631235,
+          "served_rate": 0.7762827548476788,
+          "expiry_rate": 0.2237172451523212,
+          "reward": 37.76390398518505,
+          "km_flown": 167.87720949289343,
+          "charge_minutes": 121.53803047925275,
+          "wait_minutes": 25.3690056418923
+        }
+      },
+      "mean_on_time_rate": 0.7810063077982918,
+      "mean_reward": 32.73161817633667
+    },
+    {
+      "learner_seed": 3,
+      "transitions": 1024000,
+      "checkpoint": "checkpoint_001024000.pt",
+      "checkpoint_sha256": "974f2fefb709f9e2b9b7781161ba9dae12ec101a8026903cbde0fc8218a3c021",
+      "by_load": {
+        "low": {
+          "on_time_rate": 0.9851913758755864,
+          "served_rate": 0.9991666666666666,
+          "expiry_rate": 0.0008333333333333333,
+          "reward": 21.02671782061876,
+          "km_flown": 102.60481008878524,
+          "charge_minutes": 76.13432675642095,
+          "wait_minutes": 219.65891145386126
+        },
+        "medium": {
+          "on_time_rate": 0.7478482735178892,
+          "served_rate": 0.9009858812941853,
+          "expiry_rate": 0.09901411870581461,
+          "reward": 39.278435004897894,
+          "km_flown": 161.18350955056036,
+          "charge_minutes": 117.54839400028543,
+          "wait_minutes": 41.35037949895954
+        },
+        "high": {
+          "on_time_rate": 0.6052134290679017,
+          "served_rate": 0.7775469314796569,
+          "expiry_rate": 0.22245306852034302,
+          "reward": 37.810383864155256,
+          "km_flown": 167.36063572029587,
+          "charge_minutes": 122.32930768104006,
+          "wait_minutes": 26.1544590261223
+        }
+      },
+      "mean_on_time_rate": 0.779417692820459,
+      "mean_reward": 32.7051788965573
+    },
+    {
+      "learner_seed": 4,
+      "transitions": 1024000,
+      "checkpoint": "checkpoint_001024000.pt",
+      "checkpoint_sha256": "9124fe328ab07013eaf950d7ad1bc1ce65ecec13cb3f4d5983a8726e16d0e009",
+      "by_load": {
+        "low": {
+          "on_time_rate": 0.9770139575766511,
+          "served_rate": 0.9978636363636364,
+          "expiry_rate": 0.0021363636363636363,
+          "reward": 20.607882472392877,
+          "km_flown": 192.53539626385827,
+          "charge_minutes": 139.60205776772025,
+          "wait_minutes": 66.0748028767631
+        },
+        "medium": {
+          "on_time_rate": 0.720787885222948,
+          "served_rate": 0.8973051389314469,
+          "expiry_rate": 0.10269486106855306,
+          "reward": 38.24452888094065,
+          "km_flown": 163.4825580699885,
+          "charge_minutes": 121.10647768242464,
+          "wait_minutes": 34.508332409720936
+        },
+        "high": {
+          "on_time_rate": 0.5777992403654822,
+          "served_rate": 0.7825463975413266,
+          "expiry_rate": 0.21745360245867343,
+          "reward": 37.97756787890522,
+          "km_flown": 165.13692360004998,
+          "charge_minutes": 122.88390343130038,
+          "wait_minutes": 24.728453652193693
+        }
+      },
+      "mean_on_time_rate": 0.7585336943883605,
+      "mean_reward": 32.27665974407958
+    },
+    {
+      "learner_seed": 5,
+      "transitions": 1024000,
+      "checkpoint": "checkpoint_001024000.pt",
+      "checkpoint_sha256": "51c6c17b212252fb3f3c805777083274d97beac1dfb5c634e963b01e77ed6105",
+      "by_load": {
+        "low": {
+          "on_time_rate": 0.9879628501530675,
+          "served_rate": 1.0,
+          "expiry_rate": 0.0,
+          "reward": 21.043126665198027,
+          "km_flown": 100.74289360371307,
+          "charge_minutes": 75.77118159069794,
+          "wait_minutes": 222.50517436674016
+        },
+        "medium": {
+          "on_time_rate": 0.7286778311638088,
+          "served_rate": 0.9034027023585423,
+          "expiry_rate": 0.0965972976414577,
+          "reward": 39.2517114924191,
+          "km_flown": 159.28069209125513,
+          "charge_minutes": 118.88060881774032,
+          "wait_minutes": 40.448669843548956
+        },
+        "high": {
+          "on_time_rate": 0.5790073495727065,
+          "served_rate": 0.7771334348881233,
+          "expiry_rate": 0.2228665651118767,
+          "reward": 37.69015042605759,
+          "km_flown": 167.66981095424296,
+          "charge_minutes": 123.9521212027153,
+          "wait_minutes": 24.583976487978433
+        }
+      },
+      "mean_on_time_rate": 0.7652160102965276,
+      "mean_reward": 32.661662861224904
+    }
+  ],
+  "best_across_seed_stats": {
+    "low": {
+      "mean": 0.9867730537620698,
+      "sample_sd": 0.0039027047217227635,
+      "min": 0.9816085377987552,
+      "max": 0.9915292022792023
+    },
+    "medium": {
+      "mean": 0.7430664479572092,
+      "sample_sd": 0.009737078510771036,
+      "min": 0.7360279876304147,
+      "max": 0.7574167214244095
+    },
+    "high": {
+      "mean": 0.6092556319482515,
+      "sample_sd": 0.01330895238661984,
+      "min": 0.5901142015028515,
+      "max": 0.6264662115172517
+    },
+    "mean": {
+      "mean": 0.7796983778891768,
+      "sample_sd": 0.004929218763588718,
+      "min": 0.7725917076511633,
+      "max": 0.784034551908076
+    }
+  },
+  "last_across_seed_stats": {
+    "low": {
+      "mean": 0.9851924153820135,
+      "sample_sd": 0.005148905244837082,
+      "min": 0.9770139575766511,
+      "max": 0.9907998279900454
+    },
+    "medium": {
+      "mean": 0.736847153406741,
+      "sample_sd": 0.01248773795137576,
+      "min": 0.720787885222948,
+      "max": 0.7501924874417066
+    },
+    "high": {
+      "mean": 0.5944436358420946,
+      "sample_sd": 0.014809291302673541,
+      "min": 0.5777992403654822,
+      "max": 0.6081715522412593
+    },
+    "mean": {
+      "mean": 0.7721610682102831,
+      "sample_sd": 0.009808440050760054,
+      "min": 0.7585336943883605,
+      "max": 0.7810063077982918
+    }
+  },
+  "curves": {
+    "1": [
+      {
+        "transitions": 0,
+        "checkpoint": "checkpoint_000000000.pt",
+        "checkpoint_sha256": "71d54fceb667c21d1fc8e5c238a8a0894f7e7f4e384b694c65481124b7867639",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.10075379118427476,
+            "served_rate": 0.23005149166441063,
+            "expiry_rate": 0.7699485083355894,
+            "reward": -6.579652775315703,
+            "km_flown": 277.3624660307486,
+            "charge_minutes": 226.959138500644,
+            "wait_minutes": 25.18684886298005
+          },
+          "medium": {
+            "on_time_rate": 0.045121479334268896,
+            "served_rate": 0.10366723234438088,
+            "expiry_rate": 0.8963327676556191,
+            "reward": -21.186631767525814,
+            "km_flown": 234.70677656775237,
+            "charge_minutes": 203.32009353456473,
+            "wait_minutes": 93.97408502112185
+          },
+          "high": {
+            "on_time_rate": 0.031661473510597525,
+            "served_rate": 0.08554130898464297,
+            "expiry_rate": 0.914458691015357,
+            "reward": -29.164067736158337,
+            "km_flown": 232.41800717920344,
+            "charge_minutes": 202.78289254919025,
+            "wait_minutes": 101.2829686419881
+          }
+        },
+        "mean_on_time_rate": 0.059178914676380395,
+        "mean_reward": -18.97678409299995
+      },
+      {
+        "transitions": 102400,
+        "checkpoint": "checkpoint_000102400.pt",
+        "checkpoint_sha256": "69ba3990e7c8bcc7a1d17eab8e10b9cf53b6f71be7d5a4e471bdd688f40009d4",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9859664003468351,
+            "served_rate": 0.999,
+            "expiry_rate": 0.001,
+            "reward": 20.686146524053612,
+            "km_flown": 202.24588011212407,
+            "charge_minutes": 145.7258165448079,
+            "wait_minutes": 48.010190340282975
+          },
+          "medium": {
+            "on_time_rate": 0.6986372450460123,
+            "served_rate": 0.8754672227183883,
+            "expiry_rate": 0.12453277728161166,
+            "reward": 36.279569148399716,
+            "km_flown": 165.33021093502063,
+            "charge_minutes": 125.73548305180277,
+            "wait_minutes": 33.74877200592701
+          },
+          "high": {
+            "on_time_rate": 0.537961248250907,
+            "served_rate": 0.7432709675590015,
+            "expiry_rate": 0.25672903244099854,
+            "reward": 33.31845152095201,
+            "km_flown": 169.6600783558812,
+            "charge_minutes": 130.23477146037968,
+            "wait_minutes": 24.583976487978433
+          }
+        },
+        "mean_on_time_rate": 0.7408549645479181,
+        "mean_reward": 30.094722397801778
+      },
+      {
+        "transitions": 204800,
+        "checkpoint": "checkpoint_000204800.pt",
+        "checkpoint_sha256": "a10180d2325102ae718e06adf46d056122c1df4bd4bf279d18255b95f4be0d5b",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9805031366639423,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 20.764879130350288,
+            "km_flown": 179.6331492442243,
+            "charge_minutes": 130.6187026141873,
+            "wait_minutes": 86.42983191339265
+          },
+          "medium": {
+            "on_time_rate": 0.7090883047553862,
+            "served_rate": 0.8872312961589675,
+            "expiry_rate": 0.11276870384103255,
+            "reward": 37.44972325614421,
+            "km_flown": 163.00648573951818,
+            "charge_minutes": 122.62291123512678,
+            "wait_minutes": 33.28903672371519
+          },
+          "high": {
+            "on_time_rate": 0.5452815502510578,
+            "served_rate": 0.7537112124198083,
+            "expiry_rate": 0.24628878758019163,
+            "reward": 34.478781442070925,
+            "km_flown": 169.34667693297632,
+            "charge_minutes": 127.4819146535603,
+            "wait_minutes": 22.967914874210773
+          }
+        },
+        "mean_on_time_rate": 0.7449576638901287,
+        "mean_reward": 30.897794609521807
+      },
+      {
+        "transitions": 307200,
+        "checkpoint": "checkpoint_000307200.pt",
+        "checkpoint_sha256": "2667aaed8edd9c6df29a380498205721eb1d07695c086e1e6f223b96f6d52f89",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9849849733599734,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 20.80263373057051,
+            "km_flown": 194.59737046590539,
+            "charge_minutes": 140.74365092408425,
+            "wait_minutes": 61.13808131716968
+          },
+          "medium": {
+            "on_time_rate": 0.7228673927015165,
+            "served_rate": 0.899808786762228,
+            "expiry_rate": 0.10019121323777203,
+            "reward": 38.14966294889519,
+            "km_flown": 164.51798961722793,
+            "charge_minutes": 120.67275478534539,
+            "wait_minutes": 33.87064578529125
+          },
+          "high": {
+            "on_time_rate": 0.5585357540087013,
+            "served_rate": 0.7642952078395978,
+            "expiry_rate": 0.23570479216040216,
+            "reward": 35.20493283377052,
+            "km_flown": 168.11556627407998,
+            "charge_minutes": 124.5424738384563,
+            "wait_minutes": 24.583976487978433
+          }
+        },
+        "mean_on_time_rate": 0.7554627066900637,
+        "mean_reward": 31.38574317107874
+      },
+      {
+        "transitions": 409600,
+        "checkpoint": "checkpoint_000409600.pt",
+        "checkpoint_sha256": "9951648180903186527e92c9ff1f387847eb63bb86c9a42a87976bdaa90e4641",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.987218643379449,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 20.798647812197615,
+            "km_flown": 194.6863869701999,
+            "charge_minutes": 134.16301724928707,
+            "wait_minutes": 68.00919843024263
+          },
+          "medium": {
+            "on_time_rate": 0.7300706984683241,
+            "served_rate": 0.9012493057146785,
+            "expiry_rate": 0.0987506942853215,
+            "reward": 39.052212350267354,
+            "km_flown": 164.89956294115365,
+            "charge_minutes": 118.3868523095597,
+            "wait_minutes": 33.60791935311957
+          },
+          "high": {
+            "on_time_rate": 0.5794749032258114,
+            "served_rate": 0.7735549893956651,
+            "expiry_rate": 0.2264450106043349,
+            "reward": 37.068363443200305,
+            "km_flown": 168.03730464095062,
+            "charge_minutes": 123.92580895832756,
+            "wait_minutes": 24.415329153240677
+          }
+        },
+        "mean_on_time_rate": 0.7655880816911949,
+        "mean_reward": 32.30640786855509
+      },
+      {
+        "transitions": 512000,
+        "checkpoint": "checkpoint_000512000.pt",
+        "checkpoint_sha256": "7fd64f439dffb8895399d52bf6f6fe40abeebef5dbc8ae05820aa0d45caba4ac",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.989554679619897,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 20.826203582708708,
+            "km_flown": 194.98905201314483,
+            "charge_minutes": 140.6717784487356,
+            "wait_minutes": 60.866021964119
+          },
+          "medium": {
+            "on_time_rate": 0.7296666286424324,
+            "served_rate": 0.9037573334451035,
+            "expiry_rate": 0.09624266655489654,
+            "reward": 39.03080333811483,
+            "km_flown": 162.78994353338237,
+            "charge_minutes": 118.4686751712969,
+            "wait_minutes": 33.87064578529125
+          },
+          "high": {
+            "on_time_rate": 0.5736834164236165,
+            "served_rate": 0.7725103347113463,
+            "expiry_rate": 0.2274896652886536,
+            "reward": 36.3051894352588,
+            "km_flown": 169.34836434483623,
+            "charge_minutes": 123.8613077933698,
+            "wait_minutes": 22.938629599823578
+          }
+        },
+        "mean_on_time_rate": 0.7643015748953152,
+        "mean_reward": 32.054065452027444
+      },
+      {
+        "transitions": 614400,
+        "checkpoint": "checkpoint_000614400.pt",
+        "checkpoint_sha256": "f21c0474db9ed7908385b28d238816b2c11fbea578c270cc92245aafff715701",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9901748279900454,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 21.027177899035028,
+            "km_flown": 138.01613988634034,
+            "charge_minutes": 94.45080531743827,
+            "wait_minutes": 163.8244075762606
+          },
+          "medium": {
+            "on_time_rate": 0.7295689543979367,
+            "served_rate": 0.8949666277399192,
+            "expiry_rate": 0.10503337226008082,
+            "reward": 38.17876765334012,
+            "km_flown": 167.3533133898255,
+            "charge_minutes": 120.66963172365,
+            "wait_minutes": 33.87619709629692
+          },
+          "high": {
+            "on_time_rate": 0.5772369176700984,
+            "served_rate": 0.778685426666817,
+            "expiry_rate": 0.22131457333318305,
+            "reward": 37.41710059709209,
+            "km_flown": 168.23042648430442,
+            "charge_minutes": 122.77429612153949,
+            "wait_minutes": 24.559806317455937
+          }
+        },
+        "mean_on_time_rate": 0.7656602333526935,
+        "mean_reward": 32.20768204982241
+      },
+      {
+        "transitions": 716800,
+        "checkpoint": "checkpoint_000716800.pt",
+        "checkpoint_sha256": "f787f74bd66a29fa93a17182c1072543a541ef533d1a2bf3c2395cc0f87b1258",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9884458504458504,
+            "served_rate": 0.9983333333333333,
+            "expiry_rate": 0.0016666666666666666,
+            "reward": 20.937418548063256,
+            "km_flown": 131.82207197836325,
+            "charge_minutes": 89.23799206530614,
+            "wait_minutes": 176.20264596493843
+          },
+          "medium": {
+            "on_time_rate": 0.7264428546412497,
+            "served_rate": 0.8981265707926217,
+            "expiry_rate": 0.10187342920737832,
+            "reward": 38.458674938992765,
+            "km_flown": 162.2243789583316,
+            "charge_minutes": 118.94460577256137,
+            "wait_minutes": 38.89438176587208
+          },
+          "high": {
+            "on_time_rate": 0.5843200537285583,
+            "served_rate": 0.7770744646873369,
+            "expiry_rate": 0.22292553531266315,
+            "reward": 37.288106031777545,
+            "km_flown": 170.6487138192751,
+            "charge_minutes": 125.04451821139955,
+            "wait_minutes": 24.713994850545422
+          }
+        },
+        "mean_on_time_rate": 0.7664029196052194,
+        "mean_reward": 32.228066506277855
+      },
+      {
+        "transitions": 819200,
+        "checkpoint": "checkpoint_000819200.pt",
+        "checkpoint_sha256": "cd185406e5bdfd8d0903669929d9a36feb4c0ea1566134b480513ea11a9b64a1",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9874041837791838,
+            "served_rate": 0.9983333333333333,
+            "expiry_rate": 0.0016666666666666666,
+            "reward": 20.973009965423714,
+            "km_flown": 124.98158902744123,
+            "charge_minutes": 84.85421588921623,
+            "wait_minutes": 187.76317543369754
+          },
+          "medium": {
+            "on_time_rate": 0.744324739550137,
+            "served_rate": 0.9038217855716923,
+            "expiry_rate": 0.09617821442830761,
+            "reward": 39.24078252442108,
+            "km_flown": 160.6808445076154,
+            "charge_minutes": 117.17940653583616,
+            "wait_minutes": 39.76525793169255
+          },
+          "high": {
+            "on_time_rate": 0.586471602932208,
+            "served_rate": 0.7860099673599655,
+            "expiry_rate": 0.21399003264003444,
+            "reward": 38.58018297148733,
+            "km_flown": 165.5434653575139,
+            "charge_minutes": 120.58372281153542,
+            "wait_minutes": 25.977967304744148
+          }
+        },
+        "mean_on_time_rate": 0.772733508753843,
+        "mean_reward": 32.93132515377737
+      },
+      {
+        "transitions": 921600,
+        "checkpoint": "checkpoint_000921600.pt",
+        "checkpoint_sha256": "89f7c42db0a7582dd0efb16465af6344b4b1906754b58113f2739fe82e0fea33",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9911234626886801,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 21.128058709323795,
+            "km_flown": 101.59404214236353,
+            "charge_minutes": 71.54943962073814,
+            "wait_minutes": 225.51676835377464
+          },
+          "medium": {
+            "on_time_rate": 0.7393625841994064,
+            "served_rate": 0.8924857112258446,
+            "expiry_rate": 0.10751428877415539,
+            "reward": 38.377011693556085,
+            "km_flown": 162.722602263035,
+            "charge_minutes": 118.02964363790092,
+            "wait_minutes": 39.38447751831861
+          },
+          "high": {
+            "on_time_rate": 0.5872985591060401,
+            "served_rate": 0.7685125967750992,
+            "expiry_rate": 0.23148740322490083,
+            "reward": 36.898223997997235,
+            "km_flown": 169.41504589207568,
+            "charge_minutes": 122.39229951866024,
+            "wait_minutes": 24.742971280797203
+          }
+        },
+        "mean_on_time_rate": 0.7725948686647088,
+        "mean_reward": 32.134431466959036
+      },
+      {
+        "transitions": 1024000,
+        "checkpoint": "checkpoint_001024000.pt",
+        "checkpoint_sha256": "8c4895a52d9abc22e462179ad12b21be89c038209a81d753b36008131e9e5977",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9849940653147174,
+            "served_rate": 0.9989130434782608,
+            "expiry_rate": 0.0010869565217391304,
+            "reward": 20.831433800994944,
+            "km_flown": 146.15081701108656,
+            "charge_minutes": 99.48439566092166,
+            "wait_minutes": 151.55505136442576
+          },
+          "medium": {
+            "on_time_rate": 0.7367292896873525,
+            "served_rate": 0.8936630173905737,
+            "expiry_rate": 0.1063369826094263,
+            "reward": 38.539764897066775,
+            "km_flown": 164.28344641763684,
+            "charge_minutes": 118.69805795169478,
+            "wait_minutes": 39.2005188105632
+          },
+          "high": {
+            "on_time_rate": 0.6081715522412593,
+            "served_rate": 0.7648868595449427,
+            "expiry_rate": 0.2351131404550573,
+            "reward": 37.54322499593887,
+            "km_flown": 169.52644199514359,
+            "charge_minutes": 122.67823943910533,
+            "wait_minutes": 25.294749506611307
+          }
+        },
+        "mean_on_time_rate": 0.7766316357477764,
+        "mean_reward": 32.3048078980002
+      }
+    ],
+    "2": [
+      {
+        "transitions": 0,
+        "checkpoint": "checkpoint_000000000.pt",
+        "checkpoint_sha256": "620c4b9ebbe49c21a5367acbfdbf373a9cbe02d86145b446078508ece9e66b74",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.18941135653506094,
+            "served_rate": 0.3226567730801477,
+            "expiry_rate": 0.6773432269198523,
+            "reward": -2.8765670803067773,
+            "km_flown": 44.545494199604995,
+            "charge_minutes": 29.97567920837035,
+            "wait_minutes": 448.570715070471
+          },
+          "medium": {
+            "on_time_rate": 0.19634577826987873,
+            "served_rate": 0.3370220221892203,
+            "expiry_rate": 0.6629779778107797,
+            "reward": -5.313304672420966,
+            "km_flown": 102.52734751986749,
+            "charge_minutes": 83.79326839717537,
+            "wait_minutes": 290.678512976054
+          },
+          "high": {
+            "on_time_rate": 0.1693344661603715,
+            "served_rate": 0.29916557779545355,
+            "expiry_rate": 0.7008344222045465,
+            "reward": -9.544771675106405,
+            "km_flown": 125.44390504461923,
+            "charge_minutes": 104.32981419437256,
+            "wait_minutes": 254.70944149499275
+          }
+        },
+        "mean_on_time_rate": 0.18503053365510372,
+        "mean_reward": -5.91154780927805
+      },
+      {
+        "transitions": 102400,
+        "checkpoint": "checkpoint_000102400.pt",
+        "checkpoint_sha256": "615cd9782f049b8e6a42a90ccb063809b47d021e8e64b49e195ef1564cb8ea02",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9847268518518518,
+            "served_rate": 0.9979166666666667,
+            "expiry_rate": 0.0020833333333333333,
+            "reward": 21.030412988467734,
+            "km_flown": 104.20248144502254,
+            "charge_minutes": 77.39958481558708,
+            "wait_minutes": 216.34818829720865
+          },
+          "medium": {
+            "on_time_rate": 0.6790539117030457,
+            "served_rate": 0.8897649859405812,
+            "expiry_rate": 0.11023501405941882,
+            "reward": 36.78583508757421,
+            "km_flown": 161.80409937878053,
+            "charge_minutes": 123.07749631245574,
+            "wait_minutes": 36.5283169224333
+          },
+          "high": {
+            "on_time_rate": 0.5125531333758204,
+            "served_rate": 0.7475370799957648,
+            "expiry_rate": 0.25246292000423526,
+            "reward": 33.127952519855754,
+            "km_flown": 176.74517350393842,
+            "charge_minutes": 132.54252098713198,
+            "wait_minutes": 13.614166532204855
+          }
+        },
+        "mean_on_time_rate": 0.7254446323102394,
+        "mean_reward": 30.3147335319659
+      },
+      {
+        "transitions": 204800,
+        "checkpoint": "checkpoint_000204800.pt",
+        "checkpoint_sha256": "a0e55c8d13680d32d9bee2c22fbe6e250898958d0e6eb1b0e8997a597fa6a146",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.989364078104807,
+            "served_rate": 0.9989583333333333,
+            "expiry_rate": 0.0010416666666666667,
+            "reward": 21.090209407416776,
+            "km_flown": 100.42343923888677,
+            "charge_minutes": 75.08450671517686,
+            "wait_minutes": 223.14365597940787
+          },
+          "medium": {
+            "on_time_rate": 0.6939225940695539,
+            "served_rate": 0.8898039262498347,
+            "expiry_rate": 0.11019607375016525,
+            "reward": 37.048543920101274,
+            "km_flown": 162.99165709575547,
+            "charge_minutes": 121.32316901960444,
+            "wait_minutes": 37.04514061136844
+          },
+          "high": {
+            "on_time_rate": 0.5455057893399565,
+            "served_rate": 0.7646884486647492,
+            "expiry_rate": 0.23531155133525086,
+            "reward": 35.433187350883415,
+            "km_flown": 170.11268568185125,
+            "charge_minutes": 127.8016558718358,
+            "wait_minutes": 23.035579138295365
+          }
+        },
+        "mean_on_time_rate": 0.7429308205047724,
+        "mean_reward": 31.190646892800487
+      },
+      {
+        "transitions": 307200,
+        "checkpoint": "checkpoint_000307200.pt",
+        "checkpoint_sha256": "725ee7caee393cacf43a2de34d0931e10def4707868ecc840d014b48584cbccd",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9900576732149958,
+            "served_rate": 0.999,
+            "expiry_rate": 0.001,
+            "reward": 20.635259470263925,
+            "km_flown": 234.88530605119183,
+            "charge_minutes": 162.01493955611053,
+            "wait_minutes": 0
+          },
+          "medium": {
+            "on_time_rate": 0.6883686881060364,
+            "served_rate": 0.8965302560572442,
+            "expiry_rate": 0.10346974394275571,
+            "reward": 37.52980062982257,
+            "km_flown": 182.43169045690476,
+            "charge_minutes": 135.59054330968362,
+            "wait_minutes": 0
+          },
+          "high": {
+            "on_time_rate": 0.536822933403321,
+            "served_rate": 0.7624366533153177,
+            "expiry_rate": 0.23756334668468226,
+            "reward": 34.65104873475049,
+            "km_flown": 182.9825788045531,
+            "charge_minutes": 138.6518307541366,
+            "wait_minutes": 0
+          }
+        },
+        "mean_on_time_rate": 0.7384164315747844,
+        "mean_reward": 30.93870294494566
+      },
+      {
+        "transitions": 409600,
+        "checkpoint": "checkpoint_000409600.pt",
+        "checkpoint_sha256": "1531a7e574ba4879658c3ecbc4c747b416b587e343e60ad28ddb1a15721c57f3",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9851608058868289,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 20.71742066662767,
+            "km_flown": 194.03989571907482,
+            "charge_minutes": 134.2966615060187,
+            "wait_minutes": 68.17523690779068
+          },
+          "medium": {
+            "on_time_rate": 0.7170994088398063,
+            "served_rate": 0.901475430922602,
+            "expiry_rate": 0.09852456907739798,
+            "reward": 38.41657862150489,
+            "km_flown": 160.16116151824872,
+            "charge_minutes": 121.16383361796645,
+            "wait_minutes": 34.497801011702684
+          },
+          "high": {
+            "on_time_rate": 0.5550721506143137,
+            "served_rate": 0.7696326180641428,
+            "expiry_rate": 0.23036738193585712,
+            "reward": 35.598984510794246,
+            "km_flown": 164.8889158446304,
+            "charge_minutes": 125.64334993876139,
+            "wait_minutes": 24.598494116581943
+          }
+        },
+        "mean_on_time_rate": 0.7524441217803163,
+        "mean_reward": 31.577661266308937
+      },
+      {
+        "transitions": 512000,
+        "checkpoint": "checkpoint_000512000.pt",
+        "checkpoint_sha256": "0e3a08a5b8a399a8f64edb7021f9c0060966179e7b61ebb69a8a90e9aaf4a629",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9875063806965981,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 20.990722661058314,
+            "km_flown": 125.78998368838191,
+            "charge_minutes": 86.41271695824072,
+            "wait_minutes": 185.07661643156052
+          },
+          "medium": {
+            "on_time_rate": 0.7228081443346901,
+            "served_rate": 0.9005518940616917,
+            "expiry_rate": 0.09944810593830837,
+            "reward": 38.63208549560224,
+            "km_flown": 166.7000963984145,
+            "charge_minutes": 120.19886976980504,
+            "wait_minutes": 33.6619202151481
+          },
+          "high": {
+            "on_time_rate": 0.5905293177265035,
+            "served_rate": 0.7731638075860389,
+            "expiry_rate": 0.22683619241396108,
+            "reward": 37.50908028716839,
+            "km_flown": 168.83013472684053,
+            "charge_minutes": 123.03805024130725,
+            "wait_minutes": 24.415329153240677
+          }
+        },
+        "mean_on_time_rate": 0.7669479475859305,
+        "mean_reward": 32.37729614794298
+      },
+      {
+        "transitions": 614400,
+        "checkpoint": "checkpoint_000614400.pt",
+        "checkpoint_sha256": "b07f212630c2f6dcace9348e56ccebfe5f99329f4f6717604132fddcbf483808",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9881248871901046,
+            "served_rate": 0.9991666666666666,
+            "expiry_rate": 0.0008333333333333333,
+            "reward": 20.92662408083735,
+            "km_flown": 129.86444481517245,
+            "charge_minutes": 89.06073209260248,
+            "wait_minutes": 178.0622974697115
+          },
+          "medium": {
+            "on_time_rate": 0.7360694042120262,
+            "served_rate": 0.8932530262138133,
+            "expiry_rate": 0.1067469737861867,
+            "reward": 38.41824347319163,
+            "km_flown": 185.57019965445159,
+            "charge_minutes": 134.2397299772926,
+            "wait_minutes": 0.15158484594269622
+          },
+          "high": {
+            "on_time_rate": 0.6134179273172147,
+            "served_rate": 0.7795059593317859,
+            "expiry_rate": 0.22049404066821404,
+            "reward": 38.446180001256195,
+            "km_flown": 182.77496471661888,
+            "charge_minutes": 131.893030758842,
+            "wait_minutes": 0
+          }
+        },
+        "mean_on_time_rate": 0.7792040729064484,
+        "mean_reward": 32.597015851761725
+      },
+      {
+        "transitions": 716800,
+        "checkpoint": "checkpoint_000716800.pt",
+        "checkpoint_sha256": "20342ff06c11f85ea6aa196d73f8391e205f50b2b37d3cc0c2c2719fd927cc58",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9896094565765619,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 21.045405248491058,
+            "km_flown": 128.32250307693084,
+            "charge_minutes": 87.29784637851743,
+            "wait_minutes": 181.13866230359457
+          },
+          "medium": {
+            "on_time_rate": 0.7360279876304147,
+            "served_rate": 0.895493839684078,
+            "expiry_rate": 0.10450616031592191,
+            "reward": 38.60933169398636,
+            "km_flown": 164.9848867137512,
+            "charge_minutes": 118.11722097527696,
+            "wait_minutes": 36.22808486829818
+          },
+          "high": {
+            "on_time_rate": 0.6264662115172517,
+            "served_rate": 0.7783954310210396,
+            "expiry_rate": 0.22160456897896044,
+            "reward": 38.255932604856426,
+            "km_flown": 170.20561046712646,
+            "charge_minutes": 122.61546496526799,
+            "wait_minutes": 24.583976487978433
+          }
+        },
+        "mean_on_time_rate": 0.784034551908076,
+        "mean_reward": 32.636889849111284
+      },
+      {
+        "transitions": 819200,
+        "checkpoint": "checkpoint_000819200.pt",
+        "checkpoint_sha256": "7b5e5e6390d8868688b1bed50f2a87fb2ab3ea4c42972015e74d99fab90eb372",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.986687597627815,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 21.014714344095164,
+            "km_flown": 127.23987591374001,
+            "charge_minutes": 87.46852225379297,
+            "wait_minutes": 182.43913697165405
+          },
+          "medium": {
+            "on_time_rate": 0.7110344401945909,
+            "served_rate": 0.8988086894456351,
+            "expiry_rate": 0.10119131055436491,
+            "reward": 38.16876493611631,
+            "km_flown": 185.014546244636,
+            "charge_minutes": 135.1082500921692,
+            "wait_minutes": 0.4605507191834047
+          },
+          "high": {
+            "on_time_rate": 0.5876198863632267,
+            "served_rate": 0.7768667241451532,
+            "expiry_rate": 0.2231332758548468,
+            "reward": 37.437736855284356,
+            "km_flown": 181.8405608581314,
+            "charge_minutes": 133.08253956095604,
+            "wait_minutes": 0
+          }
+        },
+        "mean_on_time_rate": 0.7617806413952108,
+        "mean_reward": 32.207072045165276
+      },
+      {
+        "transitions": 921600,
+        "checkpoint": "checkpoint_000921600.pt",
+        "checkpoint_sha256": "4143f9804c4420e345d84933f99a7f8d2db351ada8badafdcf1a78eafd1199e7",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9878613248667597,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 21.06651883981075,
+            "km_flown": 108.58382072845924,
+            "charge_minutes": 80.70092786383293,
+            "wait_minutes": 209.39185455748026
+          },
+          "medium": {
+            "on_time_rate": 0.7527533259976009,
+            "served_rate": 0.8976169750906577,
+            "expiry_rate": 0.10238302490934231,
+            "reward": 39.433674640475516,
+            "km_flown": 161.03694209125516,
+            "charge_minutes": 117.2530895633376,
+            "wait_minutes": 39.0851587321867
+          },
+          "high": {
+            "on_time_rate": 0.6105328508838901,
+            "served_rate": 0.7688012447390664,
+            "expiry_rate": 0.23119875526093359,
+            "reward": 37.554876277005924,
+            "km_flown": 168.29917648430444,
+            "charge_minutes": 122.67304124465623,
+            "wait_minutes": 24.583976487978433
+          }
+        },
+        "mean_on_time_rate": 0.7837158339160836,
+        "mean_reward": 32.68502325243073
+      },
+      {
+        "transitions": 1024000,
+        "checkpoint": "checkpoint_001024000.pt",
+        "checkpoint_sha256": "2ad38c0937ba83da32de344cd33ca63f0c435ba054c1079ba01ace281bba7522",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9907998279900454,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 21.114847042037315,
+            "km_flown": 101.82510815954151,
+            "charge_minutes": 75.74618189204128,
+            "wait_minutes": 221.29911896932717
+          },
+          "medium": {
+            "on_time_rate": 0.7501924874417066,
+            "served_rate": 0.9001863209535577,
+            "expiry_rate": 0.09981367904644235,
+            "reward": 39.31610350178762,
+            "km_flown": 161.19083188103068,
+            "charge_minutes": 116.84436608458722,
+            "wait_minutes": 39.01560942471222
+          },
+          "high": {
+            "on_time_rate": 0.6020266079631235,
+            "served_rate": 0.7762827548476788,
+            "expiry_rate": 0.2237172451523212,
+            "reward": 37.76390398518505,
+            "km_flown": 167.87720949289343,
+            "charge_minutes": 121.53803047925275,
+            "wait_minutes": 25.3690056418923
+          }
+        },
+        "mean_on_time_rate": 0.7810063077982918,
+        "mean_reward": 32.73161817633667
+      }
+    ],
+    "3": [
+      {
+        "transitions": 0,
+        "checkpoint": "checkpoint_000000000.pt",
+        "checkpoint_sha256": "d9a003e05e044ca115a3acf9bd22e5091d9cffffdab7f430e42e69f9e1fe0bb8",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.05999751291170055,
+            "served_rate": 0.19031924206889714,
+            "expiry_rate": 0.8096807579311028,
+            "reward": -7.838525235791982,
+            "km_flown": 293.29982893300433,
+            "charge_minutes": 233.75821700679325,
+            "wait_minutes": 2.746657097248358
+          },
+          "medium": {
+            "on_time_rate": 0.1137666969060235,
+            "served_rate": 0.23433938967852763,
+            "expiry_rate": 0.7656606103214724,
+            "reward": -13.337567411104908,
+            "km_flown": 276.72503682298014,
+            "charge_minutes": 235.36707884899997,
+            "wait_minutes": 3.3393348420007825
+          },
+          "high": {
+            "on_time_rate": 0.12844335279030306,
+            "served_rate": 0.24880318048507416,
+            "expiry_rate": 0.7511968195149258,
+            "reward": -15.640073655579634,
+            "km_flown": 271.40354557185503,
+            "charge_minutes": 232.04959230738473,
+            "wait_minutes": 6.1650075676631575
+          }
+        },
+        "mean_on_time_rate": 0.10073585420267571,
+        "mean_reward": -12.272055434158842
+      },
+      {
+        "transitions": 102400,
+        "checkpoint": "checkpoint_000102400.pt",
+        "checkpoint_sha256": "00f645f50a7a51015aef41f00cbdb56efe7b25411d65d0485c5a3dcd4e078e22",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9764857601667065,
+            "served_rate": 0.9959166666666667,
+            "expiry_rate": 0.004083333333333333,
+            "reward": 20.37908631798317,
+            "km_flown": 230.36058473339915,
+            "charge_minutes": 166.29318847580214,
+            "wait_minutes": 0
+          },
+          "medium": {
+            "on_time_rate": 0.7284848668352308,
+            "served_rate": 0.8605954982324077,
+            "expiry_rate": 0.1394045017675923,
+            "reward": 36.10120027983345,
+            "km_flown": 187.54795398083326,
+            "charge_minutes": 137.69796959000575,
+            "wait_minutes": 0
+          },
+          "high": {
+            "on_time_rate": 0.5794700827903577,
+            "served_rate": 0.7325407862722819,
+            "expiry_rate": 0.2674592137277181,
+            "reward": 33.51191567837125,
+            "km_flown": 180.01169721886902,
+            "charge_minutes": 133.64267215123803,
+            "wait_minutes": 8.767727533920775
+          }
+        },
+        "mean_on_time_rate": 0.7614802365974317,
+        "mean_reward": 29.99740075872929
+      },
+      {
+        "transitions": 204800,
+        "checkpoint": "checkpoint_000204800.pt",
+        "checkpoint_sha256": "dbe07d5d50cd25b3be8a72716d32b8f718360c04c6686d8e2454ec005512af24",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.98757615995116,
+            "served_rate": 0.998,
+            "expiry_rate": 0.002,
+            "reward": 20.58233886215331,
+            "km_flown": 235.5189478278781,
+            "charge_minutes": 161.57558426358182,
+            "wait_minutes": 0
+          },
+          "medium": {
+            "on_time_rate": 0.7182985778426435,
+            "served_rate": 0.8910276241379979,
+            "expiry_rate": 0.10897237586200209,
+            "reward": 37.877527331650434,
+            "km_flown": 187.38188751498342,
+            "charge_minutes": 134.29111248635448,
+            "wait_minutes": 0
+          },
+          "high": {
+            "on_time_rate": 0.5669272411352332,
+            "served_rate": 0.7726381384713409,
+            "expiry_rate": 0.22736186152865917,
+            "reward": 36.57521897639668,
+            "km_flown": 175.62360604463322,
+            "charge_minutes": 128.07923150185204,
+            "wait_minutes": 12.91846913101124
+          }
+        },
+        "mean_on_time_rate": 0.7576006596430123,
+        "mean_reward": 31.67836172340014
+      },
+      {
+        "transitions": 307200,
+        "checkpoint": "checkpoint_000307200.pt",
+        "checkpoint_sha256": "6fdfe7857191b00430887e96939d33312e299a2e78d8805562eab26f08fec148",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.984261766011766,
+            "served_rate": 0.9970833333333333,
+            "expiry_rate": 0.0029166666666666664,
+            "reward": 20.469805862354185,
+            "km_flown": 230.7552992892276,
+            "charge_minutes": 165.4087486868693,
+            "wait_minutes": 0
+          },
+          "medium": {
+            "on_time_rate": 0.7098389741922018,
+            "served_rate": 0.896280043316166,
+            "expiry_rate": 0.103719956683834,
+            "reward": 37.57121463261729,
+            "km_flown": 183.0076103710149,
+            "charge_minutes": 136.20969740966936,
+            "wait_minutes": 0
+          },
+          "high": {
+            "on_time_rate": 0.5498420695748107,
+            "served_rate": 0.7695137926914509,
+            "expiry_rate": 0.23048620730854902,
+            "reward": 35.66024971911426,
+            "km_flown": 180.37294632152526,
+            "charge_minutes": 135.54698668650394,
+            "wait_minutes": 0
+          }
+        },
+        "mean_on_time_rate": 0.7479809365929262,
+        "mean_reward": 31.23375673802858
+      },
+      {
+        "transitions": 409600,
+        "checkpoint": "checkpoint_000409600.pt",
+        "checkpoint_sha256": "b5969b2440db86b298dfa95bf90437b3ce2bf86aab54cf1849255e1b48b79911",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.97968507519051,
+            "served_rate": 0.9970833333333333,
+            "expiry_rate": 0.0029166666666666664,
+            "reward": 20.368461500860345,
+            "km_flown": 235.1140749910689,
+            "charge_minutes": 162.04634594073423,
+            "wait_minutes": 0
+          },
+          "medium": {
+            "on_time_rate": 0.7032258371191121,
+            "served_rate": 0.893166945191452,
+            "expiry_rate": 0.10683305480854795,
+            "reward": 37.17914781190129,
+            "km_flown": 186.18899429616994,
+            "charge_minutes": 135.09944844953964,
+            "wait_minutes": 0
+          },
+          "high": {
+            "on_time_rate": 0.552992439219718,
+            "served_rate": 0.7629918420026379,
+            "expiry_rate": 0.2370081579973621,
+            "reward": 35.19450058579801,
+            "km_flown": 184.0147617939198,
+            "charge_minutes": 135.18686783798537,
+            "wait_minutes": 0
+          }
+        },
+        "mean_on_time_rate": 0.7453011171764466,
+        "mean_reward": 30.914036632853215
+      },
+      {
+        "transitions": 512000,
+        "checkpoint": "checkpoint_000512000.pt",
+        "checkpoint_sha256": "2d2f011370af5f9f41e297834d6a5784f94042063154c9e800588668c97cfe64",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9918676150847203,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 20.84048570911363,
+            "km_flown": 181.1392599031206,
+            "charge_minutes": 130.8613791722156,
+            "wait_minutes": 86.51554825947507
+          },
+          "medium": {
+            "on_time_rate": 0.7435172589805149,
+            "served_rate": 0.9011371093418178,
+            "expiry_rate": 0.09886289065818224,
+            "reward": 38.9896580671643,
+            "km_flown": 183.6650535513837,
+            "charge_minutes": 132.85190247119436,
+            "wait_minutes": 2.2757367644563615
+          },
+          "high": {
+            "on_time_rate": 0.5771840644150088,
+            "served_rate": 0.774906147609135,
+            "expiry_rate": 0.225093852390865,
+            "reward": 36.81018077204286,
+            "km_flown": 183.53714139269317,
+            "charge_minutes": 133.00572527008487,
+            "wait_minutes": 0
+          }
+        },
+        "mean_on_time_rate": 0.770856312826748,
+        "mean_reward": 32.21344151610693
+      },
+      {
+        "transitions": 614400,
+        "checkpoint": "checkpoint_000614400.pt",
+        "checkpoint_sha256": "7f7a7f361fb6f460035775e8fc0665a8ef6066d23200a4e297af58538f622a51",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9869259074259075,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 21.06411572851909,
+            "km_flown": 117.59003374604887,
+            "charge_minutes": 86.74546977407373,
+            "wait_minutes": 194.1656650307368
+          },
+          "medium": {
+            "on_time_rate": 0.7115939135749466,
+            "served_rate": 0.8865861968698844,
+            "expiry_rate": 0.11341380313011558,
+            "reward": 37.31378511807164,
+            "km_flown": 177.54854291170966,
+            "charge_minutes": 131.04187350776832,
+            "wait_minutes": 12.313219182467869
+          },
+          "high": {
+            "on_time_rate": 0.5641250267670379,
+            "served_rate": 0.763836821452563,
+            "expiry_rate": 0.23616317854743693,
+            "reward": 35.500611995525325,
+            "km_flown": 177.85923464995128,
+            "charge_minutes": 129.61810116760748,
+            "wait_minutes": 9.76649705894546
+          }
+        },
+        "mean_on_time_rate": 0.754214949255964,
+        "mean_reward": 31.292837614038685
+      },
+      {
+        "transitions": 716800,
+        "checkpoint": "checkpoint_000716800.pt",
+        "checkpoint_sha256": "272a19b94b315764a556f0b191381503c03f0c88987678b50e1dc032c6c5de9e",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9836814911667853,
+            "served_rate": 0.9974074074074074,
+            "expiry_rate": 0.0025925925925925925,
+            "reward": 20.901242860771887,
+            "km_flown": 119.8390060572969,
+            "charge_minutes": 85.05826397624108,
+            "wait_minutes": 193.91305131780285
+          },
+          "medium": {
+            "on_time_rate": 0.7203813145957939,
+            "served_rate": 0.8972126613398521,
+            "expiry_rate": 0.10278733866014793,
+            "reward": 38.11625592759895,
+            "km_flown": 163.93358575874046,
+            "charge_minutes": 120.62634955345823,
+            "wait_minutes": 33.874647835559955
+          },
+          "high": {
+            "on_time_rate": 0.575344572008047,
+            "served_rate": 0.7777790453806616,
+            "expiry_rate": 0.22222095461933838,
+            "reward": 37.196465841193415,
+            "km_flown": 166.1304580507662,
+            "charge_minutes": 122.16552978412862,
+            "wait_minutes": 24.559806317455937
+          }
+        },
+        "mean_on_time_rate": 0.7598024592568754,
+        "mean_reward": 32.071321543188084
+      },
+      {
+        "transitions": 819200,
+        "checkpoint": "checkpoint_000819200.pt",
+        "checkpoint_sha256": "37aa5c21a45d7f286b8e47328e88672e24bdbc63749a79d3c4482ea6486c2169",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9882346681096681,
+            "served_rate": 0.9989583333333333,
+            "expiry_rate": 0.0010416666666666667,
+            "reward": 21.076882324252747,
+            "km_flown": 106.41554646874518,
+            "charge_minutes": 75.43435452651767,
+            "wait_minutes": 217.0015570373506
+          },
+          "medium": {
+            "on_time_rate": 0.726996201313591,
+            "served_rate": 0.8991379975292577,
+            "expiry_rate": 0.10086200247074227,
+            "reward": 39.06061412177204,
+            "km_flown": 164.56143478450747,
+            "charge_minutes": 120.64814531141148,
+            "wait_minutes": 35.64142771303341
+          },
+          "high": {
+            "on_time_rate": 0.5996218730552556,
+            "served_rate": 0.7806238861716489,
+            "expiry_rate": 0.21937611382835112,
+            "reward": 38.55103578163027,
+            "km_flown": 167.6049692352237,
+            "charge_minutes": 122.35520372595305,
+            "wait_minutes": 24.833976487978433
+          }
+        },
+        "mean_on_time_rate": 0.7716175808261716,
+        "mean_reward": 32.89617740921835
+      },
+      {
+        "transitions": 921600,
+        "checkpoint": "checkpoint_000921600.pt",
+        "checkpoint_sha256": "cc42876bc1c08b4803daef958ad8b48c999cd0f91dc5008a0e261059b01709d8",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9861240068411121,
+            "served_rate": 0.9961574074074074,
+            "expiry_rate": 0.0038425925925925923,
+            "reward": 20.889257432917248,
+            "km_flown": 116.34158181680512,
+            "charge_minutes": 85.70367066331525,
+            "wait_minutes": 194.12363362940337
+          },
+          "medium": {
+            "on_time_rate": 0.7490265218724333,
+            "served_rate": 0.9012452882615627,
+            "expiry_rate": 0.09875471173843725,
+            "reward": 39.03220959108669,
+            "km_flown": 160.82030518573404,
+            "charge_minutes": 117.65123276675837,
+            "wait_minutes": 41.16757778695929
+          },
+          "high": {
+            "on_time_rate": 0.6152460825119418,
+            "served_rate": 0.7739084305250963,
+            "expiry_rate": 0.22609156947490375,
+            "reward": 38.03064782913582,
+            "km_flown": 165.5247153575139,
+            "charge_minutes": 120.60188148864354,
+            "wait_minutes": 25.75998186190704
+          }
+        },
+        "mean_on_time_rate": 0.7834655370751624,
+        "mean_reward": 32.650704951046585
+      },
+      {
+        "transitions": 1024000,
+        "checkpoint": "checkpoint_001024000.pt",
+        "checkpoint_sha256": "974f2fefb709f9e2b9b7781161ba9dae12ec101a8026903cbde0fc8218a3c021",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9851913758755864,
+            "served_rate": 0.9991666666666666,
+            "expiry_rate": 0.0008333333333333333,
+            "reward": 21.02671782061876,
+            "km_flown": 102.60481008878524,
+            "charge_minutes": 76.13432675642095,
+            "wait_minutes": 219.65891145386126
+          },
+          "medium": {
+            "on_time_rate": 0.7478482735178892,
+            "served_rate": 0.9009858812941853,
+            "expiry_rate": 0.09901411870581461,
+            "reward": 39.278435004897894,
+            "km_flown": 161.18350955056036,
+            "charge_minutes": 117.54839400028543,
+            "wait_minutes": 41.35037949895954
+          },
+          "high": {
+            "on_time_rate": 0.6052134290679017,
+            "served_rate": 0.7775469314796569,
+            "expiry_rate": 0.22245306852034302,
+            "reward": 37.810383864155256,
+            "km_flown": 167.36063572029587,
+            "charge_minutes": 122.32930768104006,
+            "wait_minutes": 26.1544590261223
+          }
+        },
+        "mean_on_time_rate": 0.779417692820459,
+        "mean_reward": 32.7051788965573
+      }
+    ],
+    "4": [
+      {
+        "transitions": 0,
+        "checkpoint": "checkpoint_000000000.pt",
+        "checkpoint_sha256": "a8fa567ab0c70c632e1da3a0b949f0fe4fbf24f0ba97864a51971f3e0f529129",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.1676449081770794,
+            "served_rate": 0.3247241691387438,
+            "expiry_rate": 0.6752758308612562,
+            "reward": -2.582431322503518,
+            "km_flown": 54.00619901310317,
+            "charge_minutes": 39.11689983335276,
+            "wait_minutes": 447.4609140788676
+          },
+          "medium": {
+            "on_time_rate": 0.23510949284678398,
+            "served_rate": 0.3917295952906641,
+            "expiry_rate": 0.6082704047093359,
+            "reward": -2.200539741330636,
+            "km_flown": 132.1679274135342,
+            "charge_minutes": 112.39654826928894,
+            "wait_minutes": 249.9674170717375
+          },
+          "high": {
+            "on_time_rate": 0.21996116161362192,
+            "served_rate": 0.3505961107985341,
+            "expiry_rate": 0.6494038892014659,
+            "reward": -5.612511981277132,
+            "km_flown": 149.0868952061774,
+            "charge_minutes": 129.0674511674757,
+            "wait_minutes": 205.16638336389457
+          }
+        },
+        "mean_on_time_rate": 0.2075718542124951,
+        "mean_reward": -3.4651610150370953
+      },
+      {
+        "transitions": 102400,
+        "checkpoint": "checkpoint_000102400.pt",
+        "checkpoint_sha256": "dc0d8a46cc372825069e2a12a1fd451e73d70e975ec69eb72f610c5550c55e4b",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9757716366824423,
+            "served_rate": 0.9952321428571429,
+            "expiry_rate": 0.004767857142857143,
+            "reward": 20.463954651145162,
+            "km_flown": 194.70686902377815,
+            "charge_minutes": 142.14878499701234,
+            "wait_minutes": 59.972860183735214
+          },
+          "medium": {
+            "on_time_rate": 0.6703757459461047,
+            "served_rate": 0.8754338013196107,
+            "expiry_rate": 0.12456619868038928,
+            "reward": 35.43879948624842,
+            "km_flown": 161.76175269248452,
+            "charge_minutes": 129.2499505942035,
+            "wait_minutes": 33.99044377644027
+          },
+          "high": {
+            "on_time_rate": 0.5190684678338069,
+            "served_rate": 0.7473786550132457,
+            "expiry_rate": 0.25262134498675426,
+            "reward": 32.65064185719286,
+            "km_flown": 164.7794434372708,
+            "charge_minutes": 133.31844150180243,
+            "wait_minutes": 24.001319037367296
+          }
+        },
+        "mean_on_time_rate": 0.7217386168207847,
+        "mean_reward": 29.51779866486215
+      },
+      {
+        "transitions": 204800,
+        "checkpoint": "checkpoint_000204800.pt",
+        "checkpoint_sha256": "294e4a0093cf6bf55a9333f945379551da65e32116c00fa3d26b8fc0662e40b4",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9901688357938357,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 20.928430413220475,
+            "km_flown": 141.3307976225376,
+            "charge_minutes": 96.62843940765799,
+            "wait_minutes": 158.69640623894105
+          },
+          "medium": {
+            "on_time_rate": 0.7500175874953962,
+            "served_rate": 0.8819539133566289,
+            "expiry_rate": 0.11804608664337106,
+            "reward": 37.52297767288268,
+            "km_flown": 168.4476730552665,
+            "charge_minutes": 119.72108963867822,
+            "wait_minutes": 38.12595633206004
+          },
+          "high": {
+            "on_time_rate": 0.5988289361251454,
+            "served_rate": 0.7506391055684474,
+            "expiry_rate": 0.24936089443155263,
+            "reward": 35.79585833616683,
+            "km_flown": 173.49561767776257,
+            "charge_minutes": 123.78853778525762,
+            "wait_minutes": 25.499888388335307
+          }
+        },
+        "mean_on_time_rate": 0.7796717864714591,
+        "mean_reward": 31.415755474089995
+      },
+      {
+        "transitions": 307200,
+        "checkpoint": "checkpoint_000307200.pt",
+        "checkpoint_sha256": "bde5f6a720c6e87ec039a0b3c4e0714da9eec81288de54b9c6b3f48dead147b9",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.973387427705556,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 20.65010465660667,
+            "km_flown": 205.23215536529352,
+            "charge_minutes": 143.6332748572511,
+            "wait_minutes": 47.75548750076423
+          },
+          "medium": {
+            "on_time_rate": 0.7242873187617966,
+            "served_rate": 0.8741422902015134,
+            "expiry_rate": 0.12585770979848662,
+            "reward": 36.85796828740371,
+            "km_flown": 175.73152496528795,
+            "charge_minutes": 128.40861510853549,
+            "wait_minutes": 24.24009138816513
+          },
+          "high": {
+            "on_time_rate": 0.591410092623458,
+            "served_rate": 0.7553592390408913,
+            "expiry_rate": 0.2446407609591087,
+            "reward": 35.713297823077404,
+            "km_flown": 173.94616962622862,
+            "charge_minutes": 127.79229180533012,
+            "wait_minutes": 23.864618811777824
+          }
+        },
+        "mean_on_time_rate": 0.7630282796969369,
+        "mean_reward": 31.073790255695926
+      },
+      {
+        "transitions": 409600,
+        "checkpoint": "checkpoint_000409600.pt",
+        "checkpoint_sha256": "cad1cd2d7ceebd872702eadb99a404faf6e0b373904417294c8ef46187bc49e8",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9816085377987552,
+            "served_rate": 0.9952792022792023,
+            "expiry_rate": 0.004720797720797721,
+            "reward": 20.539045053924347,
+            "km_flown": 196.29643747653873,
+            "charge_minutes": 141.0777124682893,
+            "wait_minutes": 60.13808131716968
+          },
+          "medium": {
+            "on_time_rate": 0.7574167214244095,
+            "served_rate": 0.877581852767894,
+            "expiry_rate": 0.12241814723210599,
+            "reward": 37.78807734933741,
+            "km_flown": 169.74892936855886,
+            "charge_minutes": 123.70880744831439,
+            "wait_minutes": 33.74877200592701
+          },
+          "high": {
+            "on_time_rate": 0.6062801119679531,
+            "served_rate": 0.7649195553832899,
+            "expiry_rate": 0.23508044461671007,
+            "reward": 36.85616851310265,
+            "km_flown": 171.33895507040017,
+            "charge_minutes": 125.22521640273085,
+            "wait_minutes": 24.583976487978433
+          }
+        },
+        "mean_on_time_rate": 0.7817684570637059,
+        "mean_reward": 31.727763638788137
+      },
+      {
+        "transitions": 512000,
+        "checkpoint": "checkpoint_000512000.pt",
+        "checkpoint_sha256": "01f63516a274653d74ccc4ca596a52aa488c29a079f86f80a0eb71e6f3bdd397",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9941602564102564,
+            "served_rate": 0.9989583333333333,
+            "expiry_rate": 0.0010416666666666667,
+            "reward": 20.66681459623559,
+            "km_flown": 231.72574977634412,
+            "charge_minutes": 165.18156164876004,
+            "wait_minutes": 0
+          },
+          "medium": {
+            "on_time_rate": 0.7590535930679718,
+            "served_rate": 0.8816808431103801,
+            "expiry_rate": 0.11831915688961989,
+            "reward": 37.916982445460434,
+            "km_flown": 191.5460825861513,
+            "charge_minutes": 134.73796165488665,
+            "wait_minutes": 0
+          },
+          "high": {
+            "on_time_rate": 0.5901760954517374,
+            "served_rate": 0.7483338346808014,
+            "expiry_rate": 0.25166616531919866,
+            "reward": 35.29084671303317,
+            "km_flown": 179.0429657100742,
+            "charge_minutes": 128.05905126205582,
+            "wait_minutes": 13.875219700496514
+          }
+        },
+        "mean_on_time_rate": 0.7811299816433219,
+        "mean_reward": 31.291547918243065
+      },
+      {
+        "transitions": 614400,
+        "checkpoint": "checkpoint_000614400.pt",
+        "checkpoint_sha256": "8f0e6fb92b6da1a2c4b903655b914097844e795871f023ed2fb5a7cd1acfc7bd",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9665790120873577,
+            "served_rate": 0.9990740740740741,
+            "expiry_rate": 0.0009259259259259259,
+            "reward": 20.336714707501322,
+            "km_flown": 230.14682842010677,
+            "charge_minutes": 158.372968115814,
+            "wait_minutes": 8.061961963245599
+          },
+          "medium": {
+            "on_time_rate": 0.7498632787491154,
+            "served_rate": 0.89385670793728,
+            "expiry_rate": 0.10614329206271997,
+            "reward": 38.48378057214107,
+            "km_flown": 167.2868920335882,
+            "charge_minutes": 118.94230465710959,
+            "wait_minutes": 33.728636027456496
+          },
+          "high": {
+            "on_time_rate": 0.611503483154262,
+            "served_rate": 0.7742677420913028,
+            "expiry_rate": 0.2257322579086972,
+            "reward": 37.94312191397755,
+            "km_flown": 168.79936046712646,
+            "charge_minutes": 122.2960159541818,
+            "wait_minutes": 24.631199292287572
+          }
+        },
+        "mean_on_time_rate": 0.7759819246635784,
+        "mean_reward": 32.25453906453998
+      },
+      {
+        "transitions": 716800,
+        "checkpoint": "checkpoint_000716800.pt",
+        "checkpoint_sha256": "b3b656bd530277cce03559ce09601562180f2c7a1b2e96708e5b9713273ff506",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9912104192104192,
+            "served_rate": 0.999,
+            "expiry_rate": 0.001,
+            "reward": 20.710842262395293,
+            "km_flown": 205.49488398983388,
+            "charge_minutes": 148.70677086648632,
+            "wait_minutes": 44.38573531805369
+          },
+          "medium": {
+            "on_time_rate": 0.7482575216316228,
+            "served_rate": 0.8989170150777038,
+            "expiry_rate": 0.10108298492229613,
+            "reward": 39.30312854845387,
+            "km_flown": 166.0621837910521,
+            "charge_minutes": 119.58659669199974,
+            "wait_minutes": 34.15948937402826
+          },
+          "high": {
+            "on_time_rate": 0.603415940906084,
+            "served_rate": 0.7775509738537666,
+            "expiry_rate": 0.22244902614623335,
+            "reward": 38.62007862019052,
+            "km_flown": 169.4676662933023,
+            "charge_minutes": 123.35661575983328,
+            "wait_minutes": 24.728453652193693
+          }
+        },
+        "mean_on_time_rate": 0.780961293916042,
+        "mean_reward": 32.878016477013226
+      },
+      {
+        "transitions": 819200,
+        "checkpoint": "checkpoint_000819200.pt",
+        "checkpoint_sha256": "90d20c981dd9f78985401da8f8866935148d55a88572c965ddb112a9d6e2fa64",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9823019982396918,
+            "served_rate": 0.9981071428571429,
+            "expiry_rate": 0.0018928571428571427,
+            "reward": 20.75590640768045,
+            "km_flown": 156.8871946229493,
+            "charge_minutes": 114.71724375519088,
+            "wait_minutes": 126.46957261415528
+          },
+          "medium": {
+            "on_time_rate": 0.7423390692575274,
+            "served_rate": 0.8989215103907784,
+            "expiry_rate": 0.1010784896092216,
+            "reward": 39.10832693673474,
+            "km_flown": 166.99110514728943,
+            "charge_minutes": 120.10581988182523,
+            "wait_minutes": 34.07259987186987
+          },
+          "high": {
+            "on_time_rate": 0.617427833836287,
+            "served_rate": 0.7781026030106667,
+            "expiry_rate": 0.22189739698933325,
+            "reward": 38.59227619051694,
+            "km_flown": 169.03816142213716,
+            "charge_minutes": 122.57107703248491,
+            "wait_minutes": 24.728453652193693
+          }
+        },
+        "mean_on_time_rate": 0.7806896337778354,
+        "mean_reward": 32.818836511644044
+      },
+      {
+        "transitions": 921600,
+        "checkpoint": "checkpoint_000921600.pt",
+        "checkpoint_sha256": "64877829fcbbdd4a2ded3a25ee50623fa99cdb9712b5c96d3568f9b2d432b66e",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.974937347190258,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 20.573997959736882,
+            "km_flown": 189.16977397183257,
+            "charge_minutes": 137.62392565484976,
+            "wait_minutes": 71.31433551755615
+          },
+          "medium": {
+            "on_time_rate": 0.7115111710048134,
+            "served_rate": 0.9026412413745517,
+            "expiry_rate": 0.09735875862544828,
+            "reward": 38.352692310914,
+            "km_flown": 162.7444614798041,
+            "charge_minutes": 119.91844709531578,
+            "wait_minutes": 36.73453128142615
+          },
+          "high": {
+            "on_time_rate": 0.5881204379515683,
+            "served_rate": 0.7781155374550686,
+            "expiry_rate": 0.2218844625449315,
+            "reward": 37.544284283942936,
+            "km_flown": 167.40705076324085,
+            "charge_minutes": 124.19874149314764,
+            "wait_minutes": 24.583976487978433
+          }
+        },
+        "mean_on_time_rate": 0.7581896520488799,
+        "mean_reward": 32.15699151819794
+      },
+      {
+        "transitions": 1024000,
+        "checkpoint": "checkpoint_001024000.pt",
+        "checkpoint_sha256": "9124fe328ab07013eaf950d7ad1bc1ce65ecec13cb3f4d5983a8726e16d0e009",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9770139575766511,
+            "served_rate": 0.9978636363636364,
+            "expiry_rate": 0.0021363636363636363,
+            "reward": 20.607882472392877,
+            "km_flown": 192.53539626385827,
+            "charge_minutes": 139.60205776772025,
+            "wait_minutes": 66.0748028767631
+          },
+          "medium": {
+            "on_time_rate": 0.720787885222948,
+            "served_rate": 0.8973051389314469,
+            "expiry_rate": 0.10269486106855306,
+            "reward": 38.24452888094065,
+            "km_flown": 163.4825580699885,
+            "charge_minutes": 121.10647768242464,
+            "wait_minutes": 34.508332409720936
+          },
+          "high": {
+            "on_time_rate": 0.5777992403654822,
+            "served_rate": 0.7825463975413266,
+            "expiry_rate": 0.21745360245867343,
+            "reward": 37.97756787890522,
+            "km_flown": 165.13692360004998,
+            "charge_minutes": 122.88390343130038,
+            "wait_minutes": 24.728453652193693
+          }
+        },
+        "mean_on_time_rate": 0.7585336943883605,
+        "mean_reward": 32.27665974407958
+      }
+    ],
+    "5": [
+      {
+        "transitions": 0,
+        "checkpoint": "checkpoint_000000000.pt",
+        "checkpoint_sha256": "4ed36d8988d3e2359a60b8e2aecbd74eeb6936e9c3a8252d970c889c6070070e",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.02489282097331633,
+            "served_rate": 0.055266380056207084,
+            "expiry_rate": 0.9447336199437929,
+            "reward": -9.80700444062047,
+            "km_flown": 75.17917744542032,
+            "charge_minutes": 64.9401945005491,
+            "wait_minutes": 410.6987521817929
+          },
+          "medium": {
+            "on_time_rate": 0.05194138876107344,
+            "served_rate": 0.13489414581856443,
+            "expiry_rate": 0.8651058541814356,
+            "reward": -19.353753792648792,
+            "km_flown": 105.95533588673811,
+            "charge_minutes": 95.83862221294311,
+            "wait_minutes": 333.2562158807292
+          },
+          "high": {
+            "on_time_rate": 0.052528795082735044,
+            "served_rate": 0.12701534692543837,
+            "expiry_rate": 0.8729846530745616,
+            "reward": -25.994385998562684,
+            "km_flown": 111.36997513173017,
+            "charge_minutes": 100.8332934645681,
+            "wait_minutes": 320.2909542824604
+          }
+        },
+        "mean_on_time_rate": 0.04312100160570827,
+        "mean_reward": -18.385048077277315
+      },
+      {
+        "transitions": 102400,
+        "checkpoint": "checkpoint_000102400.pt",
+        "checkpoint_sha256": "d614cde9c9e60d08d0b55b0fe231f0acc0aba9e57c008549aec891227c525750",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9694053650716055,
+            "served_rate": 0.997199074074074,
+            "expiry_rate": 0.002800925925925926,
+            "reward": 20.33366482649282,
+            "km_flown": 230.8686876368759,
+            "charge_minutes": 165.77846103197206,
+            "wait_minutes": 0
+          },
+          "medium": {
+            "on_time_rate": 0.6959568037192954,
+            "served_rate": 0.8633053484331972,
+            "expiry_rate": 0.13669465156680286,
+            "reward": 35.00036282760665,
+            "km_flown": 188.16330300660022,
+            "charge_minutes": 138.36683612907473,
+            "wait_minutes": 0
+          },
+          "high": {
+            "on_time_rate": 0.5551868957082988,
+            "served_rate": 0.7432950842860733,
+            "expiry_rate": 0.2567049157139268,
+            "reward": 33.111060014732,
+            "km_flown": 187.16788408594547,
+            "charge_minutes": 139.31241614001598,
+            "wait_minutes": 0
+          }
+        },
+        "mean_on_time_rate": 0.7401830214997333,
+        "mean_reward": 29.48169588961049
+      },
+      {
+        "transitions": 204800,
+        "checkpoint": "checkpoint_000204800.pt",
+        "checkpoint_sha256": "c855676e93270248294f1b1688754d3247253afbcda69745ad5994036b36062b",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9897973027375201,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 20.62713413028734,
+            "km_flown": 235.75356723564934,
+            "charge_minutes": 161.29229438413572,
+            "wait_minutes": 0
+          },
+          "medium": {
+            "on_time_rate": 0.7259164589106187,
+            "served_rate": 0.875078467597262,
+            "expiry_rate": 0.12492153240273794,
+            "reward": 37.14080090617748,
+            "km_flown": 190.2204729207103,
+            "charge_minutes": 135.94533247471284,
+            "wait_minutes": 0
+          },
+          "high": {
+            "on_time_rate": 0.5758703558494364,
+            "served_rate": 0.7600709600494978,
+            "expiry_rate": 0.23992903995050224,
+            "reward": 36.098908782007854,
+            "km_flown": 185.0350282982143,
+            "charge_minutes": 133.35389792790897,
+            "wait_minutes": 0
+          }
+        },
+        "mean_on_time_rate": 0.7638613724991917,
+        "mean_reward": 31.288947939490892
+      },
+      {
+        "transitions": 307200,
+        "checkpoint": "checkpoint_000307200.pt",
+        "checkpoint_sha256": "00aae18e5c683c9a4acc15e2011d91f5cab742e3f45cf93523ce21d051ef70f8",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9871217948717949,
+            "served_rate": 0.9991666666666666,
+            "expiry_rate": 0.0008333333333333333,
+            "reward": 20.710002742720892,
+            "km_flown": 198.142345212736,
+            "charge_minutes": 135.38791263815838,
+            "wait_minutes": 63.461405588196
+          },
+          "medium": {
+            "on_time_rate": 0.734223627111444,
+            "served_rate": 0.8855461561495354,
+            "expiry_rate": 0.11445384385046464,
+            "reward": 37.99513044827866,
+            "km_flown": 169.14085803154387,
+            "charge_minutes": 120.67152492348562,
+            "wait_minutes": 28.3273412079096
+          },
+          "high": {
+            "on_time_rate": 0.5849088368193852,
+            "served_rate": 0.7688913409060866,
+            "expiry_rate": 0.2311086590939134,
+            "reward": 36.81437398264989,
+            "km_flown": 170.13214004667753,
+            "charge_minutes": 123.48466960160412,
+            "wait_minutes": 24.310167907161105
+          }
+        },
+        "mean_on_time_rate": 0.7687514196008747,
+        "mean_reward": 31.839835724549815
+      },
+      {
+        "transitions": 409600,
+        "checkpoint": "checkpoint_000409600.pt",
+        "checkpoint_sha256": "68aac83580c594ee197d70db6d7fb180760c359a4148b295074a7c4e07682a42",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9844022529614634,
+            "served_rate": 0.9971666666666666,
+            "expiry_rate": 0.0028333333333333335,
+            "reward": 20.526483612471637,
+            "km_flown": 232.11639055957502,
+            "charge_minutes": 159.39586354690078,
+            "wait_minutes": 5.518219626661024
+          },
+          "medium": {
+            "on_time_rate": 0.7258024887662179,
+            "served_rate": 0.897573947580612,
+            "expiry_rate": 0.10242605241938796,
+            "reward": 38.46859882325925,
+            "km_flown": 186.04287101068888,
+            "charge_minutes": 134.25891422438457,
+            "wait_minutes": 0
+          },
+          "high": {
+            "on_time_rate": 0.5876647031891519,
+            "served_rate": 0.7696443677842261,
+            "expiry_rate": 0.2303556322157739,
+            "reward": 37.04512859638437,
+            "km_flown": 182.5275535513837,
+            "charge_minutes": 133.03793700280244,
+            "wait_minutes": 0
+          }
+        },
+        "mean_on_time_rate": 0.7659564816389444,
+        "mean_reward": 32.013403677371755
+      },
+      {
+        "transitions": 512000,
+        "checkpoint": "checkpoint_000512000.pt",
+        "checkpoint_sha256": "4313338ba3488959047f8c6befbd1d18a4f37920b4ae448f25b3d1f5241adae8",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9915292022792023,
+            "served_rate": 0.9971666666666666,
+            "expiry_rate": 0.0028333333333333335,
+            "reward": 20.549799332385156,
+            "km_flown": 235.326467216427,
+            "charge_minutes": 161.5004896576888,
+            "wait_minutes": 0
+          },
+          "medium": {
+            "on_time_rate": 0.7361317191714358,
+            "served_rate": 0.8953694229157485,
+            "expiry_rate": 0.10463057708425152,
+            "reward": 38.26589484462961,
+            "km_flown": 187.19017440128218,
+            "charge_minutes": 134.16588834336665,
+            "wait_minutes": 0
+          },
+          "high": {
+            "on_time_rate": 0.5901142015028515,
+            "served_rate": 0.7770626660834001,
+            "expiry_rate": 0.22293733391659987,
+            "reward": 37.95432417695476,
+            "km_flown": 181.96079579596412,
+            "charge_minutes": 131.075387329472,
+            "wait_minutes": 0
+          }
+        },
+        "mean_on_time_rate": 0.7725917076511633,
+        "mean_reward": 32.25667278465651
+      },
+      {
+        "transitions": 614400,
+        "checkpoint": "checkpoint_000614400.pt",
+        "checkpoint_sha256": "12df6a0a86281c1685a4a1009c5dbe967a2ffe8607467378a30af42c7eb5064c",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9920163198315373,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 20.99508242674196,
+            "km_flown": 144.043526247078,
+            "charge_minutes": 100.83824149877667,
+            "wait_minutes": 153.50569386542438
+          },
+          "medium": {
+            "on_time_rate": 0.7349347638666881,
+            "served_rate": 0.8992678638873347,
+            "expiry_rate": 0.10073213611266531,
+            "reward": 38.747462702509964,
+            "km_flown": 183.689730227458,
+            "charge_minutes": 131.2774851244444,
+            "wait_minutes": 4.755717836005283
+          },
+          "high": {
+            "on_time_rate": 0.573481471796341,
+            "served_rate": 0.766265459675805,
+            "expiry_rate": 0.233734540324195,
+            "reward": 36.69168184430583,
+            "km_flown": 185.8527506094623,
+            "charge_minutes": 133.44689688212586,
+            "wait_minutes": 0
+          }
+        },
+        "mean_on_time_rate": 0.7668108518315221,
+        "mean_reward": 32.14474232451925
+      },
+      {
+        "transitions": 716800,
+        "checkpoint": "checkpoint_000716800.pt",
+        "checkpoint_sha256": "78103cd5ddc0461d1501b6d0db79a9348716f43f87fa8a8acb43445e14825d00",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9898382895285069,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 21.136524306298586,
+            "km_flown": 101.92599650718982,
+            "charge_minutes": 75.78792766371645,
+            "wait_minutes": 221.13359275657643
+          },
+          "medium": {
+            "on_time_rate": 0.7240618705045978,
+            "served_rate": 0.9003745323897304,
+            "expiry_rate": 0.09962546761026962,
+            "reward": 38.81032712525791,
+            "km_flown": 167.32927794565396,
+            "charge_minutes": 119.8679372495679,
+            "wait_minutes": 31.001302565110507
+          },
+          "high": {
+            "on_time_rate": 0.5897791403667844,
+            "served_rate": 0.7752365985491372,
+            "expiry_rate": 0.22476340145086288,
+            "reward": 37.85935987456203,
+            "km_flown": 168.74481095424298,
+            "charge_minutes": 122.291711083143,
+            "wait_minutes": 23.32353832386228
+          }
+        },
+        "mean_on_time_rate": 0.7678931001332964,
+        "mean_reward": 32.602070435372845
+      },
+      {
+        "transitions": 819200,
+        "checkpoint": "checkpoint_000819200.pt",
+        "checkpoint_sha256": "975534c7d8317c4be11cbfc2e73750327e7dc9bd23716ecc34917336ec56d524",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9869301818409875,
+            "served_rate": 0.9990740740740741,
+            "expiry_rate": 0.0009259259259259259,
+            "reward": 20.8942516485204,
+            "km_flown": 143.4604233436012,
+            "charge_minutes": 105.68614387249502,
+            "wait_minutes": 147.68240503711263
+          },
+          "medium": {
+            "on_time_rate": 0.7412206617393201,
+            "served_rate": 0.9041983177861075,
+            "expiry_rate": 0.09580168221389251,
+            "reward": 39.47256258748013,
+            "km_flown": 162.3618789583316,
+            "charge_minutes": 119.17736554423516,
+            "wait_minutes": 35.71577516038123
+          },
+          "high": {
+            "on_time_rate": 0.5794470934909778,
+            "served_rate": 0.7780113798974327,
+            "expiry_rate": 0.22198862010256726,
+            "reward": 37.14434132913764,
+            "km_flown": 166.30090853788272,
+            "charge_minutes": 122.09031875886363,
+            "wait_minutes": 25.033976413789652
+          }
+        },
+        "mean_on_time_rate": 0.7691993123570952,
+        "mean_reward": 32.50371852171272
+      },
+      {
+        "transitions": 921600,
+        "checkpoint": "checkpoint_000921600.pt",
+        "checkpoint_sha256": "10eb37a69552194849307dc3f59778de93759b7d63d32544c5a3f1a28a140d97",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9866942401398923,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 21.069042035331982,
+            "km_flown": 100.4363072045308,
+            "charge_minutes": 75.22336989725989,
+            "wait_minutes": 223.15106325683948
+          },
+          "medium": {
+            "on_time_rate": 0.7233217314252256,
+            "served_rate": 0.8972788310139708,
+            "expiry_rate": 0.10272116898602919,
+            "reward": 38.24765016532394,
+            "km_flown": 162.70466440250317,
+            "charge_minutes": 118.19582333176193,
+            "wait_minutes": 38.441671316088446
+          },
+          "high": {
+            "on_time_rate": 0.5860244073465855,
+            "served_rate": 0.775900929493683,
+            "expiry_rate": 0.22409907050631703,
+            "reward": 37.68721086056973,
+            "km_flown": 166.396390591461,
+            "charge_minutes": 121.92487572673338,
+            "wait_minutes": 24.569517686330162
+          }
+        },
+        "mean_on_time_rate": 0.7653467929705677,
+        "mean_reward": 32.33463435374188
+      },
+      {
+        "transitions": 1024000,
+        "checkpoint": "checkpoint_001024000.pt",
+        "checkpoint_sha256": "51c6c17b212252fb3f3c805777083274d97beac1dfb5c634e963b01e77ed6105",
+        "by_load": {
+          "low": {
+            "on_time_rate": 0.9879628501530675,
+            "served_rate": 1.0,
+            "expiry_rate": 0.0,
+            "reward": 21.043126665198027,
+            "km_flown": 100.74289360371307,
+            "charge_minutes": 75.77118159069794,
+            "wait_minutes": 222.50517436674016
+          },
+          "medium": {
+            "on_time_rate": 0.7286778311638088,
+            "served_rate": 0.9034027023585423,
+            "expiry_rate": 0.0965972976414577,
+            "reward": 39.2517114924191,
+            "km_flown": 159.28069209125513,
+            "charge_minutes": 118.88060881774032,
+            "wait_minutes": 40.448669843548956
+          },
+          "high": {
+            "on_time_rate": 0.5790073495727065,
+            "served_rate": 0.7771334348881233,
+            "expiry_rate": 0.2228665651118767,
+            "reward": 37.69015042605759,
+            "km_flown": 167.66981095424296,
+            "charge_minutes": 123.9521212027153,
+            "wait_minutes": 24.583976487978433
+          }
+        },
+        "mean_on_time_rate": 0.7652160102965276,
+        "mean_reward": 32.661662861224904
+      }
+    ]
+  },
+  "pointwise_mean_and_sample_sd": [
+    {
+      "transitions": 0,
+      "rates": {
+        "low": {
+          "mean": 0.1085400779562864,
+          "sample_sd": 0.06972699466127413,
+          "min": 0.02489282097331633,
+          "max": 0.18941135653506094
+        },
+        "medium": {
+          "mean": 0.12845696722360572,
+          "sample_sd": 0.08514530700263613,
+          "min": 0.045121479334268896,
+          "max": 0.23510949284678398
+        },
+        "high": {
+          "mean": 0.12038584983152581,
+          "sample_sd": 0.07882373998938863,
+          "min": 0.031661473510597525,
+          "max": 0.21996116161362192
+        },
+        "mean": {
+          "mean": 0.11912763167047263,
+          "sample_sd": 0.07395046814003843,
+          "min": 0.04312100160570827,
+          "max": 0.2075718542124951
+        }
+      }
+    },
+    {
+      "transitions": 102400,
+      "rates": {
+        "low": {
+          "mean": 0.9784712028238882,
+          "sample_sd": 0.006868955246556149,
+          "min": 0.9694053650716055,
+          "max": 0.9859664003468351
+        },
+        "medium": {
+          "mean": 0.6945017146499378,
+          "sample_sd": 0.02233143250045632,
+          "min": 0.6703757459461047,
+          "max": 0.7284848668352308
+        },
+        "high": {
+          "mean": 0.5408479655918381,
+          "sample_sd": 0.027297207016066864,
+          "min": 0.5125531333758204,
+          "max": 0.5794700827903577
+        },
+        "mean": {
+          "mean": 0.7379402943552215,
+          "sample_sd": 0.015702626635501128,
+          "min": 0.7217386168207847,
+          "max": 0.7614802365974317
+        }
+      }
+    },
+    {
+      "transitions": 204800,
+      "rates": {
+        "low": {
+          "mean": 0.987481902650253,
+          "sample_sd": 0.00402601946264505,
+          "min": 0.9805031366639423,
+          "max": 0.9901688357938357
+        },
+        "medium": {
+          "mean": 0.7194487046147197,
+          "sample_sd": 0.020835855169669553,
+          "min": 0.6939225940695539,
+          "max": 0.7500175874953962
+        },
+        "high": {
+          "mean": 0.5664827745401658,
+          "sample_sd": 0.022495134041169706,
+          "min": 0.5452815502510578,
+          "max": 0.5988289361251454
+        },
+        "mean": {
+          "mean": 0.7578044606017128,
+          "sample_sd": 0.015009771923153451,
+          "min": 0.7429308205047724,
+          "max": 0.7796717864714591
+        }
+      }
+    },
+    {
+      "transitions": 307200,
+      "rates": {
+        "low": {
+          "mean": 0.9839627270328172,
+          "sample_sd": 0.006326520495114267,
+          "min": 0.973387427705556,
+          "max": 0.9900576732149958
+        },
+        "medium": {
+          "mean": 0.715917200174599,
+          "sample_sd": 0.017673105816493062,
+          "min": 0.6883686881060364,
+          "max": 0.734223627111444
+        },
+        "high": {
+          "mean": 0.5643039372859352,
+          "sample_sd": 0.023221373088038785,
+          "min": 0.536822933403321,
+          "max": 0.591410092623458
+        },
+        "mean": {
+          "mean": 0.7547279548311172,
+          "sample_sd": 0.012017496238499159,
+          "min": 0.7384164315747844,
+          "max": 0.7687514196008747
+        }
+      }
+    },
+    {
+      "transitions": 409600,
+      "rates": {
+        "low": {
+          "mean": 0.9836150630434013,
+          "sample_sd": 0.0029776554629746526,
+          "min": 0.97968507519051,
+          "max": 0.987218643379449
+        },
+        "medium": {
+          "mean": 0.7267230309235739,
+          "sample_sd": 0.01999305586391402,
+          "min": 0.7032258371191121,
+          "max": 0.7574167214244095
+        },
+        "high": {
+          "mean": 0.5762968616433896,
+          "sample_sd": 0.022538342510615667,
+          "min": 0.552992439219718,
+          "max": 0.6062801119679531
+        },
+        "mean": {
+          "mean": 0.7622116518701216,
+          "sample_sd": 0.014046916791551949,
+          "min": 0.7453011171764466,
+          "max": 0.7817684570637059
+        }
+      }
+    },
+    {
+      "transitions": 512000,
+      "rates": {
+        "low": {
+          "mean": 0.9909236268181348,
+          "sample_sd": 0.0025142192669801162,
+          "min": 0.9875063806965981,
+          "max": 0.9941602564102564
+        },
+        "medium": {
+          "mean": 0.738235468839409,
+          "sample_sd": 0.013938657842949568,
+          "min": 0.7228081443346901,
+          "max": 0.7590535930679718
+        },
+        "high": {
+          "mean": 0.5843374191039435,
+          "sample_sd": 0.008223126250836738,
+          "min": 0.5736834164236165,
+          "max": 0.5905293177265035
+        },
+        "mean": {
+          "mean": 0.7711655049204958,
+          "sample_sd": 0.006448289998140269,
+          "min": 0.7643015748953152,
+          "max": 0.7811299816433219
+        }
+      }
+    },
+    {
+      "transitions": 614400,
+      "rates": {
+        "low": {
+          "mean": 0.9847641909049905,
+          "sample_sd": 0.010350560300054918,
+          "min": 0.9665790120873577,
+          "max": 0.9920163198315373
+        },
+        "medium": {
+          "mean": 0.7324060629601425,
+          "sample_sd": 0.013836216313815106,
+          "min": 0.7115939135749466,
+          "max": 0.7498632787491154
+        },
+        "high": {
+          "mean": 0.5879529653409908,
+          "sample_sd": 0.022886238427849388,
+          "min": 0.5641250267670379,
+          "max": 0.6134179273172147
+        },
+        "mean": {
+          "mean": 0.7683744064020412,
+          "sample_sd": 0.009816538030343177,
+          "min": 0.754214949255964,
+          "max": 0.7792040729064484
+        }
+      }
+    },
+    {
+      "transitions": 716800,
+      "rates": {
+        "low": {
+          "mean": 0.9885571013856247,
+          "sample_sd": 0.0028971081168286898,
+          "min": 0.9836814911667853,
+          "max": 0.9912104192104192
+        },
+        "medium": {
+          "mean": 0.7310343098007358,
+          "sample_sd": 0.01123341578833715,
+          "min": 0.7203813145957939,
+          "max": 0.7482575216316228
+        },
+        "high": {
+          "mean": 0.595865183705345,
+          "sample_sd": 0.019905164477972904,
+          "min": 0.575344572008047,
+          "max": 0.6264662115172517
+        },
+        "mean": {
+          "mean": 0.7718188649639018,
+          "sample_sd": 0.010270651323215918,
+          "min": 0.7598024592568754,
+          "max": 0.784034551908076
+        }
+      }
+    },
+    {
+      "transitions": 819200,
+      "rates": {
+        "low": {
+          "mean": 0.9863117259194693,
+          "sample_sd": 0.0023180193148498673,
+          "min": 0.9823019982396918,
+          "max": 0.9882346681096681
+        },
+        "medium": {
+          "mean": 0.7331830224110333,
+          "sample_sd": 0.014154603050994379,
+          "min": 0.7110344401945909,
+          "max": 0.744324739550137
+        },
+        "high": {
+          "mean": 0.594117657935591,
+          "sample_sd": 0.014912824499821157,
+          "min": 0.5794470934909778,
+          "max": 0.617427833836287
+        },
+        "mean": {
+          "mean": 0.7712041354220311,
+          "sample_sd": 0.006806360153258209,
+          "min": 0.7617806413952108,
+          "max": 0.7806896337778354
+        }
+      }
+    },
+    {
+      "transitions": 921600,
+      "rates": {
+        "low": {
+          "mean": 0.9853480763453405,
+          "sample_sd": 0.006133290556091485,
+          "min": 0.974937347190258,
+          "max": 0.9911234626886801
+        },
+        "medium": {
+          "mean": 0.7351950668998959,
+          "sample_sd": 0.017456179634332648,
+          "min": 0.7115111710048134,
+          "max": 0.7527533259976009
+        },
+        "high": {
+          "mean": 0.5974444675600051,
+          "sample_sd": 0.014217049928724145,
+          "min": 0.5860244073465855,
+          "max": 0.6152460825119418
+        },
+        "mean": {
+          "mean": 0.7726625369350805,
+          "sample_sd": 0.011201219485564904,
+          "min": 0.7581896520488799,
+          "max": 0.7837158339160836
+        }
+      }
+    },
+    {
+      "transitions": 1024000,
+      "rates": {
+        "low": {
+          "mean": 0.9851924153820135,
+          "sample_sd": 0.005148905244837082,
+          "min": 0.9770139575766511,
+          "max": 0.9907998279900454
+        },
+        "medium": {
+          "mean": 0.736847153406741,
+          "sample_sd": 0.01248773795137576,
+          "min": 0.720787885222948,
+          "max": 0.7501924874417066
+        },
+        "high": {
+          "mean": 0.5944436358420946,
+          "sample_sd": 0.014809291302673541,
+          "min": 0.5777992403654822,
+          "max": 0.6081715522412593
+        },
+        "mean": {
+          "mean": 0.7721610682102831,
+          "sample_sd": 0.009808440050760054,
+          "min": 0.7585336943883605,
+          "max": 0.7810063077982918
+        }
+      }
+    }
+  ],
+  "baselines": {
+    "random": {
+      "by_load": {
+        "low": {
+          "on_time_rate": 0.5114091904985952,
+          "served_rate": 0.8168164465891616,
+          "expiry_rate": 0.18318355341083836,
+          "reward": 11.044501558977137,
+          "km_flown": 153.6153985391037,
+          "charge_minutes": 120.38091083562388,
+          "wait_minutes": 170.11556179112736
+        },
+        "medium": {
+          "on_time_rate": 0.235457197488504,
+          "served_rate": 0.5049988617423957,
+          "expiry_rate": 0.4950011382576043,
+          "reward": 2.078131599933433,
+          "km_flown": 180.89569388594268,
+          "charge_minutes": 152.7498977690087,
+          "wait_minutes": 104.67769598296559
+        },
+        "high": {
+          "on_time_rate": 0.21279994686191506,
+          "served_rate": 0.4189077353286396,
+          "expiry_rate": 0.5810922646713604,
+          "reward": -2.8783123732102456,
+          "km_flown": 191.76889328349225,
+          "charge_minutes": 163.29386083020918,
+          "wait_minutes": 82.57674862419981
+        }
+      },
+      "mean_on_time_rate": 0.31988877828300477,
+      "mean_reward": 3.4147735952334415
+    },
+    "edf": {
+      "by_load": {
+        "low": {
+          "on_time_rate": 0.9955694444444444,
+          "served_rate": 1.0,
+          "expiry_rate": 0.0,
+          "reward": 21.19654795834288,
+          "km_flown": 97.79623686097116,
+          "charge_minutes": 68.89932593652325,
+          "wait_minutes": 231.76665526297535
+        },
+        "medium": {
+          "on_time_rate": 0.4055888204991197,
+          "served_rate": 0.8903034362488692,
+          "expiry_rate": 0.10969656375113075,
+          "reward": 23.587034411985655,
+          "km_flown": 184.08335396161092,
+          "charge_minutes": 134.56971838126856,
+          "wait_minutes": 41.23894507198023
+        },
+        "high": {
+          "on_time_rate": 0.2747290151887962,
+          "served_rate": 0.7210028069488269,
+          "expiry_rate": 0.2789971930511731,
+          "reward": 10.224539112360686,
+          "km_flown": 191.78693350271737,
+          "charge_minutes": 142.25882245788165,
+          "wait_minutes": 30.722160544110196
+        }
+      },
+      "mean_on_time_rate": 0.5586290933774535,
+      "mean_reward": 18.336040494229742
+    },
+    "slack": {
+      "by_load": {
+        "low": {
+          "on_time_rate": 0.9926334850737024,
+          "served_rate": 1.0,
+          "expiry_rate": 0.0,
+          "reward": 21.142631552789272,
+          "km_flown": 94.4136412642421,
+          "charge_minutes": 66.3539644563605,
+          "wait_minutes": 237.40535105257354
+        },
+        "medium": {
+          "on_time_rate": 0.8098680385391948,
+          "served_rate": 0.90584934610903,
+          "expiry_rate": 0.09415065389096998,
+          "reward": 40.433790037872704,
+          "km_flown": 152.601605243401,
+          "charge_minutes": 112.1456738822387,
+          "wait_minutes": 49.77242893771236
+        },
+        "high": {
+          "on_time_rate": 0.658933380173023,
+          "served_rate": 0.8065562862246506,
+          "expiry_rate": 0.19344371377534939,
+          "reward": 40.551137431538294,
+          "km_flown": 156.1011741448334,
+          "charge_minutes": 116.56834750905408,
+          "wait_minutes": 32.74802065348907
+        }
+      },
+      "mean_on_time_rate": 0.8204783012619734,
+      "mean_reward": 34.04251967406675
+    }
+  },
+  "baseline_reference": {
+    "run_directory": "outputs/ppo_mixed_102400_seed0",
+    "evaluation_transitions": 0,
+    "policies": [
+      "random",
+      "edf",
+      "slack"
+    ],
+    "random_evaluation_rng_seed": 0,
+    "reason": "canonical common baseline on the same 120 Dev days; per-run Random repeats are retained but not substituted into the main baseline row"
+  },
+  "paired_summary": {
+    "best": {
+      "low": {
+        "per_seed": {
+          "1": {
+            "mean_delta": -0.007639419758984978,
+            "win_days": 2,
+            "tie_days": 30,
+            "loss_days": 8
+          },
+          "2": {
+            "mean_delta": -0.003024028497140624,
+            "win_days": 4,
+            "tie_days": 29,
+            "loss_days": 7
+          },
+          "3": {
+            "mean_delta": -0.006509478232590363,
+            "win_days": 5,
+            "tie_days": 26,
+            "loss_days": 9
+          },
+          "4": {
+            "mean_delta": -0.011024947274947272,
+            "win_days": 1,
+            "tie_days": 30,
+            "loss_days": 9
+          },
+          "5": {
+            "mean_delta": -0.001104282794500186,
+            "win_days": 3,
+            "tie_days": 34,
+            "loss_days": 3
+          }
+        },
+        "mean_delta": -0.005860431311632684,
+        "sample_sd_across_seeds": 0.003902704721722773,
+        "days_all_five_seeds_win": 1,
+        "days_all_five_seeds_lose": 1,
+        "days_any_seed_wins": 5
+      },
+      "medium": {
+        "per_seed": {
+          "1": {
+            "mean_delta": -0.07313874885184218,
+            "win_days": 4,
+            "tie_days": 0,
+            "loss_days": 36
+          },
+          "2": {
+            "mean_delta": -0.07384005090878014,
+            "win_days": 5,
+            "tie_days": 1,
+            "loss_days": 34
+          },
+          "3": {
+            "mean_delta": -0.060841516666761374,
+            "win_days": 9,
+            "tie_days": 4,
+            "loss_days": 27
+          },
+          "4": {
+            "mean_delta": -0.052451317114785234,
+            "win_days": 7,
+            "tie_days": 2,
+            "loss_days": 31
+          },
+          "5": {
+            "mean_delta": -0.07373631936775896,
+            "win_days": 5,
+            "tie_days": 4,
+            "loss_days": 31
+          }
+        },
+        "mean_delta": -0.06680159058198558,
+        "sample_sd_across_seeds": 0.009737078510771045,
+        "days_all_five_seeds_win": 1,
+        "days_all_five_seeds_lose": 20,
+        "days_any_seed_wins": 16
+      },
+      "high": {
+        "per_seed": {
+          "1": {
+            "mean_delta": -0.05076182793176375,
+            "win_days": 6,
+            "tie_days": 3,
+            "loss_days": 31
+          },
+          "2": {
+            "mean_delta": -0.03246716865577142,
+            "win_days": 10,
+            "tie_days": 5,
+            "loss_days": 25
+          },
+          "3": {
+            "mean_delta": -0.04368729766108129,
+            "win_days": 11,
+            "tie_days": 2,
+            "loss_days": 27
+          },
+          "4": {
+            "mean_delta": -0.05265326820507005,
+            "win_days": 6,
+            "tie_days": 1,
+            "loss_days": 33
+          },
+          "5": {
+            "mean_delta": -0.06881917867017157,
+            "win_days": 6,
+            "tie_days": 1,
+            "loss_days": 33
+          }
+        },
+        "mean_delta": -0.04967774822477161,
+        "sample_sd_across_seeds": 0.013308952386619844,
+        "days_all_five_seeds_win": 2,
+        "days_all_five_seeds_lose": 17,
+        "days_any_seed_wins": 18
+      }
+    },
+    "last": {
+      "low": {
+        "per_seed": {
+          "1": {
+            "mean_delta": -0.007639419758984978,
+            "win_days": 2,
+            "tie_days": 30,
+            "loss_days": 8
+          },
+          "2": {
+            "mean_delta": -0.0018336570836570809,
+            "win_days": 3,
+            "tie_days": 32,
+            "loss_days": 5
+          },
+          "3": {
+            "mean_delta": -0.007442109198116065,
+            "win_days": 2,
+            "tie_days": 32,
+            "loss_days": 6
+          },
+          "4": {
+            "mean_delta": -0.015619527497051394,
+            "win_days": 3,
+            "tie_days": 26,
+            "loss_days": 11
+          },
+          "5": {
+            "mean_delta": -0.00467063492063492,
+            "win_days": 3,
+            "tie_days": 30,
+            "loss_days": 7
+          }
+        },
+        "mean_delta": -0.007441069691688887,
+        "sample_sd_across_seeds": 0.0051489052448370955,
+        "days_all_five_seeds_win": 1,
+        "days_all_five_seeds_lose": 1,
+        "days_any_seed_wins": 5
+      },
+      "medium": {
+        "per_seed": {
+          "1": {
+            "mean_delta": -0.07313874885184218,
+            "win_days": 4,
+            "tie_days": 0,
+            "loss_days": 36
+          },
+          "2": {
+            "mean_delta": -0.059675551097488164,
+            "win_days": 5,
+            "tie_days": 4,
+            "loss_days": 31
+          },
+          "3": {
+            "mean_delta": -0.06201976502130553,
+            "win_days": 6,
+            "tie_days": 3,
+            "loss_days": 31
+          },
+          "4": {
+            "mean_delta": -0.08908015331624673,
+            "win_days": 3,
+            "tie_days": 2,
+            "loss_days": 35
+          },
+          "5": {
+            "mean_delta": -0.08119020737538597,
+            "win_days": 7,
+            "tie_days": 0,
+            "loss_days": 33
+          }
+        },
+        "mean_delta": -0.07302088513245372,
+        "sample_sd_across_seeds": 0.012487737951375756,
+        "days_all_five_seeds_win": 0,
+        "days_all_five_seeds_lose": 26,
+        "days_any_seed_wins": 12
+      },
+      "high": {
+        "per_seed": {
+          "1": {
+            "mean_delta": -0.05076182793176375,
+            "win_days": 6,
+            "tie_days": 3,
+            "loss_days": 31
+          },
+          "2": {
+            "mean_delta": -0.05690677220989963,
+            "win_days": 7,
+            "tie_days": 2,
+            "loss_days": 31
+          },
+          "3": {
+            "mean_delta": -0.05371995110512145,
+            "win_days": 5,
+            "tie_days": 2,
+            "loss_days": 33
+          },
+          "4": {
+            "mean_delta": -0.08113413980754076,
+            "win_days": 4,
+            "tie_days": 3,
+            "loss_days": 33
+          },
+          "5": {
+            "mean_delta": -0.07992603060031653,
+            "win_days": 4,
+            "tie_days": 0,
+            "loss_days": 36
+          }
+        },
+        "mean_delta": -0.06448974433092843,
+        "sample_sd_across_seeds": 0.014809291302673512,
+        "days_all_five_seeds_win": 1,
+        "days_all_five_seeds_lose": 25,
+        "days_any_seed_wins": 12
+      }
+    }
+  },
+  "tail_changes": {
+    "1": {
+      "gain_102400_to_last_pp": 3.577667119985828,
+      "last_interval_gain_pp": 0.40367670830675495,
+      "last_two_intervals_gain_pp": 0.38981269939334373,
+      "best_minus_last_pp": 0.0,
+      "best_to_last_reward_change": 0.0,
+      "best_to_last_by_load": {
+        "low": {
+          "on_time_rate": 0.0,
+          "served_rate": 0.0,
+          "expiry_rate": 0.0,
+          "reward": 0.0
+        },
+        "medium": {
+          "on_time_rate": 0.0,
+          "served_rate": 0.0,
+          "expiry_rate": 0.0,
+          "reward": 0.0
+        },
+        "high": {
+          "on_time_rate": 0.0,
+          "served_rate": 0.0,
+          "expiry_rate": 0.0,
+          "reward": 0.0
+        }
+      }
+    },
+    "2": {
+      "gain_102400_to_last_pp": 5.556167548805247,
+      "last_interval_gain_pp": -0.27095261177917385,
+      "last_two_intervals_gain_pp": 1.9225666403080988,
+      "best_minus_last_pp": 0.3028244109784195,
+      "best_to_last_reward_change": 0.09472832722538271,
+      "best_to_last_by_load": {
+        "low": {
+          "on_time_rate": 0.0011903714134835486,
+          "served_rate": 0.0,
+          "expiry_rate": 0.0,
+          "reward": 0.06944179354625746
+        },
+        "medium": {
+          "on_time_rate": 0.014164499811291975,
+          "served_rate": 0.004692481269479631,
+          "expiry_rate": -0.004692481269479562,
+          "reward": 0.7067718078012604
+        },
+        "high": {
+          "on_time_rate": -0.02443960355412822,
+          "served_rate": -0.00211267617336075,
+          "expiry_rate": 0.00211267617336075,
+          "reward": -0.49202861967137324
+        }
+      }
+    },
+    "3": {
+      "gain_102400_to_last_pp": 1.7937456223027337,
+      "last_interval_gain_pp": -0.4047844254703392,
+      "last_two_intervals_gain_pp": 0.7800111994287429,
+      "best_minus_last_pp": 0.4047844254703392,
+      "best_to_last_reward_change": 0.05447394551071483,
+      "best_to_last_by_load": {
+        "low": {
+          "on_time_rate": -0.0009326309655257603,
+          "served_rate": 0.0030092592592592116,
+          "expiry_rate": -0.0030092592592592593,
+          "reward": 0.1374603877015126
+        },
+        "medium": {
+          "on_time_rate": -0.0011782483545441647,
+          "served_rate": -0.00025940696737736246,
+          "expiry_rate": 0.00025940696737736246,
+          "reward": 0.246225413811203
+        },
+        "high": {
+          "on_time_rate": -0.01003265344404014,
+          "served_rate": 0.0036385009545606417,
+          "expiry_rate": -0.003638500954560725,
+          "reward": -0.22026396498056755
+        }
+      }
+    },
+    "4": {
+      "gain_102400_to_last_pp": 3.679507756757583,
+      "last_interval_gain_pp": 0.034404233948059915,
+      "last_two_intervals_gain_pp": -2.215593938947491,
+      "best_minus_last_pp": 2.323476267534541,
+      "best_to_last_reward_change": 0.5488961052914441,
+      "best_to_last_by_load": {
+        "low": {
+          "on_time_rate": -0.004594580222104128,
+          "served_rate": 0.002584434084434095,
+          "expiry_rate": -0.0025844340844340843,
+          "reward": 0.06883741846852942
+        },
+        "medium": {
+          "on_time_rate": -0.03662883620146151,
+          "served_rate": 0.0197232861635529,
+          "expiry_rate": -0.019723286163552928,
+          "reward": 0.4564515316032427
+        },
+        "high": {
+          "on_time_rate": -0.028480871602470814,
+          "served_rate": 0.01762684215803667,
+          "expiry_rate": -0.017626842158036643,
+          "reward": 1.1213993658025672
+        }
+      }
+    },
+    "5": {
+      "gain_102400_to_last_pp": 2.5032988796794386,
+      "last_interval_gain_pp": -0.013078267404009747,
+      "last_two_intervals_gain_pp": -0.39833020605675173,
+      "best_minus_last_pp": 0.7375697354635613,
+      "best_to_last_reward_change": 0.4049900765683958,
+      "best_to_last_by_load": {
+        "low": {
+          "on_time_rate": -0.003566352126134764,
+          "served_rate": 0.0028333333333333544,
+          "expiry_rate": -0.0028333333333333335,
+          "reward": 0.49332733281287133
+        },
+        "medium": {
+          "on_time_rate": -0.00745388800762703,
+          "served_rate": 0.00803327944279375,
+          "expiry_rate": -0.00803327944279382,
+          "reward": 0.9858166477894912
+        },
+        "high": {
+          "on_time_rate": -0.011106851930145045,
+          "served_rate": 7.07688047231203e-05,
+          "expiry_rate": -7.076880472317582e-05,
+          "reward": -0.26417375089717154
+        }
+      }
+    }
+  },
+  "seeds_best_before_last": [
+    2,
+    3,
+    4,
+    5
+  ],
+  "run_audits": {
+    "1": {
+      "transitions": 1024000,
+      "updates": 1000,
+      "ppo_dev_episodes": 1320,
+      "source_commit": "6ba5af2f5adb99d9f9f5f6a200d53904b794edc6",
+      "source_manifest_sha256": "f767475ee6ec4db2e4620ebc66c0cdb16d74cf4476bf58f5def242462255bcc9",
+      "source_clean": true,
+      "fresh_initialization": true,
+      "test_episodes": 0,
+      "initial_model_parameter_sha256": "4bc8ff441cd5322da58b482a543c6b342c2ba5b0892e9dbaea0a9a5f36d8024d",
+      "diagnostics": {
+        "policy_loss": {
+          "mean": -0.002399185844558815,
+          "min": -0.010306448413757607,
+          "max": 0.003429359756410122
+        },
+        "value_loss": {
+          "mean": 2.114942661654204,
+          "min": 0.8662706390023232,
+          "max": 7.523972034454346
+        },
+        "entropy": {
+          "mean": 0.5817057664170862,
+          "min": 0.30480719543993473,
+          "max": 2.1036012917757034
+        },
+        "approx_kl": {
+          "mean": 0.001147640399096872,
+          "min": 0.00022860184458295407,
+          "max": 0.008414402480411809
+        },
+        "final_approx_kl": {
+          "mean": 0.003210226724680979,
+          "min": 0.0008161690202541649,
+          "max": 0.01521963533014059
+        },
+        "gradient_norm": {
+          "mean": 5.400993074912578,
+          "min": 1.1829032227396965,
+          "max": 14.665949285030365
+        },
+        "advantage_mean": {
+          "mean": 0.03493409996246919,
+          "min": -0.8529056310653687,
+          "max": 1.404442548751831
+        },
+        "advantage_std": {
+          "mean": 1.5692699791193008,
+          "min": 1.0728164911270142,
+          "max": 2.908586263656616
+        },
+        "return_mean": {
+          "mean": 15.029669242218137,
+          "min": -0.2982621192932129,
+          "max": 19.373443603515625
+        },
+        "return_std": {
+          "mean": 10.180839323759079,
+          "min": 1.9350855350494385,
+          "max": 13.156747817993164
+        }
+      },
+      "initial_ratio_max_error": 7.152557373046875e-06,
+      "kl_early_stop_updates": 0,
+      "optimizer_steps": 16000,
+      "invalid_actions": 0,
+      "completed_training_days": 9552,
+      "training_mix": {
+        "low": {
+          "opened_days": 3152,
+          "completed_days": 3149,
+          "transitions": 306766,
+          "mean_completed_day_reward": 22.225867043496123,
+          "mean_completed_day_on_time_rate": 0.9729249894092779
+        },
+        "medium": {
+          "opened_days": 3184,
+          "completed_days": 3181,
+          "transitions": 344546,
+          "mean_completed_day_reward": 36.57142585549585,
+          "mean_completed_day_on_time_rate": 0.6998747708019687
+        },
+        "high": {
+          "opened_days": 3224,
+          "completed_days": 3222,
+          "transitions": 372688,
+          "mean_completed_day_reward": 32.89604867392761,
+          "mean_completed_day_on_time_rate": 0.5202904163567619
+        }
+      },
+      "timings": {
+        "training_seconds": 224.13206784799604,
+        "collect_seconds": 167.96405412400418,
+        "gae_seconds": 3.038818605990855,
+        "update_seconds": 53.12919511800101,
+        "eval_seconds": 39.73773282500042,
+        "checkpoint_seconds": 2.174157029997332,
+        "other_seconds": 1.519781485006206,
+        "wall_seconds": 267.563739188
+      }
+    },
+    "2": {
+      "transitions": 1024000,
+      "updates": 1000,
+      "ppo_dev_episodes": 1320,
+      "source_commit": "6ba5af2f5adb99d9f9f5f6a200d53904b794edc6",
+      "source_manifest_sha256": "f767475ee6ec4db2e4620ebc66c0cdb16d74cf4476bf58f5def242462255bcc9",
+      "source_clean": true,
+      "fresh_initialization": true,
+      "test_episodes": 0,
+      "initial_model_parameter_sha256": "aef80c0f1d0c64fb32e8d517200b9680e78da6b9c7231a447dc46b7098d8da2f",
+      "diagnostics": {
+        "policy_loss": {
+          "mean": -0.002400798245660553,
+          "min": -0.013665381207829341,
+          "max": 0.002256750827655196
+        },
+        "value_loss": {
+          "mean": 2.137579644601792,
+          "min": 0.9285004772245884,
+          "max": 9.560211330652237
+        },
+        "entropy": {
+          "mean": 0.5484504831321537,
+          "min": 0.22433521505445242,
+          "max": 2.098546728491783
+        },
+        "approx_kl": {
+          "mean": 0.0011103053582569374,
+          "min": 0.0002455440635458217,
+          "max": 0.004952048422637745
+        },
+        "final_approx_kl": {
+          "mean": 0.0031157523618312553,
+          "min": 0.0006944456836208701,
+          "max": 0.010977298952639103
+        },
+        "gradient_norm": {
+          "mean": 5.577957803830504,
+          "min": 1.1534689478576183,
+          "max": 25.48354920744896
+        },
+        "advantage_mean": {
+          "mean": 0.03670286740548909,
+          "min": -0.9358557462692261,
+          "max": 1.421362042427063
+        },
+        "advantage_std": {
+          "mean": 1.5720907602310181,
+          "min": 1.0668944120407104,
+          "max": 3.2878384590148926
+        },
+        "return_mean": {
+          "mean": 15.215972472585738,
+          "min": -0.07007072120904922,
+          "max": 19.300453186035156
+        },
+        "return_std": {
+          "mean": 10.280362884998322,
+          "min": 2.050870656967163,
+          "max": 12.503008842468262
+        }
+      },
+      "initial_ratio_max_error": 7.62939453125e-06,
+      "kl_early_stop_updates": 0,
+      "optimizer_steps": 16000,
+      "invalid_actions": 0,
+      "completed_training_days": 9742,
+      "training_mix": {
+        "low": {
+          "opened_days": 3281,
+          "completed_days": 3279,
+          "transitions": 297659,
+          "mean_completed_day_reward": 22.357139974274325,
+          "mean_completed_day_on_time_rate": 0.9734627374728689
+        },
+        "medium": {
+          "opened_days": 3231,
+          "completed_days": 3229,
+          "transitions": 350141,
+          "mean_completed_day_reward": 36.70063662754085,
+          "mean_completed_day_on_time_rate": 0.703817992584377
+        },
+        "high": {
+          "opened_days": 3238,
+          "completed_days": 3234,
+          "transitions": 376200,
+          "mean_completed_day_reward": 33.38411696335086,
+          "mean_completed_day_on_time_rate": 0.5324515059263724
+        }
+      },
+      "timings": {
+        "training_seconds": 227.84133086497422,
+        "collect_seconds": 170.2978456289875,
+        "gae_seconds": 3.008296852991407,
+        "update_seconds": 54.53518838299533,
+        "eval_seconds": 39.27336565600126,
+        "checkpoint_seconds": 2.235947671994836,
+        "other_seconds": 1.5574983860296925,
+        "wall_seconds": 270.908142579
+      }
+    },
+    "3": {
+      "transitions": 1024000,
+      "updates": 1000,
+      "ppo_dev_episodes": 1320,
+      "source_commit": "6ba5af2f5adb99d9f9f5f6a200d53904b794edc6",
+      "source_manifest_sha256": "f767475ee6ec4db2e4620ebc66c0cdb16d74cf4476bf58f5def242462255bcc9",
+      "source_clean": true,
+      "fresh_initialization": true,
+      "test_episodes": 0,
+      "initial_model_parameter_sha256": "97259442f1dfb3c15120fe0ce601a51fd7474f7bf30151b498aca66a5511ae62",
+      "diagnostics": {
+        "policy_loss": {
+          "mean": -0.0026101426402601645,
+          "min": -0.012102400534786284,
+          "max": 0.0016015677974792197
+        },
+        "value_loss": {
+          "mean": 2.1205573848970234,
+          "min": 0.895166140049696,
+          "max": 9.513080656528473
+        },
+        "entropy": {
+          "mean": 0.5754419662635774,
+          "min": 0.2952702213078737,
+          "max": 2.055590681731701
+        },
+        "approx_kl": {
+          "mean": 0.0010822013413559262,
+          "min": 0.00029473234462784603,
+          "max": 0.006713014736305922
+        },
+        "final_approx_kl": {
+          "mean": 0.0031479883949505167,
+          "min": 0.0006898356950841844,
+          "max": 0.01293189823627472
+        },
+        "gradient_norm": {
+          "mean": 5.382328636482358,
+          "min": 1.1794590912759304,
+          "max": 18.39248552918434
+        },
+        "advantage_mean": {
+          "mean": 0.03227536746114493,
+          "min": -0.9108073115348816,
+          "max": 1.5882363319396973
+        },
+        "advantage_std": {
+          "mean": 1.5692484568357468,
+          "min": 1.0389835834503174,
+          "max": 3.231910467147827
+        },
+        "return_mean": {
+          "mean": 15.017371921673417,
+          "min": 0.1958238035440445,
+          "max": 18.574106216430664
+        },
+        "return_std": {
+          "mean": 10.153284441113472,
+          "min": 1.956386923789978,
+          "max": 12.49858570098877
+        }
+      },
+      "initial_ratio_max_error": 8.58306884765625e-06,
+      "kl_early_stop_updates": 0,
+      "optimizer_steps": 16000,
+      "invalid_actions": 0,
+      "completed_training_days": 9398,
+      "training_mix": {
+        "low": {
+          "opened_days": 3157,
+          "completed_days": 3156,
+          "transitions": 318858,
+          "mean_completed_day_reward": 22.217628833219166,
+          "mean_completed_day_on_time_rate": 0.9707678110346912
+        },
+        "medium": {
+          "opened_days": 3119,
+          "completed_days": 3115,
+          "transitions": 340708,
+          "mean_completed_day_reward": 36.42896257766363,
+          "mean_completed_day_on_time_rate": 0.6958460658222559
+        },
+        "high": {
+          "opened_days": 3130,
+          "completed_days": 3127,
+          "transitions": 364434,
+          "mean_completed_day_reward": 32.98498463607765,
+          "mean_completed_day_on_time_rate": 0.5221708996209625
+        }
+      },
+      "timings": {
+        "training_seconds": 225.95137037495078,
+        "collect_seconds": 168.33607894697343,
+        "gae_seconds": 2.9991761019900878,
+        "update_seconds": 54.616115325987266,
+        "eval_seconds": 40.56255143099952,
+        "checkpoint_seconds": 2.233047977014394,
+        "other_seconds": 1.5568379690357688,
+        "wall_seconds": 270.30380775200047
+      }
+    },
+    "4": {
+      "transitions": 1024000,
+      "updates": 1000,
+      "ppo_dev_episodes": 1320,
+      "source_commit": "6ba5af2f5adb99d9f9f5f6a200d53904b794edc6",
+      "source_manifest_sha256": "f767475ee6ec4db2e4620ebc66c0cdb16d74cf4476bf58f5def242462255bcc9",
+      "source_clean": true,
+      "fresh_initialization": true,
+      "test_episodes": 0,
+      "initial_model_parameter_sha256": "fb585d4c604ac6b5992846eda3c895c75261e1f69f2f2a9d63f23d529e20547d",
+      "diagnostics": {
+        "policy_loss": {
+          "mean": -0.0022990399769114447,
+          "min": -0.015201695787254721,
+          "max": 0.003915236098691821
+        },
+        "value_loss": {
+          "mean": 2.1010307256579397,
+          "min": 0.8539115004241467,
+          "max": 8.077437698841095
+        },
+        "entropy": {
+          "mean": 0.5582798826061189,
+          "min": 0.2464124197140336,
+          "max": 2.057010419666767
+        },
+        "approx_kl": {
+          "mean": 0.0012665981311440646,
+          "min": 0.00037882235483266413,
+          "max": 0.004640507728254306
+        },
+        "final_approx_kl": {
+          "mean": 0.0034285282614291645,
+          "min": 0.0006984169594943523,
+          "max": 0.010745545849204063
+        },
+        "gradient_norm": {
+          "mean": 5.368466666851193,
+          "min": 1.4193869568407536,
+          "max": 17.412772804498672
+        },
+        "advantage_mean": {
+          "mean": 0.039278954588342456,
+          "min": -0.7191774845123291,
+          "max": 1.5312451124191284
+        },
+        "advantage_std": {
+          "mean": 1.5611477389335633,
+          "min": 1.0267269611358643,
+          "max": 3.242058515548706
+        },
+        "return_mean": {
+          "mean": 15.068091863125563,
+          "min": 0.31495270133018494,
+          "max": 19.531841278076172
+        },
+        "return_std": {
+          "mean": 10.102484256267548,
+          "min": 1.9052956104278564,
+          "max": 12.447032928466797
+        }
+      },
+      "initial_ratio_max_error": 7.62939453125e-06,
+      "kl_early_stop_updates": 0,
+      "optimizer_steps": 16000,
+      "invalid_actions": 0,
+      "completed_training_days": 9448,
+      "training_mix": {
+        "low": {
+          "opened_days": 3196,
+          "completed_days": 3194,
+          "transitions": 320404,
+          "mean_completed_day_reward": 22.10048582894366,
+          "mean_completed_day_on_time_rate": 0.9701021935804385
+        },
+        "medium": {
+          "opened_days": 3107,
+          "completed_days": 3103,
+          "transitions": 337800,
+          "mean_completed_day_reward": 36.5894834694886,
+          "mean_completed_day_on_time_rate": 0.7029821530168284
+        },
+        "high": {
+          "opened_days": 3153,
+          "completed_days": 3151,
+          "transitions": 365796,
+          "mean_completed_day_reward": 33.08000117158058,
+          "mean_completed_day_on_time_rate": 0.529230069481293
+        }
+      },
+      "timings": {
+        "training_seconds": 238.9683216909807,
+        "collect_seconds": 176.48236681398976,
+        "gae_seconds": 3.1293168749998586,
+        "update_seconds": 59.35663800199109,
+        "eval_seconds": 42.19268106700201,
+        "checkpoint_seconds": 2.42563949300893,
+        "other_seconds": 1.6212793540080384,
+        "wall_seconds": 285.2079216049997
+      }
+    },
+    "5": {
+      "transitions": 1024000,
+      "updates": 1000,
+      "ppo_dev_episodes": 1320,
+      "source_commit": "6ba5af2f5adb99d9f9f5f6a200d53904b794edc6",
+      "source_manifest_sha256": "f767475ee6ec4db2e4620ebc66c0cdb16d74cf4476bf58f5def242462255bcc9",
+      "source_clean": true,
+      "fresh_initialization": true,
+      "test_episodes": 0,
+      "initial_model_parameter_sha256": "dc79289ba30279eb11ad07b5374e1098083154ca5a920b4e4a63ffa767012afb",
+      "diagnostics": {
+        "policy_loss": {
+          "mean": -0.002389056553343835,
+          "min": -0.01609912875574082,
+          "max": 0.0019219040987081826
+        },
+        "value_loss": {
+          "mean": 2.104778291705996,
+          "min": 0.966450609266758,
+          "max": 9.803399085998535
+        },
+        "entropy": {
+          "mean": 0.5623751110956072,
+          "min": 0.19982762448489666,
+          "max": 2.0382223576307297
+        },
+        "approx_kl": {
+          "mean": 0.0010265294120758882,
+          "min": 0.00018772205294226296,
+          "max": 0.007955652472446673
+        },
+        "final_approx_kl": {
+          "mean": 0.002988545349158812,
+          "min": 0.0005860083037987351,
+          "max": 0.017636211588978767
+        },
+        "gradient_norm": {
+          "mean": 5.197403555162251,
+          "min": 1.487224243581295,
+          "max": 21.410838812589645
+        },
+        "advantage_mean": {
+          "mean": 0.03616762769315392,
+          "min": -0.8951497673988342,
+          "max": 1.0753231048583984
+        },
+        "advantage_std": {
+          "mean": 1.560610891699791,
+          "min": 1.0857139825820923,
+          "max": 3.25368070602417
+        },
+        "return_mean": {
+          "mean": 15.090223301053047,
+          "min": 0.4142643213272095,
+          "max": 19.401264190673828
+        },
+        "return_std": {
+          "mean": 10.165892791152,
+          "min": 1.7405496835708618,
+          "max": 12.683011054992676
+        }
+      },
+      "initial_ratio_max_error": 8.58306884765625e-06,
+      "kl_early_stop_updates": 0,
+      "optimizer_steps": 16000,
+      "invalid_actions": 0,
+      "completed_training_days": 9640,
+      "training_mix": {
+        "low": {
+          "opened_days": 3241,
+          "completed_days": 3238,
+          "transitions": 302309,
+          "mean_completed_day_reward": 22.116511275061107,
+          "mean_completed_day_on_time_rate": 0.9734030946189073
+        },
+        "medium": {
+          "opened_days": 3157,
+          "completed_days": 3155,
+          "transitions": 343172,
+          "mean_completed_day_reward": 36.37499946057698,
+          "mean_completed_day_on_time_rate": 0.7025728409826337
+        },
+        "high": {
+          "opened_days": 3250,
+          "completed_days": 3247,
+          "transitions": 378519,
+          "mean_completed_day_reward": 32.95498770237249,
+          "mean_completed_day_on_time_rate": 0.5236323609326612
+        }
+      },
+      "timings": {
+        "training_seconds": 232.6469619579966,
+        "collect_seconds": 172.87572927198562,
+        "gae_seconds": 3.116338716024984,
+        "update_seconds": 56.654893969986006,
+        "eval_seconds": 40.91067981300057,
+        "checkpoint_seconds": 2.3207970350649703,
+        "other_seconds": 1.5711810199381944,
+        "wall_seconds": 277.44961982600034
+      }
+    }
+  },
+  "coverage": {
+    "transitions": 5120000,
+    "updates": 5000,
+    "ppo_dev_episodes": 6600,
+    "evaluation_checkpoints": 55,
+    "test_episodes": 0,
+    "complete_training_days": 47780,
+    "nonfinite_recorded_training_diagnostics": 0,
+    "invalid_actions": 0
+  },
+  "timings": {
+    "training_seconds": 1149.5400527368984,
+    "collect_seconds": 855.9560747859405,
+    "gae_seconds": 15.291947151997192,
+    "update_seconds": 278.2920307989607,
+    "eval_seconds": 202.67701079200378,
+    "checkpoint_seconds": 11.389589207080462,
+    "other_seconds": 7.8265782140179,
+    "wall_seconds": 1371.4332309500005
+  },
+  "orchestrator_wall_seconds": 1376.2436095390003,
+  "notes": [
+    "All five runs completed the same fixed budget from scratch; seed 0 was excluded.",
+    "Best checkpoints were selected independently using the frozen full-Dev rule; all last models remain available.",
+    "Rates are mean daily rates within load, then equal-weighted across three loads.",
+    "Standard deviation is sample SD across five learner seeds (ddof=1), not across 600 pooled day pairs.",
+    "Random uses the frozen pilot seed-0 canonical baseline; formal-run Random repeats are not cherry-picked.",
+    "Learning curves show all five training repetitions and their pointwise mean.",
+    "Paired day distributions are descriptive Dev comparisons; they do not replace training-seed uncertainty.",
+    "Results are Dev-selected and reused Dev, not held-out Test. No Test cases have been read.",
+    "No causal claim about mixed-load training is possible without the equal-budget Medium-only control."
+  ]
+}
