@@ -1,0 +1,284 @@
+{
+  "milestone": "Frozen final demand-day Test",
+  "frozen_utc": "2026-10-26T10:23:08.962910+00:00",
+  "final_candidates_frozen": true,
+  "split": "test",
+  "demand_seed_range": [
+    200000,
+    200099
+  ],
+  "loads": [
+    "low",
+    "medium",
+    "high"
+  ],
+  "map_seed": 0,
+  "jobs": 5,
+  "diagnostics": true,
+  "final_method": "s1",
+  "entries": [
+    {
+      "name": "mlp_s1",
+      "method": "mlp",
+      "learner_seed": 1,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m3_mixed_mlp_ppo/seed_1/best.pt",
+      "checkpoint_sha256": "283d34b70b2dd1a37ad37f3f5a6fe2f3e36cb3feb448cf0899ebaea785c5d24a",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "mlp_s2",
+      "method": "mlp",
+      "learner_seed": 2,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m3_mixed_mlp_ppo/seed_2/best.pt",
+      "checkpoint_sha256": "a194d3acfc233da28a34c032d17daed7c3fd11abded5cd0acc90a701675bf8dc",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "mlp_s3",
+      "method": "mlp",
+      "learner_seed": 3,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m3_mixed_mlp_ppo/seed_3/best.pt",
+      "checkpoint_sha256": "5f660811711ffb700be5ed0baae86191594b4cab76308c71deafb479b1566308",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "mlp_s4",
+      "method": "mlp",
+      "learner_seed": 4,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m3_mixed_mlp_ppo/seed_4/best.pt",
+      "checkpoint_sha256": "3a7d2dc67ddbf9acb60199d2851a2cba3d72af1b990e73adc28ca219805a4f94",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "mlp_s5",
+      "method": "mlp",
+      "learner_seed": 5,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m3_mixed_mlp_ppo/seed_5/best.pt",
+      "checkpoint_sha256": "9d88e3ed63c5869caf56a26089d98c985ccf14aabd27116c241d10b1a2b835cb",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "m4_s1",
+      "method": "m4",
+      "learner_seed": 1,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m4_structured_ppo/seed_1/best.pt",
+      "checkpoint_sha256": "2b167423e210e33de8181fc13fc309cd6679a4a8d82f5f7fd91b55a77787ac77",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "m4_s2",
+      "method": "m4",
+      "learner_seed": 2,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m4_structured_ppo/seed_2/best.pt",
+      "checkpoint_sha256": "6a9160bda82a4dd33a1f24eaaaa55967a94498417d9c11114c4c306e409c3029",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "m4_s3",
+      "method": "m4",
+      "learner_seed": 3,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m4_structured_ppo/seed_3/best.pt",
+      "checkpoint_sha256": "2fec253a0ad3ffebea26cc2a9352fa347734c3fb4d36e881ccbdc3da9c49c23f",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "m4_s4",
+      "method": "m4",
+      "learner_seed": 4,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m4_structured_ppo/seed_4/best.pt",
+      "checkpoint_sha256": "900da7fa4ec1a7aeea229ce30c6cc02d342fa48779b99ddf809ef16865393830",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "m4_s5",
+      "method": "m4",
+      "learner_seed": 5,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m4_structured_ppo/seed_5/best.pt",
+      "checkpoint_sha256": "0c0ee4bb8cf4a0ba66f0620c8ae413b72c7cb2612b33d85c021c7da5050a2b0b",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "s1_s1",
+      "method": "s1",
+      "learner_seed": 1,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m5_s1_development_123/seed_1/best.pt",
+      "checkpoint_sha256": "750bffbc1bcd8322621978bddc83397c57c059829f80b3ad83bf490a3c6ba304",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "s1_s2",
+      "method": "s1",
+      "learner_seed": 2,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m5_s1_development_123/seed_2/best.pt",
+      "checkpoint_sha256": "7f8404be75a5c7b34ede22f61e6a9f5e2ae950524f8a12ef7e82689c1cc6ec8f",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "s1_s3",
+      "method": "s1",
+      "learner_seed": 3,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m5_s1_development_123/seed_3/best.pt",
+      "checkpoint_sha256": "99af3ddad0d1dba486fea0613d8eb80c3f0aa049c82dacc81ff56dc4434611ec",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "s1_s4",
+      "method": "s1",
+      "learner_seed": 4,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m5_s1_extension_45/seed_4/best.pt",
+      "checkpoint_sha256": "aad30b6f837b2bd194d06aafc77b13ce4bd8e1b57d87a1c62845909a4ee4c32c",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "s1_s5",
+      "method": "s1",
+      "learner_seed": 5,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m5_s1_extension_45/seed_5/best.pt",
+      "checkpoint_sha256": "df9f1b7b028a038e98a4ac654a0c2f5c1f13640599f18b8494b8f405cf1394db",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "fixed_rules",
+      "method": "rules",
+      "learner_seed": 0,
+      "policies": [
+        "random",
+        "edf",
+        "slack"
+      ]
+    }
+  ],
+  "primary_comparisons": [
+    {
+      "left": "m4",
+      "right": "mlp"
+    },
+    {
+      "left": "s1",
+      "right": "slack"
+    },
+    {
+      "left": "s1",
+      "right": "m4"
+    },
+    {
+      "left": "s1",
+      "right": "mlp"
+    }
+  ],
+  "selection": "one original Dev-main best checkpoint per learner seed, equal-load daily on-time mean then mean daily reward, earliest exact tie; no per-load checkpoint or Test seed selection",
+  "statistics": {
+    "primary": "equal-load mean daily on_time_rate, averaged over five learners",
+    "secondary": [
+      "reward",
+      "per-load/type service",
+      "delivery/expiry counts",
+      "energy and transport"
+    ],
+    "learner_sample_sd_ddof": 1,
+    "bootstrap_repetitions": 10000,
+    "bootstrap_seed": 20261026,
+    "confidence_level": 0.95,
+    "bootstrap": "paired crossed learner-ID and demand-day-ID product bootstrap; same day draws across all loads and methods, common learner-ID pairing across methods; baselines fixed learner dimension 1",
+    "report_intervals": [
+      "joint percentile",
+      "conditional learner-only percentile",
+      "conditional demand-day-only percentile"
+    ],
+    "multiplicity": "pointwise 95% intervals, no familywise adjustment; all primary comparisons predeclared",
+    "limitations": "only five learner repetitions; fixed map; not 1500 independent training runs"
+  },
+  "random_protocol": "uniform legal actions, per-day isolated SeedSequence([0,day,load_index,0])",
+  "evaluation": "canonical original network forward and deterministic masked categorical argmax; optional inference optimization not used for scientific Test",
+  "frozen_files": {
+    "medical_uav/__init__.py": "ba19badf7f8059a7a7c58ed5abc38c3e551132e7953ff2e09ef2bbe28cb487c7",
+    "medical_uav/agents/__init__.py": "48149068c77b9fb0204f869b9deea23d2129731fa96f82cb0e93dc77377c06f6",
+    "medical_uav/agents/inference.py": "f55ee053319069c317b77ddeaf9f9163f24d83a31ed01002730322a6bacf9216",
+    "medical_uav/agents/networks.py": "b668bef16ecf67988d58cefa7e3c6d936e411233125931d3b3b3f0f62650fc75",
+    "medical_uav/algorithms/__init__.py": "7aad7f1a03ee1e880ccd9fc6b00999a761a6d8ebeaa441dacd371b5414dad8ea",
+    "medical_uav/algorithms/ppo.py": "6d2e9e06a7b6e7ff49d109a96af8f2c0824e16f67d6788807819ae0f6e3cf6c0",
+    "medical_uav/algorithms/returns.py": "8900663b4f601e64d57fd6e3b029b8c2938f879f450a775c0a63f31937c78fc0",
+    "medical_uav/algorithms/rollout_buffer.py": "a4dc17d97ad379d095824262a1b603da2dff9cb86df449d772e47a2fc6be1fd9",
+    "medical_uav/baselines/__init__.py": "5f9fe415a722625d656ed95a9b9a536ef8eafee9f79b2210cda8e9bb02a77234",
+    "medical_uav/baselines/heuristics.py": "1cd143d9ace7d6d011993420c933e1c8585603b315955d6d138f80d905d777c8",
+    "medical_uav/env/__init__.py": "7fa956f33796af454577dd4906e8ea9464ee71ceb4e28fe7e7a83e2d20e3994a",
+    "medical_uav/env/actions.py": "fbc28e03339b196b83ff24ac639b22c39074ff3b6e9acfd7f3015296af2a090d",
+    "medical_uav/env/astar.py": "c05dd7486f0722f5b4e53f294d77034fb52a2a86e0ff7d405f3d81697d01c114",
+    "medical_uav/env/config.py": "823dca2125c67c13ac9507a6e4c03554543497786a378bf23cebc67c17b6729a",
+    "medical_uav/env/map_gen.py": "bbb6bb2860490f369ae6db9b0bd12b04fb4d741ce4401fc15ff108c52afd5792",
+    "medical_uav/env/masks.py": "b5f2c426d8090088d14f6c716db3cfec6a678640db6aef17e987d58c90597729",
+    "medical_uav/env/observation.py": "151ee0e4acfb188b9ba335837b7d8bfeb474eeb48935be48005d0d0ec568b137",
+    "medical_uav/env/orders.py": "17a64222f429bf07e0c8eca7ed1152eeefdff27c38d3209219ed396193aa1891",
+    "medical_uav/env/physics.py": "8f30978426a18a0d43067b44bfe7ecfc9022ca56edc1712d55363fad5645ec4f",
+    "medical_uav/env/render.py": "9ea9cf45b818afe57cb8befd39ce8c8821dea004084c1e51d8374a7b04161118",
+    "medical_uav/env/simulator.py": "7c1cca791da62c1120b15cac4d7af625f14006e3bce1388145647a821f4d7329",
+    "medical_uav/env/uav_env.py": "6920244dbc36c49e71b99ddb5f8259b114138fe21cd222ed5125f78c8dd72c16",
+    "medical_uav/evaluation/__init__.py": "525c5649edc6c38fee138c371f50ec5ed79dbd8a0ce3c6d0f393d53a382db224",
+    "medical_uav/evaluation/diagnostics.py": "d159892e628d4ff85070c35c569b2c0421656f6cc30651cd99aa291583e5ed0e",
+    "medical_uav/evaluation/evaluate.py": "cb9576a1b294df19563dec6d10b6c4fd9d41943ab8b15862ad4242cbca3b1dda",
+    "medical_uav/evaluation/final_stats.py": "4bb527f1547747d1c0347dd16b5c61236ef6b3d5a5baa736da2187127ba3b41f",
+    "medical_uav/metrics.py": "df796c12a740e4480278f03a079b1ec719525a2e43273b3cee446a081795ad46",
+    "medical_uav/splits.py": "b7de4823d4779700b7671800ee6d9671c547d04bbd1bf8ebc86f2c4b0aea5be1",
+    "medical_uav/training/__init__.py": "d040a1819ba759c1802944709f3abf2cb13d371137e69d14003b7e399e566110",
+    "medical_uav/training/collector.py": "efd3e6301a13b028d05d38cd6aedc4b5d3ca7b47cff9956249552c91e49c9ccd",
+    "medical_uav/training/io.py": "8911a69f780b9ed4d52140977030e799af3840bed129e8e2d1c827b5bd232196",
+    "medical_uav/training/trainer.py": "7d1bb6ea1d72c262af8bd54f8857eef1454dfe217f053b0bf5437690cdde5fc6",
+    "scripts/evaluate.py": "dd4c74db369f1a61fc2fcca0e338a51a197a4e46a7a75f4fb98714740d911035",
+    "scripts/evaluate_suite.py": "3d016bb799eecfa6d46e64ce19fce86579080aec845795d0e4517a946881c310",
+    "scripts/analyze_final.py": "fc33cdd7b137b8889c8cff8018fb221c80d9e3b71b4274f4d28bb881baed5769",
+    "environment.yml": "2acae6a32845a194f3c722bb529c78585476857fa89096f6c2e77b5044efffd0",
+    "requirements-lock.txt": "14ed054ed2fcdcea4cc0cef48c43c8295051f7667aeb2e073b3592d92f163cd6"
+  },
+  "preconditions": {
+    "gate_sha256": "8faea7d2b86402af53720309117d0f867bddbdaf853457bee591cc4fe91ebe34",
+    "inference_equivalence_sha256": "73ebe928f8af5a68fcc313117f97ecb8528b07c54130f80e1390bb3d4fae952f",
+    "initial_development_diagnostics_sha256": "93878b8ba1c2433f0993308551720f85901c274740918b57ab573dff86e9e22d",
+    "m4_results_unchanged": true
+  },
+  "post_test_policy": "No further model/selection/hyperparameter changes. Any later tuning is new exploration and this Test is consumed."
+}
