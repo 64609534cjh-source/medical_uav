@@ -509,3 +509,50 @@ so elapsed completion time is not an architecture speed comparison. Formal logs
 retain process CPU time and actual throughput. An isolated one-thread inference
 [benchmark](results/m4_inference_benchmark.json) uses identical real observations;
 parameter count is not treated as a compute-cost proxy. Test remains unused.
+
+### M4 completed results — 26 October 2026
+
+All five new structured learners completed 1,024,000 transitions / 1,000 updates,
+with 55 full-Dev checkpoints retained. The formal training source is `8a5a76a`.
+All runs passed legal-action, finite-diagnostic, checkpoint and complete-day audits.
+The 800 best/last Medium/High behavior replays reproduced saved reward and on-time
+results exactly; standalone checkpoint reload also reproduced all record fields on
+four matched Dev days.
+
+| Selected best model | Low | Medium | High | Equal-load mean |
+|---|---:|---:|---:|---:|
+| Frozen MLP | 98.68 ± 0.39% | 74.31 ± 0.97% | 60.93 ± 1.33% | 77.97 ± 0.49% |
+| Structured | 99.69 ± 0.26% | 85.75 ± 0.62% | 74.30 ± 0.88% | **86.58 ± 0.22%** |
+| Slack-aware | 99.26% | 80.99% | 65.89% | 82.05% |
+
+The five corresponding learner improvements are +8.98 / +8.02 / +8.12 / +8.76 /
++9.17 pp: mean **+8.61 ± 0.51 pp** versus MLP and **+4.53 pp** versus Slack's
+Dev mean. All SD values describe five learner seeds (ddof=1), not confidence
+intervals or pooled episode uncertainty. Medium improves on 185/200 matched
+seed-day pairs and High on 196/200. Both gains accompany more batching and less
+expiry after pickup; behavior remains descriptive because policies visit different
+states. This comparison does not isolate parameter count from structural bias.
+
+All five best checkpoints occur before the final step. The last-model mean is
+84.80 ± 1.29%, below selected best by 1.78 pp. Reward rises slightly while
+Medium/High on-time rate falls and expiry declines, so convergence is not claimed.
+The five concurrent single-thread CPU runs finished in 998.13 seconds; this is
+not directly comparable to M3's serial elapsed time. CPU and training-stage costs
+are reported separately.
+
+- [Complete result table and interpretation](results/m4_structured.md)
+- [Full learning curves](results/m4_structured_curves.png) and [post-100k detail](results/m4_structured_tail_curves.png)
+- [Matched-day differences](results/m4_structured_paired.png), with all best/last daily differences in [JSON](results/m4_structured_paired.json)
+- [Summary and behavior](results/m4_structured.json) and [complete checkpoint/training audit](results/m4_structured_audit.json)
+
+Raw checkpoints, source archives, all evaluation days, update/episode logs and
+behavior replay days remain under `outputs/m4_structured_ppo/`. The M3 directory
+was preserved. Reproduce the analysis locally with:
+
+```bash
+python scripts/analyze_m4.py --run-dir outputs/m4_structured_ppo \
+  --output results/m4_structured
+```
+
+Test is still unused. No PPO/reward/slot/architecture tuning followed the pilot,
+and no other ablation was added to this comparison.
