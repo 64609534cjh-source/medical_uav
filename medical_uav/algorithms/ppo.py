@@ -10,6 +10,8 @@ import numpy as np
 import torch
 from torch.nn import functional as F
 
+from medical_uav.agents.networks import masked_distribution
+
 
 @dataclass
 class PPOConfig:
@@ -54,6 +56,12 @@ class PPOUpdater:
         cfg, batch = self.config, buffer.flattened()
         size = len(batch["action"])
         with torch.no_grad():
+            # Diagnostic only: keep the frozen old 26-action distribution across
+            # this update. No extra random draws and no change to stopping/loss.
+            old_logits, _ = self.network(batch["obs"])
+            old_distribution = masked_distribution(old_logits, batch["action_mask"])
+            old_log_probs = old_distribution.logits.detach().clone()
+            old_probs = old_distribution.probs.detach().clone()
             old_check, _, _ = self.network.evaluate_actions(
                 batch["obs"], batch["action_mask"], batch["action"])
             initial_ratio_error = float(((old_check - batch["old_log_prob"]).exp() - 1).abs().max())
@@ -99,6 +107,16 @@ class PPOUpdater:
                 batch["obs"], batch["action_mask"], batch["action"])
             final_log_ratio = final_log_prob - batch["old_log_prob"]
             final_kl = float(((final_log_ratio.exp() - 1) - final_log_ratio).mean())
+            new_logits, _ = self.network(batch["obs"])
+            new_distribution = masked_distribution(new_logits, batch["action_mask"])
+            differences = (old_log_probs - new_distribution.logits).masked_fill(~batch["action_mask"], 0)
+            exact_kl = (old_probs * differences).sum(-1)
+            if not torch.isfinite(exact_kl).all() or exact_kl.min() < -1e-5:
+                raise RuntimeError("non-finite or negative categorical KL")
+            legal_count = batch["action_mask"].sum(-1)
+            choices = legal_count > 1
+            old_entropy = old_distribution.entropy()
+            normalized_entropy = old_entropy[choices] / legal_count[choices].float().log()
             variance = batch["returns"].var(unbiased=False)
             explained_variance = (float(1 - (batch["returns"] - final_values).var(unbiased=False) / variance)
                                   if variance > 1e-12 else None)
@@ -113,5 +131,12 @@ class PPOUpdater:
             "return_std": float(batch["returns"].std(unbiased=False)),
             "explained_variance": explained_variance, "optimizer_steps": len(records),
             "epochs_completed": completed_epochs, "kl_early_stop": stopped,
+            "exact_categorical_kl_mean": float(exact_kl.mean()),
+            "exact_categorical_kl_choice_mean": float(exact_kl[choices].mean()) if choices.any() else None,
+            "exact_categorical_kl_p95": float(torch.quantile(exact_kl, .95)),
+            "exact_categorical_kl_max": float(exact_kl.max()),
+            "old_normalized_entropy_choice_mean": float(normalized_entropy.mean()) if choices.any() else None,
+            "choice_states": int(choices.sum()),
+            "old_distribution_float32_bytes": old_probs.numel() * old_probs.element_size(),
         })
         return result

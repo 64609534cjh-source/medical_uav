@@ -556,3 +556,45 @@ python scripts/analyze_m4.py --run-dir outputs/m4_structured_ppo \
 
 Test is still unused. No PPO/reward/slot/architecture tuning followed the pilot,
 and no other ablation was added to this comparison.
+
+## M5: bounded stability tuning and final validation
+
+M4 is retained as S0 with all existing checkpoints/results unchanged. A preflight
+scan of 152 recorded output files found no prior use of demand seeds 100040–100139.
+These are now **Dev-extra**, explicitly available for diagnosis/configuration
+comparison, never a held-out Test. Dev-main 100000–100039 alone still selects each
+learner's single best checkpoint for every load. Test 200000–200099 remains sealed
+until a separate final-comparison protocol freezes all model hashes and statistics.
+
+[Pre-tuning diagnostics](results/m5_initial_diagnostics.md) reproduce all M4
+Dev-main scores and include per-seed/load/type counts, unpicked/picked expiry,
+effective-drop numerators/denominators, and event-weighted battery/payload
+histograms. On Dev-extra, M4 best is 85.96%, MLP best 77.45%, and Slack 81.47%.
+M4 last is 84.51%; all five best-to-last declines also occur on these extra days.
+
+The existing LR is constant 3e-4. The target-KL threshold 0.02 really stops all
+remaining joint optimizer updates for that rollout. Late KL/score change does not
+show the hypothesized negative association; S2 is therefore not run in this finite
+round. S1 changes **only the LR schedule**: updates 1–500 retain 3e-4, then linear
+decay to 3e-5 at update 1000. No entropy/reward/architecture/slot change is included.
+Exact categorical KL and normalized entropy are diagnostic additions; a frozen M4
+updater regression verifies identical model tensors and original update statistics.
+
+The [M5 protocol](configs/m5_protocol.json) fixes complete 1,024,000-step runs,
+11 full-Dev checkpoints and the original selection rule. Seeds 1–3 run first;
+seeds 4–5 are conditional on all preregistered gates. The engineering gates require
+main best no more than 0.3 pp lower, last and tail each at least 0.3 pp higher,
+extra best no more than 0.3 pp lower, extra last nondecreasing, and no severe
+per-load/type extra best regression (2/3 pp tolerances). These are practical
+selection rules, not significance or noninferiority tests. Otherwise retain S0
+and stop tuning. No combination search is planned.
+
+```bash
+python scripts/run_m5.py --stage development --output-dir outputs/m5_s1_development_123
+# Only after the frozen gate passes:
+python scripts/run_m5.py --stage extension --output-dir outputs/m5_s1_extension_45
+```
+
+PICK projection reuse and argmax-only evaluation will be treated separately as
+engineering changes. They must pass numerical, action and complete-day checks
+before benchmarking; the training network and on-policy data will remain separate.

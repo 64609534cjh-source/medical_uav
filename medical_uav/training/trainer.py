@@ -27,6 +27,7 @@ from medical_uav.training.io import append_json, restore_rng, rng_state, write_j
 @dataclass
 class TrainConfig:
     architecture: str = "mlp"
+    learning_rate_schedule: str = "constant"
     total_steps: int = 10_240
     num_envs: int = 8
     rollout_steps: int = 128
@@ -43,6 +44,8 @@ class TrainConfig:
 
     def validate(self):
         self.ppo.validate()
+        if self.learning_rate_schedule not in ("constant", "late_linear_10pct"):
+            raise ValueError("unknown learning rate schedule")
         if self.architecture not in ("mlp", "structured"):
             raise ValueError("architecture must be mlp or structured")
         if min(self.total_steps, self.num_envs, self.rollout_steps, self.threads,
@@ -66,6 +69,19 @@ class TrainConfig:
             if data.get(field_name) is not None:
                 data[field_name] = tuple(data[field_name])
         return cls(**data)
+
+
+def learning_rate_at(config, update_end_steps):
+    """Predeclared schedule indexed by completed transitions at this update end.
+
+    Updates 1..500 retain the original LR at a 1,024,000-step budget. Update
+    501 begins linear decay; update 1000 uses 10% of the original LR.
+    """
+    if config.learning_rate_schedule == "constant":
+        return config.ppo.learning_rate
+    progress = min(1.0, update_end_steps / config.total_steps)
+    factor = 1.0 if progress <= .5 else 1.0 - .9 * (progress - .5) / .5
+    return config.ppo.learning_rate * factor
 
 
 def load_checkpoint(path):
@@ -170,7 +186,7 @@ def train(config, output_dir, resume=None):
         "discarded_partial_days": checkpoint["collector"]["partial_days_discarded_on_resume"] if checkpoint else [],
         "selection_rule": "full Dev: equal-load mean daily on_time_rate, then mean daily reward",
         "value_loss": "MSE without additional 1/2", "discount": "per decision; gamma=1 by default",
-        "learning_rate_schedule": "constant",
+        "learning_rate_schedule": config.learning_rate_schedule,
     }
     write_json(output / "metadata.json", metadata)
     write_json(output / "config.json", asdict(config))
@@ -223,6 +239,8 @@ def train(config, output_dir, resume=None):
             gae_seconds = time.perf_counter() - tick
             gae_total += gae_seconds
             tick = time.perf_counter()
+            for group in updater.optimizer.param_groups:
+                group["lr"] = learning_rate_at(config, steps + batch_size)
             diagnostics = updater.update(buffer)
             update_seconds = time.perf_counter() - tick
             update_total += update_seconds
@@ -272,7 +290,7 @@ def train(config, output_dir, resume=None):
               "collect_seconds": collect_total, "gae_seconds": gae_total,
               "update_seconds": update_total,
               "training_seconds": collect_total + gae_total + update_total,
-              "learning_rate_schedule": "constant",
+              "learning_rate_schedule": config.learning_rate_schedule,
               "best_score": best_score, "best_written_in_this_run": best_in_this_run,
               "inherited_best_checkpoint": str(Path(resume).parent / "best.pt") if resume and not best_in_this_run else None,
               "last_evaluation": last_evaluation, "transitions_by_load": dict(collector.transitions_by_load),
