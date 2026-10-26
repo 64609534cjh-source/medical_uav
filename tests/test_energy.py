@@ -106,3 +106,31 @@ def test_full_charges_are_the_100_targets():
 
     assert [CHARGE_TABLE[a - CHARGE0][1] for a in FULL_CHARGES] == [FULL_BATTERY] * 2
     assert np.all(np.diff(FULL_CHARGES) > 0)
+
+
+def test_energy_contrasts_registered_verdict(tmp_path):
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    keys = ["on_time_rate", "on_time_peak", "on_time_offpeak", "battery_at_peak",
+            "peak_charge_minutes", "charge_minutes", "charge_full_share", "km_flown", "overrides"]
+    base = dict(zip(keys, [0.8, 0.7, 0.9, 60.0, 30.0, 100.0, 0.1, 150.0, float("nan")]))
+    changes = {"slack": {}, "slack100": {},
+               "prepeak": {"on_time_peak": 0.75, "battery_at_peak": 70.0,
+                           "peak_charge_minutes": 25.0, "overrides": 2},
+               "ppo": {"on_time_peak": 0.9}, "ppo/no100": {"on_time_peak": 0.85}}
+    lines = [",".join(["method", "load", "seed"] + keys)]
+    for method, change in changes.items():
+        for load in ("medium", "high"):
+            for day in (1, 2, 3):
+                row = {**base, **change}
+                lines.append(",".join([method, load, str(day)] + [str(row[k]) for k in keys]))
+    (tmp_path / "b.csv").write_text("\n".join(lines))
+    repo = Path(__file__).resolve().parents[1]
+    result = subprocess.run([sys.executable, str(repo / "scripts" / "energy_contrasts.py"),
+                             str(tmp_path / "b.csv")], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    assert "peak on-time, prepeak - slack100:  +5.00 [ +5.00,  +5.00]" in result.stdout
+    assert "VERDICT: anticipatory top-ups improve peak service" in result.stdout
+    assert "ppo - no100:  +5.00" in result.stdout
