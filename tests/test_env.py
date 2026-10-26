@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from gymnasium.utils.env_checker import check_env
 
-from medical_uav.env import MedicalUAVEnv
+from medical_uav.env import EnvConfig, MedicalUAVEnv
 from medical_uav.env.actions import WAIT
 from medical_uav.env.physics import delivery_reward
 
@@ -165,3 +165,20 @@ def test_masks_match_execution_under_non_default_settings(overrides):
     env = MedicalUAVEnv(config=EnvConfig(**overrides), load="high")
     for seed in range(3):
         rollout(env, seed, rng_seed=seed)
+
+
+def test_reset_can_switch_the_map():
+    env = MedicalUAVEnv(load="low")
+    obs0, _ = env.reset(options={"demand_seed": 100_000})
+    orders0 = [(o.release, o.origin, o.dest) for o in env.sim.orders]
+    xy0 = env.city_map.node_xy.copy()
+    obs3, _ = env.reset(options={"demand_seed": 100_000, "map_seed": 3})
+    assert env.cfg.map_seed == 3 and not np.allclose(env.city_map.node_xy, xy0)
+    assert not np.allclose(obs3, obs0)  # the travel times are part of the observation
+    assert [(o.release, o.origin, o.dest) for o in env.sim.orders] == orders0  # same demand
+    env.reset(options={"demand_seed": 100_001})  # without map_seed the map stays
+    assert env.cfg.map_seed == 3
+    other = MedicalUAVEnv(config=EnvConfig(map_seed=3), load="low")
+    assert np.allclose(other.city_map.dist_km, env.city_map.dist_km)
+    env.reset(options={"demand_seed": 100_000, "map_seed": 0})
+    assert np.allclose(env.city_map.node_xy, xy0)

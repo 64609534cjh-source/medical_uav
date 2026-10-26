@@ -33,7 +33,8 @@ class MedicalUAVEnv(gym.Env):
             raise ValueError(f"unknown render_mode {render_mode!r}")
         self.load = load
         self.render_mode = render_mode
-        self.city_map = generate_map(self.cfg.map_seed, self.cfg)
+        self._maps = {}  # maps built so far, by seed (a map takes ~0.1 s to build)
+        self.city_map = self._map(self.cfg.map_seed)
 
         self.observation_space = spaces.Box(-OBS_BOUND, OBS_BOUND, shape=(OBS_DIM,),
                                             dtype=np.float32)
@@ -56,6 +57,7 @@ class MedicalUAVEnv(gym.Env):
             demand_seed: seed for the day's orders; a random training seed if omitted.
             load: load level name; defaults to the one given at construction.
             lam: base arrival rate in orders per minute; overrides load.
+            map_seed: switch to the map with this seed; the map stays for later days.
         """
         super().reset(seed=seed)
         options = options or {}
@@ -63,6 +65,10 @@ class MedicalUAVEnv(gym.Env):
         if load not in self.cfg.loads:
             raise ValueError(f"unknown load {load!r}, expected one of {list(self.cfg.loads)}")
         self.lam = float(options.get("lam", self.cfg.loads[load]))
+        if "map_seed" in options and options["map_seed"] != self.cfg.map_seed:
+            self.cfg.map_seed = int(options["map_seed"])
+            self.city_map = self._map(self.cfg.map_seed)
+            self._renderer = None
         self.demand_seed = options.get("demand_seed")
         if self.demand_seed is None:
             self.demand_seed = int(self.np_random.integers(*TRAIN_SEED_RANGE))
@@ -73,6 +79,11 @@ class MedicalUAVEnv(gym.Env):
         self.decision_log = []
         self._update_view()
         return self._obs.copy(), self._info(0.0, False, "RESET", [])
+
+    def _map(self, seed: int):
+        if seed not in self._maps:
+            self._maps[seed] = generate_map(seed, self.cfg)
+        return self._maps[seed]
 
     def step(self, action):
         """Run one action and return (obs, reward, terminated, truncated, info)."""
