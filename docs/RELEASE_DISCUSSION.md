@@ -38,7 +38,7 @@ python -m pytest -q
 
 默认完整 Dev 日核对带回退快路径、原推理及训练期归档结果。原网络 demo 执行采样、前后向、PPO 更新、保存重载。表格只读取旧记录，不执行 Test 策略；不同本地证据拒绝覆盖。
 
-作者验收收据另记；GitHub Actions 以 PR 实际检查为准。本地测试不称 CI 已通过。另一名组员远端 fresh-clone 复现仍待完成。
+作者远端新 clone 验收见 `docs/discussion_reproduction.md`：200 项测试通过、固定 Dev 日与两份参考完全匹配、三个历史表已复算。隔离 venv 复用原精确依赖，未声称完成干净系统安装。GitHub Actions 以 PR 实际检查为准，本地测试不称 CI 已通过。另一名组员独立复现仍待完成。
 
 ## 研究边界与待讨论决定
 
