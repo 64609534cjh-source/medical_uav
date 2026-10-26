@@ -1,0 +1,1117 @@
+{
+  "quality": {
+    "slack": {
+      "low": {
+        "on_time_rate": 0.9926334850737024,
+        "reward": 21.142631552789272,
+        "on_time": 21.4,
+        "late_deliveries": 0.175,
+        "expired": 0,
+        "energy_used": 355.20636286025183,
+        "served_rate": 1.0,
+        "expiry_rate": 0.0,
+        "charge_minutes": 66.3539644563605,
+        "wait_minutes": 237.40535105257354
+      },
+      "medium": {
+        "on_time_rate": 0.8098680385391948,
+        "reward": 40.433790037872704,
+        "on_time": 41.55,
+        "late_deliveries": 5.075,
+        "expired": 5.2,
+        "energy_used": 604.7698093654827,
+        "served_rate": 0.90584934610903,
+        "expiry_rate": 0.09415065389096998,
+        "charge_minutes": 112.1456738822387,
+        "wait_minutes": 49.77242893771236
+      },
+      "high": {
+        "on_time_rate": 0.658933380173023,
+        "reward": 40.551137431538294,
+        "on_time": 44.025,
+        "late_deliveries": 10.125,
+        "expired": 13.75,
+        "energy_used": 628.5387436611353,
+        "served_rate": 0.8065562862246506,
+        "expiry_rate": 0.19344371377534939,
+        "charge_minutes": 116.56834750905408,
+        "wait_minutes": 32.74802065348907
+      }
+    },
+    "best": {
+      "low": {
+        "on_time_rate": 0.9867730537620698,
+        "reward": 20.770988173742552,
+        "on_time": 21.24,
+        "late_deliveries": 0.27,
+        "expired": 0.065,
+        "energy_used": 603.2741607071853,
+        "served_rate": 0.9975032639663074,
+        "expiry_rate": 0.0024967360336925555,
+        "charge_minutes": 115.01282296574648,
+        "wait_minutes": 117.39108572291867
+      },
+      "medium": {
+        "on_time_rate": 0.7430664479572092,
+        "reward": 38.44705567522137,
+        "on_time": 38,
+        "late_deliveries": 7.9,
+        "expired": 5.925,
+        "energy_used": 664.4760286104572,
+        "served_rate": 0.8926706842039714,
+        "expiry_rate": 0.1073293157960286,
+        "charge_minutes": 122.46824149708223,
+        "wait_minutes": 30.068990694349537
+      },
+      "high": {
+        "on_time_rate": 0.6092556319482515,
+        "reward": 37.72805962399771,
+        "on_time": 40.58,
+        "late_deliveries": 11.17,
+        "expired": 16.15,
+        "energy_used": 677.5011027590456,
+        "served_rate": 0.7718345885115537,
+        "expiry_rate": 0.2281654114884463,
+        "charge_minutes": 124.43923792504394,
+        "wait_minutes": 20.044536868895044
+      }
+    },
+    "last": {
+      "low": {
+        "on_time_rate": 0.9851924153820136,
+        "reward": 20.924801560248383,
+        "on_time": 21.21,
+        "late_deliveries": 0.345,
+        "expired": 0.02,
+        "energy_used": 479.12990555007565,
+        "served_rate": 0.9991886693017128,
+        "expiry_rate": 0.00081133069828722,
+        "charge_minutes": 93.34762873356041,
+        "wait_minutes": 176.2186118062235
+      },
+      "medium": {
+        "on_time_rate": 0.736847153406741,
+        "reward": 38.926108755422405,
+        "on_time": 37.635,
+        "late_deliveries": 8.61,
+        "expired": 5.58,
+        "energy_used": 645.219896035034,
+        "served_rate": 0.8991086121856612,
+        "expiry_rate": 0.1008913878143388,
+        "charge_minutes": 118.61558090734648,
+        "wait_minutes": 38.90470199750097
+      },
+      "high": {
+        "on_time_rate": 0.5944436358420947,
+        "reward": 37.757046230048395,
+        "on_time": 39.535,
+        "late_deliveries": 12.455,
+        "expired": 15.91,
+        "energy_used": 668.7203012613736,
+        "served_rate": 0.7756792756603457,
+        "expiry_rate": 0.22432072433965433,
+        "charge_minutes": 122.67632044668277,
+        "wait_minutes": 25.226128862959605
+      }
+    }
+  },
+  "training_windows": {
+    "seed_1_best": {
+      "checkpoint_step": 1024000,
+      "window_updates": [
+        976,
+        1000
+      ],
+      "learning_rate": {
+        "mean": 0.0003,
+        "min": 0.0003,
+        "max": 0.0003
+      },
+      "approx_kl": {
+        "mean": 0.0010858598250615614,
+        "min": 0.00022860184458295407,
+        "max": 0.002720846558077028
+      },
+      "clip_fraction": {
+        "mean": 0.012021484375,
+        "min": 0.000244140625,
+        "max": 0.03564453125
+      },
+      "epochs_completed": {
+        "mean": 4,
+        "min": 4,
+        "max": 4
+      },
+      "optimizer_steps": {
+        "mean": 16,
+        "min": 16,
+        "max": 16
+      },
+      "value_loss": {
+        "mean": 1.6668160887062549,
+        "min": 1.2417832389473915,
+        "max": 2.391992874443531
+      },
+      "explained_variance": {
+        "mean": 0.9895567178726197,
+        "min": 0.9848083257675171,
+        "max": 0.9934647679328918
+      },
+      "return_mean": {
+        "mean": 16.449438552856446,
+        "min": 14.508072853088379,
+        "max": 18.493967056274414
+      },
+      "return_std": {
+        "mean": 10.937828941345215,
+        "min": 9.725680351257324,
+        "max": 12.351953506469727
+      },
+      "advantage_std": {
+        "mean": 1.4137552499771118,
+        "min": 1.1998274326324463,
+        "max": 1.7421457767486572
+      },
+      "entropy": {
+        "mean": 0.3536983013898134,
+        "min": 0.3199421651661396,
+        "max": 0.4176709037274122
+      }
+    },
+    "seed_2_best": {
+      "checkpoint_step": 716800,
+      "window_updates": [
+        676,
+        700
+      ],
+      "learning_rate": {
+        "mean": 0.0003,
+        "min": 0.0003,
+        "max": 0.0003
+      },
+      "approx_kl": {
+        "mean": 0.000828530484559451,
+        "min": 0.000435804691278463,
+        "max": 0.0013962188240839168
+      },
+      "clip_fraction": {
+        "mean": 0.008603515625,
+        "min": 0.00244140625,
+        "max": 0.02001953125
+      },
+      "epochs_completed": {
+        "mean": 4,
+        "min": 4,
+        "max": 4
+      },
+      "optimizer_steps": {
+        "mean": 16,
+        "min": 16,
+        "max": 16
+      },
+      "value_loss": {
+        "mean": 1.6734399370849133,
+        "min": 1.058304738253355,
+        "max": 2.4205267280340195
+      },
+      "explained_variance": {
+        "mean": 0.9891658258438111,
+        "min": 0.9811511039733887,
+        "max": 0.9952707886695862
+      },
+      "return_mean": {
+        "mean": 15.494188728332519,
+        "min": 13.647255897521973,
+        "max": 17.396203994750977
+      },
+      "return_std": {
+        "mean": 10.747036628723144,
+        "min": 9.267168998718262,
+        "max": 12.05910873413086
+      },
+      "advantage_std": {
+        "mean": 1.4216823482513428,
+        "min": 1.1639399528503418,
+        "max": 1.7412341833114624
+      },
+      "entropy": {
+        "mean": 0.3372896486148238,
+        "min": 0.28895977418869734,
+        "max": 0.3832354974001646
+      }
+    },
+    "seed_3_best": {
+      "checkpoint_step": 921600,
+      "window_updates": [
+        876,
+        900
+      ],
+      "learning_rate": {
+        "mean": 0.0003,
+        "min": 0.0003,
+        "max": 0.0003
+      },
+      "approx_kl": {
+        "mean": 0.0008739358924140106,
+        "min": 0.0005060695511929225,
+        "max": 0.0013802400153508643
+      },
+      "clip_fraction": {
+        "mean": 0.009033203125,
+        "min": 0.00341796875,
+        "max": 0.019287109375
+      },
+      "epochs_completed": {
+        "mean": 4,
+        "min": 4,
+        "max": 4
+      },
+      "optimizer_steps": {
+        "mean": 16,
+        "min": 16,
+        "max": 16
+      },
+      "value_loss": {
+        "mean": 1.64703588783741,
+        "min": 1.1697379648685455,
+        "max": 2.3784086406230927
+      },
+      "explained_variance": {
+        "mean": 0.988929717540741,
+        "min": 0.9815860986709595,
+        "max": 0.9929097890853882
+      },
+      "return_mean": {
+        "mean": 15.586678161621094,
+        "min": 12.779330253601074,
+        "max": 17.384309768676758
+      },
+      "return_std": {
+        "mean": 10.72195182800293,
+        "min": 9.43159294128418,
+        "max": 11.757006645202637
+      },
+      "advantage_std": {
+        "mean": 1.3884077787399292,
+        "min": 1.1727118492126465,
+        "max": 1.6994493007659912
+      },
+      "entropy": {
+        "mean": 0.3701107129454613,
+        "min": 0.3447483852505684,
+        "max": 0.4138598348945379
+      }
+    },
+    "seed_4_best": {
+      "checkpoint_step": 409600,
+      "window_updates": [
+        376,
+        400
+      ],
+      "learning_rate": {
+        "mean": 0.0003,
+        "min": 0.0003,
+        "max": 0.0003
+      },
+      "approx_kl": {
+        "mean": 0.0013150818333633651,
+        "min": 0.0006798119256927748,
+        "max": 0.0022896426376064483
+      },
+      "clip_fraction": {
+        "mean": 0.012900390625,
+        "min": 0.005126953125,
+        "max": 0.02392578125
+      },
+      "epochs_completed": {
+        "mean": 4,
+        "min": 4,
+        "max": 4
+      },
+      "optimizer_steps": {
+        "mean": 16,
+        "min": 16,
+        "max": 16
+      },
+      "value_loss": {
+        "mean": 1.915368318706751,
+        "min": 1.2839673236012459,
+        "max": 2.833918534219265
+      },
+      "explained_variance": {
+        "mean": 0.9865360927581787,
+        "min": 0.9773968458175659,
+        "max": 0.9910285472869873
+      },
+      "return_mean": {
+        "mean": 15.027531852722168,
+        "min": 12.677748680114746,
+        "max": 17.88808822631836
+      },
+      "return_std": {
+        "mean": 10.350109214782714,
+        "min": 9.094919204711914,
+        "max": 12.196642875671387
+      },
+      "advantage_std": {
+        "mean": 1.5332346010208129,
+        "min": 1.241687536239624,
+        "max": 1.8703325986862183
+      },
+      "entropy": {
+        "mean": 0.5116705640405417,
+        "min": 0.46088126488029957,
+        "max": 0.5517459828406572
+      }
+    },
+    "seed_5_best": {
+      "checkpoint_step": 512000,
+      "window_updates": [
+        476,
+        500
+      ],
+      "learning_rate": {
+        "mean": 0.0003,
+        "min": 0.0003,
+        "max": 0.0003
+      },
+      "approx_kl": {
+        "mean": 0.0010659330085400142,
+        "min": 0.000449652685347246,
+        "max": 0.0016595326414972078
+      },
+      "clip_fraction": {
+        "mean": 0.011494140625,
+        "min": 0.00146484375,
+        "max": 0.02392578125
+      },
+      "epochs_completed": {
+        "mean": 4,
+        "min": 4,
+        "max": 4
+      },
+      "optimizer_steps": {
+        "mean": 16,
+        "min": 16,
+        "max": 16
+      },
+      "value_loss": {
+        "mean": 1.6791158397495747,
+        "min": 1.0158019252121449,
+        "max": 2.541869431734085
+      },
+      "explained_variance": {
+        "mean": 0.9877809643745422,
+        "min": 0.9790481328964233,
+        "max": 0.9936131238937378
+      },
+      "return_mean": {
+        "mean": 15.523879470825195,
+        "min": 13.357067108154297,
+        "max": 17.409391403198242
+      },
+      "return_std": {
+        "mean": 10.309695205688477,
+        "min": 8.990779876708984,
+        "max": 11.345480918884277
+      },
+      "advantage_std": {
+        "mean": 1.4100774574279784,
+        "min": 1.1064724922180176,
+        "max": 1.7364729642868042
+      },
+      "entropy": {
+        "mean": 0.4622513372451067,
+        "min": 0.40260596573352814,
+        "max": 0.5362409707158804
+      }
+    },
+    "seed_1_last": {
+      "checkpoint_step": 1024000,
+      "window_updates": [
+        976,
+        1000
+      ],
+      "learning_rate": {
+        "mean": 0.0003,
+        "min": 0.0003,
+        "max": 0.0003
+      },
+      "approx_kl": {
+        "mean": 0.0010858598250615614,
+        "min": 0.00022860184458295407,
+        "max": 0.002720846558077028
+      },
+      "clip_fraction": {
+        "mean": 0.012021484375,
+        "min": 0.000244140625,
+        "max": 0.03564453125
+      },
+      "epochs_completed": {
+        "mean": 4,
+        "min": 4,
+        "max": 4
+      },
+      "optimizer_steps": {
+        "mean": 16,
+        "min": 16,
+        "max": 16
+      },
+      "value_loss": {
+        "mean": 1.6668160887062549,
+        "min": 1.2417832389473915,
+        "max": 2.391992874443531
+      },
+      "explained_variance": {
+        "mean": 0.9895567178726197,
+        "min": 0.9848083257675171,
+        "max": 0.9934647679328918
+      },
+      "return_mean": {
+        "mean": 16.449438552856446,
+        "min": 14.508072853088379,
+        "max": 18.493967056274414
+      },
+      "return_std": {
+        "mean": 10.937828941345215,
+        "min": 9.725680351257324,
+        "max": 12.351953506469727
+      },
+      "advantage_std": {
+        "mean": 1.4137552499771118,
+        "min": 1.1998274326324463,
+        "max": 1.7421457767486572
+      },
+      "entropy": {
+        "mean": 0.3536983013898134,
+        "min": 0.3199421651661396,
+        "max": 0.4176709037274122
+      }
+    },
+    "seed_2_last": {
+      "checkpoint_step": 1024000,
+      "window_updates": [
+        976,
+        1000
+      ],
+      "learning_rate": {
+        "mean": 0.0003,
+        "min": 0.0003,
+        "max": 0.0003
+      },
+      "approx_kl": {
+        "mean": 0.0008582720115555276,
+        "min": 0.00038429006235674024,
+        "max": 0.0016435844008810818
+      },
+      "clip_fraction": {
+        "mean": 0.0094921875,
+        "min": 0.00244140625,
+        "max": 0.0205078125
+      },
+      "epochs_completed": {
+        "mean": 4,
+        "min": 4,
+        "max": 4
+      },
+      "optimizer_steps": {
+        "mean": 16,
+        "min": 16,
+        "max": 16
+      },
+      "value_loss": {
+        "mean": 1.84199656650424,
+        "min": 1.2021540962159634,
+        "max": 2.758800745010376
+      },
+      "explained_variance": {
+        "mean": 0.9872759509086609,
+        "min": 0.9758062362670898,
+        "max": 0.993975043296814
+      },
+      "return_mean": {
+        "mean": 15.669258651733399,
+        "min": 13.579697608947754,
+        "max": 17.65571403503418
+      },
+      "return_std": {
+        "mean": 10.629919891357423,
+        "min": 9.26715087890625,
+        "max": 11.941058158874512
+      },
+      "advantage_std": {
+        "mean": 1.4783841562271118,
+        "min": 1.1914101839065552,
+        "max": 1.7898824214935303
+      },
+      "entropy": {
+        "mean": 0.29601369380950926,
+        "min": 0.22433521505445242,
+        "max": 0.3478782679885626
+      }
+    },
+    "seed_3_last": {
+      "checkpoint_step": 1024000,
+      "window_updates": [
+        976,
+        1000
+      ],
+      "learning_rate": {
+        "mean": 0.0003,
+        "min": 0.0003,
+        "max": 0.0003
+      },
+      "approx_kl": {
+        "mean": 0.0009187230993211415,
+        "min": 0.00036868937422696035,
+        "max": 0.0016424085042672232
+      },
+      "clip_fraction": {
+        "mean": 0.0099609375,
+        "min": 0.001708984375,
+        "max": 0.0244140625
+      },
+      "epochs_completed": {
+        "mean": 4,
+        "min": 4,
+        "max": 4
+      },
+      "optimizer_steps": {
+        "mean": 16,
+        "min": 16,
+        "max": 16
+      },
+      "value_loss": {
+        "mean": 1.5946476601064206,
+        "min": 1.014382403343916,
+        "max": 2.612629994750023
+      },
+      "explained_variance": {
+        "mean": 0.9900167250633239,
+        "min": 0.9835615754127502,
+        "max": 0.9943006038665771
+      },
+      "return_mean": {
+        "mean": 15.88088077545166,
+        "min": 12.248937606811523,
+        "max": 18.574106216430664
+      },
+      "return_std": {
+        "mean": 11.00884120941162,
+        "min": 9.183245658874512,
+        "max": 12.49858570098877
+      },
+      "advantage_std": {
+        "mean": 1.3738834524154664,
+        "min": 1.0911959409713745,
+        "max": 1.7181788682937622
+      },
+      "entropy": {
+        "mean": 0.34145138643682005,
+        "min": 0.2952702213078737,
+        "max": 0.37282962910830975
+      }
+    },
+    "seed_4_last": {
+      "checkpoint_step": 1024000,
+      "window_updates": [
+        976,
+        1000
+      ],
+      "learning_rate": {
+        "mean": 0.0003,
+        "min": 0.0003,
+        "max": 0.0003
+      },
+      "approx_kl": {
+        "mean": 0.000991279696700076,
+        "min": 0.00042384896687508444,
+        "max": 0.0025490074604022084
+      },
+      "clip_fraction": {
+        "mean": 0.010498046875,
+        "min": 0.003173828125,
+        "max": 0.023193359375
+      },
+      "epochs_completed": {
+        "mean": 4,
+        "min": 4,
+        "max": 4
+      },
+      "optimizer_steps": {
+        "mean": 16,
+        "min": 16,
+        "max": 16
+      },
+      "value_loss": {
+        "mean": 1.7581101430952548,
+        "min": 1.0303091183304787,
+        "max": 2.346772313117981
+      },
+      "explained_variance": {
+        "mean": 0.9878986048698425,
+        "min": 0.9745141267776489,
+        "max": 0.9939161539077759
+      },
+      "return_mean": {
+        "mean": 16.277028312683104,
+        "min": 14.722496032714844,
+        "max": 18.065427780151367
+      },
+      "return_std": {
+        "mean": 10.674325828552247,
+        "min": 8.325922966003418,
+        "max": 11.967458724975586
+      },
+      "advantage_std": {
+        "mean": 1.4419419908523559,
+        "min": 1.1146453619003296,
+        "max": 1.7702116966247559
+      },
+      "entropy": {
+        "mean": 0.2952805092558265,
+        "min": 0.27186687476933,
+        "max": 0.32653951831161976
+      }
+    },
+    "seed_5_last": {
+      "checkpoint_step": 1024000,
+      "window_updates": [
+        976,
+        1000
+      ],
+      "learning_rate": {
+        "mean": 0.0003,
+        "min": 0.0003,
+        "max": 0.0003
+      },
+      "approx_kl": {
+        "mean": 0.0008987994960989454,
+        "min": 0.0002690793844521977,
+        "max": 0.0019701165292644873
+      },
+      "clip_fraction": {
+        "mean": 0.01025390625,
+        "min": 0.001708984375,
+        "max": 0.02392578125
+      },
+      "epochs_completed": {
+        "mean": 4,
+        "min": 4,
+        "max": 4
+      },
+      "optimizer_steps": {
+        "mean": 16,
+        "min": 16,
+        "max": 16
+      },
+      "value_loss": {
+        "mean": 1.7319856823980808,
+        "min": 0.9996511526405811,
+        "max": 2.3842930495738983
+      },
+      "explained_variance": {
+        "mean": 0.9874764966964722,
+        "min": 0.9812772274017334,
+        "max": 0.993270218372345
+      },
+      "return_mean": {
+        "mean": 15.262735137939453,
+        "min": 12.591483116149902,
+        "max": 17.32782745361328
+      },
+      "return_std": {
+        "mean": 10.367178764343262,
+        "min": 8.90761661529541,
+        "max": 12.366841316223145
+      },
+      "advantage_std": {
+        "mean": 1.4371076440811157,
+        "min": 1.0857139825820923,
+        "max": 1.707506537437439
+      },
+      "entropy": {
+        "mean": 0.28308047231286765,
+        "min": 0.2156150434166193,
+        "max": 0.3397508002817631
+      }
+    }
+  },
+  "random_protocols": {
+    "legacy": {
+      "low": 0.5552798498066199,
+      "medium": 0.2627666402468186,
+      "high": 0.22636948101140245
+    },
+    "current": {
+      "low": 0.5114091904985952,
+      "medium": 0.235457197488504,
+      "high": 0.21279994686191506
+    }
+  },
+  "random_orders_identical": true,
+  "random_current_matches_m3": true,
+  "behavior": {
+    "slack_medium": {
+      "episodes": 40,
+      "event_totals": {
+        "decisions": 4084,
+        "legal_count_sum": 38604,
+        "single_legal_states": 0,
+        "pending_sum": 16172,
+        "hidden_sum": 187,
+        "hidden_present_states": 88,
+        "wait_actions": 278,
+        "wait_with_legal_service": 0,
+        "picks": 1902,
+        "pickup_slack_sum": 57343.56195726982,
+        "negative_slack_picks": 112,
+        "matching_destination_picks": 411,
+        "flights": 2718,
+        "departure_kg_sum": 1393.544804621398,
+        "departure_boxes_sum": 2761,
+        "empty_flights": 922,
+        "drop_calls": 1468,
+        "delivered_at_drops": 1865,
+        "batch_drop_calls": 328,
+        "charge_actions": 436,
+        "charge_start_battery_sum": 13437.328509798606,
+        "charge_arrival_battery_sum": 12510.865223552259,
+        "charge_target_sum": 34940.0,
+        "charge_target_80": 433,
+        "charge_pending_sum": 1279,
+        "charge_with_legal_service": 66,
+        "expired_after_pick": 37,
+        "charge_target_100": 3
+      },
+      "event_weighted_means": {
+        "departure_kg": 0.5127096411410589,
+        "departure_boxes": 1.0158204562178073,
+        "empty_flight_fraction": 0.33922001471670343,
+        "boxes_per_delivery_action": 1.2704359673024523,
+        "batch_delivery_action_fraction": 0.22343324250681199,
+        "pickup_slack_minutes": 30.14908620256037,
+        "negative_slack_pick_fraction": 0.058885383806519455,
+        "matching_destination_pick_fraction": 0.21608832807570977,
+        "expired_after_pick_fraction": 0.019453207150368034,
+        "charge_start_battery": 30.819560802290383,
+        "charge_arrival_battery": 28.694645008147383,
+        "charge_target": 80.13761467889908,
+        "pending_at_charge": 2.93348623853211,
+        "charge_with_legal_service_fraction": 0.15137614678899083,
+        "wait_with_legal_service_fraction": 0.0,
+        "legal_actions": 9.452497551420176,
+        "single_legal_state_fraction": 0.0,
+        "pending_orders": 3.959843290891283,
+        "hidden_orders": 0.045788442703232124,
+        "hidden_present_fraction": 0.021547502448579822,
+        "entropy": null,
+        "entropy_over_log_legal_count": null
+      }
+    },
+    "slack_high": {
+      "episodes": 40,
+      "event_totals": {
+        "decisions": 4398,
+        "legal_count_sum": 49647,
+        "single_legal_states": 0,
+        "pending_sum": 31556,
+        "hidden_sum": 2888,
+        "hidden_present_states": 686,
+        "wait_actions": 194,
+        "wait_with_legal_service": 0,
+        "picks": 2237,
+        "pickup_slack_sum": 47364.18984054393,
+        "negative_slack_picks": 233,
+        "matching_destination_picks": 669,
+        "flights": 2816,
+        "departure_kg_sum": 1668.7611229448264,
+        "departure_boxes_sum": 3377,
+        "empty_flights": 856,
+        "drop_calls": 1533,
+        "delivered_at_drops": 2166,
+        "batch_drop_calls": 504,
+        "charge_actions": 434,
+        "charge_start_battery_sum": 12337.07383906062,
+        "charge_arrival_battery_sum": 11466.330498189185,
+        "charge_target_sum": 34780.0,
+        "charge_target_80": 431,
+        "charge_pending_sum": 2581,
+        "charge_with_legal_service": 84,
+        "expired_after_pick": 71,
+        "charge_target_100": 3
+      },
+      "event_weighted_means": {
+        "departure_kg": 0.5925998305912026,
+        "departure_boxes": 1.19921875,
+        "empty_flight_fraction": 0.3039772727272727,
+        "boxes_per_delivery_action": 1.4129158512720157,
+        "batch_delivery_action_fraction": 0.3287671232876712,
+        "pickup_slack_minutes": 21.173084416872566,
+        "negative_slack_pick_fraction": 0.10415735359856951,
+        "matching_destination_pick_fraction": 0.29906124273580686,
+        "expired_after_pick_fraction": 0.03173893607510058,
+        "charge_start_battery": 28.426437417190368,
+        "charge_arrival_battery": 26.42011635527462,
+        "charge_target": 80.13824884792626,
+        "pending_at_charge": 5.947004608294931,
+        "charge_with_legal_service_fraction": 0.1935483870967742,
+        "wait_with_legal_service_fraction": 0.0,
+        "legal_actions": 11.288540245566166,
+        "single_legal_state_fraction": 0.0,
+        "pending_orders": 7.175079581628013,
+        "hidden_orders": 0.6566621191450659,
+        "hidden_present_fraction": 0.1559799909049568,
+        "entropy": null,
+        "entropy_over_log_legal_count": null
+      }
+    },
+    "best_medium": {
+      "episodes": 200,
+      "event_totals": {
+        "decisions": 21935,
+        "legal_count_sum": 199911,
+        "single_legal_states": 0,
+        "pending_sum": 89797,
+        "hidden_sum": 1541,
+        "hidden_present_states": 597,
+        "entropy_sum": 9157.016211059978,
+        "normalized_entropy_sum": 4358.455850852517,
+        "wait_actions": 834,
+        "wait_with_legal_service": 0,
+        "picks": 9333,
+        "pickup_slack_sum": 282010.99124042375,
+        "negative_slack_picks": 574,
+        "matching_destination_picks": 1343,
+        "flights": 15428,
+        "departure_kg_sum": 7724.599036333245,
+        "departure_boxes_sum": 16950,
+        "empty_flights": 4805,
+        "drop_calls": 7916,
+        "delivered_at_drops": 9180,
+        "batch_drop_calls": 1016,
+        "charge_actions": 3754,
+        "charge_start_battery_sum": 148725.3986121634,
+        "charge_arrival_battery_sum": 135271.75850291786,
+        "charge_target_sum": 257740.0,
+        "charge_target_80": 243,
+        "charge_pending_sum": 10352,
+        "charge_with_legal_service": 54,
+        "charge_target_100": 691,
+        "charge_target_60": 2820,
+        "expired_after_pick": 153
+      },
+      "event_weighted_means": {
+        "departure_kg": 0.5006870000216,
+        "departure_boxes": 1.0986518019185896,
+        "empty_flight_fraction": 0.31144672024889813,
+        "boxes_per_delivery_action": 1.159676604345629,
+        "batch_delivery_action_fraction": 0.12834765032844872,
+        "pickup_slack_minutes": 30.216542509420737,
+        "negative_slack_pick_fraction": 0.06150219650701811,
+        "matching_destination_pick_fraction": 0.14389799635701275,
+        "expired_after_pick_fraction": 0.01639344262295082,
+        "charge_start_battery": 39.61784725950011,
+        "charge_arrival_battery": 36.03403263263662,
+        "charge_target": 68.65743207245605,
+        "pending_at_charge": 2.7575919019712307,
+        "charge_with_legal_service_fraction": 0.014384656366542355,
+        "wait_with_legal_service_fraction": 0.0,
+        "legal_actions": 9.113790745384089,
+        "single_legal_state_fraction": 0.0,
+        "pending_orders": 4.093777068611808,
+        "hidden_orders": 0.07025302028721221,
+        "hidden_present_fraction": 0.0272167768406656,
+        "entropy": 0.4174614183296092,
+        "entropy_over_log_legal_count": 0.1986986939071127
+      }
+    },
+    "best_high": {
+      "episodes": 200,
+      "event_totals": {
+        "decisions": 23686,
+        "legal_count_sum": 251580,
+        "single_legal_states": 0,
+        "pending_sum": 178858,
+        "hidden_sum": 18860,
+        "hidden_present_states": 4466,
+        "entropy_sum": 11374.498808285893,
+        "normalized_entropy_sum": 5079.437694382389,
+        "wait_actions": 599,
+        "wait_with_legal_service": 0,
+        "picks": 10626,
+        "pickup_slack_sum": 245975.22730650488,
+        "negative_slack_picks": 893,
+        "matching_destination_picks": 1552,
+        "flights": 16045,
+        "departure_kg_sum": 8547.049460388185,
+        "departure_boxes_sum": 18268,
+        "empty_flights": 4702,
+        "drop_calls": 8912,
+        "delivered_at_drops": 10350,
+        "batch_drop_calls": 1214,
+        "charge_actions": 3484,
+        "charge_start_battery_sum": 120611.87216354873,
+        "charge_arrival_battery_sum": 110840.76207495609,
+        "charge_target_sum": 235280.0,
+        "charge_target_80": 114,
+        "charge_pending_sum": 20842,
+        "charge_with_legal_service": 129,
+        "charge_target_100": 599,
+        "charge_target_60": 2771,
+        "expired_after_pick": 276
+      },
+      "event_weighted_means": {
+        "departure_kg": 0.5326923939163718,
+        "departure_boxes": 1.1385478342162667,
+        "empty_flight_fraction": 0.2930507946400748,
+        "boxes_per_delivery_action": 1.1613554757630162,
+        "batch_delivery_action_fraction": 0.13622082585278278,
+        "pickup_slack_minutes": 23.14843095299312,
+        "negative_slack_pick_fraction": 0.08403914925654056,
+        "matching_destination_pick_fraction": 0.14605684170901562,
+        "expired_after_pick_fraction": 0.025974025974025976,
+        "charge_start_battery": 34.61879223982455,
+        "charge_arrival_battery": 31.81422562426983,
+        "charge_target": 67.53157290470723,
+        "pending_at_charge": 5.982204362801378,
+        "charge_with_legal_service_fraction": 0.037026406429391506,
+        "wait_with_legal_service_fraction": 0.0,
+        "legal_actions": 10.621464156041544,
+        "single_legal_state_fraction": 0.0,
+        "pending_orders": 7.551211686228152,
+        "hidden_orders": 0.7962509499282276,
+        "hidden_present_fraction": 0.188550198429452,
+        "entropy": 0.4802203330357972,
+        "entropy_over_log_legal_count": 0.2144489442870214
+      }
+    },
+    "last_medium": {
+      "episodes": 200,
+      "event_totals": {
+        "decisions": 21736,
+        "legal_count_sum": 195234,
+        "single_legal_states": 0,
+        "pending_sum": 88435,
+        "hidden_sum": 1657,
+        "hidden_present_states": 597,
+        "entropy_sum": 6957.8065066045965,
+        "normalized_entropy_sum": 3403.0483209288273,
+        "wait_actions": 1081,
+        "wait_with_legal_service": 0,
+        "picks": 9411,
+        "pickup_slack_sum": 285058.34765509353,
+        "negative_slack_picks": 508,
+        "matching_destination_picks": 1519,
+        "flights": 14835,
+        "departure_kg_sum": 8490.40044290244,
+        "departure_boxes_sum": 18700,
+        "empty_flights": 3741,
+        "drop_calls": 7814,
+        "delivered_at_drops": 9249,
+        "batch_drop_calls": 1141,
+        "charge_actions": 3416,
+        "charge_start_battery_sum": 121375.41197498828,
+        "charge_arrival_battery_sum": 111164.41909265362,
+        "charge_target_sum": 229780.0,
+        "charge_target_80": 167,
+        "charge_pending_sum": 10259,
+        "charge_with_legal_service": 49,
+        "charge_target_100": 537,
+        "charge_target_60": 2712,
+        "expired_after_pick": 162
+      },
+      "event_weighted_means": {
+        "departure_kg": 0.5723222408427665,
+        "departure_boxes": 1.2605325244354566,
+        "empty_flight_fraction": 0.25217391304347825,
+        "boxes_per_delivery_action": 1.1836447402098798,
+        "batch_delivery_action_fraction": 0.14601996416687996,
+        "pickup_slack_minutes": 30.289910493581292,
+        "negative_slack_pick_fraction": 0.053979385825098286,
+        "matching_destination_pick_fraction": 0.161406864307725,
+        "expired_after_pick_fraction": 0.01721389862926363,
+        "charge_start_battery": 35.53144378658907,
+        "charge_arrival_battery": 32.54227725194778,
+        "charge_target": 67.26580796252928,
+        "pending_at_charge": 3.0032201405152223,
+        "charge_with_legal_service_fraction": 0.014344262295081968,
+        "wait_with_legal_service_fraction": 0.0,
+        "legal_actions": 8.982057416267942,
+        "single_legal_state_fraction": 0.0,
+        "pending_orders": 4.068595877806404,
+        "hidden_orders": 0.07623297754876703,
+        "hidden_present_fraction": 0.027465955097534044,
+        "entropy": 0.3201051944518125,
+        "entropy_over_log_legal_count": 0.15656276780128944
+      }
+    },
+    "last_high": {
+      "episodes": 200,
+      "event_totals": {
+        "decisions": 23520,
+        "legal_count_sum": 248437,
+        "single_legal_states": 0,
+        "pending_sum": 177391,
+        "hidden_sum": 18986,
+        "hidden_present_states": 4428,
+        "entropy_sum": 8621.094949049299,
+        "normalized_entropy_sum": 3846.27318697791,
+        "wait_actions": 753,
+        "wait_with_legal_service": 0,
+        "picks": 10727,
+        "pickup_slack_sum": 240226.93152784204,
+        "negative_slack_picks": 872,
+        "matching_destination_picks": 1808,
+        "flights": 15774,
+        "departure_kg_sum": 9246.39649495634,
+        "departure_boxes_sum": 20240,
+        "empty_flights": 3859,
+        "drop_calls": 8741,
+        "delivered_at_drops": 10398,
+        "batch_drop_calls": 1344,
+        "charge_actions": 3297,
+        "charge_start_battery_sum": 102018.27320816171,
+        "charge_arrival_battery_sum": 93703.67955331715,
+        "charge_target_sum": 216380.0,
+        "charge_target_80": 124,
+        "charge_pending_sum": 20903,
+        "charge_with_legal_service": 118,
+        "charge_target_100": 402,
+        "charge_target_60": 2771,
+        "expired_after_pick": 329
+      },
+      "event_weighted_means": {
+        "departure_kg": 0.5861795673232116,
+        "departure_boxes": 1.2831241283124128,
+        "empty_flight_fraction": 0.24464308355521744,
+        "boxes_per_delivery_action": 1.1895664111657704,
+        "batch_delivery_action_fraction": 0.15375815124127673,
+        "pickup_slack_minutes": 22.39460534425674,
+        "negative_slack_pick_fraction": 0.08129020229327864,
+        "matching_destination_pick_fraction": 0.16854665796588048,
+        "expired_after_pick_fraction": 0.03067027127808334,
+        "charge_start_battery": 30.942758024920145,
+        "charge_arrival_battery": 28.420891584263618,
+        "charge_target": 65.62936002426449,
+        "pending_at_charge": 6.340006066120716,
+        "charge_with_legal_service_fraction": 0.03579011222323324,
+        "wait_with_legal_service_fraction": 0.0,
+        "legal_actions": 10.562797619047618,
+        "single_legal_state_fraction": 0.0,
+        "pending_orders": 7.542134353741496,
+        "hidden_orders": 0.8072278911564625,
+        "hidden_present_fraction": 0.188265306122449,
+        "entropy": 0.3665431525956334,
+        "entropy_over_log_legal_count": 0.16353202325586352
+      }
+    }
+  },
+  "notes": [
+    "All metrics are Dev-only. No retraining was performed.",
+    "Legacy Random uses default_rng(demand_seed); current uses SeedSequence([0,day,load_index,map_seed]).",
+    "Both draw uniformly from the current legal action list. Order fingerprints agree for every matched day.",
+    "Historical M3 training legal-action counts were not logged; replay entropy and legal counts describe Dev states, not the missing training states.",
+    "Behavior means are event-weighted, with denominators preserved. Policies visit different states; differences do not prove action-level mistakes."
+  ]
+}
