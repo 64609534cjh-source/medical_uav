@@ -1,5 +1,21 @@
 # Medical UAV Delivery Environment
 
+**Discussion release candidate:** [complete plan review](docs/discussion_plan_review.md) · [Gen4 roadmap](docs/ROADMAP_GEN4.md) · [evidence/model index](docs/results_index.md) · [Dev failure audit](results/discussion_failure_audit.md).
+
+After the CPU installation below, these commands work from a fresh clone:
+
+```bash
+python scripts/discussion.py verify
+python scripts/demo_network.py
+python scripts/discussion.py dev
+python scripts/discussion.py table
+python -m pytest -q
+```
+
+The committed archives provide 35 original Dev-selected checkpoints (all five default destination learners) and 288 existing evidence files. Verification checks their hashes and extracts only named, validated files into `outputs/`. The default full-day demo uses **destination learner 1, Dev day 100000, High load**, with guarded factored inference; it checks exact equality against both canonical inference and the archived training-time Dev record. The original MLP demo independently exercises forward/backward, a real PPO update and save/reload. Output paths must be fresh; use `--output` for another replay/table. The table command only reads historical daily data and keeps all three Test cohorts separate. It never runs a Test policy.
+
+The discussion version is awaiting another group member's fresh-clone review; a Draft PR and author checks do not constitute an approved prerelease. Research budgets and new development/Final-Test manifests remain separate registrations. [Experiment template](docs/EXPERIMENT_SPEC.md) · [known scenario use](configs/scenario_usage_registry.json).
+
 **Current milestone: Generation 3 diagnosis, two independent architecture tests and Test-v3 completed (26 October 2026).**
 [Gen3 report](results/gen3_summary.md) · [new Test-v3](results/gen3_test_v3.md) · [type/failure diagnosis](results/gen3_initial_diagnostics.md).
 On the same new Test-v3, frozen destination/urgency/coordination score **86.00%/86.34%/85.92%**.
