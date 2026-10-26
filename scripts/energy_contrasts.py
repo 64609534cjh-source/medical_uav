@@ -21,6 +21,7 @@ from medical_uav.evaluation import paired_ci
 LOADS = ("medium", "high")
 MARGIN = 0.01  # a practically meaningful gain: 1 point
 BATTERY_RISE = 5.0  # battery points at peak start that show the manipulation worked
+FEW_TOP_UPS = 0.5  # top-ups per day below which the manipulation counts as failed
 
 
 def per_day(data, method, key) -> np.ndarray:
@@ -35,16 +36,17 @@ def contrast(data, a, b, key) -> tuple[float, float, float]:
     return paired_ci(per_day(data, a, key) - per_day(data, b, key))
 
 
-def verdict(gain, battery_rise, peak_charge_change) -> str:
-    """The registered interpretation of the primary endpoint."""
+def verdict(gain, battery_rise, peak_charge_change, top_ups) -> str:
+    """The registered interpretation of the primary endpoint; the intended energy changes are a
+    higher battery at the peak starts and fewer charging minutes inside the peaks."""
     mean, low, high = gain
-    if battery_rise < BATTERY_RISE:
-        return "failed manipulation: little change in peak-start battery; weak evidence"
+    if battery_rise < BATTERY_RISE or top_ups < FEW_TOP_UPS:
+        return "failed manipulation: few top-ups or little change in peak-start battery"
     if high < 0:
         return "the intervention harms peak service"
-    if mean >= MARGIN and low > 0 and peak_charge_change < 0:
+    if peak_charge_change < 0 and mean >= MARGIN and low > 0:
         return "anticipatory top-ups improve peak service, with the predicted energy changes"
-    if high < MARGIN:
+    if peak_charge_change < 0 and high < MARGIN:
         return "no practically meaningful peak-service benefit reproduced"
     return "inconclusive"
 
@@ -82,9 +84,10 @@ def main():
         d = [float(data[a][load][s]["on_time_peak"]) - float(data[b][load][s]["on_time_peak"])
              for s in sorted(data[a][load])]
         print(f"  {load:7s} {fmt(paired_ci(d))}")
+    top_ups = np.mean(per_day(data, a, "overrides"))  # per day and load
     print(f"  battery at peak start {fmt(battery, 1)}; charging minutes in peaks "
-          f"{fmt(peak_charge, 1)}; top-ups per day {np.mean(per_day(data, a, 'overrides')):.2f}")
-    print(f"  VERDICT: {verdict(gain, battery[0], peak_charge[0])}")
+          f"{fmt(peak_charge, 1)}; top-ups per day {top_ups:.2f}")
+    print(f"  VERDICT: {verdict(gain, battery[0], peak_charge[0], top_ups)}")
 
     print("\nsecondary (peak on-time | all-day on-time):")
     for x, y in (("slack100", "slack"), ("prepeak", "slack")):

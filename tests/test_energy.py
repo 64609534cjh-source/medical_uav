@@ -134,3 +134,19 @@ def test_energy_contrasts_registered_verdict(tmp_path):
     assert "peak on-time, prepeak - slack100:  +5.00 [ +5.00,  +5.00]" in result.stdout
     assert "VERDICT: anticipatory top-ups improve peak service" in result.stdout
     assert "ppo - no100:  +5.00" in result.stdout
+
+
+def test_energy_verdict_requires_the_intended_energy_changes():
+    import importlib.util
+    from pathlib import Path
+
+    path = Path(__file__).resolve().parents[1] / "scripts" / "energy_contrasts.py"
+    spec = importlib.util.spec_from_file_location("energy_contrasts", path)
+    script = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(script)
+    no_gain = (0.001, -0.004, 0.005)
+    assert script.verdict(no_gain, 7.0, -3.0, 1.1).startswith("no practically meaningful")
+    assert script.verdict(no_gain, 7.0, +1.0, 1.1) == "inconclusive"  # more charging in peaks
+    assert script.verdict(no_gain, 7.0, -3.0, 0.2).startswith("failed manipulation")
+    assert script.verdict(no_gain, 3.0, -3.0, 1.1).startswith("failed manipulation")
+    assert script.verdict((-0.02, -0.03, -0.01), 7.0, -3.0, 1.1).startswith("the intervention harms")
