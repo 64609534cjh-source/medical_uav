@@ -238,3 +238,22 @@ def test_compare_variants_pairs_runs_by_seed(tmp_path):
     assert "new (seeds 11)" in result.stdout
     assert "score    +5.0 [ +5.0,  +5.0]" in result.stdout
     assert "plasma  +20.0 [+20.0, +20.0]" in result.stdout
+
+
+def test_latency_script_keeps_every_decision_time(tmp_path):
+    import csv
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    repo = Path(__file__).resolve().parents[1]
+    out = tmp_path / "latency.csv"
+    result = subprocess.run([sys.executable, str(repo / "scripts" / "latency.py"), "--methods",
+                             "slack", "--loads", "low", "--decisions", "100", "--passes", "2",
+                             "--out", str(out)], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    rows = list(csv.DictReader(open(out)))
+    assert {r["pass"] for r in rows} == {"1", "2"}
+    per_pass = [sum(r["pass"] == p for r in rows) for p in ("1", "2")]
+    assert per_pass[0] == per_pass[1] >= 100  # whole days until at least 100 decisions
+    assert "p95" in result.stdout
