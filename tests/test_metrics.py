@@ -54,6 +54,9 @@ def test_behaviour_metrics_on_a_built_day(line_map):
     assert m["battery_at_charge"] == pytest.approx(sim.segments[-1].battery0)
     assert m["wait_share"] == pytest.approx(0.2) and m["return_share"] == 0.0
     assert m["on_time_peak"] == 1.0 and m["on_time_offpeak"] == 1.0
+    assert m["charge_full_share"] == 0.0  # the one charge went to 80 %
+    assert m["peak_charge_share"] == 1.0  # all charging minutes inside the 60-180 peak
+    assert m["battery_at_peak"] == 100.0  # full when the first peak began; the second not reached
 
 
 def test_analyze_behaviour_script(tmp_path):

@@ -47,10 +47,24 @@ def episode_metrics(sim: Simulator) -> dict:
     }
 
 
+def battery_at(sim: Simulator, t: float) -> float:
+    """Battery % at time t, from the recorded activities (unchanged between them)."""
+    battery = sim.segments[0].battery0 if sim.segments else sim.battery
+    for s in sim.segments:
+        if s.t0 > t:
+            break
+        if t < s.t1:
+            return s.battery0 + (s.battery1 - s.battery0) * (t - s.t0) / (s.t1 - s.t0)
+        battery = s.battery1
+    return battery
+
+
 def behaviour_metrics(sim: Simulator, decision_log: list) -> dict:
     """How a day was served: boxes delivered per delivery stop (a box that expires while being
-    unloaded does not count), charges and the battery when they started, the shares of WAIT and
-    RETURN decisions, and the on-time rate of orders released inside and outside the peaks."""
+    unloaded does not count), charges, the battery when they started, the share of charges to
+    100 %, the share of charging minutes inside the peaks, the battery when each peak began,
+    the shares of WAIT and RETURN decisions, and the on-time rate of orders released inside and
+    outside the peaks."""
     stops = 0
     previous = None
     for seg in sim.segments:
@@ -62,6 +76,11 @@ def behaviour_metrics(sim: Simulator, decision_log: list) -> dict:
     delivered = sum(1 for _, kind, _ in sim.events if kind == "deliver")
     charges = [seg for seg in sim.segments if seg.kind == "charge"]
     labels = [entry[1] for entry in decision_log]
+    charge_labels = [label for label in labels if label.startswith("CHARGE")]
+    windows = sim.cfg.peak_windows
+    charge_minutes = sum(c.t1 - c.t0 for c in charges)
+    peak_minutes = sum(max(0.0, min(c.t1, b) - max(c.t0, a)) for c in charges for a, b in windows)
+    peak_batteries = [battery_at(sim, a) for a, _ in windows if a <= sim.t]
 
     def on_time_rate(in_peak: bool) -> float:
         released = [o for o in sim.orders if o.status != "future"
@@ -75,6 +94,11 @@ def behaviour_metrics(sim: Simulator, decision_log: list) -> dict:
         "charges": len(charges),
         "battery_at_charge": (sum(c.battery0 for c in charges) / len(charges)
                               if charges else math.nan),
+        "charge_full_share": (sum(label.endswith(",100)") for label in charge_labels)
+                              / len(charge_labels) if charge_labels else math.nan),
+        "peak_charge_share": peak_minutes / charge_minutes if charge_minutes else math.nan,
+        "battery_at_peak": (sum(peak_batteries) / len(peak_batteries)
+                            if peak_batteries else math.nan),
         "wait_share": labels.count("WAIT") / len(labels) if labels else math.nan,
         "return_share": labels.count("RETURN") / len(labels) if labels else math.nan,
         "on_time_peak": on_time_rate(True),

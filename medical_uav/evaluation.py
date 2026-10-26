@@ -25,9 +25,10 @@ def run_metadata(extra: dict) -> dict:
 
 
 def checkpoint_labels(paths: list) -> list[str]:
-    """Name each checkpoint by its file name, or by folder/file name when file names repeat."""
-    stems = [Path(p).stem for p in paths]
-    return [f"{Path(p).parent.name}/{s}" if stems.count(s) > 1 else s for p, s in zip(paths, stems)]
+    """Name each checkpoint run/file (e.g. m3_set_s11/ckpt_06000640); a submitted model in
+    checkpoints/ by its file name alone (e.g. ppo_set)."""
+    return [Path(p).stem if Path(p).parent.name == "checkpoints" else
+            f"{Path(p).parent.name}/{Path(p).stem}" for p in paths]
 
 
 def heuristic(fn):

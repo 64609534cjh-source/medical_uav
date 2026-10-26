@@ -20,7 +20,7 @@ from medical_uav.agents.policy import NetworkPolicy, load_checkpoint
 from medical_uav.baselines.heuristics import slack_aware_policy
 from medical_uav.baselines.rollout import rollout_policy
 from medical_uav.env import MedicalUAVEnv
-from medical_uav.env.config import EPS
+from medical_uav.env.config import EPS, EnvConfig
 from medical_uav.evaluation import checkpoint_labels
 from medical_uav.metrics import behaviour_metrics, episode_metrics
 from medical_uav.splits import SCREEN_SEEDS
@@ -61,9 +61,17 @@ def run(job) -> dict:
             "hourly": (released, on_time), "trace": trace}
 
 
+def shade_peaks(ax) -> None:
+    """Grey bands over the demand peaks, in hours of the day."""
+    for k, (a, b) in enumerate(EnvConfig().peak_windows):
+        ax.axvspan(8 + a / 60, 8 + b / 60, color="#7a7974", alpha=0.12, lw=0,
+                   label="demand peak" if k == 0 else None)
+
+
 def draw(rows: list[dict], labels: list[str], loads: list[str], out: Path) -> None:
     """Battery over the first day of the last load for each policy; on-time rate by hour of
-    release, pooled over days (on-time orders / released orders), for every load."""
+    release, pooled over days (on-time orders / released orders), for every load. Demand peaks
+    are shaded."""
     load = loads[-1]
     day = min(r["seed"] for r in rows)
     fig = Figure(figsize=(8, 3.2), dpi=120)
@@ -72,6 +80,7 @@ def draw(rows: list[dict], labels: list[str], loads: list[str], out: Path) -> No
         r = next(r for r in rows if r["method"] == label and r["load"] == load and r["seed"] == day)
         t, b = zip(*r["trace"])
         ax.plot(np.array(t) / 60 + 8, b, label=label, lw=1.2)
+    shade_peaks(ax)
     ax.set_xlabel("time of day (h)")
     ax.set_ylabel("battery (%)")
     ax.set_title(f"Battery over one day ({load} load, demand seed {day})")
@@ -88,6 +97,7 @@ def draw(rows: list[dict], labels: list[str], loads: list[str], out: Path) -> No
             released, on_time = counts[:, 0].sum(axis=0), counts[:, 1].sum(axis=0)
             ax.plot(np.arange(HOURS) + 8.5, on_time / np.maximum(released, 1), marker="o",
                     label=label)
+        shade_peaks(ax)
         ax.set_xlabel("hour of release")
         ax.set_ylabel("on-time rate (pooled)")
         ax.set_title(f"{load} load")

@@ -33,6 +33,9 @@ def test_checkpoint_labels_are_unique():
 
     labels = checkpoint_labels(["runs/a/ckpt_01.pt", "runs/b/ckpt_01.pt", "checkpoints/bc_set.pt"])
     assert labels == ["a/ckpt_01", "b/ckpt_01", "bc_set"]
+    # a run's checkpoint keeps its run name even when its file name is unique
+    labels = checkpoint_labels(["runs/a/ckpt_01.pt", "runs/b/ckpt_02.pt", "checkpoints/ppo_set.pt"])
+    assert labels == ["a/ckpt_01", "b/ckpt_02", "ppo_set"]
 
 
 def test_rows_have_per_type_counts():
