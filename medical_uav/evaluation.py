@@ -36,9 +36,10 @@ def heuristic(fn):
     return lambda env, obs, mask: fn(env)
 
 
-def run_day(policy, load: str, demand_seed: int) -> dict:
-    """Run one day with the policy and return its metrics, total reward and decision count."""
-    env = MedicalUAVEnv(load=load)
+def run_day(policy, load: str, demand_seed: int, config=None) -> dict:
+    """Run one day with the policy and return its metrics, total reward and decision count;
+    `config` (an EnvConfig) changes the settings, e.g. the map."""
+    env = MedicalUAVEnv(config=config, load=load)
     obs, info = env.reset(options={"demand_seed": demand_seed})
     total, decisions, done, seconds = 0.0, 0, False, []
     while not done:

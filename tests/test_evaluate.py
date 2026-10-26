@@ -259,3 +259,34 @@ def test_latency_script_keeps_every_decision_time(tmp_path):
     per_pass = [sum(r["pass"] == p for r in rows) for p in ("1", "2")]
     assert per_pass[0] == per_pass[1] >= 100  # whole days until at least 100 decisions
     assert "p95" in result.stdout
+
+
+def test_run_day_on_another_map():
+    from medical_uav.env import EnvConfig
+    from medical_uav.evaluation import run_day
+
+    policy = heuristic(slack_aware_policy)
+    on_map0 = run_day(policy, "low", 100_000)
+    on_map3 = run_day(policy, "low", 100_000, EnvConfig(map_seed=3))
+    assert on_map0["n_orders"] == on_map3["n_orders"]  # the same orders
+    assert on_map0["km_flown"] != on_map3["km_flown"]  # flown on another map
+
+
+def test_map_stress_script(tmp_path):
+    import csv
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    repo = Path(__file__).resolve().parents[1]
+    out = tmp_path / "maps.csv"
+    result = subprocess.run([sys.executable, str(repo / "scripts" / "map_stress.py"),
+                             "--methods", "slack", "--checkpoints",
+                             str(repo / "checkpoints" / "bc_set.pt"), "--maps", "1-2",
+                             "--loads", "medium", "--days", "1", "--processes", "2",
+                             "--out", str(out)], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    rows = list(csv.DictReader(open(out)))
+    assert {(r["method"], r["map"]) for r in rows} == {
+        ("slack", "1"), ("slack", "2"), ("bc_set", "1"), ("bc_set", "2")}
+    assert "networks - slack" in result.stdout
