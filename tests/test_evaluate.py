@@ -130,6 +130,23 @@ def test_evaluate_script_in_parallel_with_the_planner(tmp_path):
     assert out.read_text().count("\n") == 5 and "rollout" in result.stdout
 
 
+def test_evaluate_script_runs_the_scenario_planner_day_by_day(tmp_path):
+    import csv
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    repo = Path(__file__).resolve().parents[1]
+    out = tmp_path / "eval.csv"
+    result = subprocess.run([sys.executable, str(repo / "scripts" / "evaluate.py"), "--methods",
+                             "slack,scenario4", "--loads", "low", "--days", "2", "--processes",
+                             "4", "--out", str(out)], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    rows = list(csv.DictReader(open(out)))
+    assert [(r["method"], r["seed"]) for r in rows] == [
+        ("slack", "100000"), ("slack", "100001"), ("scenario4", "100000"), ("scenario4", "100001")]
+
+
 def test_parallel_evaluation_job_uses_one_thread():
     import importlib.util
     from pathlib import Path

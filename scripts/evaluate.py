@@ -1,5 +1,8 @@
 """Compare policies on the same days: per-day CSV and a per-load summary against Slack-aware.
 
+Methods: random, edf, fcfs, nearest, slack, rollout (visible-order planner), scenario4 and
+scenario16 (scenario rollout with 4 or 16 sampled arrival streams); plus any checkpoints.
+
 Usage:
     python scripts/evaluate.py --methods random,edf,slack,fcfs,nearest --loads low,medium,high
     python scripts/evaluate.py --methods slack,rollout --checkpoints checkpoints/bc_set.pt \
@@ -17,6 +20,7 @@ from medical_uav.agents.policy import NetworkPolicy, load_checkpoint
 from medical_uav.baselines.heuristics import (edf_policy, fcfs_policy, nearest_policy,
                                               random_policy, slack_aware_policy)
 from medical_uav.baselines.rollout import rollout_policy
+from medical_uav.baselines.scenario import ScenarioRollout
 from medical_uav.evaluation import checkpoint_labels, evaluate, heuristic, paired_ci
 from medical_uav.splits import SCREEN_SEEDS, SELECT_SEEDS
 
@@ -38,7 +42,8 @@ class DailyRandom:
 def make_policies(methods: list[str], checkpoints: list[str]) -> dict:
     """Return the named rule-based policies and one network policy per checkpoint file."""
     rules = {"random": DailyRandom(), "edf": edf_policy, "slack": slack_aware_policy,
-             "fcfs": fcfs_policy, "nearest": nearest_policy, "rollout": rollout_policy}
+             "fcfs": fcfs_policy, "nearest": nearest_policy, "rollout": rollout_policy,
+             "scenario4": ScenarioRollout(4), "scenario16": ScenarioRollout(16)}
     policies = {m: heuristic(rules[m]) for m in methods}
     for path, label in zip(checkpoints, checkpoint_labels(checkpoints)):
         net, _ = load_checkpoint(path)
@@ -89,7 +94,8 @@ def main():
     named = [(m, None, m) for m in methods]
     labels = checkpoint_labels(args.checkpoints)
     named += [(None, c, label) for c, label in zip(args.checkpoints, labels)]
-    jobs = [(m, c, label, load, seeds) for load in loads for m, c, label in named]
+    # one job per day, so slow planners spread over all workers; rows keep load, method, day order
+    jobs = [(m, c, label, load, [s]) for load in loads for m, c, label in named for s in seeds]
     if args.processes > 1:
         with Pool(args.processes) as pool:
             rows = [r for part in pool.map(run_job, jobs, chunksize=1) for r in part]
