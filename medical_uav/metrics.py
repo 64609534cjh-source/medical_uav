@@ -1,7 +1,7 @@
 """Operational metrics for one simulated day."""
 import math
 
-from medical_uav.env.config import EPS, ORDER_TYPES
+from medical_uav.env.config import EPS, M, ORDER_TYPES
 from medical_uav.env.simulator import Simulator
 
 BUSY_KINDS = ("fly", "load", "unload", "dispose")  # segment kinds counted as busy time
@@ -61,8 +61,8 @@ def battery_at(sim: Simulator, t: float) -> float:
 
 def behaviour_metrics(sim: Simulator, decision_log: list) -> dict:
     """How a day was served: boxes delivered per delivery stop (a box that expires while being
-    unloaded does not count), charges, the battery when they started, the share of charges to
-    100 %, the share of charging minutes inside the peaks, the battery when each peak began,
+    unloaded does not count), charges, the battery when they started, the shares of charges at
+    the medical center, followed at once by a pickup there, and to 100 %, the share of charging minutes inside the peaks, the battery when each peak began,
     the shares of WAIT and RETURN decisions, the on-time rate of orders released inside and
     outside the peaks (with the peak counts), and the charging minutes in total and inside the
     peaks."""
@@ -82,6 +82,8 @@ def behaviour_metrics(sim: Simulator, decision_log: list) -> dict:
     charge_minutes = sum(c.t1 - c.t0 for c in charges)
     peak_minutes = sum(max(0.0, min(c.t1, b) - max(c.t0, a)) for c in charges for a, b in windows)
     peak_batteries = [battery_at(sim, a) for a, _ in windows if a <= sim.t]
+    after_charge = [sim.segments[i + 1].kind if i + 1 < len(sim.segments) else None
+                    for i, seg in enumerate(sim.segments) if seg.kind == "charge"]
 
     def counts(in_peak: bool) -> tuple[int, int]:
         """(released, on time) for orders released inside or outside the peaks."""
@@ -98,6 +100,9 @@ def behaviour_metrics(sim: Simulator, decision_log: list) -> dict:
         "charges": len(charges),
         "battery_at_charge": (sum(c.battery0 for c in charges) / len(charges)
                               if charges else math.nan),
+        "charge_at_center": (sum(c.node_to == M for c in charges) / len(charges)
+                             if charges else math.nan),
+        "charge_then_pickup": (after_charge.count("load") / len(charges) if charges else math.nan),
         "charge_full_share": (sum(label.endswith(",100)") for label in charge_labels)
                               / len(charge_labels) if charge_labels else math.nan),
         "peak_charge_share": peak_minutes / charge_minutes if charge_minutes else math.nan,

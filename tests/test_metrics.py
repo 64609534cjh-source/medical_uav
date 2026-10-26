@@ -60,6 +60,7 @@ def test_behaviour_metrics_on_a_built_day(line_map):
     assert m["released_peak"] == 1 and m["on_time_peak_count"] == 1  # order b, released at 70
     charge = sim.segments[-1]
     assert m["charge_minutes"] == pytest.approx(charge.t1 - charge.t0)
+    assert m["charge_at_center"] == 1.0 and m["charge_then_pickup"] == 0.0  # charged at M, nothing after
     assert m["peak_charge_minutes"] == pytest.approx(charge.t1 - charge.t0)
 
 
