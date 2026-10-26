@@ -168,3 +168,21 @@ def test_pickup_metrics_skip_unloading_expired_boxes():
     # a charge at M, an expired box unloaded, then a pickup at M: charge then pickup
     sim.segments = [seg("charge", M, M), seg("dispose", M, M), seg("load", M, M)]
     assert behaviour_metrics(sim, [])["charge_then_pickup"] == 1.0
+
+
+def test_failure_analysis_script(tmp_path):
+    import csv
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    repo = Path(__file__).resolve().parents[1]
+    result = subprocess.run([sys.executable, str(repo / "scripts" / "failure_analysis.py"),
+                             "--methods", "slack", "--loads", "medium", "--days", "4",
+                             "--processes", "2", "--out", str(tmp_path / "f")],
+                            capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    orders = list(csv.DictReader(open(tmp_path / "f" / "orders.csv")))
+    assert {o["outcome"] for o in orders} <= {"on time", "late", "expired before pickup",
+                                              "expired on board"}
+    assert "snowball check" in result.stdout and "workload" in result.stdout
