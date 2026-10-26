@@ -262,6 +262,14 @@ def main():
         rows={m:[] for m in METHODS};rows['slack']=[];total=0;decisions=0
         for e in protocol['entries']:
             result=read('outputs/gen2_test_v2/'+e['name']+'.json');rs=result['episodes'];total+=len(rs);decisions+=sum(r['decisions'] for r in rs)
+            for r in rs:
+                assert r['complete_day'] and r['terminated'] and not r['truncated'] and r['invalid_actions']==0
+                assert r['split']=='test-v2' and 300000<=r['demand_seed']<300100 and r['map_seed']==0
+                assert r['released']==r['delivered']+r['expired'] and 0<=r['on_time']<=r['delivered']
+                assert all(np.isfinite(r[k]) for k in ['on_time_rate','reward','energy_used','episode_minutes'])
+            for policy in e['policies']:
+                selected=[r for r in rs if r['policy']==policy]
+                assert len(selected)==300 and len({(r['episode_load'],r['demand_seed']) for r in selected})==300
             if e.get('method') in METHODS:
                 assert sha(e['checkpoint'])==e['checkpoint_sha256'];rows[e['method']].append(rs)
             else:rows['slack'].append([r for r in rs if r['policy']=='slack'])
