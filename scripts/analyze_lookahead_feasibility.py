@@ -205,7 +205,10 @@ def figure(output):
              'Quantiles describe latency, not confidence intervals.', fontsize=9, color='#555555')
     fig.subplots_adjust(left=.1, right=.98, top=.85, bottom=.3, wspace=.65)
     for suffix in ('png', 'svg'):
-        fig.savefig(ROOT / f'results/gen4_lookahead_feasibility.{suffix}', dpi=160, facecolor='white')
+        path = ROOT / f'results/gen4_lookahead_feasibility.{suffix}'
+        fig.savefig(path, dpi=160, facecolor='white')
+        if suffix == 'svg':
+            path.write_text('\n'.join(line.rstrip() for line in path.read_text().splitlines())+'\n')
     plt.close(fig)
 
 
