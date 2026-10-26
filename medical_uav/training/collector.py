@@ -30,11 +30,16 @@ class Collector:
         self.rng = np.random.default_rng(np.random.SeedSequence([seed, 0]))
         self.transitions_by_load = Counter()
         self.episodes_by_load = Counter()
+        self.started_episodes_by_load = Counter()
+        self.started_counts_include_history = state is None or "started_episodes_by_load" in state
         self.episode_serial = 0
         if state:
             self.rng.bit_generator.state = state["sampler_rng"]
             self.transitions_by_load.update(state["transitions_by_load"])
             self.episodes_by_load.update(state["episodes_by_load"])
+            self.started_episodes_by_load.update(state.get("started_episodes_by_load", {}))
+            self.started_counts_include_history = state.get(
+                "started_counts_include_history", self.started_counts_include_history)
             self.episode_serial = state["episode_serial"]
         self.envs = [env_factory() for _ in range(num_envs)]
         self.obs, self.masks, self.episode_loads = [None] * num_envs, [None] * num_envs, [None] * num_envs
@@ -51,6 +56,7 @@ class Collector:
         self.obs[i], self.masks[i], self.episode_loads[i] = obs.copy(), info["action_mask"].copy(), load
         self.counts[i], self.minutes[i], self.decisions[i] = Counter(), Counter(), 0
         self.episode_serial += 1
+        self.started_episodes_by_load[load] += 1
 
     @torch.no_grad()
     def collect(self, network, steps):
@@ -110,6 +116,8 @@ class Collector:
         return {"sampler_rng": self.rng.bit_generator.state,
                 "transitions_by_load": dict(self.transitions_by_load),
                 "episodes_by_load": dict(self.episodes_by_load),
+                "started_episodes_by_load": dict(self.started_episodes_by_load),
+                "started_counts_include_history": self.started_counts_include_history,
                 "episode_serial": self.episode_serial,
                 "partial_days_discarded_on_resume": [
                     {"env_index": i, "decisions": self.decisions[i],

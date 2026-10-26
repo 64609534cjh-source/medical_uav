@@ -164,10 +164,12 @@ def train(config, output_dir, resume=None):
         "discarded_partial_days": checkpoint["collector"]["partial_days_discarded_on_resume"] if checkpoint else [],
         "selection_rule": "full Dev: equal-load mean daily on_time_rate, then mean daily reward",
         "value_loss": "MSE without additional 1/2", "discount": "per decision; gamma=1 by default",
+        "learning_rate_schedule": "constant",
     }
     write_json(output / "metadata.json", metadata)
     write_json(output / "config.json", asdict(config))
     eval_total, checkpoint_total = 0.0, 0.0
+    collect_total, gae_total, update_total = 0.0, 0.0, 0.0
     best_in_this_run = False
     last_evaluation = None
 
@@ -182,7 +184,9 @@ def train(config, output_dir, resume=None):
             append_json(output / "evaluation_episodes.jsonl", record)
         elapsed = time.perf_counter() - tick
         eval_total += elapsed
+        checkpoint_name = f"checkpoint_{steps:09d}.pt"
         last_evaluation = {"transitions": steps, "update_index": updates,
+                           "checkpoint": checkpoint_name,
                            "split": config.eval_split, "eval_seconds": elapsed, **summary}
         append_json(output / "evaluations.jsonl", last_evaluation)
         if config.eval_split == "dev":
@@ -193,6 +197,9 @@ def train(config, output_dir, resume=None):
                 _save_checkpoint(output / "best.pt", network, updater, collector, config, steps, updates, best_score)
                 checkpoint_total += time.perf_counter() - tick
                 best_in_this_run = True
+        tick = time.perf_counter()
+        _save_checkpoint(output / checkpoint_name, network, updater, collector, config, steps, updates, best_score)
+        checkpoint_total += time.perf_counter() - tick
         return elapsed
 
     batch_size = config.num_envs * config.rollout_steps
@@ -200,15 +207,19 @@ def train(config, output_dir, resume=None):
         if config.evaluate_initial:
             run_evaluation(config.evaluate_baselines)
         while steps < config.total_steps:
+            checkpoint_before = checkpoint_total
             tick = time.perf_counter()
             buffer, episodes = collector.collect(network, config.rollout_steps)
             collect_seconds = time.perf_counter() - tick
+            collect_total += collect_seconds
             tick = time.perf_counter()
             buffer.finish(config.ppo.gamma, config.ppo.gae_lambda)
             gae_seconds = time.perf_counter() - tick
+            gae_total += gae_seconds
             tick = time.perf_counter()
             diagnostics = updater.update(buffer)
             update_seconds = time.perf_counter() - tick
+            update_total += update_seconds
             steps += batch_size
             updates += 1
             for record in episodes:
@@ -229,8 +240,11 @@ def train(config, output_dir, resume=None):
                    "elapsed_minutes_mean": float(buffer.elapsed.mean()),
                    "collect_seconds": collect_seconds, "gae_seconds": gae_seconds,
                    "update_seconds": update_seconds, "eval_seconds": eval_seconds,
-                   "checkpoint_seconds": checkpoint_seconds, "wall_seconds": time.perf_counter() - started,
+                   "checkpoint_seconds": checkpoint_total - checkpoint_before,
+                   "wall_seconds": time.perf_counter() - started,
+                   "learning_rate": updater.optimizer.param_groups[0]["lr"],
                    "transitions_by_load": dict(collector.transitions_by_load),
+                   "started_episodes_by_load": dict(collector.started_episodes_by_load),
                    "episodes_by_load": dict(collector.episodes_by_load), **diagnostics}
             append_json(output / "updates.jsonl", row)
             print(f"update {updates}: {steps} transitions, value_loss={diagnostics['value_loss']:.3f}, "
@@ -247,9 +261,16 @@ def train(config, output_dir, resume=None):
     result = {"status": "complete", "transitions": steps, "updates": updates,
               "learner_seed": config.learner_seed, "wall_seconds": time.perf_counter() - started,
               "eval_seconds": eval_total, "checkpoint_seconds": checkpoint_total,
+              "collect_seconds": collect_total, "gae_seconds": gae_total,
+              "update_seconds": update_total,
+              "training_seconds": collect_total + gae_total + update_total,
+              "learning_rate_schedule": "constant",
               "best_score": best_score, "best_written_in_this_run": best_in_this_run,
               "inherited_best_checkpoint": str(Path(resume).parent / "best.pt") if resume and not best_in_this_run else None,
               "last_evaluation": last_evaluation, "transitions_by_load": dict(collector.transitions_by_load),
               "episodes_by_load": dict(collector.episodes_by_load), "resume_mode": metadata["resume_mode"]}
+    result["started_episodes_by_load"] = dict(collector.started_episodes_by_load)
+    result["started_counts_include_history"] = collector.started_counts_include_history
+    result["other_seconds"] = result["wall_seconds"] - eval_total - checkpoint_total - result["training_seconds"]
     write_json(output / "summary.json", result)
     return result

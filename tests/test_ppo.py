@@ -90,6 +90,7 @@ def test_continuous_collection_update_and_fixed_raw_value_targets():
         assert {r["env_index"] for r in episodes} == {0, 1}
         assert all(r["invalid_actions"] == 0 and r["complete_day"] for r in episodes)
         assert sum(collector.transitions_by_load.values()) == 768
+        assert sum(collector.started_episodes_by_load.values()) == len(episodes) + 2
         assert any(collector.decisions)  # uncompleted days survive rollout boundaries
         for row in episodes:
             assert sum(row["action_counts"].values()) == row["decisions"]
@@ -136,6 +137,9 @@ def test_checkpoint_resume_restores_optimizer_and_explicitly_starts_new_days(tmp
     first = train(config, tmp_path / "first")
     saved = load_checkpoint(tmp_path / "first/last.pt")
     assert saved["steps"] == first["transitions"] == 128
+    assert (tmp_path / "first/checkpoint_000000128.pt").is_file()
+    assert first["training_seconds"] > 0
+    assert first["started_counts_include_history"]
     optimizer_steps = [v["step"].item() for v in saved["optimizer_state_dict"]["state"].values()]
     assert optimizer_steps and min(optimizer_steps) > 0
     next_config = replace(config, total_steps=192)

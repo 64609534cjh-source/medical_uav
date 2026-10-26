@@ -12,7 +12,7 @@
   "map_seed": 0,
   "threads": 1,
   "eval_split": "dev",
-  "eval_interval_updates": 100,
+  "eval_interval_updates": 25,
   "evaluate_initial": true,
   "evaluate_baselines": true,
   "ppo": {
