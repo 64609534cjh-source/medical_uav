@@ -14,6 +14,7 @@ from medical_uav.env.config import EnvConfig
 from medical_uav.evaluation.evaluate import evaluate
 from medical_uav.research.visibility import VisibilityAudit
 from medical_uav.training.trainer import load_checkpoint
+from medical_uav.training.io import clean_json
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -54,6 +55,7 @@ def main():
                              ('low', 'medium', 'high'), args.seed,
                              env_config=EnvConfig(**states[args.method]['env_config']), diagnostics=True,
                              diagnostic_factory=lambda: VisibilityAudit(other))
+    rows, summary = clean_json(rows), clean_json(summary)
     old = json.loads((ROOT / f'outputs/gen3_baseline_diagnostics/{args.method}_s{args.seed}.json').read_text())['episodes']
     old = {(r['episode_load'], r['demand_seed']): r for r in old}
     for row in rows:

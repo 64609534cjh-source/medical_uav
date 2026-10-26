@@ -156,7 +156,7 @@
     "medical_uav/agents/relational.py": "ffc7d724396f2d1949a0252fabcc11e5ae391fb2a38eaff0072470809fb15c6e",
     "medical_uav/agents/inference.py": "f55ee053319069c317b77ddeaf9f9163f24d83a31ed01002730322a6bacf9216",
     "medical_uav/research/visibility.py": "ff877c0ce494c354cd41700916bfb91ed697de7b4e202184e6c2b20db835c9ba",
-    "scripts/run_r1_visibility.py": "44fb7f03a325923bde99fb25438012e4a14157c9b0736307b6cdd942aaa76306",
+    "scripts/run_r1_visibility.py": "b8cd3c672a414bd00af36bc21f1d9b020f2b7d07f2d92bbff078ed4cb9de1d95",
     "scripts/register_gen4.py": "37466b21cdcb4cc71418942a0d9491a780046a9a63339ea41743893d6e78fab9",
     "configs/gen4_scenario_registry.json": "914a4609252c2a1305ce54eb84ddee28c0b744e9882374b98b2c5be53ee2ff64"
   },
