@@ -27,6 +27,9 @@ def main():
                                                                cwd=ROOT, text=True).strip(),
               'versions': {}, 'raw_files': {}, 'new_training_transitions': 0,
               'new_confirmation_episodes': 0, 'new_test_episodes': 0}
+    output['compute_scope'] = ('Simulator counts cover the two registered 45-day probes; '
+                               'unit tests and the single Train-state micro-profile are '
+                               'separate engineering checks excluded from these counts.')
     lines = ['# Gen4 R4：公开信息短视规划的计算可行性', '', output['scope'], '',
              '协议先于评估冻结：M=4、H=30 模拟分钟、20ms 软预算；真实未来订单与 demand seed '
              '不进入 planner。v2 只改合成分支复制，并逐动作验证无预算时的分数和物理状态等价。', '',
@@ -112,7 +115,8 @@ def main():
               '20ms 是软预算，按宏模拟动作结束检查；最大观测超时仍完整保留，没有硬实时保证。'
               '这不是重复多轮的稳定微基准，不解读小幅计时差异为确定的加速率。', '',
               f'合计 {total_sim:,} 额外模拟 transitions，90 个完整评估日（含重复原策略），只有 5 个独立需求日 ID、'
-              '一个冻结 learner；真实训练 transitions 为 0。No-value/value-tail 的额外模拟量必须与训练样本分开核算。', '',
+              '一个冻结 learner；真实训练 transitions 为 0。这些计数只覆盖两轮已登记评估，'
+              '不含单状态 Train profiling 和单元测试的工程开销。No-value/value-tail 的额外模拟量必须与训练样本分开核算。', '',
               '## 本轮决定与下一步', '',
               '保留目的地网络与已验收快路径为正式默认，不因这组小样本改选方法、seed 或奖励。'
               '当前规划原型不进入大规模性能确认；先验证批量候选/情景推理能否提高固定预算下的完整比较覆盖。'
