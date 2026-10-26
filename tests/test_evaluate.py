@@ -193,6 +193,12 @@ def test_plot_training_runs_on_logged_curves(tmp_path):
     assert "a_s11" in result.stdout and "b_s11" in result.stdout
     assert "B: saving vs A, median 200 decisions (with extra cost; without 500), faster in 1/1" \
         in result.stdout
+    # an extra cost of the reference group counts for it: 1000 + 100 - 800
+    result = subprocess.run([sys.executable, str(repo / "scripts" / "plot_training.py"),
+                             f"A:{tmp_path / 'a_s11'}", f"B:{tmp_path / 'b_s11'}",
+                             "--extra-cost", "B=300", "--extra-cost", "A=100", "--eval-days", "1",
+                             "--out", str(tmp_path / "curves.png")], capture_output=True, text=True)
+    assert "median 300 decisions" in result.stdout
 
 
 def test_compare_variants_pairs_runs_by_seed(tmp_path):

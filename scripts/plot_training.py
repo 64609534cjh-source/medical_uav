@@ -100,7 +100,7 @@ def main():
             continue
         pairs = [(hits[ref_label][s], h) for s, h in hits[label].items() if s in hits[ref_label]]
         done = [(a, b) for a, b in pairs if a is not None and b is not None]
-        saving = [a - b - extra.get(label, 0.0) for a, b in done]
+        saving = [a + extra.get(ref_label, 0.0) - b - extra.get(label, 0.0) for a, b in done]
         if done:
             print(f"  {label}: saving vs {ref_label}, median {np.median(saving):.0f} decisions "
                   f"(with extra cost; without {np.median([a - b for a, b in done]):.0f}), "
