@@ -61,11 +61,11 @@ def battery_at(sim: Simulator, t: float) -> float:
 
 def behaviour_metrics(sim: Simulator, decision_log: list) -> dict:
     """How a day was served: boxes delivered per delivery stop (a box that expires while being
-    unloaded does not count), charges, the battery when they started, the shares of charges at
-    the medical center, followed at once by a pickup there, and to 100 %, the share of charging minutes inside the peaks, the battery when each peak began,
-    the shares of WAIT and RETURN decisions, the on-time rate of orders released inside and
-    outside the peaks (with the peak counts), and the charging minutes in total and inside the
-    peaks."""
+    unloaded does not count); charges, the battery when they started, the shares of charges at
+    the medical center, followed at once by a pickup, and to 100 %; the charging minutes in
+    total and inside the peaks; the battery when each peak began (each and their mean); the
+    shares of WAIT and RETURN decisions; the on-time rate of orders released inside and outside
+    the peaks, with the peak counts."""
     stops = 0
     previous = None
     for seg in sim.segments:
@@ -82,7 +82,7 @@ def behaviour_metrics(sim: Simulator, decision_log: list) -> dict:
     charge_minutes = sum(c.t1 - c.t0 for c in charges)
     peak_minutes = sum(max(0.0, min(c.t1, b) - max(c.t0, a)) for c in charges for a, b in windows)
     peak_batteries = [battery_at(sim, a) for a, _ in windows if a <= sim.t]
-    after_charge = [sim.segments[i + 1].kind if i + 1 < len(sim.segments) else None
+    after_charge = [next((s.kind for s in sim.segments[i + 1:] if s.kind != "dispose"), None)
                     for i, seg in enumerate(sim.segments) if seg.kind == "charge"]
 
     def counts(in_peak: bool) -> tuple[int, int]:
@@ -108,6 +108,8 @@ def behaviour_metrics(sim: Simulator, decision_log: list) -> dict:
         "peak_charge_share": peak_minutes / charge_minutes if charge_minutes else math.nan,
         "battery_at_peak": (sum(peak_batteries) / len(peak_batteries)
                             if peak_batteries else math.nan),
+        **{f"battery_at_peak_{k + 1}": peak_batteries[k] if k < len(peak_batteries) else math.nan
+           for k in range(len(windows))},
         "wait_share": labels.count("WAIT") / len(labels) if labels else math.nan,
         "return_share": labels.count("RETURN") / len(labels) if labels else math.nan,
         "on_time_peak": peak[1] / peak[0] if peak[0] else math.nan,
@@ -132,7 +134,8 @@ def distance_breakdown(sim: Simulator) -> dict:
         if seg.kind == "load":
             boxes += 1
             pickups += 1
-            in_place += i == 0 or segments[i - 1].kind != "fly"
+            before = next((s.kind for s in reversed(segments[:i]) if s.kind != "dispose"), None)
+            in_place += before != "fly"  # expired boxes unloaded on arrival do not count
         elif seg.kind in ("unload", "dispose"):
             boxes -= 1
         if seg.kind != "fly":

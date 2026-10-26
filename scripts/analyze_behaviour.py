@@ -59,8 +59,10 @@ def run(job) -> dict:
     policy, rule = make_policy(name)
     env = MedicalUAVEnv(load=load)
     obs, info = env.reset(options={"demand_seed": seed})
-    done = False
+    done, decisions, overflow = False, 0, 0
     while not done:
+        decisions += 1
+        overflow += len(env.sim.pending) > len(env.slots)  # orders the slots cannot show
         obs, _, done, _, info = env.step(policy(env, obs, info["action_mask"]))
     sim = env.sim
     released, on_time = [], []  # per hour of release, counted so they can be pooled over days
@@ -73,6 +75,8 @@ def run(job) -> dict:
     m = episode_metrics(sim)
     return {"method": label, "load": load, "seed": seed, "on_time_rate": m["on_time_rate"],
             "charge_share": m["charge_share"], "km_flown": m["km_flown"],
+            **{f"on_time_{name}": rate for name, rate in m["on_time_by_type"].items()},
+            "overflow_share": overflow / decisions,
             **behaviour_metrics(sim, env.decision_log), **distance_breakdown(sim),
             "overrides": len(rule.used) if rule else float("nan"),
             "hourly": (released, on_time), "trace": trace}

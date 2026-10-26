@@ -57,6 +57,7 @@ def test_behaviour_metrics_on_a_built_day(line_map):
     assert m["charge_full_share"] == 0.0  # the one charge went to 80 %
     assert m["peak_charge_share"] == 1.0  # all charging minutes inside the 60-180 peak
     assert m["battery_at_peak"] == 100.0  # full when the first peak began; the second not reached
+    assert m["battery_at_peak_1"] == 100.0 and math.isnan(m["battery_at_peak_2"])
     assert m["released_peak"] == 1 and m["on_time_peak_count"] == 1  # order b, released at 70
     charge = sim.segments[-1]
     assert m["charge_minutes"] == pytest.approx(charge.t1 - charge.t0)
@@ -98,6 +99,8 @@ def test_analyze_behaviour_runs_the_energy_conditions(tmp_path):
     prepeak = next(r for r in rows if r["method"] == "prepeak")
     assert prepeak["overrides"] in ("0", "1", "2")
     assert float(prepeak["km_to_charger"]) > 0  # distance breakdown in every row
+    assert 0 <= float(prepeak["on_time_plasma"]) <= 1  # per-type service
+    assert 0 <= float(prepeak["overflow_share"]) <= 1  # decisions with orders beyond the slots
 
 
 def test_boxes_per_stop_counts_only_successful_deliveries(line_map):
@@ -148,3 +151,19 @@ def test_distance_breakdown_sums_to_the_distance_flown():
     parts = [d[k] for k in ("km_to_pickup", "km_to_delivery", "km_to_charger", "km_reposition")]
     assert sum(parts) == pytest.approx(env.sim.km_flown) and min(parts[:3]) > 0
     assert 0 < d["km_empty"] < env.sim.km_flown
+
+
+def test_pickup_metrics_skip_unloading_expired_boxes():
+    from medical_uav.env.simulator import Segment
+    from medical_uav.metrics import behaviour_metrics, distance_breakdown
+
+    env = MedicalUAVEnv(load="low")
+    env.reset(options={"demand_seed": 100_000})
+    sim = env.sim
+    seg = lambda kind, a, b: Segment(kind, 0.0, 1.0, a, b, 50.0, 50.0)
+    # a flight, an expired box unloaded on arrival, then a pickup: the pickup needed the flight
+    sim.segments = [seg("fly", M, 2), seg("dispose", 2, 2), seg("load", 2, 2)]
+    assert distance_breakdown(sim)["pickups_in_place"] == 0.0
+    # a charge at M, an expired box unloaded, then a pickup at M: charge then pickup
+    sim.segments = [seg("charge", M, M), seg("dispose", M, M), seg("load", M, M)]
+    assert behaviour_metrics(sim, [])["charge_then_pickup"] == 1.0
