@@ -39,7 +39,13 @@ def test_destination_groups_include_physical_expired_cargo_and_only_change_deliv
     base.load_state_dict(shared,strict=False)
     with torch.no_grad():base.other_head.weight[6:]=net.other_head.weight;base.other_head.bias[6:]=net.other_head.bias
     obs,_=real_state();a,v=base(obs);b,w=net(obs)
-    torch.testing.assert_close(a[:12],b[:12],atol=0,rtol=0);torch.testing.assert_close(a[18:],b[18:],atol=0,rtol=0);torch.testing.assert_close(v,w,atol=0,rtol=0)
+    # The original head has 14 outputs; destination keeps eight. CPU kernels
+    # may round these different-width GEMVs differently even with equal rows.
+    torch.testing.assert_close(base.other_head.weight[6:],net.other_head.weight,atol=0,rtol=0)
+    torch.testing.assert_close(base.other_head.bias[6:],net.other_head.bias,atol=0,rtol=0)
+    torch.testing.assert_close(a[:12],b[:12],atol=0,rtol=0)
+    torch.testing.assert_close(a[18:],b[18:],atol=1e-7,rtol=1e-6)
+    torch.testing.assert_close(v,w,atol=0,rtol=0)
     cargo=torch.zeros(3,16);cargo[0,0]=1;cargo[0,CARGO_DEST+2]=1;cargo[0,14]=1
     emb=torch.tensor([[1.,2.],[8.,9.],[3.,4.]])
     pool,count=destination_groups(cargo,emb,CARGO_DEST)

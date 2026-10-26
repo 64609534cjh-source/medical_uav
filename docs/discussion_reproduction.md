@@ -16,4 +16,6 @@ No new training experiment or holdout evaluation was run. Eight illustrative tra
 
 Git history had no blob above 50MiB before packaging. New model/evidence blobs are 35,390,815 / 52,033,409 bytes (each below 50MiB); scanned credential patterns had no matches. Pattern scanning is limited, not a guarantee against every secret. Four git-diff whitespace warnings in the copied roadmap/source roadmap are intentional Markdown two-space line breaks; original source checksums are preserved.
 
-GitHub CI is not claimed passed. Another group member must still reproduce from the remote and review before any new release tag/prerelease. The authored PR body is `docs/RELEASE_DISCUSSION.md`.
+Initial GitHub CI run 40350244506 installed the pinned environment successfully and passed 199 of 200 tests. One test required bitwise equality between an eight-output head and the corresponding rows of a 14-output head; the remote CPU produced a 3.725290298461914e-9 difference in one output. The release repair keeps weights/bias rows, PICK outputs and critic outputs exact, and uses atol=1e-7/rtol=1e-6 only for the differently shaped head computation. No network implementation, model tensor, environment, PPO update or historical result changed. Remote CI after the repair is reported separately; the original author receipt remains an accurate record of the earlier local run.
+
+Another group member must still reproduce from the remote and review before any new release tag/prerelease. The authored PR body is `docs/RELEASE_DISCUSSION.md`.
