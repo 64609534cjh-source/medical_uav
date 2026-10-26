@@ -12,9 +12,9 @@ NUS ME5418, Group 17 (Jihang Cai, Yu Liu, Yufeng Zhang). Milestone 1: the enviro
 ## Requirements
 
 - Conda (Miniconda or Anaconda) and an internet connection for the installation.
-- Python 3.11 with numpy 2.4.6, gymnasium 1.4.0, matplotlib 3.11.2, imageio 2.38.1 and
-  imageio-ffmpeg 0.6.0 (animation export; it includes FFmpeg). `environment.yml` installs all
-  of them.
+- Python 3.11.17 with numpy 2.4.6, gymnasium 1.4.0, matplotlib 3.11.2, imageio 2.38.1,
+  imageio-ffmpeg 0.6.0 (animation export; it includes FFmpeg), pytest 9.1.1 and
+  PyTorch 2.10.0+cpu. `environment.yml` installs all of them.
 - Tested on Linux.
 
 ## Installation
@@ -31,6 +31,56 @@ python -m pip install -e .
 If an environment named `medical-uav-rl` already exists, add `-n <another name>` to the first
 command and activate that name instead. Without conda, use Python 3.11 and run
 `python -m pip install -r requirements.txt`, then `python -m pip install -e .`.
+
+Micromamba can also create the same environment without changing the system Python:
+
+```bash
+micromamba create -y -f environment.yml
+micromamba run -n medical-uav-rl python -m pip install -e .
+micromamba run -n medical-uav-rl python -m pytest -q
+```
+
+`requirements-lock.txt` records all resolved Python package versions from the
+verified Linux CPU environment. After creating the Python environment, use
+`python -m pip install -r requirements-lock.txt` to restore those transitive
+dependency versions, then `python -m pip install -e .` to install this project.
+
+## Neural network installation demo
+
+```bash
+python scripts/demo_network.py
+```
+
+The demo uses the shared `403 -> 256 -> 128` MLP with separate 26-action and
+scalar-value heads (139,803 parameters). It collects 256 real environment transitions,
+applies each observation's legal-action mask, performs one actor-critic optimizer
+step, checks nonzero gradients and changed weights in both heads, and saves/reloads
+a checkpoint with exactly matching outputs. It prints input/output shapes and timings;
+the JSON record and checkpoint are in `outputs/network_smoke/`.
+
+This is a CPU forward/backward and checkpoint demonstration, **not a PPO trainer**
+or evidence of improved scheduling. It uses only Train demand seeds. The default
+is one PyTorch CPU thread to avoid excessive thread overhead for this small model;
+`--threads`, `--batch-size`, `--seed` and `--output-dir` are configurable.
+
+The pinned PyTorch package is the official CPU build, so this environment does not
+require CUDA or a working NVIDIA driver. GPU training can be configured separately
+after the driver is working and CPU/GPU throughput has been compared.
+
+## Neural Network C&R submission checklist
+
+- One ZIP/RAR/7z per group containing commented source, a runnable network demo,
+  this README and `environment.yml`, plus the group's two-page report.
+- The report must explain the main code logic and organization, disclose external
+  code/libraries/tools and adaptations, and include reflections/lessons learned
+  and any changes to the proposal or remaining work.
+- Acknowledge AI use explicitly, describing the tools and their actual uses. The
+  group remains responsible for the submitted content and results.
+- The supplied assignment screenshot shows Friday 30 October 2026 at 23:59 as the
+  deadline. Verify the course portal's displayed timezone before uploading.
+
+The environment and network smoke test cover only part of this deliverable; the
+two-page report and full learning pipeline still need to be completed.
 
 ## Run the demo
 
