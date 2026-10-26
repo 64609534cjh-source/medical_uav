@@ -1,0 +1,305 @@
+{
+  "scope": "Engineering feasibility: one preselected frozen learner, five predetermined Dev-tune days x three loads, two implementation versions. No multi-seed method improvement claim; latency includes fallback/cold calls.",
+  "analysis_source_commit": "b263605f062a90cbd7a0ef0cda34b95a7554d623",
+  "versions": {
+    "v1": {
+      "source_commit": "9c09f3312c1190db85d6a3a3ca65a877aa1d1f3e",
+      "protocol_sha256": "ba116548b9cdc9b7ffe2104616dd1329204ae4a52cfa9615aa30de15c4750544",
+      "wall_seconds": 25.216092624003068,
+      "cpu": "12th Gen Intel(R) Core(TM) i7-12800H",
+      "threads": 1,
+      "methods": {
+        "reference": {
+          "mean_on_time_by_load": {
+            "low": 0.9875,
+            "medium": 0.8751439894836122,
+            "high": 0.7711606953485187
+          },
+          "equal_on_time_rate": 0.8779348949440436,
+          "mean_reward": 39.450772850726466,
+          "mean_served_rate": 0.9559551258327781,
+          "mean_expiry_rate": 0.04404487416722193,
+          "latency_ms_p50_p95_max": [
+            0.2565554968896322,
+            0.2862570501747541,
+            1.0146519998670556
+          ],
+          "planning_counts": {},
+          "decisions": 1762,
+          "days_differing_in_on_time": 0,
+          "per_type_daily_on_time": {
+            "plasma": {
+              "eligible_days": 15,
+              "mean": 0.7387962962962963
+            },
+            "medicine": {
+              "eligible_days": 15,
+              "mean": 0.9476660698399829
+            },
+            "sample": {
+              "eligible_days": 15,
+              "mean": 0.913461424234072
+            },
+            "supplies": {
+              "eligible_days": 15,
+              "mean": 0.8531391610338979
+            }
+          }
+        },
+        "rollout_no_value": {
+          "mean_on_time_by_load": {
+            "low": 0.9875,
+            "medium": 0.8751439894836122,
+            "high": 0.7711606953485187
+          },
+          "equal_on_time_rate": 0.8779348949440436,
+          "mean_reward": 39.451171175642074,
+          "mean_served_rate": 0.9559551258327781,
+          "mean_expiry_rate": 0.04404487416722193,
+          "latency_ms_p50_p95_max": [
+            0.4309739961172454,
+            20.40750720188953,
+            31.644569004129153
+          ],
+          "planning_counts": {
+            "decisions": 1765,
+            "fallback_no_released_work": 466,
+            "eligible_states": 572,
+            "synthetic_scenarios": 2288,
+            "extra_simulator_transitions": 23510,
+            "fallback_budget": 555,
+            "fallback_unrepresented_recent_arrival_history": 695,
+            "completed_comparisons": 17,
+            "changed_actions": 4,
+            "fallback_hidden_pending_orders": 32
+          },
+          "decisions": 1765,
+          "days_differing_in_on_time": 0,
+          "per_type_daily_on_time": {
+            "plasma": {
+              "eligible_days": 15,
+              "mean": 0.7387962962962963
+            },
+            "medicine": {
+              "eligible_days": 15,
+              "mean": 0.9476660698399829
+            },
+            "sample": {
+              "eligible_days": 15,
+              "mean": 0.913461424234072
+            },
+            "supplies": {
+              "eligible_days": 15,
+              "mean": 0.8531391610338979
+            }
+          }
+        },
+        "rollout_value": {
+          "mean_on_time_by_load": {
+            "low": 0.9875,
+            "medium": 0.8751439894836122,
+            "high": 0.7711606953485187
+          },
+          "equal_on_time_rate": 0.8779348949440436,
+          "mean_reward": 39.451171175642074,
+          "mean_served_rate": 0.9559551258327781,
+          "mean_expiry_rate": 0.04404487416722193,
+          "latency_ms_p50_p95_max": [
+            0.4368879963294603,
+            20.42575299856253,
+            21.072493997053243
+          ],
+          "planning_counts": {
+            "decisions": 1765,
+            "fallback_no_released_work": 466,
+            "eligible_states": 572,
+            "synthetic_scenarios": 2288,
+            "extra_simulator_transitions": 21445,
+            "fallback_budget": 556,
+            "fallback_unrepresented_recent_arrival_history": 695,
+            "completed_comparisons": 16,
+            "changed_actions": 4,
+            "fallback_hidden_pending_orders": 32
+          },
+          "decisions": 1765,
+          "days_differing_in_on_time": 0,
+          "per_type_daily_on_time": {
+            "plasma": {
+              "eligible_days": 15,
+              "mean": 0.7387962962962963
+            },
+            "medicine": {
+              "eligible_days": 15,
+              "mean": 0.9476660698399829
+            },
+            "sample": {
+              "eligible_days": 15,
+              "mean": 0.913461424234072
+            },
+            "supplies": {
+              "eligible_days": 15,
+              "mean": 0.8531391610338979
+            }
+          }
+        }
+      }
+    },
+    "v2": {
+      "source_commit": "20cb5b98d3e2aad11ebedc8ea325e1f19bfd04be",
+      "protocol_sha256": "9dd060d959ecf142dc0929bb689e06ccdab933c2cdd965632222a5eff5e446f0",
+      "wall_seconds": 25.014222552999854,
+      "cpu": "12th Gen Intel(R) Core(TM) i7-12800H",
+      "threads": 1,
+      "methods": {
+        "reference": {
+          "mean_on_time_by_load": {
+            "low": 0.9875,
+            "medium": 0.8751439894836122,
+            "high": 0.7711606953485187
+          },
+          "equal_on_time_rate": 0.8779348949440436,
+          "mean_reward": 39.450772850726466,
+          "mean_served_rate": 0.9559551258327781,
+          "mean_expiry_rate": 0.04404487416722193,
+          "latency_ms_p50_p95_max": [
+            0.2435830028844066,
+            0.2737493043241557,
+            1.8834450020221993
+          ],
+          "planning_counts": {},
+          "decisions": 1762,
+          "days_differing_in_on_time": 0,
+          "per_type_daily_on_time": {
+            "plasma": {
+              "eligible_days": 15,
+              "mean": 0.7387962962962963
+            },
+            "medicine": {
+              "eligible_days": 15,
+              "mean": 0.9476660698399829
+            },
+            "sample": {
+              "eligible_days": 15,
+              "mean": 0.913461424234072
+            },
+            "supplies": {
+              "eligible_days": 15,
+              "mean": 0.8531391610338979
+            }
+          }
+        },
+        "rollout_no_value": {
+          "mean_on_time_by_load": {
+            "low": 0.9875,
+            "medium": 0.8751439894836122,
+            "high": 0.7711606953485187
+          },
+          "equal_on_time_rate": 0.8779348949440436,
+          "mean_reward": 39.451171175642074,
+          "mean_served_rate": 0.9559551258327781,
+          "mean_expiry_rate": 0.04404487416722193,
+          "latency_ms_p50_p95_max": [
+            0.41443700320087373,
+            20.37798180099344,
+            46.26215799362399
+          ],
+          "planning_counts": {
+            "decisions": 1765,
+            "fallback_no_released_work": 466,
+            "eligible_states": 572,
+            "synthetic_scenarios": 2288,
+            "extra_simulator_transitions": 26556,
+            "fallback_budget": 553,
+            "fallback_unrepresented_recent_arrival_history": 695,
+            "completed_comparisons": 19,
+            "changed_actions": 4,
+            "fallback_hidden_pending_orders": 32
+          },
+          "decisions": 1765,
+          "days_differing_in_on_time": 0,
+          "per_type_daily_on_time": {
+            "plasma": {
+              "eligible_days": 15,
+              "mean": 0.7387962962962963
+            },
+            "medicine": {
+              "eligible_days": 15,
+              "mean": 0.9476660698399829
+            },
+            "sample": {
+              "eligible_days": 15,
+              "mean": 0.913461424234072
+            },
+            "supplies": {
+              "eligible_days": 15,
+              "mean": 0.8531391610338979
+            }
+          }
+        },
+        "rollout_value": {
+          "mean_on_time_by_load": {
+            "low": 0.9875,
+            "medium": 0.8751439894836122,
+            "high": 0.7711606953485187
+          },
+          "equal_on_time_rate": 0.8779348949440436,
+          "mean_reward": 39.451171175642074,
+          "mean_served_rate": 0.9559551258327781,
+          "mean_expiry_rate": 0.04404487416722193,
+          "latency_ms_p50_p95_max": [
+            0.4113320028409362,
+            20.3594698003144,
+            23.12061399425147
+          ],
+          "planning_counts": {
+            "decisions": 1765,
+            "fallback_no_released_work": 466,
+            "eligible_states": 572,
+            "synthetic_scenarios": 2288,
+            "extra_simulator_transitions": 24855,
+            "fallback_budget": 553,
+            "fallback_unrepresented_recent_arrival_history": 695,
+            "completed_comparisons": 19,
+            "changed_actions": 4,
+            "fallback_hidden_pending_orders": 32
+          },
+          "decisions": 1765,
+          "days_differing_in_on_time": 0,
+          "per_type_daily_on_time": {
+            "plasma": {
+              "eligible_days": 15,
+              "mean": 0.7387962962962963
+            },
+            "medicine": {
+              "eligible_days": 15,
+              "mean": 0.9476660698399829
+            },
+            "sample": {
+              "eligible_days": 15,
+              "mean": 0.913461424234072
+            },
+            "supplies": {
+              "eligible_days": 15,
+              "mean": 0.8531391610338979
+            }
+          }
+        }
+      }
+    }
+  },
+  "raw_files": {
+    "outputs/gen4_lookahead_feasibility/reference.json.gz": "207f474046bdcc44a2d22a4e88d92c6b540813f3a7cc5246d8675da507629f70",
+    "outputs/gen4_lookahead_feasibility/rollout_no_value.json.gz": "a5a30ab9274f8ea86592b13a1be6fba1aa4b925ed20aedf047fca37ccdf1327a",
+    "outputs/gen4_lookahead_feasibility/rollout_value.json.gz": "dac74b68708fc36d35352403b6e8c35e6132b509c5e7e2bd7f87443abce956be",
+    "outputs/gen4_lookahead_clone_v2/reference.json.gz": "fd6315bdaff64f52a9e16e2cab3f671100398fac2dd86f0ce0a65646c0ca364b",
+    "outputs/gen4_lookahead_clone_v2/rollout_no_value.json.gz": "a0593923da5e23e05a7f3b858e5d5bcd83ad81a6565801d08e8e62a607de9e9d",
+    "outputs/gen4_lookahead_clone_v2/rollout_value.json.gz": "39958006672388d02a1bb9d6570b42a44e9b906693f4359dab3d0f0686c87dc8"
+  },
+  "new_training_transitions": 0,
+  "new_confirmation_episodes": 0,
+  "new_test_episodes": 0,
+  "compute_scope": "Simulator counts cover the two registered 45-day probes; unit tests and the single Train-state micro-profile are separate engineering checks excluded from these counts.",
+  "extra_simulator_transitions": 96366,
+  "complete_evaluation_days_including_repeated_controls": 90,
+  "unique_demand_day_ids": 5
+}

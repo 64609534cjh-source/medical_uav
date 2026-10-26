@@ -1,0 +1,16 @@
+{
+  "archive": "gen4_lookahead_feasibility.tar.gz",
+  "sha256": "88c6b0251b6fbbf2cc6d5fcce7e792a714d8413973064c60236dd5782fed71d1",
+  "members": {
+    "outputs/gen4_lookahead_feasibility/manifest.json": "ae0605df6c929046692f5637e10671657f158d4d8e0f76b44bc8fb606268b23e",
+    "outputs/gen4_lookahead_feasibility/reference.json.gz": "207f474046bdcc44a2d22a4e88d92c6b540813f3a7cc5246d8675da507629f70",
+    "outputs/gen4_lookahead_feasibility/rollout_no_value.json.gz": "a5a30ab9274f8ea86592b13a1be6fba1aa4b925ed20aedf047fca37ccdf1327a",
+    "outputs/gen4_lookahead_feasibility/rollout_value.json.gz": "dac74b68708fc36d35352403b6e8c35e6132b509c5e7e2bd7f87443abce956be",
+    "outputs/gen4_lookahead_clone_v2/manifest.json": "410a449e1364123716032a112771c2dc46a22c62f479730b822c46e191915fb6",
+    "outputs/gen4_lookahead_clone_v2/reference.json.gz": "fd6315bdaff64f52a9e16e2cab3f671100398fac2dd86f0ce0a65646c0ca364b",
+    "outputs/gen4_lookahead_clone_v2/rollout_no_value.json.gz": "a0593923da5e23e05a7f3b858e5d5bcd83ad81a6565801d08e8e62a607de9e9d",
+    "outputs/gen4_lookahead_clone_v2/rollout_value.json.gz": "39958006672388d02a1bb9d6570b42a44e9b906693f4359dab3d0f0686c87dc8",
+    "outputs/gen4_lookahead_feasibility/copy_profile.json": "a62c98e9e45bdc8e90fcfca1a201e6b282768b995fac9233272b5cba025c9051",
+    "outputs/gen4_lookahead_feasibility/profile.txt": "60a33a26590d3fb8644d18ef9e70abdbdad1a9c4478af78f03aaa1e50135e710"
+  }
+}

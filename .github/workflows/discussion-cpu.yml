@@ -32,3 +32,6 @@ jobs:
           python scripts/demo_network.py
           python scripts/discussion.py dev
           python scripts/discussion.py table
+      - name: Verify additional research evidence when present
+        if: ${{ hashFiles('artifacts/gen4_lookahead_feasibility_manifest.json') != '' }}
+        run: python scripts/extract_research_evidence.py
