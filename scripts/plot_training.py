@@ -5,10 +5,14 @@ high load; the score is their mean. The figure shows each group's mean over its 
 range as a band, and Slack-aware on the same days. The table gives each run's final score, its
 mean score over the logged curve, and the decisions at which it first reaches (and keeps at the
 next evaluation) 95 % of the final score of the first group's run with the same training seed.
+For every other group, the decisions saved against the first group, seed by seed, after adding
+the group's extra cost (e.g. demonstrations and value warm-up); a run that never confirms the
+target is left out of the savings and counted as censored.
 
 Usage:
     python scripts/plot_training.py "PPO:runs/m3_set_s11,runs/m3_set_s22" \\
-        "BC then PPO:runs/m3_set_bc_s11,runs/m3_set_bc_s22" --out outputs/training_curves.png
+        "BC then PPO:runs/m3_set_bc_s11,runs/m3_set_bc_s22" --extra-cost "BC then PPO=178856" \\
+        --out outputs/training_curves.png
 """
 import argparse
 import csv
@@ -43,6 +47,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("groups", nargs="+", help='"label:run_dir,run_dir,..."; the first group '
                                                   "is the reference for the crossing")
+    parser.add_argument("--extra-cost", action="append", default=[],
+                        help='"label=decisions" spent by a group outside its PPO training')
     parser.add_argument("--eval-days", type=int, default=20)
     parser.add_argument("--out", default="outputs/training_curves.png")
     args = parser.parse_args()
@@ -74,18 +80,34 @@ def main():
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(args.out)
 
-    reference = {r["seed"]: r["score"][-1] for r in next(iter(groups.values())).values()}
+    extra = {label: float(cost) for label, cost in (e.split("=") for e in args.extra_cost)}
+    ref_label = next(iter(groups))
+    reference = {r["seed"]: r["score"][-1] for r in groups[ref_label].values()}
     print(f"score = mean of medium and high on-time; Slack-aware {np.mean(list(slack.values())):.3f}")
     print(f"{'run':28s} {'final':>6s} {'curve mean':>10s} {'reaches target at':>18s}")
+    hits = {}  # group -> seed -> decisions at the confirmed crossing, or None
     for label, runs in groups.items():
         for run, r in runs.items():
             target = TARGET * reference[r["seed"]]
             hit = first_sustained_crossing(r["decisions"], r["score"], target)
+            hits.setdefault(label, {})[r["seed"]] = hit
             mean = curve_mean(r["decisions"], r["score"], r["decisions"][0], r["decisions"][-1])
             print(f"{Path(run).name:28s} {r['score'][-1]:6.3f} {mean:10.3f} "
                   f"{'not confirmed' if hit is None else f'{hit / 1e6:.2f} M':>18s}")
         finals = [r["score"][-1] for r in runs.values()]
         print(f"  {label}: final {np.mean(finals):.3f} (range {min(finals):.3f}-{max(finals):.3f})")
+        if label == ref_label:
+            continue
+        pairs = [(hits[ref_label][s], h) for s, h in hits[label].items() if s in hits[ref_label]]
+        done = [(a, b) for a, b in pairs if a is not None and b is not None]
+        saving = [a - b - extra.get(label, 0.0) for a, b in done]
+        if done:
+            print(f"  {label}: saving vs {ref_label}, median {np.median(saving):.0f} decisions "
+                  f"(with extra cost; without {np.median([a - b for a, b in done]):.0f}), "
+                  f"faster in {sum(x > 0 for x in saving)}/{len(done)}"
+                  + (f", {len(pairs) - len(done)} censored" if len(done) < len(pairs) else ""))
+        else:
+            print(f"  {label}: saving vs {ref_label} not available, all {len(pairs)} censored")
     print(f"Saved: {args.out}")
 
 
