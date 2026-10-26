@@ -10,13 +10,12 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 from matplotlib.patches import Circle, Rectangle
 
-from medical_uav.env.config import (CHARGERS, EPS, FULL_BATTERY, M, NODE_NAMES, ORDER_TYPES,
-                                    EnvConfig)
+from medical_uav.env.config import (CHARGERS, DAY_START_HOUR, EPS, FULL_BATTERY, M, NODE_NAMES,
+                                    ORDER_TYPES, EnvConfig)
 from medical_uav.env.map_gen import CityMap
 
 TYPE_COLORS = {"plasma": "#d62728", "medicine": "#1f77b4", "sample": "#9467bd",
                "supplies": "#ff7f0e"}
-DAY_START_HOUR = 8  # clock hour at simulation time 0
 PANEL_ROWS = 8  # rows of the pending-order table; when more wait, the last row counts them
 PANEL_ROWS_WITH_CHOICES = 7  # fewer rows when the network's top choices are shown below
 FRAME_PX = (960, 528)  # frame width and height in pixels; video codecs need multiples of 16

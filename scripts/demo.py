@@ -1,9 +1,10 @@
-"""Run one day with a policy, print the results and save a frame and two videos.
+"""Run one day with a policy, print the results and save a replay, a frame and two videos.
 
 This is also the usage example: create the environment, reset it to a day, step until the day
 is over, then read the results and draw the day.
 
-Videos:
+Outputs:
+  *_replay.html    the whole day in a web browser: play, pause, step through the decisions
   *_explained.mp4  a few consecutive decisions, each held on screen so it can be read
   *_day.mp4        the whole day at a labelled speed
 """
@@ -21,10 +22,11 @@ from medical_uav.baselines.heuristics import edf_policy, random_policy, slack_aw
 from medical_uav.env import MedicalUAVEnv
 from medical_uav.env.render import (Renderer, clock, explanation_times, highlight_ids, outcome_text,
                                     overview_times, save_animation)
+from medical_uav.env.replay import day_record, decision_record, write_html
 from medical_uav.metrics import episode_metrics, summary_lines
 
-POLICY_NAMES = {"slack": "Slack-aware", "edf": "EDF", "random": "Random",
-                "mlp": "BC MLP network", "set": "BC set network"}
+POLICY_NAMES = {"slack": "Slack-aware rule", "edf": "EDF rule", "random": "Random policy",
+                "mlp": "MLP trained by imitation", "set": "Set network trained by imitation"}
 CHECKPOINTS = Path(__file__).resolve().parents[1] / "checkpoints"
 SNAPSHOT_MIN = 182.0  # minute of the saved frame and of the first explained decision
 FPS = 12  # video frames per second
@@ -85,12 +87,15 @@ def main():
 
     # 2. let the policy choose actions until the day is over; rule-based policies read the
     #    environment, a network uses only obs and info["action_mask"]
-    total_reward, choices = 0.0, []
+    total_reward, choices, decisions = 0.0, [], []
     terminated = truncated = False
     while not (terminated or truncated):
+        probs = None
         if network is not None:
+            probs = network.probabilities(obs, info["action_mask"])
             choices.append(top_choices(env, network, obs, info["action_mask"]))
         action = policy(env, obs, info["action_mask"])
+        decisions.append(decision_record(env, action, probs))  # recorded before the step
         obs, reward, terminated, truncated, info = env.step(action)
         total_reward += reward
 
@@ -104,12 +109,16 @@ def main():
         print("  " + line)
     print()
 
-    # 4. draw a frame and two videos; the renderer can draw any minute of the finished day
+    # 4. the replay: one HTML file with the whole day, opened in any web browser
+    base = f"outputs/demo_{args.policy}_{args.load}_seed{args.seed}"
+    os.makedirs("outputs", exist_ok=True)
+    write_html(day_record(env, decisions, name), f"{base}_replay.html")
+    print(f"Saved: {base}_replay.html (open it in a web browser)")
+
+    # 5. draw a frame and two videos; the renderer can draw any minute of the finished day
     renderer = Renderer(env.city_map, env.cfg,
                         title=f"Medical UAV  |  {name}  |  {args.load} load  |  "
                               f"demand seed {args.seed}")
-    base = f"outputs/demo_{args.policy}_{args.load}_seed{args.seed}"
-    os.makedirs("outputs", exist_ok=True)
 
     t = min(SNAPSHOT_MIN, sim.t)
     imageio.imwrite(f"{base}_t{round(t, 1):g}min.png", renderer.draw(sim, t, caption_at(env, t)))

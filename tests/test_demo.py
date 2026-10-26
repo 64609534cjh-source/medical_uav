@@ -27,3 +27,4 @@ def test_demo_writes_explanation_and_day_videos(tmp_path):
     assert result.returncode == 0, result.stderr
     names = {p.name for p in (tmp_path / "outputs").iterdir()}
     assert "demo_slack_low_seed0_explained.mp4" in names and "demo_slack_low_seed0_day.mp4" in names
+    assert "demo_slack_low_seed0_replay.html" in names and "web browser" in result.stdout
