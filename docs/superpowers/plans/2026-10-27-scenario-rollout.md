@@ -4,7 +4,7 @@
 
 **Architecture:** `medical_uav/baselines/scenario.py`. At each decision: build a planning root from what the agent observes (time, place, battery, cargo, the visible slot orders, the load's arrival rate and the public peak schedule; no history, hidden or future orders), sample S arrival streams in (t, min(t + 60, 480)) from the demand model with the planner's own random streams, then for every allowed action and every scenario run the action and let Slack-aware finish all modelled work; take the best mean total reward, ties to Slack-aware's choice, then the lowest index. The planning copy skips the 452-feature observation.
 
-**Deviation from the registered text (decided before any result):** random streams are keyed by (master seed 271828, decision index within the day, scenario index), without an episode counter, so results do not depend on which days are evaluated or in what order. Scenarios 1–4 are the same for S = 4 and 16.
+**Deviations from the registered text:** (1) the planner reads the observable state from the simulator at full precision (time, place, battery, cargo, visible orders with their ids, which fix the slot order) instead of decoding the float32 observation; a test runs it on an object holding only these. (2) Decided before any result: random streams are keyed by (master seed 271828, decision index within the day, scenario index), without an episode counter, so results do not depend on which days are evaluated or in what order. Scenarios 1–4 are the same for S = 4 and 16.
 
 ### Task S1: Arrival sampling and planning root
 
