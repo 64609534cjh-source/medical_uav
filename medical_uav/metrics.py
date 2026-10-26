@@ -63,8 +63,9 @@ def behaviour_metrics(sim: Simulator, decision_log: list) -> dict:
     """How a day was served: boxes delivered per delivery stop (a box that expires while being
     unloaded does not count), charges, the battery when they started, the share of charges to
     100 %, the share of charging minutes inside the peaks, the battery when each peak began,
-    the shares of WAIT and RETURN decisions, and the on-time rate of orders released inside and
-    outside the peaks."""
+    the shares of WAIT and RETURN decisions, the on-time rate of orders released inside and
+    outside the peaks (with the peak counts), and the charging minutes in total and inside the
+    peaks."""
     stops = 0
     previous = None
     for seg in sim.segments:
@@ -82,12 +83,15 @@ def behaviour_metrics(sim: Simulator, decision_log: list) -> dict:
     peak_minutes = sum(max(0.0, min(c.t1, b) - max(c.t0, a)) for c in charges for a, b in windows)
     peak_batteries = [battery_at(sim, a) for a, _ in windows if a <= sim.t]
 
-    def on_time_rate(in_peak: bool) -> float:
+    def counts(in_peak: bool) -> tuple[int, int]:
+        """(released, on time) for orders released inside or outside the peaks."""
         released = [o for o in sim.orders if o.status != "future"
                     and any(a <= o.release < b for a, b in sim.cfg.peak_windows) == in_peak]
         on_time = [o for o in released
                    if o.status == "delivered" and o.end_time - o.release <= o.limit + EPS]
-        return len(on_time) / len(released) if released else math.nan
+        return len(released), len(on_time)
+
+    peak, offpeak = counts(True), counts(False)
 
     return {
         "boxes_per_stop": delivered / stops if stops else math.nan,
@@ -101,8 +105,12 @@ def behaviour_metrics(sim: Simulator, decision_log: list) -> dict:
                             if peak_batteries else math.nan),
         "wait_share": labels.count("WAIT") / len(labels) if labels else math.nan,
         "return_share": labels.count("RETURN") / len(labels) if labels else math.nan,
-        "on_time_peak": on_time_rate(True),
-        "on_time_offpeak": on_time_rate(False),
+        "on_time_peak": peak[1] / peak[0] if peak[0] else math.nan,
+        "on_time_offpeak": offpeak[1] / offpeak[0] if offpeak[0] else math.nan,
+        "released_peak": peak[0],
+        "on_time_peak_count": peak[1],
+        "charge_minutes": charge_minutes,
+        "peak_charge_minutes": peak_minutes,
     }
 
 

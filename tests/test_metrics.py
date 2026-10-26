@@ -57,6 +57,10 @@ def test_behaviour_metrics_on_a_built_day(line_map):
     assert m["charge_full_share"] == 0.0  # the one charge went to 80 %
     assert m["peak_charge_share"] == 1.0  # all charging minutes inside the 60-180 peak
     assert m["battery_at_peak"] == 100.0  # full when the first peak began; the second not reached
+    assert m["released_peak"] == 1 and m["on_time_peak_count"] == 1  # order b, released at 70
+    charge = sim.segments[-1]
+    assert m["charge_minutes"] == pytest.approx(charge.t1 - charge.t0)
+    assert m["peak_charge_minutes"] == pytest.approx(charge.t1 - charge.t0)
 
 
 def test_analyze_behaviour_script(tmp_path):
@@ -72,6 +76,26 @@ def test_analyze_behaviour_script(tmp_path):
     assert result.returncode == 0, result.stderr
     names = {p.name for p in (tmp_path / "beh").iterdir()}
     assert {"behaviour.csv", "battery_day.png", "on_time_by_hour.png"} <= names
+
+
+def test_analyze_behaviour_runs_the_energy_conditions(tmp_path):
+    import csv
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    repo = Path(__file__).resolve().parents[1]
+    result = subprocess.run([sys.executable, str(repo / "scripts" / "analyze_behaviour.py"),
+                             "--checkpoints", str(repo / "checkpoints" / "bc_set.pt"),
+                             "--methods", "slack100,prepeak", "--mask-full-charge",
+                             "--loads", "medium", "--seeds", "select", "--days", "1",
+                             "--out", str(tmp_path / "beh")], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    rows = list(csv.DictReader(open(tmp_path / "beh" / "behaviour.csv")))
+    assert {r["method"] for r in rows} == {"slack100", "prepeak", "bc_set", "bc_set/no100"}
+    assert all(r["seed"] == "100040" for r in rows)
+    prepeak = next(r for r in rows if r["method"] == "prepeak")
+    assert prepeak["overrides"] in ("0", "1", "2")
 
 
 def test_boxes_per_stop_counts_only_successful_deliveries(line_map):

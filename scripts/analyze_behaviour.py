@@ -3,6 +3,10 @@
 Writes behaviour.csv (one row per policy, load and day), prints the means, and draws the battery
 over one day for each policy and the on-time rate by hour of release.
 
+Methods: slack, rollout, and the energy-study interventions slack100 and prepeak
+(medical_uav/baselines/energy.py); --mask-full-charge adds each checkpoint with CHARGE(*, 100)
+hidden, labelled <checkpoint>/no100.
+
 Usage:
     python scripts/analyze_behaviour.py --checkpoints runs/m3_set_s11/ckpt_06000640.pt \\
         --methods slack,rollout --out outputs/behaviour
@@ -17,30 +21,40 @@ import torch
 from matplotlib.figure import Figure
 
 from medical_uav.agents.policy import NetworkPolicy, load_checkpoint
+from medical_uav.baselines.energy import PrePeakTopUp, slack100_policy, without_full_charge
 from medical_uav.baselines.heuristics import slack_aware_policy
 from medical_uav.baselines.rollout import rollout_policy
 from medical_uav.env import MedicalUAVEnv
 from medical_uav.env.config import EPS, EnvConfig
 from medical_uav.evaluation import checkpoint_labels
 from medical_uav.metrics import behaviour_metrics, episode_metrics
-from medical_uav.splits import SCREEN_SEEDS
+from medical_uav.splits import SCREEN_SEEDS, SELECT_SEEDS
 
-RULES = {"slack": slack_aware_policy, "rollout": rollout_policy}
+RULES = {"slack": slack_aware_policy, "rollout": rollout_policy, "slack100": slack100_policy}
+SEED_SETS = {"screen": SCREEN_SEEDS, "select": SELECT_SEEDS}
+NO_FULL = "#no100"  # suffix of a checkpoint run with full charges hidden
 HOURS = 8  # orders are released over 8 hours
 
 
 def make_policy(name: str):
-    """A rule by name, or a checkpoint path as a network policy; policy(env, obs, mask)."""
+    """A rule by name, or a checkpoint path as a network policy (path#no100: full charges
+    hidden); policy(env, obs, mask). The pre-peak rule is returned as itself too, to count its
+    top-ups."""
+    if name == "prepeak":
+        rule = PrePeakTopUp()
+        return (lambda env, obs, mask: rule(env)), rule
     if name in RULES:
-        return lambda env, obs, mask: RULES[name](env)
-    return NetworkPolicy(load_checkpoint(name)[0])
+        return (lambda env, obs, mask: RULES[name](env)), None
+    if name.endswith(NO_FULL):
+        return without_full_charge(NetworkPolicy(load_checkpoint(name[:-len(NO_FULL)])[0])), None
+    return NetworkPolicy(load_checkpoint(name)[0]), None
 
 
 def run(job) -> dict:
     """One day of one policy: behaviour metrics, on-time by hour of release, battery trace."""
     torch.set_num_threads(1)
     name, label, load, seed = job
-    policy = make_policy(name)
+    policy, rule = make_policy(name)
     env = MedicalUAVEnv(load=load)
     obs, info = env.reset(options={"demand_seed": seed})
     done = False
@@ -58,6 +72,7 @@ def run(job) -> dict:
     return {"method": label, "load": load, "seed": seed, "on_time_rate": m["on_time_rate"],
             "charge_share": m["charge_share"], "km_flown": m["km_flown"],
             **behaviour_metrics(sim, env.decision_log),
+            "overrides": len(rule.used) if rule else float("nan"),
             "hourly": (released, on_time), "trace": trace}
 
 
@@ -110,15 +125,21 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--checkpoints", nargs="*", default=[])
     parser.add_argument("--methods", default="slack,rollout")
+    parser.add_argument("--mask-full-charge", action="store_true",
+                        help="also run every checkpoint with CHARGE(*, 100) hidden")
     parser.add_argument("--loads", default="medium,high")
-    parser.add_argument("--days", type=int, default=len(SCREEN_SEEDS))
+    parser.add_argument("--seeds", choices=list(SEED_SETS), default="screen")
+    parser.add_argument("--days", type=int, default=None, help="use only the first DAYS seeds")
     parser.add_argument("--processes", type=int, default=8)
     parser.add_argument("--out", default="outputs/behaviour")
     args = parser.parse_args()
 
     named = [(m, m) for m in args.methods.split(",") if m]
     named += list(zip(args.checkpoints, checkpoint_labels(args.checkpoints)))
-    seeds = list(SCREEN_SEEDS)[:args.days]
+    if args.mask_full_charge:
+        named += [(path + NO_FULL, label + "/no100") for path, label
+                  in zip(args.checkpoints, checkpoint_labels(args.checkpoints))]
+    seeds = list(SEED_SETS[args.seeds])[:args.days]
     jobs = [(name, label, load, seed) for load in args.loads.split(",") for name, label in named
             for seed in seeds]
     with Pool(args.processes) as pool:
