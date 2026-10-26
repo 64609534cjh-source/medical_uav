@@ -1,0 +1,107 @@
+{
+  "split": "dev-extra",
+  "congestion": true,
+  "jobs": 5,
+  "entries": [
+    {
+      "name": "relational_s1",
+      "method": "relational",
+      "learner_seed": 1,
+      "checkpoint": "outputs/gen2_architectures/relational_s1/best.pt",
+      "policies": [
+        "ppo"
+      ],
+      "checkpoint_sha256": "4e5e55f8889f7bab7461baecc7aa4b139cdc09435dba2e165e7403764d645747"
+    },
+    {
+      "name": "relational_last_s1",
+      "method": "relational",
+      "learner_seed": 1,
+      "checkpoint": "outputs/gen2_architectures/relational_s1/last.pt",
+      "policies": [
+        "ppo"
+      ],
+      "checkpoint_sha256": "47bf6f24e38add317992bcaad64734558bf3b251050eb24eeb5d40f94e8402b7"
+    },
+    {
+      "name": "relational_s2",
+      "method": "relational",
+      "learner_seed": 2,
+      "checkpoint": "outputs/gen2_architectures/relational_s2/best.pt",
+      "policies": [
+        "ppo"
+      ],
+      "checkpoint_sha256": "eb9df613daa78245119c78b7594b6d4e0aa19d2285f925feee50e6a163b4dc26"
+    },
+    {
+      "name": "relational_last_s2",
+      "method": "relational",
+      "learner_seed": 2,
+      "checkpoint": "outputs/gen2_architectures/relational_s2/last.pt",
+      "policies": [
+        "ppo"
+      ],
+      "checkpoint_sha256": "6d9e12d3394ea282ea509c980790c20ec0d72894cd45cd65c59fcd28d3a8c0fd"
+    },
+    {
+      "name": "relational_s3",
+      "method": "relational",
+      "learner_seed": 3,
+      "checkpoint": "outputs/gen2_architectures/relational_s3/best.pt",
+      "policies": [
+        "ppo"
+      ],
+      "checkpoint_sha256": "fb9a4082d6d84816858fbfec6acd73be623904be5b1b11f4212a23229f8eec07"
+    },
+    {
+      "name": "relational_last_s3",
+      "method": "relational",
+      "learner_seed": 3,
+      "checkpoint": "outputs/gen2_architectures/relational_s3/last.pt",
+      "policies": [
+        "ppo"
+      ],
+      "checkpoint_sha256": "de86aabc90a5778e6ce7cbe1b3db3de62596af64ac2b8e6c48880e5ff453fc70"
+    },
+    {
+      "name": "relational_s4",
+      "method": "relational",
+      "learner_seed": 4,
+      "checkpoint": "outputs/gen2_architectures/relational_s4/best.pt",
+      "policies": [
+        "ppo"
+      ],
+      "checkpoint_sha256": "e0fabd5e5eb1a40c800156a1fb8fb1f3b26f904f0885209ff18f64f214d0a3a7"
+    },
+    {
+      "name": "relational_last_s4",
+      "method": "relational",
+      "learner_seed": 4,
+      "checkpoint": "outputs/gen2_architectures/relational_s4/last.pt",
+      "policies": [
+        "ppo"
+      ],
+      "checkpoint_sha256": "2044d00f46def5b3d6eaf154c8c640775bc44a5158c9259fa4ebc1bb85427e77"
+    },
+    {
+      "name": "relational_s5",
+      "method": "relational",
+      "learner_seed": 5,
+      "checkpoint": "outputs/gen2_architectures/relational_s5/best.pt",
+      "policies": [
+        "ppo"
+      ],
+      "checkpoint_sha256": "fc1693796002efd7572e090f265e48d5fbf500feac573004aec3f0c6f73fe91a"
+    },
+    {
+      "name": "relational_last_s5",
+      "method": "relational",
+      "learner_seed": 5,
+      "checkpoint": "outputs/gen2_architectures/relational_s5/last.pt",
+      "policies": [
+        "ppo"
+      ],
+      "checkpoint_sha256": "7be2e6eb04f06e4d119189e76f47b85abeed654b89c673cdd2fb4aace03f8d10"
+    }
+  ]
+}

@@ -156,11 +156,12 @@ def draw_curves(data,path,tail=False):
             values=np.array([r['on_time'] for r in data[m]])[:,:,j]*100
             x=np.array(data[m][0]['transitions'])/1000
             for row in values:ax.plot(x,row,color=colors[m],alpha=.18,lw=.9)
-            ax.plot(x,values.mean(0),color=colors[m],lw=2,label=m)
+            ax.plot(x,values.mean(0),color=colors[m],lw=2,label=m,linestyle={'m5':'--','destination':'-','relational':'-.'}[m])
         ax.set(title=[*LOADS,'equal-load mean'][j],xlabel='Training transitions (thousands)',ylabel='Dev-main daily on-time rate (%)',ylim=(0,102),xlim=(0,1024));ax.grid(alpha=.18)
         if tail:
             focus=np.concatenate([np.array([r['on_time'] for r in data[m]])[:,1:,j].ravel() for m in METHODS])*100
             ax.set_xlim(102.4,1024);ax.set_ylim(max(0,focus.min()-1),min(100.5,focus.max()+1))
+        ax.set_xticks([102.4,256,512,768,1024] if tail else [0,256,512,768,1024])
     axes[0,0].legend(frameon=False,loc='lower right');fig.suptitle('Gen2: all five learners and mean; '+('from 102,400 transitions, focused y scales' if tail else '11 fixed Dev checkpoints'))
     for ext in ['png','svg']:fig.savefig(str(path)+'.'+ext,dpi=170)
     plt.close(fig)
@@ -169,7 +170,7 @@ def draw_curves(data,path,tail=False):
 def draw_paired(result,path,title):
     import matplotlib;matplotlib.use('Agg')
     import matplotlib.pyplot as plt
-    fig,axes=plt.subplots(1,2,figsize=(10,3.9),layout='constrained')
+    fig,axes=plt.subplots(1,2,figsize=(10,3.9),layout='constrained',sharex=True)
     for ax,name,color in zip(axes,['destination - m5','relational - m5'],['#2574a9','#ba7423']):
         rs=result['comparisons'][name]['loads'];y=np.arange(4)
         point=np.array([rs[l]['estimate'] for l in [*LOADS,'equal']])*100
@@ -254,7 +255,7 @@ def main():
             for m,r in result['dev_extra_best']['mechanisms'].items():out.append(f'| {m} | {100*r["daily_mean_batch_fraction"]:.2f}% | {r["boxes_per_effective_delivery_pooled"]:.3f} | {100*r["expired_after_pick_fraction_pooled"]:.2f}% |')
             out+=['','Descriptive associations under each learned policy, not causal attribution to a network component. Effective DELIVER excludes actions delivering no box.']
         Path('results/gen2_development.md').write_text('\n'.join(out)+'\n')
-        print(json.dumps({'best':result['dev_best']['methods'],'extra':result['dev_extra_best']['methods']},indent=2))
+        print(json.dumps({stage:{m:{k:d[k] for k in ['mean','sample_sd']} for m,d in result[stage]['methods'].items()} for stage in ['dev_best','dev_extra_best']},indent=2))
     else:
         protocol=read('configs/gen2_test_v2_protocol.json');manifest=read('outputs/gen2_test_v2/manifest.json');assert manifest['status']=='complete' and manifest['protocol_sha256']==sha('configs/gen2_test_v2_protocol.json')
         assert protocol['final_candidates_frozen'] and protocol['split']=='test-v2'
@@ -277,7 +278,7 @@ def main():
         write_json(Path('results/gen2_test_v2.json'),result);draw_paired(result,Path('results/gen2_test_v2_paired'),'Gen2 new Test-v2, selected best')
         out=['# Gen2: preregistered new Test-v2 comparison','','Test-v2 contains 100 previously unused demand days (300000–300099), at Low/Medium/High, fixed map 0. Day IDs were sealed before architecture development. All 15 selected-best models and statistical source hashes were sealed before Test-v2 was opened. The original Test is retained as historical Generation 1 evidence.','']+markdown_table(result)+report_types(result)
         out+=['','## Interpretation boundaries','','The primary contrasts are destination − M5 and relational − M5. The architecture comparisons are pointwise 95% intervals, without familywise correction; treat fine-grained multiple comparisons as exploratory. Paired learner-ID/day-ID product bootstrap uses 10,000 repetitions, common demand-day resampling across loads and separate learner/day-only intervals in the JSON. Five learners do not provide a precise estimate of all training variability.','', 'Only selected-best checkpoints are evaluated here. Training stability and last-checkpoint comparisons use Dev-main/Dev-extra, not Test-v2. No inference about a new map or theoretical optimum is supported. Absence of improvement is a valid result; neither architecture was combined with the other or tuned after this comparison.','', f'{total} full days, {decisions} decisions, no illegal action; suite wall time {manifest["wall_seconds"]:.2f} seconds. Complete raw per-day metrics and type outcomes remain in `../outputs/gen2_test_v2/`.','', 'Test-v2 is now consumed. Further method selection requires a new holdout or a clearly labeled development comparison.']
-        Path('results/gen2_test_v2.md').write_text('\n'.join(out)+'\n');print(json.dumps(result['methods'],indent=2))
+        Path('results/gen2_test_v2.md').write_text('\n'.join(out)+'\n');print(json.dumps({m:{k:d[k] for k in ['mean','sample_sd']} for m,d in result['methods'].items()},indent=2))
 
 
 if __name__=='__main__':main()

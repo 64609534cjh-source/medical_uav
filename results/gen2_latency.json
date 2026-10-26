@@ -1,0 +1,380 @@
+{
+  "threads": 1,
+  "device": "cpu",
+  "torch": "2.10.0+cpu",
+  "observation_archive_sha256": "c67ed9e0f7cf95ae8a067b486fc33ee5af41df52e74e53f994e94e148f8c2d44",
+  "scope": "all 15 best models; identical real observation/mask archive; canonical masked categorical argmax including critic; tensor conversion excluded; isolated from project training/evaluation jobs; aggregate median of five per-model p50/p95 measurements; p95 is per-model, aggregate is not pooled tail quantile",
+  "models": [
+    {
+      "name": "m5_s1",
+      "method": "m5",
+      "learner_seed": 1,
+      "checkpoint": "outputs/m5_s1_development_123/seed_1/best.pt",
+      "checkpoint_sha256": "750bffbc1bcd8322621978bddc83397c57c059829f80b3ad83bf490a3c6ba304",
+      "parameters": 65232,
+      "latency": {
+        "1": {
+          "p50_us_per_batch": 184.75799999999998,
+          "p95_us_per_batch": 196.9773,
+          "warmups": 200,
+          "calls": 2000
+        },
+        "8": {
+          "p50_us_per_batch": 279.7885,
+          "p95_us_per_batch": 315.2819,
+          "warmups": 200,
+          "calls": 2000
+        }
+      }
+    },
+    {
+      "name": "m5_s2",
+      "method": "m5",
+      "learner_seed": 2,
+      "checkpoint": "outputs/m5_s1_development_123/seed_2/best.pt",
+      "checkpoint_sha256": "7f8404be75a5c7b34ede22f61e6a9f5e2ae950524f8a12ef7e82689c1cc6ec8f",
+      "parameters": 65232,
+      "latency": {
+        "1": {
+          "p50_us_per_batch": 188.374,
+          "p95_us_per_batch": 207.52194999999998,
+          "warmups": 200,
+          "calls": 2000
+        },
+        "8": {
+          "p50_us_per_batch": 280.8565,
+          "p95_us_per_batch": 295.74005,
+          "warmups": 200,
+          "calls": 2000
+        }
+      }
+    },
+    {
+      "name": "m5_s3",
+      "method": "m5",
+      "learner_seed": 3,
+      "checkpoint": "outputs/m5_s1_development_123/seed_3/best.pt",
+      "checkpoint_sha256": "99af3ddad0d1dba486fea0613d8eb80c3f0aa049c82dacc81ff56dc4434611ec",
+      "parameters": 65232,
+      "latency": {
+        "1": {
+          "p50_us_per_batch": 184.869,
+          "p95_us_per_batch": 197.397,
+          "warmups": 200,
+          "calls": 2000
+        },
+        "8": {
+          "p50_us_per_batch": 279.06,
+          "p95_us_per_batch": 294.2634,
+          "warmups": 200,
+          "calls": 2000
+        }
+      }
+    },
+    {
+      "name": "m5_s4",
+      "method": "m5",
+      "learner_seed": 4,
+      "checkpoint": "outputs/m5_s1_extension_45/seed_4/best.pt",
+      "checkpoint_sha256": "aad30b6f837b2bd194d06aafc77b13ce4bd8e1b57d87a1c62845909a4ee4c32c",
+      "parameters": 65232,
+      "latency": {
+        "1": {
+          "p50_us_per_batch": 184.132,
+          "p95_us_per_batch": 197.7901,
+          "warmups": 200,
+          "calls": 2000
+        },
+        "8": {
+          "p50_us_per_batch": 276.96349999999995,
+          "p95_us_per_batch": 288.59585000000004,
+          "warmups": 200,
+          "calls": 2000
+        }
+      }
+    },
+    {
+      "name": "m5_s5",
+      "method": "m5",
+      "learner_seed": 5,
+      "checkpoint": "outputs/m5_s1_extension_45/seed_5/best.pt",
+      "checkpoint_sha256": "df9f1b7b028a038e98a4ac654a0c2f5c1f13640599f18b8494b8f405cf1394db",
+      "parameters": 65232,
+      "latency": {
+        "1": {
+          "p50_us_per_batch": 184.631,
+          "p95_us_per_batch": 202.7414,
+          "warmups": 200,
+          "calls": 2000
+        },
+        "8": {
+          "p50_us_per_batch": 275.8055,
+          "p95_us_per_batch": 286.75350000000003,
+          "warmups": 200,
+          "calls": 2000
+        }
+      }
+    },
+    {
+      "name": "destination_s1",
+      "method": "destination",
+      "learner_seed": 1,
+      "checkpoint": "outputs/gen2_architectures/destination_s1/best.pt",
+      "checkpoint_sha256": "d4031b08b89ce776ee4f097c88d840345d7becf0fdf0725b004a9c9d8b19a9e1",
+      "parameters": 79675,
+      "latency": {
+        "1": {
+          "p50_us_per_batch": 254.7065,
+          "p95_us_per_batch": 275.94685,
+          "warmups": 200,
+          "calls": 2000
+        },
+        "8": {
+          "p50_us_per_batch": 368.961,
+          "p95_us_per_batch": 384.66724999999997,
+          "warmups": 200,
+          "calls": 2000
+        }
+      }
+    },
+    {
+      "name": "destination_s2",
+      "method": "destination",
+      "learner_seed": 2,
+      "checkpoint": "outputs/gen2_architectures/destination_s2/best.pt",
+      "checkpoint_sha256": "9b404353817903f28fb1a290404dc2796bd32b4ab1b3b600a3372f386d42ca1c",
+      "parameters": 79675,
+      "latency": {
+        "1": {
+          "p50_us_per_batch": 261.502,
+          "p95_us_per_batch": 284.5824,
+          "warmups": 200,
+          "calls": 2000
+        },
+        "8": {
+          "p50_us_per_batch": 370.66650000000004,
+          "p95_us_per_batch": 389.62080000000003,
+          "warmups": 200,
+          "calls": 2000
+        }
+      }
+    },
+    {
+      "name": "destination_s3",
+      "method": "destination",
+      "learner_seed": 3,
+      "checkpoint": "outputs/gen2_architectures/destination_s3/best.pt",
+      "checkpoint_sha256": "62f64cfc0fa2f7bef51c1acb8001eb3ec121a6c23fc6493660c2b2e1a28f565e",
+      "parameters": 79675,
+      "latency": {
+        "1": {
+          "p50_us_per_batch": 254.75650000000002,
+          "p95_us_per_batch": 278.4168,
+          "warmups": 200,
+          "calls": 2000
+        },
+        "8": {
+          "p50_us_per_batch": 367.6595,
+          "p95_us_per_batch": 381.88635,
+          "warmups": 200,
+          "calls": 2000
+        }
+      }
+    },
+    {
+      "name": "destination_s4",
+      "method": "destination",
+      "learner_seed": 4,
+      "checkpoint": "outputs/gen2_architectures/destination_s4/best.pt",
+      "checkpoint_sha256": "88b8f1e788d46003102109e1f3ab86b0d39f9deb0686a9182895509dd996b69f",
+      "parameters": 79675,
+      "latency": {
+        "1": {
+          "p50_us_per_batch": 263.97450000000003,
+          "p95_us_per_batch": 288.68365,
+          "warmups": 200,
+          "calls": 2000
+        },
+        "8": {
+          "p50_us_per_batch": 366.42449999999997,
+          "p95_us_per_batch": 385.66715,
+          "warmups": 200,
+          "calls": 2000
+        }
+      }
+    },
+    {
+      "name": "destination_s5",
+      "method": "destination",
+      "learner_seed": 5,
+      "checkpoint": "outputs/gen2_architectures/destination_s5/best.pt",
+      "checkpoint_sha256": "0d23228638a7d0c370a64409b6a3160628627d513598313310ba9cdf0b299ec5",
+      "parameters": 79675,
+      "latency": {
+        "1": {
+          "p50_us_per_batch": 259.104,
+          "p95_us_per_batch": 280.1572,
+          "warmups": 200,
+          "calls": 2000
+        },
+        "8": {
+          "p50_us_per_batch": 370.2855,
+          "p95_us_per_batch": 384.34875,
+          "warmups": 200,
+          "calls": 2000
+        }
+      }
+    },
+    {
+      "name": "relational_s1",
+      "method": "relational",
+      "learner_seed": 1,
+      "checkpoint": "outputs/gen2_architectures/relational_s1/best.pt",
+      "checkpoint_sha256": "4e5e55f8889f7bab7461baecc7aa4b139cdc09435dba2e165e7403764d645747",
+      "parameters": 102896,
+      "latency": {
+        "1": {
+          "p50_us_per_batch": 342.495,
+          "p95_us_per_batch": 367.46119999999996,
+          "warmups": 200,
+          "calls": 2000
+        },
+        "8": {
+          "p50_us_per_batch": 585.581,
+          "p95_us_per_batch": 625.47455,
+          "warmups": 200,
+          "calls": 2000
+        }
+      }
+    },
+    {
+      "name": "relational_s2",
+      "method": "relational",
+      "learner_seed": 2,
+      "checkpoint": "outputs/gen2_architectures/relational_s2/best.pt",
+      "checkpoint_sha256": "eb9df613daa78245119c78b7594b6d4e0aa19d2285f925feee50e6a163b4dc26",
+      "parameters": 102896,
+      "latency": {
+        "1": {
+          "p50_us_per_batch": 352.49699999999996,
+          "p95_us_per_batch": 381.4914,
+          "warmups": 200,
+          "calls": 2000
+        },
+        "8": {
+          "p50_us_per_batch": 575.935,
+          "p95_us_per_batch": 594.3015,
+          "warmups": 200,
+          "calls": 2000
+        }
+      }
+    },
+    {
+      "name": "relational_s3",
+      "method": "relational",
+      "learner_seed": 3,
+      "checkpoint": "outputs/gen2_architectures/relational_s3/best.pt",
+      "checkpoint_sha256": "fb9a4082d6d84816858fbfec6acd73be623904be5b1b11f4212a23229f8eec07",
+      "parameters": 102896,
+      "latency": {
+        "1": {
+          "p50_us_per_batch": 347.7025,
+          "p95_us_per_batch": 381.4998,
+          "warmups": 200,
+          "calls": 2000
+        },
+        "8": {
+          "p50_us_per_batch": 583.5899999999999,
+          "p95_us_per_batch": 623.6027,
+          "warmups": 200,
+          "calls": 2000
+        }
+      }
+    },
+    {
+      "name": "relational_s4",
+      "method": "relational",
+      "learner_seed": 4,
+      "checkpoint": "outputs/gen2_architectures/relational_s4/best.pt",
+      "checkpoint_sha256": "e0fabd5e5eb1a40c800156a1fb8fb1f3b26f904f0885209ff18f64f214d0a3a7",
+      "parameters": 102896,
+      "latency": {
+        "1": {
+          "p50_us_per_batch": 351.38199999999995,
+          "p95_us_per_batch": 383.1065,
+          "warmups": 200,
+          "calls": 2000
+        },
+        "8": {
+          "p50_us_per_batch": 575.7255,
+          "p95_us_per_batch": 603.12955,
+          "warmups": 200,
+          "calls": 2000
+        }
+      }
+    },
+    {
+      "name": "relational_s5",
+      "method": "relational",
+      "learner_seed": 5,
+      "checkpoint": "outputs/gen2_architectures/relational_s5/best.pt",
+      "checkpoint_sha256": "fc1693796002efd7572e090f265e48d5fbf500feac573004aec3f0c6f73fe91a",
+      "parameters": 102896,
+      "latency": {
+        "1": {
+          "p50_us_per_batch": 345.70500000000004,
+          "p95_us_per_batch": 369.185,
+          "warmups": 200,
+          "calls": 2000
+        },
+        "8": {
+          "p50_us_per_batch": 577.2235000000001,
+          "p95_us_per_batch": 670.03175,
+          "warmups": 200,
+          "calls": 2000
+        }
+      }
+    }
+  ],
+  "aggregate": {
+    "m5": {
+      "parameters": 65232,
+      "by_batch": {
+        "1": {
+          "p50_us_per_batch": 184.75799999999998,
+          "p95_us_per_batch": 197.7901
+        },
+        "8": {
+          "p50_us_per_batch": 279.06,
+          "p95_us_per_batch": 294.2634
+        }
+      }
+    },
+    "destination": {
+      "parameters": 79675,
+      "by_batch": {
+        "1": {
+          "p50_us_per_batch": 259.104,
+          "p95_us_per_batch": 280.1572
+        },
+        "8": {
+          "p50_us_per_batch": 368.961,
+          "p95_us_per_batch": 384.66724999999997
+        }
+      }
+    },
+    "relational": {
+      "parameters": 102896,
+      "by_batch": {
+        "1": {
+          "p50_us_per_batch": 347.7025,
+          "p95_us_per_batch": 381.4914
+        },
+        "8": {
+          "p50_us_per_batch": 577.2235000000001,
+          "p95_us_per_batch": 623.6027
+        }
+      }
+    }
+  }
+}
