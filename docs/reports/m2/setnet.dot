@@ -1,0 +1,22 @@
+digraph G {
+  rankdir=LR; nodesep=0.10; ranksep=0.40; pad=0.04;
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=14, margin="0.08,0.04", penwidth=0.9, color="#555555"];
+  edge [fontname="Helvetica", fontsize=12, color="#444444", arrowsize=0.6, penwidth=0.9];
+
+  eg   [label=<<b>UAV encoder</b><br/><font point-size="12">global 80 → 64</font>>, fillcolor="#D6E4F5"];
+  eo   [label=<<b>order encoder</b> (shared)<br/><font point-size="12">12 slots × 27 → 64 → 64</font>>, fillcolor="#D6E4F5"];
+  ec   [label=<<b>cargo encoder</b> (shared)<br/><font point-size="12">3 slots × 16 → 64</font>>, fillcolor="#D6E4F5"];
+  att  [label=<<b>attention, 4 heads</b><br/><font point-size="12">UAV state queries orders,<br/>cargo and a null token<br/><b>context</b> = UAV 64 + attended 64</font>>, fillcolor="#FBE3C8"];
+  pick [label=<<b>PICK scorer</b> (shared)<br/><font point-size="12">order + context → 1 logit</font>>, fillcolor="#DDEFD9"];
+  oth  [label=<<b>other actions</b><br/><font point-size="12">context → 14 logits</font>>, fillcolor="#DDEFD9"];
+  val  [label=<<b>value head</b><br/><font point-size="12">context + mean order → value</font>>, fillcolor="#EADCF2"];
+  out  [label=<<b>logits [26]</b><br/><font point-size="12">masked: forbidden → −1e9</font>>, fillcolor="#FFF4DC"];
+
+  eg -> att [label="query"]; eo -> att; ec -> att;
+  att -> pick; eo -> pick [constraint=false, label="each order"];
+  att -> oth; att -> val; eo -> val [constraint=false, label="mean"];
+  pick -> out; oth -> out;
+
+  {rank=same; eg; eo; ec;}
+  {rank=same; pick; oth; val;}
+}

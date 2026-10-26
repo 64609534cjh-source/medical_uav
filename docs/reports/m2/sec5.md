@@ -1,0 +1,3 @@
+PyTorch provides the layers (including `nn.MultiheadAttention`), automatic differentiation and the Adam optimiser; the network designs, the action masking, behaviour cloning and the evaluation are our own code. As in M1 we use Gymnasium, NumPy, Matplotlib and imageio, with exact versions in environment.yml. We use no RL library and no pretrained model.
+
+**[[AI use.]]**[[ We used Claude Code and Codex. Claude Code assisted with design discussions and part of the code development; Codex assisted with code review, debugging and regression testing. We are responsible for the content and quality of the submitted work.]]
