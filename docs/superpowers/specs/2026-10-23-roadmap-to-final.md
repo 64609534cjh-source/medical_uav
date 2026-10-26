@@ -118,6 +118,7 @@ Scripts and logs: `docs/superpowers/experiments/2026-10-23-pilots/` (spikes, not
 | 10/26 | BC → PPO: value warm-up of 40 rollouts, judged on exact returns of held-out days | 10 rollouts, judged on the first rollout's own targets | the old measure compared against stale bootstrapped targets (loss seemed to rise 0.37 → 3.1); against day returns 10 rollouts explained 15 % of the variance, 40 explain about 70 % |
 | 10/27 | one shipped model: highest selection-day medium/high mean among the 5 v2 seeds; ties by fewer decisions, then lower seed | seed with the median score | registered with Codex before the seed 44/55 selection; screen days never used to choose |
 | 10/27 | checkpoint labels always carry the run name (except files in `checkpoints/`) | run name only when file names repeat | `ckpt_02000896` without its run could not be traced to the M1-reward seed 33 |
+| 10/27 | final phase = energy intervention study, scenario rollout (Monte Carlo rollout over Slack-aware, 4 vs 16 scenarios), one locked test of 33 frozen configurations; pre-registered in `2026-10-27-final-phase-preregistration.md` | planner-BC → PPO; longer PPO continuation | scratch PPO already beats the planner and BC → PPO showed no efficiency gain; five seeds are stronger evidence than extending the best one; the behaviour analysis left a causal question that inference-only interventions can answer |
 
 ## 11. Report notes (fill in as we go)
 
