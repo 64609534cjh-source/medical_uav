@@ -11,7 +11,7 @@ from medical_uav.env.actions import decode
 from medical_uav.evaluation.diagnostics import EpisodeDiagnostics
 from medical_uav.env.config import EnvConfig
 from medical_uav.metrics import episode_record
-from medical_uav.splits import DEV_SEEDS, DEV_EXTRA_SEEDS, TEST_SEEDS, TEST_V2_SEEDS, TRAIN_SEED_RANGE
+from medical_uav.splits import DEV_SEEDS, DEV_EXTRA_SEEDS, TEST_SEEDS, TEST_V2_SEEDS, TEST_V3_SEEDS, TRAIN_SEED_RANGE
 from medical_uav.training.io import isolated_rng
 
 LOADS = ("low", "medium", "high")
@@ -22,13 +22,15 @@ def split_seeds(split):
         return tuple(DEV_SEEDS)
     if split == "dev-extra":
         return tuple(DEV_EXTRA_SEEDS)
+    if split == "test-v3":
+        return tuple(TEST_V3_SEEDS)
     if split == "test-v2":
         return tuple(TEST_V2_SEEDS)
     if split == "test":
         return tuple(TEST_SEEDS)
     if split == "train":
         return tuple(range(3))  # cheap diagnostics, not checkpoint selection
-    raise ValueError("split must be train, dev, dev-extra, test or test-v2")
+    raise ValueError("split must be train, dev, dev-extra, test, test-v2 or test-v3")
 
 
 def validate_days(seeds, split):

@@ -1,0 +1,117 @@
+{
+  "split": "dev-extra",
+  "jobs": 5,
+  "failure_diagnostics": true,
+  "entries": [
+    {
+      "name": "m5_s1",
+      "method": "m5",
+      "learner_seed": 1,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m5_s1_development_123/seed_1/best.pt",
+      "checkpoint_sha256": "750bffbc1bcd8322621978bddc83397c57c059829f80b3ad83bf490a3c6ba304",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "m5_s2",
+      "method": "m5",
+      "learner_seed": 2,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m5_s1_development_123/seed_2/best.pt",
+      "checkpoint_sha256": "7f8404be75a5c7b34ede22f61e6a9f5e2ae950524f8a12ef7e82689c1cc6ec8f",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "m5_s3",
+      "method": "m5",
+      "learner_seed": 3,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m5_s1_development_123/seed_3/best.pt",
+      "checkpoint_sha256": "99af3ddad0d1dba486fea0613d8eb80c3f0aa049c82dacc81ff56dc4434611ec",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "m5_s4",
+      "method": "m5",
+      "learner_seed": 4,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m5_s1_extension_45/seed_4/best.pt",
+      "checkpoint_sha256": "aad30b6f837b2bd194d06aafc77b13ce4bd8e1b57d87a1c62845909a4ee4c32c",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "m5_s5",
+      "method": "m5",
+      "learner_seed": 5,
+      "selection": "preselected best on Dev-main",
+      "checkpoint": "outputs/m5_s1_extension_45/seed_5/best.pt",
+      "checkpoint_sha256": "df9f1b7b028a038e98a4ac654a0c2f5c1f13640599f18b8494b8f405cf1394db",
+      "policies": [
+        "ppo"
+      ]
+    },
+    {
+      "name": "destination_s1",
+      "method": "destination",
+      "learner_seed": 1,
+      "checkpoint": "outputs/gen2_architectures/destination_s1/best.pt",
+      "checkpoint_sha256": "d4031b08b89ce776ee4f097c88d840345d7becf0fdf0725b004a9c9d8b19a9e1",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "preselected best on Dev-main only"
+    },
+    {
+      "name": "destination_s2",
+      "method": "destination",
+      "learner_seed": 2,
+      "checkpoint": "outputs/gen2_architectures/destination_s2/best.pt",
+      "checkpoint_sha256": "9b404353817903f28fb1a290404dc2796bd32b4ab1b3b600a3372f386d42ca1c",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "preselected best on Dev-main only"
+    },
+    {
+      "name": "destination_s3",
+      "method": "destination",
+      "learner_seed": 3,
+      "checkpoint": "outputs/gen2_architectures/destination_s3/best.pt",
+      "checkpoint_sha256": "62f64cfc0fa2f7bef51c1acb8001eb3ec121a6c23fc6493660c2b2e1a28f565e",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "preselected best on Dev-main only"
+    },
+    {
+      "name": "destination_s4",
+      "method": "destination",
+      "learner_seed": 4,
+      "checkpoint": "outputs/gen2_architectures/destination_s4/best.pt",
+      "checkpoint_sha256": "88b8f1e788d46003102109e1f3ab86b0d39f9deb0686a9182895509dd996b69f",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "preselected best on Dev-main only"
+    },
+    {
+      "name": "destination_s5",
+      "method": "destination",
+      "learner_seed": 5,
+      "checkpoint": "outputs/gen2_architectures/destination_s5/best.pt",
+      "checkpoint_sha256": "0d23228638a7d0c370a64409b6a3160628627d513598313310ba9cdf0b299ec5",
+      "policies": [
+        "ppo"
+      ],
+      "selection": "preselected best on Dev-main only"
+    }
+  ]
+}

@@ -6,3 +6,5 @@ DEV_EXTRA_SEEDS = range(100_040, 100_140)  # development diagnostics/configurati
 TEST_SEEDS = range(200_000, 200_100)  # final reported results only
 
 TEST_V2_SEEDS = range(300_000, 300_100)  # Gen2 preregistered holdout; see gen2_holdout_freeze.json
+
+TEST_V3_SEEDS = range(400_000, 400_100)  # Gen3 holdout, frozen before development

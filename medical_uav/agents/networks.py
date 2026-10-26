@@ -122,6 +122,12 @@ NETWORKS.update({"destination": DestinationActorCritic, "relational": Relational
                  RelationalActorCritic.architecture: RelationalActorCritic})
 
 
+from medical_uav.agents.decision import UrgentDestinationActorCritic, CoordinatedDestinationActorCritic
+NETWORKS.update({"urgency": UrgentDestinationActorCritic, "coordinated": CoordinatedDestinationActorCritic,
+                 UrgentDestinationActorCritic.architecture: UrgentDestinationActorCritic,
+                 CoordinatedDestinationActorCritic.architecture: CoordinatedDestinationActorCritic})
+
+
 def build_network(architecture="mlp"):
     if architecture not in NETWORKS:
         raise ValueError(f"unsupported network architecture: {architecture}")

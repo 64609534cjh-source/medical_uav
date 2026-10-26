@@ -13,7 +13,7 @@ def main():
     parser.add_argument("--config", type=Path, help="JSON TrainConfig, including nested ppo settings")
     parser.add_argument("--output-dir", type=Path, required=True, help="fresh directory for this run")
     parser.add_argument("--resume", type=Path, help="update-boundary checkpoint; start new training days")
-    parser.add_argument("--architecture", choices=("mlp", "structured", "destination", "relational"))
+    parser.add_argument("--architecture", choices=("mlp", "structured", "destination", "relational", "urgency", "coordinated"))
     parser.add_argument("--total-steps", type=int)
     parser.add_argument("--learner-seed", type=int)
     parser.add_argument("--threads", type=int)
