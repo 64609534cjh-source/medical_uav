@@ -27,3 +27,12 @@ def test_demo_writes_explanation_and_day_videos(tmp_path):
     assert result.returncode == 0, result.stderr
     names = {p.name for p in (tmp_path / "outputs").iterdir()}
     assert "demo_slack_low_seed0_explained.mp4" in names and "demo_slack_low_seed0_day.mp4" in names
+
+
+def test_demo_runs_the_trained_agent(tmp_path):
+    result = subprocess.run([sys.executable, str(REPO / "scripts" / "demo.py"), "--policy", "ppo",
+                             "--load", "low", "--explain-count", "1", "--day-speed", "60"],
+                            capture_output=True, text=True, cwd=tmp_path)
+    assert result.returncode == 0, result.stderr
+    assert "PPO set network" in result.stdout
+    assert (tmp_path / "outputs" / "demo_ppo_low_seed0_day.mp4").exists()

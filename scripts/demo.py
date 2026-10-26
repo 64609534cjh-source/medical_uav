@@ -24,8 +24,9 @@ from medical_uav.env.render import (Renderer, clock, explanation_times, highligh
 from medical_uav.metrics import episode_metrics, summary_lines
 
 POLICY_NAMES = {"slack": "Slack-aware", "edf": "EDF", "random": "Random",
-                "mlp": "BC MLP network", "set": "BC set network"}
+                "mlp": "BC MLP network", "set": "BC set network", "ppo": "PPO set network"}
 CHECKPOINTS = Path(__file__).resolve().parents[1] / "checkpoints"
+CHECKPOINT_FILES = {"mlp": "bc_mlp.pt", "set": "bc_set.pt", "ppo": "ppo_set.pt"}
 SNAPSHOT_MIN = 182.0  # minute of the saved frame and of the first explained decision
 FPS = 12  # video frames per second
 HOLD_S, ACTION_S = 2.0, 3.0  # seconds a decision is held before and after, and its action lasts
@@ -33,8 +34,8 @@ HOLD_S, ACTION_S = 2.0, 3.0  # seconds a decision is held before and after, and 
 
 def make_policy(name: str, seed: int):
     """Return the named policy, called as policy(env, obs, mask), and its network if any."""
-    if name in ("mlp", "set"):
-        net, _ = load_checkpoint(CHECKPOINTS / f"bc_{name}.pt")
+    if name in CHECKPOINT_FILES:
+        net, _ = load_checkpoint(CHECKPOINTS / CHECKPOINT_FILES[name])
         return NetworkPolicy(net), NetworkPolicy(net)
     if name == "random":
         rng = np.random.default_rng(seed)
@@ -65,7 +66,8 @@ def main():
     parser = argparse.ArgumentParser(description="Run one day with a policy.")
     parser.add_argument("--policy", choices=list(POLICY_NAMES), default="slack",
                         help="slack = Slack-aware, edf = earliest deadline first, random, "
-                             "mlp / set = the trained networks in checkpoints/")
+                             "mlp / set = the imitation-trained networks, ppo = the PPO agent "
+                             "(all in checkpoints/)")
     parser.add_argument("--load", choices=["low", "medium", "high"], default="medium")
     parser.add_argument("--seed", type=int, default=0, help="demand seed (which day of orders)")
     parser.add_argument("--explain-count", type=int, default=8,
