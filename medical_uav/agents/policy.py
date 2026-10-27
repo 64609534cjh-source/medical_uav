@@ -6,19 +6,21 @@ import torch
 
 from medical_uav.agents.networks import NETWORKS
 from medical_uav.env.config import ENV_VERSION
+from medical_uav.env.observation import OBS_DIM
 
 
 def save_checkpoint(net: torch.nn.Module, kind: str, path, info: dict) -> None:
-    """Save the network weights with its kind ("mlp" or "set"), the environment version and info."""
+    """Save network weights with their registered kind, environment version and info."""
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     state = {k: v.cpu() for k, v in net.state_dict().items()}
-    torch.save({"kind": kind, "env_version": ENV_VERSION, "state_dict": state, "info": info}, path)
+    torch.save({"kind": kind, "env_version": ENV_VERSION, "state_dict": state,
+                "obs_dim": net.obs_dim, "info": info}, path)
 
 
 def load_checkpoint(path) -> tuple[torch.nn.Module, dict]:
     """Load a network on the CPU in evaluation mode; return it and its metadata."""
     ckpt = torch.load(path, map_location="cpu")
-    net = NETWORKS[ckpt["kind"]]()
+    net = NETWORKS[ckpt["kind"]](obs_dim=ckpt.get("obs_dim", OBS_DIM))
     net.load_state_dict(ckpt["state_dict"])
     net.eval()
     return net, {**ckpt["info"], "kind": ckpt["kind"], "env_version": ckpt["env_version"]}

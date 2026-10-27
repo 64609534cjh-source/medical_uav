@@ -14,6 +14,14 @@ PENDING_DIM = 11 + N_TYPES + 2 * N_FACILITIES  # see _pending_features
 ONBOARD_DIM = 6 + N_TYPES + N_FACILITIES  # see _onboard_features
 OBS_DIM = GLOBAL_DIM + N_SLOTS * PENDING_DIM + N_ONBOARD * ONBOARD_DIM
 
+TRAVEL_TABLE_DIM = N_NODES * N_NODES
+
+
+def observation_dim(include_travel_table: bool = True) -> int:
+    """Full layout or the same layout with only the final global travel table removed."""
+    return OBS_DIM if include_travel_table else OBS_DIM - TRAVEL_TABLE_DIM
+
+
 OBS_BOUND = 10.0  # every feature is clipped to [-OBS_BOUND, OBS_BOUND]
 
 # Normalisation scales, fixed so each feature keeps its meaning when EnvConfig changes.
@@ -86,7 +94,8 @@ def _global_features(sim: Simulator, n_visible: int) -> list[float]:
         *per_type,  # pending orders per type
         recent / COUNT_SCALE,  # orders that arrived within RECENT_WINDOW
         # travel time between every pair of nodes, row by row (fixed for a given map)
-        *[sim.travel_time(i, j) / TRAVEL_SCALE for i in range(N_NODES) for j in range(N_NODES)],
+        *([sim.travel_time(i, j) / TRAVEL_SCALE for i in range(N_NODES) for j in range(N_NODES)]
+          if cfg.include_travel_table else []),
     ]
 
 

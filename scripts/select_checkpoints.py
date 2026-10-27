@@ -27,6 +27,8 @@ LOADS = ("low", "medium", "high")
 def summarize(rows: list[dict]) -> dict:
     """Mean daily on-time rate and, per order type, the on-time rate pooled over the days."""
     out = {"on_time_rate": float(np.mean([r["on_time_rate"] for r in rows]))}
+    out.update({key: float(np.mean([r[key] for r in rows]))
+                for key in ("served_rate", "expiry_rate")})
     for order_type in ORDER_TYPES:
         name = order_type.name
         released = sum(r[f"released_{name}"] for r in rows)

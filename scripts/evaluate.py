@@ -22,9 +22,9 @@ from medical_uav.baselines.heuristics import (edf_policy, fcfs_policy, nearest_p
 from medical_uav.baselines.rollout import rollout_policy
 from medical_uav.baselines.scenario import ScenarioRollout
 from medical_uav.evaluation import checkpoint_labels, evaluate, heuristic, paired_ci
-from medical_uav.splits import SCREEN_SEEDS, SELECT_SEEDS
+from medical_uav.splits import FRESH_SEEDS, SCREEN_SEEDS, SELECT_SEEDS
 
-SEED_SETS = {"screen": SCREEN_SEEDS, "select": SELECT_SEEDS}
+SEED_SETS = {"screen": SCREEN_SEEDS, "select": SELECT_SEEDS, "fresh": FRESH_SEEDS}
 
 
 class DailyRandom:
