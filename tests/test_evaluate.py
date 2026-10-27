@@ -114,6 +114,14 @@ def test_select_checkpoints_script(tmp_path):
     report = json.loads((tmp_path / "sel.json").read_text())
     rows = report["runs"][str(run)]["checkpoints"]
     assert len(rows) == 1 and "eligible" in rows[0] and "medium" in report["slack"]
+    result = subprocess.run([sys.executable, str(repo / "scripts" / "select_checkpoints.py"),
+                             str(run), "--days", "1", "--maps", "select", "--processes", "4",
+                             "--out", str(tmp_path / "sel2.json")], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    report2 = json.loads((tmp_path / "sel2.json").read_text())
+    assert report2["metadata"]["maps"] == "select"
+    # one selection day on each of the ten selection maps differs from two days on map 0
+    assert report2["slack"]["medium"]["on_time_rate"] != report["slack"]["medium"]["on_time_rate"]
 
 
 def test_evaluate_script_in_parallel_with_the_planner(tmp_path):
