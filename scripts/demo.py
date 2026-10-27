@@ -1,16 +1,16 @@
-"""Run one day with a policy, print the results and save a frame and two videos.
+"""Run one day with a policy, print the results and save a replay, a frame and two videos.
 
 This is also the usage example: create the environment, reset it to a day, step until the day
-is over, then read the results and draw the day.
+is over, then read the results and show the day.
 
-Videos:
-  *_explained.mp4  a few consecutive decisions, each held on screen so it can be read
-  *_day.mp4        the whole day at a labelled speed
+Outputs, in outputs/:
+  *_replay.html    the whole day in a web browser: play, pause, step through the decisions
+  *_decision.png   one decision worth a look, as in the replay
+  *_explained.mp4  with --video: a few consecutive decisions, each held so it can be read
+  *_day.mp4        with --video: the whole day at the replay's smart speed
 """
 import argparse
-import bisect
 import os
-import re
 from pathlib import Path
 
 import imageio.v2 as imageio
@@ -19,17 +19,16 @@ import numpy as np
 from medical_uav.agents.policy import NetworkPolicy, load_checkpoint
 from medical_uav.baselines.heuristics import edf_policy, random_policy, slack_aware_policy
 from medical_uav.env import MedicalUAVEnv
-from medical_uav.env.render import (Renderer, clock, explanation_times, highlight_ids, outcome_text,
-                                    overview_times, save_animation)
+from medical_uav.env.render import clock, save_animation
+from medical_uav.env.replay import day_record, decision_record, opening_decision, write_html
+from medical_uav.env.video import ReplayFrames, explained_times, smart_times
 from medical_uav.metrics import episode_metrics, summary_lines
 
-POLICY_NAMES = {"slack": "Slack-aware", "edf": "EDF", "random": "Random",
-                "mlp": "BC MLP network", "set": "BC set network", "ppo": "PPO set network"}
+POLICY_NAMES = {"slack": "Slack-aware rule", "edf": "EDF rule", "random": "Random policy",
+                "mlp": "MLP trained by imitation", "set": "Set network trained by imitation",
+                "ppo": "PPO agent"}
 CHECKPOINTS = Path(__file__).resolve().parents[1] / "checkpoints"
 CHECKPOINT_FILES = {"mlp": "bc_mlp.pt", "set": "bc_set.pt", "ppo": "ppo_set.pt"}
-SNAPSHOT_MIN = 182.0  # minute of the saved frame and of the first explained decision
-FPS = 12  # video frames per second
-HOLD_S, ACTION_S = 2.0, 3.0  # seconds a decision is held before and after, and its action lasts
 
 
 def make_policy(name: str, seed: int):
@@ -44,36 +43,28 @@ def make_policy(name: str, seed: int):
     return (lambda env, obs, mask: rule(env)), None
 
 
-def top_choices(env, network: NetworkPolicy, obs, mask) -> list[tuple[str, float]]:
-    """The network's three most likely actions, in words, with their probabilities."""
-    p = network.probabilities(obs, mask)
-    return [(env.describe(int(a)), float(p[a])) for a in np.argsort(p)[::-1][:3] if p[a] >= 0.005]
-
-
-def decision_at(env, t: float) -> int:
-    """Index of the last decision taken at or before t; -1 before the first one."""
-    return bisect.bisect_right([d[0] for d in env.decision_log], t + 1e-9) - 1
-
-
-def caption_at(env, t: float) -> str:
-    """Return the line shown under the frame title: the last decision taken at or before t."""
-    i = decision_at(env, t)
-    log = env.decision_log
-    return f"Last decision {clock(log[i][0])}: {log[i][1]}" if i >= 0 else "Start of the day"
+def frames(renderer: ReplayFrames, times, speed: str):
+    """Frames for (time, phase) pairs; a held frame is drawn once and repeated."""
+    key, frame = None, None
+    for t, phase in times:
+        if (t, phase) != key:
+            key, frame = (t, phase), renderer.draw(t, phase, speed)
+        yield frame
 
 
 def main():
     parser = argparse.ArgumentParser(description="Run one day with a policy.")
     parser.add_argument("--policy", choices=list(POLICY_NAMES), default="slack",
                         help="slack = Slack-aware, edf = earliest deadline first, random, "
-                             "mlp / set = the imitation-trained networks, ppo = the PPO agent "
-                             "(all in checkpoints/)")
+                             "mlp / set = the networks trained by imitation, ppo = the PPO "
+                             "agent (all in checkpoints/)")
     parser.add_argument("--load", choices=["low", "medium", "high"], default="medium")
     parser.add_argument("--seed", type=int, default=0, help="demand seed (which day of orders)")
+    parser.add_argument("--video", action="store_true",
+                        help="also save the explanation and day videos (a few minutes)")
     parser.add_argument("--explain-count", type=int, default=8,
                         help="decisions shown in the explanation video")
-    parser.add_argument("--day-speed", type=float, default=5.0,
-                        help="simulated minutes per second in the day video")
+    parser.add_argument("--fps", type=int, default=12, help="video frames per second")
     args = parser.parse_args()
 
     name = POLICY_NAMES[args.policy]
@@ -86,13 +77,14 @@ def main():
           f"map seed {env.cfg.map_seed}")
 
     # 2. let the policy choose actions until the day is over; rule-based policies read the
-    #    environment, a network uses only obs and info["action_mask"]
-    total_reward, choices = 0.0, []
+    #    environment, a network uses only obs and info["action_mask"]; each decision is also
+    #    recorded (before the step) for the replay
+    total_reward, decisions = 0.0, []
     terminated = truncated = False
     while not (terminated or truncated):
-        if network is not None:
-            choices.append(top_choices(env, network, obs, info["action_mask"]))
+        probs = network.probabilities(obs, info["action_mask"]) if network else None
         action = policy(env, obs, info["action_mask"])
+        decisions.append(decision_record(env, action, probs))
         obs, reward, terminated, truncated, info = env.step(action)
         total_reward += reward
 
@@ -100,50 +92,36 @@ def main():
     sim = env.sim
     metrics = episode_metrics(sim)
     metrics["return"] = total_reward
-    log = env.decision_log
-    print(f"\nCompleted at {clock(sim.t)} (t={sim.t:.1f} min) after {len(log)} decisions")
+    print(f"\nCompleted at {clock(sim.t)} (t={sim.t:.1f} min) after {len(decisions)} decisions")
     for line in summary_lines(metrics):
         print("  " + line)
     print()
 
-    # 4. draw a frame and two videos; the renderer can draw any minute of the finished day
-    renderer = Renderer(env.city_map, env.cfg,
-                        title=f"Medical UAV  |  {name}  |  {args.load} load  |  "
-                              f"demand seed {args.seed}")
+    # 4. the replay: one HTML file with the whole day, opened in any web browser
     base = f"outputs/demo_{args.policy}_{args.load}_seed{args.seed}"
     os.makedirs("outputs", exist_ok=True)
+    record = day_record(env, decisions, name)
+    write_html(record, f"{base}_replay.html")
+    print(f"Saved: {base}_replay.html (open it in a web browser)")
 
-    t = min(SNAPSHOT_MIN, sim.t)
-    imageio.imwrite(f"{base}_t{round(t, 1):g}min.png", renderer.draw(sim, t, caption_at(env, t)))
-    print(f"Saved: {base}_t{round(t, 1):g}min.png")
-
-    # explanation: consecutive decisions from SNAPSHOT_MIN, each held, its orders highlighted
-    first = max(decision_at(env, t), 0)
-    ends = [d[0] for d in log[1:]] + [sim.t]  # when each decision's action finished
-    frames = explanation_times(log, first, args.explain_count, HOLD_S, ACTION_S, FPS, sim.t)
-
-    def explained(t, caption):
-        i = int(re.search(r"Decision (\d+)", caption).group(1)) - 1
-        t0, t1 = log[i][0], ends[i]
-        done = "done" in caption
-        if done:
-            caption += f"  ->  {outcome_text(sim, t0, t1)}"
-        return renderer.draw(sim, t, caption, highlight=highlight_ids(sim, t0, t1),
-                             probs=choices[i] if choices else None, speed="decision by decision",
-                             at_end=done)
-
-    n = save_animation((explained(t, c) for t, c in frames), f"{base}_explained.mp4", FPS)
-    print(f"Saved: {base}_explained.mp4 ({n / FPS:.0f} s)")
-
-    # the whole day at a labelled speed
-    speed = f"{args.day_speed:g} simulated min per second"
-    times = overview_times(sim.t, args.day_speed, FPS)
-    def overview(t):
-        probs = choices[max(decision_at(env, t), 0)] if choices else None
-        return renderer.draw(sim, t, caption_at(env, t), speed=speed, probs=probs)
-
-    n = save_animation((overview(t) for t in times), f"{base}_day.mp4", FPS)
-    print(f"Saved: {base}_day.mp4 ({n / FPS:.0f} s)")
+    # 5. a frame of one decision worth a look, and the videos, drawn from the same record
+    renderer = ReplayFrames(record, f"{args.load.capitalize()} load · demand seed {args.seed} · "
+                                    f"map {env.cfg.map_seed}")
+    first = opening_decision(record)
+    imageio.imwrite(f"{base}_decision.png", renderer.draw(record["decisions"][first]["t"]))
+    print(f"Saved: {base}_decision.png")
+    if not args.video:
+        print("Add --video to also save the explanation and day videos (a few minutes).")
+        return
+    times = explained_times(record, first, args.explain_count, args.fps)
+    n = save_animation(frames(renderer, times, "decision by decision"),
+                       f"{base}_explained.mp4", args.fps)
+    print(f"Saved: {base}_explained.mp4 ({n / args.fps:.0f} s)")
+    times = [(t, None) for t in smart_times(record, args.fps)]
+    n = save_animation(frames(renderer, times, "smart speed: flights 1, other activity 8 "
+                                               "simulated min per second"),
+                       f"{base}_day.mp4", args.fps)
+    print(f"Saved: {base}_day.mp4 ({n / args.fps:.0f} s)")
 
 
 if __name__ == "__main__":
