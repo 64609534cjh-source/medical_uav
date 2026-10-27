@@ -11,6 +11,8 @@ The energy contrasts and the matched-seed controls (including multi-map on map 0
     python scripts/energy_contrasts.py <out>/map0.csv
     python scripts/compare_variants.py <out>/controls.csv --reference m3_set
 
+Intervals are per-comparison 95 % intervals; the planner margin at low load is exploratory.
+
 Usage:
     python scripts/locked_report.py runs/locked
 """
@@ -25,7 +27,7 @@ import numpy as np
 from medical_uav.env.config import ORDER_TYPES
 from medical_uav.evaluation import paired_ci
 
-from locked_test import MULTIMAP, PRIMARY  # scripts/locked_test.py
+from locked_test import DAYS, MANIFEST, MULTIMAP, PRIMARY, expected  # scripts/locked_test.py
 
 SHIPPED = "m3_set_s11"
 PLANNERS = ("rollout", "scenario16")
@@ -35,15 +37,23 @@ MEDIUM_GAIN = 0.03
 PLANNER_MARGIN = -0.02
 
 
-def load_rows(folder: Path) -> tuple[dict, dict]:
-    """{block: [row]}, and the decision times kept apart: {method: [ms, ...]}."""
-    blocks, times = defaultdict(list), defaultdict(list)
-    for path in sorted(folder.glob("*/*/*.json")):
+def load_rows(folder: Path, days: str, limit: int | None) -> tuple[dict, dict]:
+    """{block: [row]}, and the decision times kept apart: {(block, method, load): [ms, ...]}.
+    The folder must hold exactly the campaign's days, all from one campaign."""
+    want = {job[6] for job in expected(json.loads(MANIFEST.read_text()), days, limit, folder)}
+    have = set(folder.glob("*/*/*.json"))
+    if want != have:
+        raise SystemExit(f"{len(want - have)} days missing, {len(have - want)} not expected")
+    blocks, times, campaigns = defaultdict(list), defaultdict(list), set()
+    for path in sorted(have):
         row = json.loads(path.read_text())
-        times[row["method"]] += row.pop("decision_ms")
+        campaigns.add(json.dumps(row.pop("campaign"), sort_keys=True))
+        times[row["block"], row["method"], row["load"]] += row.pop("decision_ms")
         top_ups = row.pop("top_ups")
         row["overrides"] = float("nan") if top_ups is None else top_ups  # energy_contrasts.py
         blocks[row["block"]].append(row)
+    if len(campaigns) != 1 or json.loads(campaigns.pop())["days"] != days:
+        raise SystemExit("the files come from more than one campaign or other days")
     return blocks, times
 
 
@@ -109,11 +119,14 @@ def map0(rows, times) -> None:
                       / max(1, sum(r[f"released_{t.name}"] for r in mine)) for t in ORDER_TYPES]
             print(f"    {m:12s} "
                   + "  ".join(f"{t.name} {v:.3f}" for t, v in zip(ORDER_TYPES, pooled)))
-    print("\n== decision times over all decisions, ms (a parallel run, not a latency benchmark)")
+    print("\n== map 0, decision times over all decisions, ms (8 parallel workers, not a latency "
+          "benchmark)")
     for m in methods:
-        t = np.array(times[m])
-        print(f"  {m:22s} mean {t.mean():8.2f}  p95 {np.percentile(t, 95):8.2f}"
-              f"  max {t.max():8.1f}")
+        cells = []
+        for load in loads:
+            t = np.array(times["map0", m, load])
+            cells.append(f"{load} {t.mean():7.2f} / {np.percentile(t, 95):7.2f}")
+        print(f"  {m:22s} mean / p95  " + "   ".join(cells))
 
 
 def map_bootstrap(per_map: np.ndarray) -> tuple:
@@ -143,9 +156,11 @@ def new_maps(rows) -> None:
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("out")
+    parser.add_argument("--days", choices=list(DAYS), default="test")
+    parser.add_argument("--limit", type=int, default=None, help="as given to the run")
     args = parser.parse_args()
     out = Path(args.out)
-    blocks, times = load_rows(out)
+    blocks, times = load_rows(out, args.days, args.limit)
     write_csv(blocks["map0"], out / "map0.csv")
     write_csv(blocks["maps"], out / "maps.csv")
     write_csv([{**r, "method": f"{r['method']}/selected"} for r in blocks["map0"]

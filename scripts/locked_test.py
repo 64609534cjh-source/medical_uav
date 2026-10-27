@@ -4,20 +4,22 @@ Registered in docs/superpowers/specs/2026-10-27-final-phase-preregistration.md (
 2026-10-27-multimap-preregistration.md. `freeze` copies the selected checkpoints to
 checkpoints/entrants/ and writes the manifest (entrants, checkpoint hashes, blocks of days,
 versions). `run` checks the hashes and evaluates every (entrant, map, load, day) of the
-manifest's blocks, one JSON file per day written atomically, so an interrupted run resumes
-where it stopped. `--days select` rehearses on the selection days and maps; only
+manifest's blocks, one JSON file per day written atomically and bound to the manifest, the code
+and the days, so an interrupted run resumes where it stopped and a file of another campaign is
+refused. `--days select` rehearses on the selection days and maps; only
 `--days test` opens the locked test days and maps.
 
 Usage:
     python scripts/locked_test.py freeze
     python scripts/locked_test.py run --days select --limit 5 --out runs/locked_rehearsal
-    python scripts/locked_test.py run --days test --processes 14 --out runs/locked
+    python scripts/locked_test.py run --days test --out runs/locked
 """
 import argparse
 import hashlib
 import json
 import os
 import shutil
+import subprocess
 from multiprocessing import Pool
 from pathlib import Path
 
@@ -102,50 +104,86 @@ def make_policy(spec: str):
     return (without_full_charge(net) if spec.endswith(NO_FULL) else net), None
 
 
-def run_job(job) -> None:
-    """One day of one entrant; the row is written to a temporary file, then renamed."""
-    torch.set_num_threads(1)
-    block, label, spec, map_seed, load, day, path = job
-    policy, rule = make_policy(spec)
-    row = run_day(policy, load, day, EnvConfig(map_seed=map_seed), details=True)
-    row = {"block": block, "method": label, "map": map_seed, **row,
-           "top_ups": len(rule.used) if rule else None}
-    tmp = path.with_suffix(".tmp")
-    tmp.write_text(json.dumps(row))
-    os.replace(tmp, path)
+def fingerprint(days: str, limit: int | None) -> dict:
+    """What every result of a campaign is bound to: the manifest, the code that produces the
+    results (committed, hashed by content) and the days."""
+    files = sorted(Path("medical_uav").rglob("*.py")) + [Path("scripts/locked_test.py"),
+                                                          Path("scripts/evaluate.py")]
+    dirty = subprocess.run(["git", "status", "--porcelain", "--", *map(str, files), str(MANIFEST)],
+                           capture_output=True, text=True).stdout
+    if dirty:
+        raise SystemExit(f"commit these first:\n{dirty}")
+    code = hashlib.sha256(b"".join(str(f).encode() + f.read_bytes() for f in files)).hexdigest()
+    return {"manifest": sha256(MANIFEST), "code": code, "days": days, "limit": limit}
 
 
-def jobs(manifest: dict, days: str, limit: int | None, out: Path) -> list:
-    """Every (entrant, map, load, day) not yet saved; the slow planner's days first."""
+def expected(manifest: dict, days: str, limit: int | None, out: Path) -> list:
+    """Every (block, entrant, policy, map, load, day, file) of the campaign."""
     seeds, maps = DAYS[days]
+    if [seeds[0], seeds[-1], maps[0], maps[-1]] != manifest["days"][days]:
+        raise SystemExit("the day ranges differ from the manifest")
     todo = []
     for b in manifest["blocks"]:
         block_days = list(seeds)[:b["days"] if b["days"] != "all" else None][:limit]
         block_maps = [0] if b["maps"] == "map 0" else list(maps)
         for label in b["entrants"]:
             folder = out / b["name"] / label.replace("/", "__")
-            folder.mkdir(parents=True, exist_ok=True)
             for m in block_maps:
                 for load in b["loads"]:
                     for day in block_days:
-                        path = folder / f"{m}_{load}_{day}.json"
-                        if not path.exists():
-                            todo.append((b["name"], label, manifest["entrants"][label]["policy"],
-                                         m, load, day, path))
-    return sorted(todo, key=lambda j: j[1] != "scenario16")
+                        todo.append((b["name"], label, manifest["entrants"][label]["policy"],
+                                     m, load, day, folder / f"{m}_{load}_{day}.json"))
+    return todo
+
+
+def check_saved(job, campaign: dict) -> None:
+    """A saved day must belong to this campaign and to this job."""
+    row = json.loads(job[6].read_text())
+    if row["campaign"] != campaign or (row["block"], row["method"], row["map"], row["load"],
+                                       row["seed"]) != (job[0], job[1], job[3], job[4], job[5]):
+        raise SystemExit(f"{job[6]} belongs to another campaign or day")
+
+
+def run_job(job) -> None:
+    """One day of one entrant; the row is written to a temporary file, then renamed."""
+    torch.set_num_threads(1)
+    (block, label, spec, map_seed, load, day, path), campaign = job
+    policy, rule = make_policy(spec)
+    row = run_day(policy, load, day, EnvConfig(map_seed=map_seed), details=True)
+    row = {"block": block, "method": label, "map": map_seed, **row,
+           "top_ups": len(rule.used) if rule else None, "campaign": campaign}
+    tmp = path.with_suffix(f".{os.getpid()}.tmp")
+    tmp.write_text(json.dumps(row))
+    os.replace(tmp, path)
 
 
 def run(args) -> None:
+    if args.days == "test" and args.limit is not None:
+        raise SystemExit("the locked test runs every day")
     manifest = json.loads(MANIFEST.read_text())
     for label, e in manifest["entrants"].items():
-        if "sha256" in e:
-            assert sha256(e["policy"].removesuffix(NO_FULL)) == e["sha256"], f"{label} changed"
-    todo = jobs(manifest, args.days, args.limit, Path(args.out))
-    print(f"{len(todo)} days to run", flush=True)
-    with Pool(args.processes) as pool:
-        for k, _ in enumerate(pool.imap_unordered(run_job, todo, chunksize=1), 1):
-            if k % 500 == 0 or k == len(todo):
-                print(f"{k}/{len(todo)}", flush=True)
+        if "sha256" in e and sha256(e["policy"].removesuffix(NO_FULL)) != e["sha256"]:
+            raise SystemExit(f"{label}: the checkpoint differs from the manifest")
+    campaign, out = fingerprint(args.days, args.limit), Path(args.out)
+    out.mkdir(parents=True, exist_ok=True)
+    lock = out / ".lock"  # one writer at a time; left behind by a crash, remove it by hand
+    os.close(os.open(lock, os.O_CREAT | os.O_EXCL))
+    try:
+        todo = []
+        for job in expected(manifest, args.days, args.limit, out):
+            job[6].parent.mkdir(parents=True, exist_ok=True)
+            if job[6].exists():
+                check_saved(job, campaign)
+            else:
+                todo.append((job, campaign))
+        todo.sort(key=lambda j: j[0][1] != "scenario16")  # the slow planner's days first
+        print(f"{len(todo)} days to run", flush=True)
+        with Pool(args.processes) as pool:
+            for k, _ in enumerate(pool.imap_unordered(run_job, todo, chunksize=1), 1):
+                if k % 500 == 0 or k == len(todo):
+                    print(f"{k}/{len(todo)}", flush=True)
+    finally:
+        lock.unlink()
 
 
 def main():
@@ -153,7 +191,7 @@ def main():
     parser.add_argument("command", choices=["freeze", "run"])
     parser.add_argument("--days", choices=list(DAYS), default="select")
     parser.add_argument("--limit", type=int, default=None, help="at most LIMIT days per block")
-    parser.add_argument("--processes", type=int, default=8)
+    parser.add_argument("--processes", type=int, default=8, help="registered maximum: 8")
     parser.add_argument("--out", default="runs/locked_rehearsal")
     args = parser.parse_args()
     freeze() if args.command == "freeze" else run(args)

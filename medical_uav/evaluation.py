@@ -39,11 +39,13 @@ def heuristic(fn):
 def run_day(policy, load: str, demand_seed: int, config=None, details: bool = False) -> dict:
     """Run one day with the policy and return its metrics, total reward and decision count;
     `config` (an EnvConfig) changes the settings, e.g. the map; `details` adds the behaviour
-    metrics, the distance breakdown and every decision's time."""
+    metrics, the distance breakdown, the share of decisions with more waiting orders than slots
+    and every decision's time."""
     env = MedicalUAVEnv(config=config, load=load)
     obs, info = env.reset(options={"demand_seed": demand_seed})
-    total, decisions, done, seconds = 0.0, 0, False, []
+    total, decisions, done, seconds, overflow = 0.0, 0, False, [], 0
     while not done:
+        overflow += len(env.sim.pending) > len(env.slots)  # orders the slots cannot show
         t0 = time.perf_counter()
         a = policy(env, obs, info["action_mask"])
         seconds.append(time.perf_counter() - t0)
@@ -69,6 +71,7 @@ def run_day(policy, load: str, demand_seed: int, config=None, details: bool = Fa
             1 for o in mine if o.status == "delivered" and o.end_time - o.release <= o.limit + EPS)
     if details:
         row.update(**behaviour_metrics(env.sim, env.decision_log), **distance_breakdown(env.sim))
+        row["overflow_share"] = overflow / decisions
         row["decision_ms"] = [1000 * s for s in seconds]
     return row
 
