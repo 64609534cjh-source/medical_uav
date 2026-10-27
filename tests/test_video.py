@@ -52,3 +52,39 @@ def test_explained_times_hold_before_play_the_action_and_hold_after(low_day):
     assert len(times) == 40
     assert times[:10] == [(d["t"], "Deciding")] * 10 and times[-1][1] == "Done"
     assert d["t"] <= times[15][0] <= d["end"] and times[15][1] is None
+
+
+@pytest.mark.parametrize("note", [None, ["Charging decision", "PPO charges to 100%",
+                                      "Slack delivers at H2", "Two orders waiting"]])
+def test_comparison_frames_are_720p_rgb(low_day, note):
+    from medical_uav.env.video import ComparisonFrames
+
+    renderer = ComparisonFrames(low_day, low_day)
+    frame = renderer.draw(65, note)
+    assert frame.shape == (720, 1280, 3) and frame.dtype == np.uint8
+
+
+def test_compare_times_follow_either_flight_and_include_window_endpoints():
+    from medical_uav.env.video import FLY_RATE, GROUND_RATE, compare_times
+
+    left = {"segments": [["wait", 0, 2], ["fly", 2, 4], ["wait", 4, 10]]}
+    right = {"segments": [["wait", 0, 3], ["fly", 3, 6], ["wait", 6, 10]]}
+    times = compare_times(left, right, fps=10, start=1, end=9)
+    assert times[0] == 1 and times[-1] == 9
+    for a, b in zip(times, times[1:]):
+        rate = FLY_RATE if 2 <= a < 6 else GROUND_RATE
+        assert 0 < b - a <= rate / 10 + 1e-9
+    assert any(b - a == pytest.approx(GROUND_RATE / 10) for a, b in zip(times, times[1:]))
+    assert compare_times(left, right, fps=10, start=3, end=3) == [3]
+
+
+def test_development_summary_uses_shipped_checkpoint_and_daily_rates(tmp_path):
+    from scripts.compare_video import SHIPPED_METHOD, development_summary
+
+    path = tmp_path / "screen.csv"
+    path.write_text("method,load,on_time_rate\n"
+                    f"{SHIPPED_METHOD},high,0.8\n{SHIPPED_METHOD},high,0.9\n"
+                    "slack,high,0.6\nslack,high,0.7\nedf,high,0.1\n")
+    assert development_summary(path)[0] == (
+        "2 high-load screen days: PPO 85.0% vs Slack 65.0% on time")
+    assert development_summary(tmp_path / "absent.csv") == []
