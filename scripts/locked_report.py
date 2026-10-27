@@ -27,7 +27,8 @@ import numpy as np
 from medical_uav.env.config import ORDER_TYPES
 from medical_uav.evaluation import paired_ci
 
-from locked_test import DAYS, MANIFEST, MULTIMAP, PRIMARY, expected  # scripts/locked_test.py
+# scripts/locked_test.py
+from locked_test import DAYS, MANIFEST, MULTIMAP, PRIMARY, expected, sha256
 
 SHIPPED = "m3_set_s11"
 PLANNERS = ("rollout", "scenario16")
@@ -39,21 +40,32 @@ PLANNER_MARGIN = -0.02
 
 def load_rows(folder: Path, days: str, limit: int | None) -> tuple[dict, dict]:
     """{block: [row]}, and the decision times kept apart: {(block, method, load): [ms, ...]}.
-    The folder must hold exactly the campaign's days, all from one campaign."""
-    want = {job[6] for job in expected(json.loads(MANIFEST.read_text()), days, limit, folder)}
+    The folder must hold exactly the campaign's days, each file the day its name says, all from
+    one campaign of the current manifest with the requested days and limit."""
+    jobs = expected(json.loads(MANIFEST.read_text()), days, limit, folder)
     have = set(folder.glob("*/*/*.json"))
-    if want != have:
-        raise SystemExit(f"{len(want - have)} days missing, {len(have - want)} not expected")
+    if {job[6] for job in jobs} != have:
+        raise SystemExit(f"{len(jobs) - len(have & {j[6] for j in jobs})} days missing, "
+                         f"{len(have - {j[6] for j in jobs})} not expected")
     blocks, times, campaigns = defaultdict(list), defaultdict(list), set()
-    for path in sorted(have):
-        row = json.loads(path.read_text())
+    for job in jobs:
+        row = json.loads(job[6].read_text())
+        if (row["block"], row["method"], row["map"], row["load"], row["seed"]) != \
+                (job[0], job[1], job[3], job[4], job[5]):
+            raise SystemExit(f"{job[6]} holds another day")
         campaigns.add(json.dumps(row.pop("campaign"), sort_keys=True))
         times[row["block"], row["method"], row["load"]] += row.pop("decision_ms")
         top_ups = row.pop("top_ups")
         row["overrides"] = float("nan") if top_ups is None else top_ups  # energy_contrasts.py
         blocks[row["block"]].append(row)
-    if len(campaigns) != 1 or json.loads(campaigns.pop())["days"] != days:
-        raise SystemExit("the files come from more than one campaign or other days")
+    if len(campaigns) != 1:
+        raise SystemExit("the files come from more than one campaign")
+    campaign = json.loads(campaigns.pop())
+    if (campaign["manifest"], campaign["days"], campaign["limit"]) != \
+            (sha256(MANIFEST), days, limit):
+        raise SystemExit("the campaign ran another manifest, other days or another limit")
+    print(f"campaign: manifest {campaign['manifest'][:12]}, code {campaign['code'][:12]}, "
+          f"days {days}, limit {limit}")
     return blocks, times
 
 
