@@ -145,6 +145,7 @@ Scripts and logs: `docs/superpowers/experiments/2026-10-23-pilots/` (spikes, not
     - Controls (score = mean of medium and high, − v2 set PPO): multi-map −0.8 [−0.9, −0.6] on map 0, MLP −1.7 [−1.9, −1.5], M1 reward −5.5 [−5.8, −5.2], on-time-only −0.1 [−0.2, +0.0] (served −1.9), BC → PPO +0.3 [+0.1, +0.5]; BC alone .790 / .619.
     - New maps 200–209 (30 days each, bootstrap over maps): multi-map − single-map +1.3 [+1.0, +1.5] medium, +2.1 [+1.7, +2.6] high; single-map − visible-order rollout −0.6 [−0.9, −0.2] / +2.6 [+1.9, +3.3]; multi-map − rollout +0.7 [+0.4, +1.0] / +4.8 [+4.4, +5.2]; both far above Slack-aware.
     - Decision time (8 parallel workers): network 0.6 ms mean, 1.2 ms p95; scenario rollout 342 / 553 ms mean at medium / high.
+    - Clean decision time of the shipped network (`python scripts/latency.py --methods slack --checkpoints checkpoints/ppo_set.pt --decisions 2000 --passes 3`, one thread, idle machine, selection days): median 0.22–0.23 ms, p95 0.24–0.26 ms on every load and pass; the first call of a process takes up to 0.67 s (start-up). Slack-aware 0.01 ms.
     - Same simulator elsewhere: a teammate's separate branch (environment v1, same dynamics: Slack-aware and EDF reproduce to two decimals on days 200000–200099) reports its best PPO at .994 / .870 / .728 on those days; ours gives .997 / .923 / .816 there, our M1-reward control .996 / .898 / .741.
 
 ## 10. Decision log (since M1)
