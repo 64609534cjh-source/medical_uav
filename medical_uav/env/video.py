@@ -27,6 +27,11 @@ def pt(px: float) -> float:
     return px * 72 / DPI
 
 
+def rounded(x, y, w, h, radius, **style) -> FancyBboxPatch:
+    """A rectangle with rounded corners."""
+    return FancyBboxPatch((x, y), w, h, boxstyle=f"round,pad=0,rounding_size={radius}", **style)
+
+
 def clock(t: float, start_hour: int = 8) -> str:
     m = int(start_hour * 60 + t + 1e-9)
     return f"{m // 60:02d}:{m % 60:02d}"
@@ -57,8 +62,7 @@ class ReplayFrames:
         return f"late {-left:.0f} min", LATE
 
     def _panel(self, ax, x, y, w, h):
-        ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0,rounding_size=10",
-                                    facecolor=PANEL, edgecolor=LINE, lw=1))
+        ax.add_patch(rounded(x, y, w, h, 10, facecolor=PANEL, edgecolor=LINE, lw=1))
 
     def _text(self, ax, x, y, s, size=13, color=INK, weight="normal", **kw):
         return ax.text(x, y, s, fontsize=pt(size), color=color, weight=weight, va="top", **kw)
@@ -92,8 +96,7 @@ class ReplayFrames:
         x = 610
         for label, n, color in chips:
             w = 108
-            ax.add_patch(FancyBboxPatch((x, 24), w, 34, boxstyle="round,pad=0,rounding_size=17",
-                                        facecolor=PANEL, edgecolor=LINE, lw=1))
+            ax.add_patch(rounded(x, 24, w, 34, 17, facecolor=PANEL, edgecolor=LINE, lw=1))
             ax.add_patch(Circle((x + 18, 41), 7, color=color))
             self._text(ax, x + 32, 30, str(n), 16, INK, "bold")
             self._text(ax, x + 32 + 11 * len(str(n)) + 6, 33, label, 12, MUTED)
@@ -106,8 +109,7 @@ class ReplayFrames:
         frame.set_xlim(-0.15, size + 0.15)
         frame.set_ylim(size + 0.15, -0.15)
         frame.axis("off")
-        frame.add_patch(FancyBboxPatch((0, 0), size, size, boxstyle="round,pad=0,rounding_size=0.05",
-                                       facecolor=PANEL, edgecolor=LINE, lw=1))
+        frame.add_patch(rounded(0, 0, size, size, 0.05, facecolor=PANEL, edgecolor=LINE, lw=1))
         for k in np.arange(0.5, size, 0.5):
             frame.plot([k, k], [0, size], color=WASH, lw=0.8)
             frame.plot([0, size], [k, k], color=WASH, lw=0.8)
@@ -134,10 +136,9 @@ class ReplayFrames:
                 label = "M · C1"
             elif n["role"] == "charger":
                 frame.add_patch(Circle((n["x"], n["y"]), 0.13, fc=PANEL, ec=ONTIME, lw=2))
-                frame.add_patch(Polygon([(n["x"] + 0.015, n["y"] - 0.09), (n["x"] - 0.045, n["y"] + 0.01),
-                                         (n["x"] + 0.005, n["y"] + 0.01), (n["x"] - 0.015, n["y"] + 0.09),
-                                         (n["x"] + 0.05, n["y"] - 0.015), (n["x"], n["y"] - 0.015)],
-                                        color=ONTIME))
+                bolt = [(0.015, -0.09), (-0.045, 0.01), (0.005, 0.01), (-0.015, 0.09),
+                        (0.05, -0.015), (0, -0.015)]
+                frame.add_patch(Polygon([(n["x"] + a, n["y"] + b) for a, b in bolt], color=ONTIME))
                 label = n["name"]
             else:
                 frame.add_patch(Circle((n["x"], n["y"]), 0.09, fc=PANEL, ec=INK, lw=2.2))
@@ -152,46 +153,54 @@ class ReplayFrames:
         for k, lst in by_node.items():
             n = nodes[k]
             for j, o in enumerate(sorted(lst, key=lambda o: o["deadline"])[:6]):
-                frame.add_patch(Rectangle((n["x"] + 0.22 + (j % 3) * 0.085, n["y"] - 0.1 + (j // 3) * 0.085),
-                                          0.065, 0.065, fc=TYPE_COLORS[o["type"]],
+                corner = (n["x"] + 0.22 + (j % 3) * 0.085, n["y"] - 0.1 + (j // 3) * 0.085)
+                frame.add_patch(Rectangle(corner, 0.065, 0.065, fc=TYPE_COLORS[o["type"]],
                                           ec=LATE if t > o["deadline"] else "none", lw=1.2))
             if len(lst) > 6:
-                frame.text(n["x"] + 0.22, n["y"] + 0.2, f"+{len(lst) - 6}", fontsize=pt(10), color=MUTED)
+                frame.text(n["x"] + 0.22, n["y"] + 0.2, f"+{len(lst) - 6}", fontsize=pt(10),
+                           color=MUTED)
         # outcomes of the last few minutes, where they happened
         stacked = {}
         for o in r["orders"]:
             if o["end"] is None or o["end"] > t + EPS or t - o["end"] > 4:
                 continue
-            node = o["to"] if o["status"] == "delivered" else (o["from"] if o["pickup"] is None else None)
+            if o["status"] == "delivered":
+                node = o["to"]
+            else:
+                node = o["from"] if o["pickup"] is None else None
             if node is None:
                 continue
             k = stacked[node] = stacked.get(node, 0) + 1
             good = o["status"] == "delivered" and self._on_time(o)
-            label = ("✓ on time" if good else "late") if o["status"] == "delivered" else "✕ expired"
+            delivered = o["status"] == "delivered"
+            label = ("✓ on time" if good else "late") if delivered else "✕ expired"
             color = (ONTIME if good else LATE) if o["status"] == "delivered" else EXPIRED
             n = nodes[node]
             y = n["y"] - 0.45 - (k - 1) * 0.18
             alpha = max(0.3, 1 - (t - o["end"]) / 4)
-            frame.add_patch(FancyBboxPatch((n["x"] - 0.27, y - 0.08), 0.54, 0.15,
-                                           boxstyle="round,pad=0,rounding_size=0.07", fc=color, alpha=alpha))
+            frame.add_patch(rounded(n["x"] - 0.27, y - 0.08, 0.54, 0.15, 0.07, fc=color,
+                                    alpha=alpha))
             frame.text(n["x"], y, label, ha="center", va="center", fontsize=pt(10.5), color="white",
                        weight="bold", alpha=alpha)
         x, y = s["xy"]
         frame.add_patch(Circle((x, y), 0.16, fc=PANEL, alpha=0.9))
         for dx, dy in ((-1, -1), (1, -1), (-1, 1), (1, 1)):
             frame.plot([x, x + dx * 0.075], [y, y + dy * 0.075], color=INK, lw=2)
-            frame.add_patch(Circle((x + dx * 0.085, y + dy * 0.085), 0.04, fill=False, ec=INK, lw=1.4))
+            frame.add_patch(Circle((x + dx * 0.085, y + dy * 0.085), 0.04, fill=False, ec=INK,
+                                   lw=1.4))
         frame.add_patch(Circle((x, y), 0.035, fc=INK))
         cargo = sorted((self.orders[i] for i in s["cargo"]), key=lambda o: o["pickup"])
         for k in range(r["meta"]["max_boxes"]):
             o = cargo[k] if k < len(cargo) else None
             expired = o is not None and o["status"] == "expired" and o["end"] <= t + EPS
-            frame.add_patch(Rectangle((x - 0.1125 + k * 0.08, y + 0.13), 0.075, 0.075,
-                                      fc=(FAINT if expired else TYPE_COLORS[o["type"]]) if o else "none",
+            fill = (FAINT if expired else TYPE_COLORS[o["type"]]) if o else "none"
+            frame.add_patch(Rectangle((x - 0.1125 + k * 0.08, y + 0.13), 0.075, 0.075, fc=fill,
                                       ec="none" if o else FAINT, lw=0.8))
         if s["active"] is not None and r["segments"][s["active"]][0] == "charge":
-            frame.add_patch(Polygon([(x + 0.02, y - 0.3), (x - 0.04, y - 0.2), (x, y - 0.2),
-                                     (x - 0.02, y - 0.12), (x + 0.05, y - 0.23), (x + 0.01, y - 0.23)],
+            bx, by = x + 0.21, y - 0.17  # beside the drone, clear of the place's name
+            frame.add_patch(Polygon([(bx + 0.02, by - 0.09), (bx - 0.04, by + 0.01),
+                                     (bx, by + 0.01), (bx - 0.02, by + 0.09),
+                                     (bx + 0.05, by - 0.02), (bx + 0.01, by - 0.02)],
                                     color=ONTIME))
         frame.text(size - 0.08, size - 0.1, f"{size:g} × {size:g} km", ha="right", fontsize=pt(10),
                    color=MUTED)
@@ -207,8 +216,9 @@ class ReplayFrames:
         if t >= end - 1e-6:
             sm = r["meta"]["summary"]
             self._text(ax, x + 16, y + 14, f"DAY COMPLETE · {self._clock(end)}", 11, MUTED, "bold")
-            self._text(ax, x + 16, y + 34, f"{sm['on_time']} of {sm['orders']} orders delivered on time "
-                       f"({100 * sm['on_time'] / sm['orders']:.1f}%)", 19, INK, "bold")
+            share = 100 * sm["on_time"] / sm["orders"]
+            self._text(ax, x + 16, y + 34, f"{sm['on_time']} of {sm['orders']} orders delivered on "
+                       f"time ({share:.1f}%)", 19, INK, "bold")
             self._text(ax, x + 16, y + 74, f"Delivered {sm['delivered']}  ·  late "
                        f"{sm['delivered'] - sm['on_time']}  ·  expired {sm['expired']}  ·  "
                        f"{sm['km']:.1f} km flown  ·  {len(decs)} decisions", 13, MUTED)
@@ -219,9 +229,11 @@ class ReplayFrames:
         self._text(ax, x + 16, y + 14, f"DECISION {s['decision'] + 1} OF {len(decs)} · "
                    f"{self._clock(d['t'])}", 11, MUTED, "bold")
         self._text(ax, x + 16, y + 32, d["text"], 19, INK, "bold")
-        if phase is None:
-            phase = ("Deciding" if abs(t - d["t"]) < 0.02 else
-                     f"In progress · done at {self._clock(d['end'])}" if t < d["end"] - EPS else "Done")
+        if phase is None and abs(t - d["t"]) < 0.02:
+            phase = "Deciding"
+        elif phase is None:
+            running = t < d["end"] - EPS
+            phase = f"In progress · done at {self._clock(d['end'])}" if running else "Done"
         ax.add_patch(FancyBboxPatch((x + 16, y + 62), 7.4 * len(phase) + 20, 22,
                                     boxstyle="round,pad=0,rounding_size=11", fc=WASH, ec="none"))
         self._text(ax, x + 26, y + 65, phase, 12, INK, "bold")
@@ -236,9 +248,10 @@ class ReplayFrames:
                 self._text(ax, cx, yy, label, 13, INK, "bold" if k == 0 else "normal")
                 self._text(ax, x + w - 16, yy, f"{100 * p:.1f}%", 13, INK, ha="right")
                 ax.add_patch(Rectangle((cx, yy + 18), x + w - 16 - cx, 5, fc=WASH, ec="none"))
-                ax.add_patch(Rectangle((cx, yy + 18), (x + w - 16 - cx) * p, 5, fc=INK if k == 0 else FAINT,
-                                       ec="none"))
-            self._text(ax, cx, y + h - 22, "Policy probabilities, not chances of success.", 11, MUTED)
+                ax.add_patch(Rectangle((cx, yy + 18), (x + w - 16 - cx) * p, 5,
+                                       fc=INK if k == 0 else FAINT, ec="none"))
+            self._text(ax, cx, y + h - 22, "Policy probabilities, not chances of success.", 11,
+                       MUTED)
 
     def _state(self, ax, s, t):
         r = self.r
@@ -247,11 +260,10 @@ class ReplayFrames:
         b = s["battery"]
         self._text(ax, x + 16, y + 14, "BATTERY", 11, MUTED, "bold")
         self._text(ax, x + w - 16, y + 10, f"{b:.0f}%", 16, INK, "bold", ha="right")
-        ax.add_patch(FancyBboxPatch((x + 16, y + 36), w - 32, 10, boxstyle="round,pad=0,rounding_size=5",
-                                    fc=WASH, ec="none"))
-        ax.add_patch(FancyBboxPatch((x + 16, y + 36), (w - 32) * b / 100, 10,
-                                    boxstyle="round,pad=0,rounding_size=5",
-                                    fc=EXPIRED if b < r["meta"]["reserve"] + 10 else ONTIME, ec="none"))
+        ax.add_patch(rounded(x + 16, y + 36, w - 32, 10, 5, fc=WASH, ec="none"))
+        low = b < r["meta"]["reserve"] + 10
+        ax.add_patch(rounded(x + 16, y + 36, (w - 32) * b / 100, 10, 5,
+                             fc=EXPIRED if low else ONTIME, ec="none"))
         rx = x + 16 + (w - 32) * r["meta"]["reserve"] / 100
         ax.plot([rx, rx], [y + 34, y + 48], color=INK, lw=1.5, alpha=0.55)
         cargo = sorted((self.orders[i] for i in s["cargo"]), key=lambda o: o["pickup"])
@@ -262,12 +274,13 @@ class ReplayFrames:
         for k in range(r["meta"]["max_boxes"]):
             yy = y + 82 + 40 * k
             o = cargo[k] if k < len(cargo) else None
-            ax.add_patch(FancyBboxPatch((x + 16, yy), w - 32, 32, boxstyle="round,pad=0,rounding_size=6",
-                                        fc=PANEL, ec=LINE, lw=1, ls="-" if o else "--"))
+            ax.add_patch(rounded(x + 16, yy, w - 32, 32, 6, fc=PANEL, ec=LINE, lw=1,
+                                 ls="-" if o else "--"))
             if o:
                 ax.add_patch(Rectangle((x + 28, yy + 11), 10, 10, fc=TYPE_COLORS[o["type"]]))
                 nodes = r["map"]["nodes"]
-                self._text(ax, x + 46, yy + 8, f"{TYPE_LABELS[o['type']]} → {nodes[o['to']]['name']}", 13)
+                self._text(ax, x + 46, yy + 8,
+                           f"{TYPE_LABELS[o['type']]} → {nodes[o['to']]['name']}", 13)
                 due, color = self._due(o, t)
                 self._text(ax, x + w - 28, yy + 9, due, 12, color, ha="right")
             else:
@@ -275,18 +288,18 @@ class ReplayFrames:
         # waiting orders
         x2, w2 = 910, 346
         self._panel(ax, x2, y, w2, h)
-        waiting = sorted((self.orders[i] for i in s["waiting"]), key=lambda o: (o["deadline"], o["id"]))
+        waiting = sorted((self.orders[i] for i in s["waiting"]),
+                         key=lambda o: (o["deadline"], o["id"]))
         self._text(ax, x2 + 16, y + 14, "WAITING ORDERS", 11, MUTED, "bold")
-        self._text(ax, x2 + w2 - 16, y + 14, f"{len(waiting)} waiting · most urgent first", 12, MUTED,
-                   ha="right")
+        self._text(ax, x2 + w2 - 16, y + 14, f"{len(waiting)} waiting · most urgent first", 12,
+                   MUTED, ha="right")
         nodes = r["map"]["nodes"]
         for k, o in enumerate(waiting[:6]):
             yy = y + 40 + 36 * k
-            ax.add_patch(FancyBboxPatch((x2 + 16, yy), w2 - 32, 30, boxstyle="round,pad=0,rounding_size=6",
-                                        fc=PAPER, ec="none"))
+            ax.add_patch(rounded(x2 + 16, yy, w2 - 32, 30, 6, fc=PAPER, ec="none"))
             ax.add_patch(Rectangle((x2 + 28, yy + 10), 10, 10, fc=TYPE_COLORS[o["type"]]))
-            self._text(ax, x2 + 46, yy + 7, f"{TYPE_LABELS[o['type']]} {nodes[o['from']]['name']} → "
-                       f"{nodes[o['to']]['name']}", 13)
+            route = f"{nodes[o['from']]['name']} → {nodes[o['to']]['name']}"
+            self._text(ax, x2 + 46, yy + 7, f"{TYPE_LABELS[o['type']]} {route}", 13)
             due, color = self._due(o, t)
             self._text(ax, x2 + w2 - 28, yy + 8, due, 12, color, ha="right")
         if len(waiting) > 6:
@@ -315,7 +328,8 @@ class ReplayFrames:
             if o["end"] is None:
                 continue
             if o["status"] == "delivered":
-                ax.add_patch(Circle((X(o["end"]), ev), 2.3, color=ONTIME if self._on_time(o) else LATE))
+                color = ONTIME if self._on_time(o) else LATE
+                ax.add_patch(Circle((X(o["end"]), ev), 2.3, color=color))
             else:
                 ax.plot([X(o["end"]) - 3, X(o["end"]) + 3], [ev - 3, ev + 3], color=EXPIRED, lw=1.3)
                 ax.plot([X(o["end"]) - 3, X(o["end"]) + 3], [ev + 3, ev - 3], color=EXPIRED, lw=1.3)
