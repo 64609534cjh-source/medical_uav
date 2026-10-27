@@ -15,6 +15,7 @@ N_ONBOARD = 3  # onboard boxes listed in the observation; unused rows are zero-f
 FULL_BATTERY = 100.0  # battery is measured in percent
 EPS = 1e-9  # tolerance for floating-point comparisons
 ENV_VERSION = "v2"  # reward and observation version; stored with checkpoints and results
+DAY_START_HOUR = 8  # clock hour at simulation time 0
 
 
 @dataclass(frozen=True)

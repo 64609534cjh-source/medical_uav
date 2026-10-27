@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>UAV Dispatch Replay</title>
+<style>
+/* Layout: a dispatch console. Header with clock and outcome counters; map on the left, the
+   current decision and the drone's state on the right; a shared timeline with the playback
+   controls along the bottom. One deliberate light theme, like a printed dispatch board. */
+:root {
+  color-scheme: light;
+  --paper: #f3f6f9; --panel: #ffffff; --ink: #13213c; --muted: #5b6b82; --faint: #93a1b5;
+  --line: #d9e0e8; --wash: #e9eef5;
+  --plasma: #c0267a; --medicine: #2f6fdb; --sample: #7a4fd0; --supplies: #9a6b2f;
+  --ontime: #11806a; --late: #9a6500; --expired: #c8402a; --focus: #2f6fdb;
+  --ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { background: var(--paper); color: var(--ink); font: 14px/1.45 var(--ui); margin: 0; }
+.app { max-width: 1440px; margin: 0 auto; padding-block: 18px 28px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 14px; }
+.num { font-variant-numeric: tabular-nums; }
+.eyebrow { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.note { color: var(--muted); font-size: 12px; }
+
+.top { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px 28px; }
+.ident { flex: 1 1 340px; min-width: 0; display: grid; gap: 3px; }
+.ident h1 { font-size: 22px; margin: 0; letter-spacing: -.01em; text-wrap: balance; }
+.ident .sub { color: var(--muted); }
+.ident .what { max-width: 68ch; margin: 2px 0 0; }
+details { color: var(--muted); font-size: 13px; max-width: 76ch; }
+details summary { cursor: pointer; color: var(--ink); font-weight: 600; font-size: 13px; }
+details ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 3px; }
+.clock { display: grid; justify-items: end; }
+.clock b { font-size: 40px; line-height: 1; font-weight: 650; letter-spacing: -.02em; }
+.clock span { color: var(--muted); font-size: 12px; }
+.counters { display: flex; flex-wrap: wrap; gap: 8px; align-self: center; }
+.chip { display: inline-flex; align-items: center; gap: 7px; padding: 6px 11px; border-radius: 999px;
+  background: var(--panel); border: 1px solid var(--line); font-weight: 600; }
+.chip svg { width: 14px; height: 14px; }
+.chip .n { font-size: 16px; }
+.chip small { color: var(--muted); font-weight: 500; font-size: 12px; }
+
+.main { display: grid; grid-template-columns: minmax(0, 58fr) minmax(0, 42fr); gap: 14px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+.mapwrap { padding: 10px; display: grid; gap: 8px; align-content: start; }
+#map { width: 100%; height: auto; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--muted); font-size: 12px; padding: 0 4px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend svg { width: 14px; height: 14px; }
+.dot { width: 9px; height: 9px; border-radius: 2px; display: inline-block; flex: none; }
+.side { display: grid; gap: 14px; align-content: start; min-width: 0; }
+.card { padding: 14px 16px; display: grid; gap: 10px; min-width: 0; }
+.action { font-size: 20px; font-weight: 650; margin: 0; letter-spacing: -.01em; text-wrap: balance; }
+.phase { justify-self: start; display: inline-flex; gap: 6px; align-items: center; padding: 3px 10px;
+  border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--wash); }
+.facts { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.facts li { display: grid; grid-template-columns: 14px 1fr; gap: 6px; }
+.facts li::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--faint); margin: 8px 0 0 3px; }
+.prev { color: var(--muted); font-size: 12px; border-top: 1px dashed var(--line); padding-top: 8px; }
+.probs { display: grid; gap: 6px; }
+.prob { display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 2px 10px; align-items: center; font-size: 13px; }
+.prob .bar { grid-column: 1 / -1; height: 6px; background: var(--wash); border-radius: 3px; overflow: hidden; }
+.prob .bar i { display: block; height: 100%; background: var(--faint); }
+.prob.chosen .bar i { background: var(--ink); }
+.prob.chosen .lab { font-weight: 650; }
+.prob .pct { text-align: right; }
+.summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.summary div { background: var(--paper); border-radius: 8px; padding: 8px 10px; }
+.summary b { display: block; font-size: 20px; }
+.row2 { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.row2 b { font-size: 18px; }
+.gauge { position: relative; height: 12px; background: var(--wash); border-radius: 6px; overflow: hidden; }
+.gauge i { position: absolute; inset: 0 auto 0 0; background: var(--ontime); border-radius: 6px; }
+.gauge i.low { background: var(--expired); }
+.gauge .reserve { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ink); opacity: .55; }
+.slots { display: grid; gap: 6px; }
+.slot, .row { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 10px; align-items: center;
+  padding: 7px 10px; border-radius: 7px; border: 1px solid var(--line); font-size: 13px; }
+.slot.empty { border-style: dashed; color: var(--faint); }
+.row { border-color: transparent; background: var(--paper); }
+.focus { outline: 2px solid var(--ink); outline-offset: -2px; }
+.due { font-size: 12px; white-space: nowrap; }
+.due.warn { color: var(--late); font-weight: 600; }
+.due.bad { color: var(--expired); font-weight: 600; }
+.row.gone { background: #fdf0ed; }
+.row.gone .what { text-decoration: line-through; color: var(--muted); }
+.more { color: var(--muted); font-size: 12px; padding-left: 4px; }
+
+.tl { padding: 12px 14px 14px; display: grid; gap: 10px; }
+#timeline { width: 100%; height: 132px; display: block; cursor: pointer; touch-action: none; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.btns { display: flex; flex-wrap: wrap; gap: 6px; }
+button { font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--line);
+  border-radius: 8px; padding: 6px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+button:hover { border-color: var(--faint); }
+button:focus-visible, input:focus-visible, summary:focus-visible, #timeline:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+button.primary { background: var(--ink); color: var(--panel); border-color: var(--ink); min-width: 92px; justify-content: center; }
+button svg { width: 15px; height: 15px; }
+.speed { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; padding: 6px 10px; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.toggle { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); font-size: 13px; }
+.marks { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.marks button { font-size: 12px; padding: 3px 9px; border-radius: 999px; color: var(--muted); }
+.marks button:hover { color: var(--ink); }
+.keys { color: var(--muted); font-size: 12px; margin-left: auto; }
+kbd { font: 11px var(--mono); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; background: var(--panel); }
+
+@media (max-width: 880px) {
+  .main { grid-template-columns: minmax(0, 1fr); }
+  .clock { justify-items: start; }
+  .keys { margin-left: 0; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="ident">
+      <div class="eyebrow">Medical UAV · one simulated day</div>
+      <h1 id="title">Dispatcher</h1>
+      <div class="sub" id="sub"></div>
+      <p class="what">One drone picks up medical orders and delivers them before their deadlines.
+        Each step below is one decision; the score is the share of orders delivered on time.</p>
+      <details>
+        <summary>How to read this screen</summary>
+        <ul>
+          <li>Map: the square is the medical center M with charger C1, circles are hospitals, the bolt is charger C2, hatched areas are no-fly zones. Coloured squares next to a place are orders waiting there (all of them; the network sees at most 12); the three squares under the drone are its cargo slots.</li>
+          <li>Right: the current decision in words, the situation it was taken in and, for a network, its three most likely actions. Below: battery (the line marks the 15 % reserve), cargo and the most urgent waiting orders.</li>
+          <li>Timeline: grey bands are demand peaks, the green curve is the battery, ticks are decisions, dots are deliveries (green on time, amber late) and crosses are orders that expired. Click or drag it to jump.</li>
+          <li>Smart speed plays flights at 1 simulated minute per second and fast-forwards loading, charging and waiting at 8; it pauses briefly at each decision. The fixed speeds play everything at one rate.</li>
+        </ul>
+      </details>
+    </div>
+    <div class="counters" id="counters" aria-live="polite"></div>
+    <div class="clock"><b class="num" id="clock">08:00</b><span id="clocksub">simulated time</span></div>
+  </header>
+
+  <div class="main">
+    <section class="panel mapwrap" aria-label="Map">
+      <svg id="map" role="img" aria-label="Map of the medical center, hospitals, chargers and no-fly zones"></svg>
+      <div class="legend" id="legend"></div>
+    </section>
+    <aside class="side">
+      <section class="panel card" aria-label="Current decision" id="deccard">
+        <div class="eyebrow" id="decnum"></div>
+        <p class="action" id="action"></p>
+        <span class="phase" id="phase"></span>
+        <ul class="facts" id="facts"></ul>
+        <div class="probs" id="probs"></div>
+        <div class="prev" id="prev"></div>
+      </section>
+      <section class="panel card" aria-label="Battery and cargo">
+        <div class="row2"><span class="eyebrow">Battery</span><span class="num"><b id="battpct"></b> <span id="battnote" class="note"></span></span></div>
+        <div class="gauge" aria-hidden="true"><i id="battfill"></i><span class="reserve" id="reserve"></span></div>
+        <div class="row2"><span class="eyebrow">Cargo</span><span class="num note" id="cargonote"></span></div>
+        <div class="slots" id="slots"></div>
+      </section>
+      <section class="panel card" aria-label="Waiting orders">
+        <div class="row2"><span class="eyebrow">Waiting orders</span><span class="num note" id="queuenote"></span></div>
+        <div class="slots" id="queue"></div>
+      </section>
+    </aside>
+  </div>
+
+  <section class="panel tl" aria-label="Timeline and playback">
+    <svg id="timeline" role="slider" tabindex="0" aria-label="Time of day" aria-valuemin="0"></svg>
+    <div class="controls">
+      <div class="btns">
+        <button id="restart" aria-label="Back to the start"><svg viewBox="0 0 16 16"><path d="M3 2v12M13 2 5 8l8 6z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></button>
+        <button id="prevd"><svg viewBox="0 0 16 16"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Previous decision</button>
+        <button id="play" class="primary"></button>
+        <button id="nextd">Next decision<svg viewBox="0 0 16 16"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+      <div class="speed"><span class="note">Speed</span>
+        <div class="seg" role="group" aria-label="Playback speed" id="speeds"></div>
+        <span class="note" id="speednote"></span></div>
+      <label class="toggle"><input type="checkbox" id="stopeach"> Stop at each decision</label>
+      <span class="keys"><kbd>Space</kbd> play · <kbd>←</kbd> <kbd>→</kbd> decisions · drag the timeline</span>
+    </div>
+    <div class="marks" id="marks"><span class="eyebrow">Jump to</span></div>
+  </section>
+</div>
+
+<script>
+const DATA = {"meta":{"policy":"Slack-aware rule","load":"medium","seed":100000,"map_seed":0,"end":546.2043625905436,"release_window":480.0,"peaks":[[60.0,180.0],[300.0,390.0]],"reserve":15.0,"day_start_hour":8,"max_boxes":3,"max_kg":2.0,"summary":{"orders":49,"on_time":47,"delivered":48,"expired":1,"km":165.18124086713198}},"map":{"size":4.0,"nodes":[{"name":"M","x":3.375,"y":2.875,"role":"center"},{"name":"H1","x":1.375,"y":0.625,"role":"hospital"},{"name":"H2","x":1.875,"y":3.375,"role":"hospital"},{"name":"H3","x":3.125,"y":0.875,"role":"hospital"},{"name":"H4","x":0.625,"y":2.125,"role":"hospital"},{"name":"H5","x":2.125,"y":1.875,"role":"hospital"},{"name":"C2","x":2.125,"y":1.125,"role":"charger"}],"zones":[[0.75,1.0,0.5,0.75],[1.0,2.75,0.5,0.75],[2.75,1.75,1.0,0.75]],"routes":{"0-1":[[3.375,2.875],[3.125,2.625],[2.875,2.625],[2.625,2.625],[2.375,2.375],[2.125,2.125],[1.875,1.875],[1.875,1.625],[1.875,1.375],[1.875,1.125],[1.625,0.875],[1.375,0.625]],"0-2":[[3.375,2.875],[3.125,2.875],[2.875,2.875],[2.625,2.875],[2.375,2.875],[2.125,3.125],[1.875,3.375]],"0-3":[[3.375,2.875],[3.625,2.625],[3.875,2.625],[3.875,2.375],[3.875,2.125],[3.875,1.875],[3.875,1.625],[3.625,1.375],[3.375,1.125],[3.125,0.875]],"0-4":[[3.375,2.875],[3.125,2.875],[2.875,2.625],[2.625,2.625],[2.375,2.625],[2.125,2.375],[1.875,2.125],[1.625,2.125],[1.375,2.125],[1.125,2.125],[0.875,2.125],[0.625,2.125]],"0-5":[[3.375,2.875],[3.125,2.875],[2.875,2.625],[2.625,2.625],[2.375,2.375],[2.375,2.125],[2.125,1.875]],"1-0":[[1.375,0.625],[1.625,0.875],[1.875,1.125],[1.875,1.375],[1.875,1.625],[1.875,1.875],[2.125,2.125],[2.375,2.375],[2.625,2.625],[2.875,2.625],[3.125,2.625],[3.375,2.875]],"1-4":[[1.375,0.625],[1.375,0.875],[1.375,1.125],[1.375,1.375],[1.375,1.625],[1.375,1.875],[1.125,1.875],[0.875,1.875],[0.625,2.125]],"1-6":[[1.375,0.625],[1.625,0.875],[1.875,0.875],[2.125,1.125]],"2-0":[[1.875,3.375],[2.125,3.125],[2.375,2.875],[2.625,2.875],[2.875,2.875],[3.125,2.875],[3.375,2.875]],"2-1":[[1.875,3.375],[1.875,3.125],[1.875,2.875],[1.875,2.625],[1.625,2.375],[1.375,2.125],[1.375,1.875],[1.375,1.625],[1.375,1.375],[1.375,1.125],[1.375,0.875],[1.375,0.625]],"3-0":[[3.125,0.875],[3.375,1.125],[3.625,1.375],[3.875,1.625],[3.875,1.875],[3.875,2.125],[3.875,2.375],[3.875,2.625],[3.625,2.625],[3.375,2.875]],"3-1":[[3.125,0.875],[2.875,0.625],[2.625,0.625],[2.375,0.625],[2.125,0.625],[1.875,0.625],[1.625,0.625],[1.375,0.625]],"3-4":[[3.125,0.875],[2.875,0.875],[2.625,0.875],[2.375,0.875],[2.125,1.125],[1.875,1.375],[1.625,1.625],[1.375,1.875],[1.125,1.875],[0.875,1.875],[0.625,2.125]],"3-5":[[3.125,0.875],[2.875,1.125],[2.625,1.375],[2.375,1.625],[2.125,1.875]],"4-0":[[0.625,2.125],[0.875,2.125],[1.125,2.125],[1.375,2.125],[1.625,2.125],[1.875,2.125],[2.125,2.375],[2.375,2.625],[2.625,2.625],[2.875,2.625],[3.125,2.875],[3.375,2.875]],"4-2":[[0.625,2.125],[0.875,2.125],[1.125,2.375],[1.375,2.375],[1.625,2.625],[1.625,2.875],[1.625,3.125],[1.875,3.375]],"4-3":[[0.625,2.125],[0.875,1.875],[1.125,1.875],[1.375,1.875],[1.625,1.625],[1.875,1.375],[2.125,1.125],[2.375,0.875],[2.625,0.875],[2.875,0.875],[3.125,0.875]],"4-5":[[0.625,2.125],[0.875,2.125],[1.125,2.125],[1.375,2.125],[1.625,2.125],[1.875,2.125],[2.125,1.875]],"4-6":[[0.625,2.125],[0.875,2.125],[1.125,2.125],[1.375,1.875],[1.625,1.625],[1.875,1.375],[2.125,1.125]],"5-0":[[2.125,1.875],[2.375,2.125],[2.375,2.375],[2.625,2.625],[2.875,2.625],[3.125,2.875],[3.375,2.875]],"5-3":[[2.125,1.875],[2.375,1.625],[2.625,1.375],[2.875,1.125],[3.125,0.875]],"6-0":[[2.125,1.125],[2.125,1.375],[2.125,1.625],[2.125,1.875],[2.375,2.125],[2.625,2.375],[2.625,2.625],[2.875,2.625],[3.125,2.625],[3.375,2.875]],"6-2":[[2.125,1.125],[1.875,1.375],[1.875,1.625],[1.875,1.875],[1.875,2.125],[1.875,2.375],[1.875,2.625],[1.875,2.875],[1.875,3.125],[1.875,3.375]],"6-3":[[2.125,1.125],[2.375,0.875],[2.625,0.875],[2.875,0.875],[3.125,0.875]],"6-4":[[2.125,1.125],[1.875,1.375],[1.625,1.625],[1.375,1.875],[1.125,2.125],[0.875,2.125],[0.625,2.125]]}},"types":[{"name":"plasma","limit":30.0},{"name":"medicine","limit":90.0},{"name":"sample","limit":60.0},{"name":"supplies","limit":75.0}],"orders":[{"id":0,"type":1,"from":0,"to":5,"kg":0.5171378248858627,"release":12.210677123496321,"limit":90.0,"deadline":102.21067712349632,"expiry":192.2106771234963,"pickup":14.210677123496321,"end":20.021337295276144,"disposed":null,"status":"delivered"},{"id":1,"type":1,"from":0,"to":5,"kg":0.3290532416780355,"release":12.62051451594342,"limit":90.0,"deadline":102.62051451594343,"expiry":192.62051451594343,"pickup":16.21067712349632,"end":22.021337295276144,"disposed":null,"status":"delivered"},{"id":2,"type":2,"from":3,"to":0,"kg":0.3875352528969169,"release":34.35215504666496,"limit":60.0,"deadline":94.35215504666496,"expiry":154.35215504666496,"pickup":37.766368609038054,"end":42.430582171411146,"disposed":null,"status":"delivered"},{"id":3,"type":2,"from":1,"to":0,"kg":0.24357618478001178,"release":35.566651243278656,"limit":60.0,"deadline":95.56665124327866,"expiry":155.56665124327867,"pickup":47.80190251497079,"end":53.17322285853044,"disposed":null,"status":"delivered"},{"id":4,"type":3,"from":3,"to":1,"kg":0.6941139362513502,"release":62.60904071304874,"limit":75.0,"deadline":137.60904071304873,"expiry":212.60904071304873,"pickup":67.27325427542183,"end":71.12680766601511,"disposed":null,"status":"delivered"},{"id":5,"type":1,"from":0,"to":5,"kg":0.5974410431581763,"release":76.5418046706064,"limit":90.0,"deadline":166.54180467060638,"expiry":256.5418046706064,"pickup":81.10246484238621,"end":84.91312501416603,"disposed":null,"status":"delivered"},{"id":6,"type":0,"from":0,"to":3,"kg":0.7507297784638143,"release":81.52648082918188,"limit":30.0,"deadline":111.52648082918188,"expiry":141.52648082918188,"pickup":88.72378518594584,"end":93.38799874831894,"disposed":null,"status":"delivered"},{"id":7,"type":1,"from":0,"to":1,"kg":0.5971181124149507,"release":86.03753465906671,"limit":90.0,"deadline":176.0375346590667,"expiry":266.0375346590667,"pickup":98.05221231069203,"end":147.00557465831196,"disposed":null,"status":"delivered"},{"id":8,"type":1,"from":0,"to":4,"kg":0.47857606499652205,"release":90.51401298884058,"limit":90.0,"deadline":180.5140129888406,"expiry":270.5140129888406,"pickup":107.46642587306513,"end":127.95227379941285,"disposed":null,"status":"delivered"},{"id":9,"type":2,"from":2,"to":0,"kg":0.27399952202158784,"release":95.05140328279627,"limit":60.0,"deadline":155.0514032827963,"expiry":215.0514032827963,"pickup":101.75931909187858,"end":105.46642587306513,"disposed":null,"status":"delivered"},{"id":10,"type":0,"from":0,"to":4,"kg":0.7878655069547525,"release":110.46075878293686,"limit":30.0,"deadline":140.46075878293686,"expiry":170.46075878293686,"pickup":120.89161362763303,"end":125.95227379941285,"disposed":null,"status":"delivered"},{"id":11,"type":3,"from":4,"to":5,"kg":0.5892685449921693,"release":110.80639697437404,"limit":75.0,"deadline":185.80639697437402,"expiry":260.806396974374,"pickup":163.32203396174341,"end":168.9255873523367,"disposed":null,"status":"delivered"},{"id":12,"type":3,"from":4,"to":5,"kg":0.4037673186498895,"release":114.91722283643999,"limit":75.0,"deadline":189.91722283643998,"expiry":264.91722283644,"pickup":165.32203396174341,"end":170.9255873523367,"disposed":null,"status":"delivered"},{"id":13,"type":2,"from":3,"to":0,"kg":0.37244630666734313,"release":115.98417507470445,"limit":60.0,"deadline":175.98417507470447,"expiry":235.98417507470447,"pickup":132.97004075237922,"end":139.63425431475233,"disposed":null,"status":"delivered"},{"id":14,"type":2,"from":3,"to":0,"kg":0.3808378945796562,"release":121.65121518060542,"limit":60.0,"deadline":181.65121518060542,"expiry":241.65121518060542,"pickup":134.97004075237922,"end":141.63425431475233,"disposed":null,"status":"delivered"},{"id":15,"type":1,"from":0,"to":4,"kg":0.34985561948438326,"release":142.16670506447664,"limit":90.0,"deadline":232.16670506447664,"expiry":322.1667050644767,"pickup":176.73624752411652,"end":183.79690769589635,"disposed":null,"status":"delivered"},{"id":16,"type":0,"from":0,"to":4,"kg":0.6146958980612949,"release":159.7146474202127,"limit":30.0,"deadline":189.7146474202127,"expiry":219.7146474202127,"pickup":174.73624752411652,"end":181.79690769589635,"disposed":null,"status":"delivered"},{"id":17,"type":2,"from":5,"to":0,"kg":0.39748175784968576,"release":163.7866282632308,"limit":60.0,"deadline":223.7866282632308,"expiry":283.7866282632308,"pickup":187.40046108648963,"end":191.21112125826946,"disposed":null,"status":"delivered"},{"id":18,"type":3,"from":4,"to":2,"kg":0.5889368454180277,"release":166.68818834406798,"limit":75.0,"deadline":241.68818834406798,"expiry":316.68818834406795,"pickup":196.2717814300493,"end":217.5304547060038,"disposed":null,"status":"delivered"},{"id":19,"type":1,"from":0,"to":3,"kg":0.5430556793734104,"release":180.46204444861348,"limit":90.0,"deadline":270.4620444486135,"expiry":360.4620444486135,"pickup":223.23756148719036,"end":227.90177504956347,"disposed":null,"status":"delivered"},{"id":20,"type":1,"from":0,"to":4,"kg":0.41607165710802296,"release":180.81149112788128,"limit":90.0,"deadline":270.81149112788125,"expiry":360.81149112788125,"pickup":232.56598861193658,"end":239.6266487837164,"disposed":null,"status":"delivered"},{"id":21,"type":2,"from":4,"to":0,"kg":0.38106841100268174,"release":183.10017678936083,"limit":60.0,"deadline":243.10017678936083,"expiry":303.10017678936083,"pickup":198.2717814300493,"end":221.23756148719036,"disposed":null,"status":"delivered"},{"id":22,"type":1,"from":0,"to":4,"kg":0.5064743876399842,"release":189.32305665736732,"limit":90.0,"deadline":279.3230566573673,"expiry":369.3230566573673,"pickup":234.56598861193658,"end":241.6266487837164,"disposed":null,"status":"delivered"},{"id":23,"type":2,"from":3,"to":0,"kg":0.2983185333586884,"release":269.936342007957,"limit":60.0,"deadline":329.936342007957,"expiry":389.936342007957,"pickup":273.0398953985503,"end":277.7041089609234,"disposed":null,"status":"delivered"},{"id":24,"type":2,"from":1,"to":0,"kg":0.23472260248968457,"release":281.24947695083284,"limit":60.0,"deadline":341.24947695083284,"expiry":401.24947695083284,"pickup":286.6207972943925,"end":291.99211763795216,"disposed":null,"status":"delivered"},{"id":25,"type":3,"from":2,"to":1,"kg":0.43240441084094616,"release":318.0102799478199,"limit":75.0,"deadline":393.0102799478199,"expiry":468.0102799478199,"pickup":321.7173867290065,"end":326.67449351019303,"disposed":null,"status":"delivered"},{"id":26,"type":1,"from":0,"to":5,"kg":0.585280010553014,"release":325.42385237734857,"limit":90.0,"deadline":415.42385237734857,"expiry":505.42385237734857,"pickup":332.0458138537527,"end":370.48848658621216,"disposed":null,"status":"delivered"},{"id":27,"type":0,"from":0,"to":1,"kg":0.6144399118127655,"release":327.56116883938097,"limit":30.0,"deadline":357.56116883938097,"expiry":387.56116883938097,"pickup":334.0458138537527,"end":339.41713419731235,"disposed":null,"status":"delivered"},{"id":28,"type":0,"from":0,"to":3,"kg":0.6298467695849987,"release":335.9136569214539,"limit":30.0,"deadline":365.9136569214539,"expiry":395.9136569214539,"pickup":344.788454540872,"end":363.07427302383905,"disposed":null,"status":"delivered"},{"id":29,"type":3,"from":5,"to":3,"kg":0.7547642572159077,"release":339.6352862301899,"limit":75.0,"deadline":414.6352862301899,"expiry":489.6352862301899,"pickup":368.48848658621216,"end":381.5240204921449,"disposed":null,"status":"delivered"},{"id":30,"type":0,"from":0,"to":3,"kg":0.7035786414884366,"release":345.3755702006839,"limit":30.0,"deadline":375.3755702006839,"expiry":405.3755702006839,"pickup":358.41005946146595,"end":365.07427302383905,"disposed":null,"status":"delivered"},{"id":31,"type":2,"from":4,"to":0,"kg":0.35441878464068266,"release":356.1925188099289,"limit":60.0,"deadline":416.1925188099289,"expiry":476.1925188099289,"pickup":386.5417874451113,"end":391.60244761689114,"disposed":null,"status":"delivered"},{"id":32,"type":3,"from":3,"to":2,"kg":0.4355712430963177,"release":365.0754168467219,"limit":75.0,"deadline":440.0754168467219,"expiry":515.075416846722,"pickup":null,"end":515.075416846722,"disposed":null,"status":"expired"},{"id":33,"type":2,"from":1,"to":0,"kg":0.3068230586908678,"release":367.56153122848616,"limit":60.0,"deadline":427.56153122848616,"expiry":487.56153122848616,"pickup":413.76495711009636,"end":419.136277453656,"disposed":null,"status":"delivered"},{"id":34,"type":2,"from":2,"to":0,"kg":0.36402826302148805,"release":368.25317834363887,"limit":60.0,"deadline":428.25317834363887,"expiry":488.25317834363887,"pickup":422.8433842348426,"end":428.5504910160291,"disposed":null,"status":"delivered"},{"id":35,"type":0,"from":0,"to":5,"kg":0.827327196185005,"release":370.27091092908194,"limit":30.0,"deadline":400.27091092908194,"expiry":430.27091092908194,"pickup":374.299146757992,"end":378.1098069297718,"disposed":null,"status":"delivered"},{"id":36,"type":2,"from":5,"to":0,"kg":0.31936285503186274,"release":382.15613789150547,"limit":60.0,"deadline":442.15613789150547,"expiry":502.15613789150547,"pickup":434.36115118780896,"end":440.1718113595888,"disposed":null,"status":"delivered"},{"id":37,"type":1,"from":0,"to":3,"kg":0.5450632936379232,"release":384.1826756551053,"limit":90.0,"deadline":474.1826756551053,"expiry":564.1826756551053,"pickup":444.1718113595888,"end":461.4544442306488,"disposed":null,"status":"delivered"},{"id":38,"type":2,"from":2,"to":0,"kg":0.24445184871873624,"release":385.2754987108808,"limit":60.0,"deadline":445.2754987108808,"expiry":505.2754987108808,"pickup":424.8433842348426,"end":430.5504910160291,"disposed":null,"status":"delivered"},{"id":39,"type":2,"from":5,"to":0,"kg":0.33802052926561565,"release":389.44241117346604,"limit":60.0,"deadline":449.44241117346604,"expiry":509.44241117346604,"pickup":436.36115118780896,"end":442.1718113595888,"disposed":null,"status":"delivered"},{"id":40,"type":0,"from":0,"to":1,"kg":0.6823872848416285,"release":392.26399937540526,"limit":30.0,"deadline":422.26399937540526,"expiry":452.26399937540526,"pickup":406.3936367665367,"end":411.76495711009636,"disposed":null,"status":"delivered"},{"id":41,"type":1,"from":0,"to":4,"kg":0.45281880749023395,"release":437.9018982839749,"limit":90.0,"deadline":527.9018982839749,"expiry":617.9018982839749,"pickup":446.1718113595888,"end":503.9609958763042,"disposed":null,"status":"delivered"},{"id":42,"type":3,"from":5,"to":4,"kg":0.7365825753818899,"release":451.9412355609199,"limit":75.0,"deadline":526.94123556092,"expiry":601.94123556092,"pickup":466.8686577930219,"end":501.9609958763042,"disposed":null,"status":"delivered"},{"id":43,"type":1,"from":0,"to":1,"kg":0.46785743513444833,"release":452.0765740321123,"limit":90.0,"deadline":542.0765740321124,"expiry":632.0765740321124,"pickup":509.021656048084,"end":514.3929763916436,"disposed":null,"status":"delivered"},{"id":44,"type":2,"from":5,"to":0,"kg":0.2449976507307421,"release":457.0916340782831,"limit":60.0,"deadline":517.091634078283,"expiry":577.091634078283,"pickup":464.8686577930219,"end":470.6793179648017,"disposed":null,"status":"delivered"},{"id":45,"type":2,"from":1,"to":0,"kg":0.34050314978484075,"release":466.24754329934683,"limit":60.0,"deadline":526.2475432993468,"expiry":586.2475432993468,"pickup":476.0506383083614,"end":481.42195865192105,"disposed":null,"status":"delivered"},{"id":46,"type":0,"from":0,"to":4,"kg":0.7452355472692653,"release":471.70321720817026,"limit":30.0,"deadline":501.70321720817026,"expiry":531.7032172081703,"pickup":483.42195865192105,"end":499.9609958763042,"disposed":null,"status":"delivered"},{"id":47,"type":3,"from":4,"to":2,"kg":0.5298274539423167,"release":472.90282143729013,"limit":75.0,"deadline":547.9028214372902,"expiry":622.9028214372902,"pickup":518.4965297822368,"end":522.5571899540166,"disposed":null,"status":"delivered"},{"id":48,"type":3,"from":3,"to":4,"kg":0.7083833466795926,"release":475.2016902667349,"limit":75.0,"deadline":550.2016902667349,"expiry":625.2016902667349,"pickup":541.1865956375773,"end":546.2043625905436,"disposed":null,"status":"delivered"}],"segments":[["wait",0.0,10.0,0,0,100.0,100.0,null],["wait",10.0,12.210677123496321,0,0,100.0,100.0,null],["load",12.210677123496321,14.210677123496321,0,0,100.0,100.0,0],["load",14.210677123496321,16.21067712349632,0,0,100.0,100.0,1],["fly",16.21067712349632,18.021337295276144,0,5,100.0,92.32204549457038,null],["unload",18.021337295276144,20.021337295276144,5,5,92.32204549457038,92.32204549457038,0],["unload",20.021337295276144,22.021337295276144,5,5,92.32204549457038,92.32204549457038,1],["wait",22.021337295276144,32.02133729527614,5,5,92.32204549457038,92.32204549457038,null],["wait",32.02133729527614,34.35215504666496,5,5,92.32204549457038,92.32204549457038,null],["fly",34.35215504666496,35.766368609038054,5,3,92.32204549457038,87.37229802626455,null],["load",35.766368609038054,37.766368609038054,3,3,87.37229802626455,87.37229802626455,2],["fly",37.766368609038054,40.430582171411146,3,0,87.37229802626455,77.14413346587627,null],["unload",40.430582171411146,42.430582171411146,0,0,77.14413346587627,77.14413346587627,2],["fly",42.430582171411146,45.80190251497079,0,1,77.14413346587627,65.34451226341751,null],["load",45.80190251497079,47.80190251497079,1,1,65.34451226341751,65.34451226341751,3],["fly",47.80190251497079,51.17322285853044,1,0,65.34451226341751,52.8263643823727,null],["unload",51.17322285853044,53.17322285853044,0,0,52.8263643823727,52.8263643823727,3],["charge",53.17322285853044,58.6079499820559,0,0,52.8263643823727,80.0,null],["wait",58.6079499820559,62.60904071304874,0,0,80.0,80.0,null],["fly",62.60904071304874,65.27325427542183,0,3,80.0,70.67525253169417,null],["load",65.27325427542183,67.27325427542183,3,3,70.67525253169417,70.67525253169417,4],["fly",67.27325427542183,69.12680766601511,3,1,70.67525253169417,63.06206057962057,null],["unload",69.12680766601511,71.12680766601511,1,1,63.06206057962057,63.06206057962057,4],["fly",71.12680766601511,72.08391444720166,1,6,63.06206057962057,59.712186845467656,null],["charge",72.08391444720166,76.14147707810814,6,6,59.712186845467656,80.0,null],["wait",76.14147707810814,76.5418046706064,6,6,80.0,80.0,null],["fly",76.5418046706064,79.10246484238621,6,0,80.0,71.03768939877062,null],["load",79.10246484238621,81.10246484238621,0,0,71.03768939877062,71.03768939877062,5],["fly",81.10246484238621,82.91312501416603,0,5,71.03768939877062,63.753836433437286,null],["unload",82.91312501416603,84.91312501416603,5,5,63.753836433437286,63.753836433437286,5],["fly",84.91312501416603,86.72378518594584,5,0,63.753836433437286,57.41652583220791,null],["load",86.72378518594584,88.72378518594584,0,0,57.41652583220791,57.41652583220791,6],["fly",88.72378518594584,91.38799874831894,0,3,57.41652583220791,46.341686963624014,null],["unload",91.38799874831894,93.38799874831894,3,3,46.341686963624014,46.341686963624014,6],["fly",93.38799874831894,96.05221231069203,3,0,46.341686963624014,37.016939495318184,null],["load",96.05221231069203,98.05221231069203,0,0,37.016939495318184,37.016939495318184,7],["fly",98.05221231069203,99.75931909187858,0,2,37.016939495318184,30.150139429651503,null],["load",99.75931909187858,101.75931909187858,2,2,30.150139429651503,30.150139429651503,9],["fly",101.75931909187858,103.46642587306513,2,0,30.150139429651503,22.874061227160514,null],["unload",103.46642587306513,105.46642587306513,0,0,22.874061227160514,22.874061227160514,9],["load",105.46642587306513,107.46642587306513,0,0,22.874061227160514,22.874061227160514,8],["charge",107.46642587306513,118.89161362763303,0,0,22.874061227160514,80.0,null],["load",118.89161362763303,120.89161362763303,0,0,80.0,80.0,10],["fly",120.89161362763303,123.95227379941285,0,4,80.0,64.29693185805563,null],["unload",123.95227379941285,125.95227379941285,4,4,64.29693185805563,64.29693185805563,10],["unload",125.95227379941285,127.95227379941285,4,4,64.29693185805563,64.29693185805563,8],["fly",127.95227379941285,130.97004075237922,4,3,64.29693185805563,52.15802962934278,null],["load",130.97004075237922,132.97004075237922,3,3,52.15802962934278,52.15802962934278,13],["load",132.97004075237922,134.97004075237922,3,3,52.15802962934278,52.15802962934278,14],["fly",134.97004075237922,137.63425431475233,3,0,52.15802962934278,39.68524202215854,null],["unload",137.63425431475233,139.63425431475233,0,0,39.68524202215854,39.68524202215854,13],["unload",139.63425431475233,141.63425431475233,0,0,39.68524202215854,39.68524202215854,14],["fly",141.63425431475233,145.00557465831196,0,1,39.68524202215854,26.12417893479389,null],["unload",145.00557465831196,147.00557465831196,1,1,26.12417893479389,26.12417893479389,7],["fly",147.00557465831196,147.9626814394985,1,6,26.12417893479389,22.774305200640974,null],["charge",147.9626814394985,159.4078203993703,6,6,22.774305200640974,80.0,null],["fly",159.4078203993703,161.32203396174341,6,4,80.0,73.30025253169417,null],["load",161.32203396174341,163.32203396174341,4,4,73.30025253169417,73.30025253169417,11],["load",163.32203396174341,165.32203396174341,4,4,73.30025253169417,73.30025253169417,12],["fly",165.32203396174341,166.9255873523367,4,5,73.30025253169417,66.29447789175926,null],["unload",166.9255873523367,168.9255873523367,5,5,66.29447789175926,66.29447789175926,11],["unload",168.9255873523367,170.9255873523367,5,5,66.29447789175926,66.29447789175926,12],["fly",170.9255873523367,172.73624752411652,5,0,66.29447789175926,59.95716729052988,null],["load",172.73624752411652,174.73624752411652,0,0,59.95716729052988,59.95716729052988,16],["load",174.73624752411652,176.73624752411652,0,0,59.95716729052988,59.95716729052988,15],["fly",176.73624752411652,179.79690769589635,0,4,59.95716729052988,46.661712827591394,null],["unload",179.79690769589635,181.79690769589635,4,4,46.661712827591394,46.661712827591394,16],["unload",181.79690769589635,183.79690769589635,4,4,46.661712827591394,46.661712827591394,15],["fly",183.79690769589635,185.40046108648963,4,5,46.661712827591394,41.04927596051493,null],["load",185.40046108648963,187.40046108648963,5,5,41.04927596051493,41.04927596051493,17],["fly",187.40046108648963,189.21112125826946,5,0,41.04927596051493,34.082224019831536,null],["unload",189.21112125826946,191.21112125826946,0,0,34.082224019831536,34.082224019831536,17],["fly",191.21112125826946,194.2717814300493,0,4,34.082224019831536,23.369913418602163,null],["load",194.2717814300493,196.2717814300493,4,4,23.369913418602163,23.369913418602163,18],["load",196.2717814300493,198.2717814300493,4,4,23.369913418602163,23.369913418602163,21],["fly",198.2717814300493,200.1859949924224,4,6,23.369913418602163,15.045468385059333,null],["charge",200.1859949924224,213.17690131541053,6,6,15.045468385059333,80.0,null],["fly",213.17690131541053,215.5304547060038,6,2,80.0,69.76497386779906,null],["unload",215.5304547060038,217.5304547060038,2,2,69.76497386779906,69.76497386779906,18],["fly",217.5304547060038,219.23756148719036,2,0,69.76497386779906,63.22089122369231,null],["unload",219.23756148719036,221.23756148719036,0,0,63.22089122369231,63.22089122369231,21],["load",221.23756148719036,223.23756148719036,0,0,63.22089122369231,63.22089122369231,19],["fly",223.23756148719036,225.90177504956347,0,3,63.22089122369231,52.6301794875399,null],["unload",225.90177504956347,227.90177504956347,3,3,52.6301794875399,52.6301794875399,19],["fly",227.90177504956347,230.56598861193658,3,0,52.6301794875399,43.30543201923406,null],["load",230.56598861193658,232.56598861193658,0,0,43.30543201923406,43.30543201923406,20],["load",232.56598861193658,234.56598861193658,0,0,43.30543201923406,43.30543201923406,22],["fly",234.56598861193658,237.6266487837164,0,4,43.30543201923406,30.122471474185616,null],["unload",237.6266487837164,239.6266487837164,4,4,30.122471474185616,30.122471474185616,20],["unload",239.6266487837164,241.6266487837164,4,4,30.122471474185616,30.122471474185616,22],["fly",241.6266487837164,243.5408623460895,4,6,30.122471474185616,23.422724005879786,null],["charge",243.5408623460895,254.85631754491357,6,6,23.422724005879786,80.0,null],["wait",254.85631754491357,264.85631754491357,6,6,80.0,80.0,null],["wait",264.85631754491357,269.936342007957,6,6,80.0,80.0,null],["fly",269.936342007957,271.0398953985503,6,3,80.0,76.13756313292355,null],["load",271.0398953985503,273.0398953985503,3,3,76.13756313292355,76.13756313292355,23],["fly",273.0398953985503,275.7041089609234,3,0,76.13756313292355,66.11737941744643,null],["unload",275.7041089609234,277.7041089609234,0,0,66.11737941744643,66.11737941744643,23],["charge",277.7041089609234,280.4806330774341,0,0,66.11737941744643,80.0,null],["wait",280.4806330774341,281.24947695083284,0,0,80.0,80.0,null],["fly",281.24947695083284,284.6207972943925,0,1,80.0,68.20037879754125,null],["load",284.6207972943925,286.6207972943925,1,1,68.20037879754125,68.20037879754125,24],["fly",286.6207972943925,289.99211763795216,1,0,68.20037879754125,55.708348145824104,null],["unload",289.99211763795216,291.99211763795216,0,0,55.708348145824104,55.708348145824104,24],["charge",291.99211763795216,296.85044800878734,0,0,55.708348145824104,80.0,null],["wait",296.85044800878734,306.85044800878734,0,0,80.0,80.0,null],["wait",306.85044800878734,316.85044800878734,0,0,80.0,80.0,null],["wait",316.85044800878734,318.0102799478199,0,0,80.0,80.0,null],["fly",318.0102799478199,319.7173867290065,0,2,80.0,74.02512626584708,null],["load",319.7173867290065,321.7173867290065,2,2,74.02512626584708,74.02512626584708,25],["fly",321.7173867290065,324.67449351019303,2,1,74.02512626584708,62.55641976812052,null],["unload",324.67449351019303,326.67449351019303,1,1,62.55641976812052,62.55641976812052,25],["fly",326.67449351019303,330.0458138537527,1,0,62.55641976812052,50.75679856566177,null],["load",330.0458138537527,332.0458138537527,0,0,50.75679856566177,50.75679856566177,26],["load",332.0458138537527,334.0458138537527,0,0,50.75679856566177,50.75679856566177,27],["fly",334.0458138537527,337.41713419731235,0,1,50.75679856566177,35.41811720496317,null],["unload",337.41713419731235,339.41713419731235,1,1,35.41811720496317,35.41811720496317,27],["fly",339.41713419731235,342.788454540872,1,0,35.41811720496317,21.89197539703026,null],["load",342.788454540872,344.788454540872,0,0,21.89197539703026,21.89197539703026,28],["charge",344.788454540872,356.41005946146595,0,0,21.89197539703026,80.0,null],["load",356.41005946146595,358.41005946146595,0,0,80.0,80.0,30],["fly",358.41005946146595,361.07427302383905,0,3,80.0,66.20239165101019,null],["unload",361.07427302383905,363.07427302383905,3,3,66.20239165101019,66.20239165101019,28],["unload",363.07427302383905,365.07427302383905,3,3,66.20239165101019,66.20239165101019,30],["fly",365.07427302383905,366.48848658621216,3,5,66.20239165101019,60.528397120083156,null],["load",366.48848658621216,368.48848658621216,5,5,60.528397120083156,60.528397120083156,29],["unload",368.48848658621216,370.48848658621216,5,5,60.528397120083156,60.528397120083156,26],["fly",370.48848658621216,372.299146757992,5,0,60.528397120083156,52.99529263668293,null],["load",372.299146757992,374.299146757992,0,0,52.99529263668293,52.99529263668293,35],["fly",374.299146757992,376.1098069297718,0,5,52.99529263668293,44.15143080051556,null],["unload",376.1098069297718,378.1098069297718,5,5,44.15143080051556,44.15143080051556,35],["fly",378.1098069297718,379.5240204921449,5,3,44.15143080051556,38.267710214379186,null],["unload",379.5240204921449,381.5240204921449,3,3,38.267710214379186,38.267710214379186,29],["fly",381.5240204921449,384.5417874451113,3,4,38.267710214379186,27.705525878996895,null],["load",384.5417874451113,386.5417874451113,4,4,27.705525878996895,27.705525878996895,31],["fly",386.5417874451113,389.60244761689114,4,0,27.705525878996895,16.044054251772216,null],["unload",389.60244761689114,391.60244761689114,0,0,16.044054251772216,16.044054251772216,31],["charge",391.60244761689114,404.3936367665367,0,0,16.044054251772216,80.0,null],["load",404.3936367665367,406.3936367665367,0,0,80.0,80.0,40],["fly",406.3936367665367,409.76495711009636,0,1,80.0,66.18740092891487,null],["unload",409.76495711009636,411.76495711009636,1,1,66.18740092891487,66.18740092891487,40],["load",411.76495711009636,413.76495711009636,1,1,66.18740092891487,66.18740092891487,33],["fly",413.76495711009636,417.136277453656,1,0,66.18740092891487,53.482680759273116,null],["unload",417.136277453656,419.136277453656,0,0,53.482680759273116,53.482680759273116,33],["fly",419.136277453656,420.8433842348426,0,2,53.482680759273116,47.5078070251202,null],["load",420.8433842348426,422.8433842348426,2,2,47.5078070251202,47.5078070251202,34],["load",422.8433842348426,424.8433842348426,2,2,47.5078070251202,47.5078070251202,38],["fly",424.8433842348426,426.5504910160291,2,0,47.5078070251202,40.62403533161951,null],["unload",426.5504910160291,428.5504910160291,0,0,40.62403533161951,40.62403533161951,34],["unload",428.5504910160291,430.5504910160291,0,0,40.62403533161951,40.62403533161951,38],["fly",430.5504910160291,432.36115118780896,0,5,40.62403533161951,34.286724730390134,null],["load",432.36115118780896,434.36115118780896,5,5,34.286724730390134,34.286724730390134,36],["load",434.36115118780896,436.36115118780896,5,5,34.286724730390134,34.286724730390134,39],["fly",436.36115118780896,438.1718113595888,5,0,34.286724730390134,26.907903456565645,null],["unload",438.1718113595888,440.1718113595888,0,0,26.907903456565645,26.907903456565645,36],["unload",440.1718113595888,442.1718113595888,0,0,26.907903456565645,26.907903456565645,39],["load",442.1718113595888,444.1718113595888,0,0,26.907903456565645,26.907903456565645,37],["load",444.1718113595888,446.1718113595888,0,0,26.907903456565645,26.907903456565645,41],["charge",446.1718113595888,456.7902306682757,0,0,26.907903456565645,80.0,null],["fly",456.7902306682757,459.4544442306488,0,3,80.0,68.34900288265354,null],["unload",459.4544442306488,461.4544442306488,3,3,68.34900288265354,68.34900288265354,37],["fly",461.4544442306488,462.8686577930219,3,5,68.34900288265354,62.83892072785369,null],["load",462.8686577930219,464.8686577930219,5,5,62.83892072785369,62.83892072785369,44],["load",464.8686577930219,466.8686577930219,5,5,62.83892072785369,62.83892072785369,42],["fly",466.8686577930219,468.6793179648017,5,0,62.83892072785369,54.22905207611316,null],["unload",468.6793179648017,470.6793179648017,0,0,54.22905207611316,54.22905207611316,44],["fly",470.6793179648017,474.0506383083614,0,1,54.22905207611316,38.9208094297615,null],["load",474.0506383083614,476.0506383083614,1,1,38.9208094297615,38.9208094297615,45],["fly",476.0506383083614,479.42195865192105,1,0,38.9208094297615,22.60811473698353,null],["unload",479.42195865192105,481.42195865192105,0,0,22.60811473698353,22.60811473698353,45],["load",481.42195865192105,483.42195865192105,0,0,22.60811473698353,22.60811473698353,46],["charge",483.42195865192105,494.90033570452437,0,0,22.60811473698353,80.0,null],["fly",494.90033570452437,497.9609958763042,0,4,80.0,64.10658147469977,null],["unload",497.9609958763042,499.9609958763042,4,4,64.10658147469977,64.10658147469977,46],["unload",499.9609958763042,501.9609958763042,4,4,64.10658147469977,64.10658147469977,42],["unload",501.9609958763042,503.9609958763042,4,4,64.10658147469977,64.10658147469977,41],["fly",503.9609958763042,507.021656048084,4,0,64.10658147469977,53.39427087347039,null],["load",507.021656048084,509.021656048084,0,0,53.39427087347039,53.39427087347039,43],["fly",509.021656048084,512.3929763916436,0,1,53.39427087347039,40.21451454317654,null],["unload",512.3929763916436,514.3929763916436,1,1,40.21451454317654,40.21451454317654,43],["fly",514.3929763916436,516.4965297822368,1,4,40.21451454317654,32.85207767610008,null],["load",516.4965297822368,518.4965297822368,4,4,32.85207767610008,32.85207767610008,47],["fly",518.4965297822368,520.5571899540166,4,2,32.85207767610008,24.68444703414807,null],["unload",520.5571899540166,522.5571899540166,2,2,24.68444703414807,24.68444703414807,47],["fly",522.5571899540166,524.2642967352032,2,0,24.68444703414807,18.709573299995157,null],["charge",524.2642967352032,536.5223820752042,0,0,18.709573299995157,80.0,null],["fly",536.5223820752042,539.1865956375773,0,3,80.0,70.67525253169417,null],["load",539.1865956375773,541.1865956375773,3,3,70.67525253169417,70.67525253169417,48],["fly",541.1865956375773,544.2043625905436,3,4,70.67525253169417,58.24254932437566,null],["unload",544.2043625905436,546.2043625905436,4,4,58.24254932437566,58.24254932437566,48]],"decisions":[{"t":0.0,"action":25,"text":"Wait for the next order","short":"Wait","facts":["0 orders waiting, 0/3 boxes on board"],"top":[],"end":10.0,"reward":0.0},{"t":10.0,"action":25,"text":"Wait for the next order","short":"Wait","facts":["0 orders waiting, 0/3 boxes on board"],"top":[],"end":12.210677123496321,"reward":0.0},{"t":12.210677123496321,"action":0,"text":"Pick up medicine at M for H5","short":"Pick medicine M\u2192H5","facts":["Due in 90 min, expires in 180 min","Already at the pickup","1 order waiting, 0/3 boxes on board"],"top":[],"end":14.210677123496321,"reward":0.0},{"t":14.210677123496321,"action":0,"text":"Pick up medicine at M for H5","short":"Pick medicine M\u2192H5","facts":["Due in 88 min, expires in 178 min","Already at the pickup","1 order waiting, 1/3 boxes on board"],"top":[],"end":16.21067712349632,"reward":0.0},{"t":16.21067712349632,"action":17,"text":"Deliver 2 medicine boxes to H5","short":"Deliver at H5","facts":["Tightest box on time with 80 min to spare","Frees 2 of 2 cargo slots","0 orders waiting, 2/3 boxes on board"],"top":[],"end":22.021337295276144,"reward":1.9923220454945705},{"t":22.021337295276144,"action":25,"text":"Wait for the next order","short":"Wait","facts":["0 orders waiting, 0/3 boxes on board"],"top":[],"end":32.02133729527614,"reward":0.0},{"t":32.02133729527614,"action":25,"text":"Wait for the next order","short":"Wait","facts":["0 orders waiting, 0/3 boxes on board"],"top":[],"end":34.35215504666496,"reward":0.0},{"t":34.35215504666496,"action":0,"text":"Pick up sample at H3 for M","short":"Pick sample H3\u2192M","facts":["Due in 60 min, expires in 120 min","1 min flight to H3","1 order waiting, 0/3 boxes on board"],"top":[],"end":37.766368609038054,"reward":-0.004949747468305787},{"t":37.766368609038054,"action":12,"text":"Deliver 1 sample box to M","short":"Deliver at M","facts":["Tightest box on time with 52 min to spare","Frees 1 of 1 cargo slots","1 order waiting, 1/3 boxes on board"],"top":[],"end":42.430582171411146,"reward":0.9897718354396119},{"t":42.430582171411146,"action":0,"text":"Pick up sample at H1 for M","short":"Pick sample H1\u2192M","facts":["Due in 53 min, expires in 113 min","3 min flight to H1","1 order waiting, 0/3 boxes on board"],"top":[],"end":47.80190251497079,"reward":-0.011799621202458699},{"t":47.80190251497079,"action":12,"text":"Deliver 1 sample box to M","short":"Deliver at M","facts":["Tightest box on time with 42 min to spare","Frees 1 of 1 cargo slots","0 orders waiting, 1/3 boxes on board"],"top":[],"end":53.17322285853044,"reward":0.9874818521189552},{"t":53.17322285853044,"action":19,"text":"Charge at C1 (M) to 80%","short":"Charge C1 to 80%","facts":["Battery 53% now, 53% on arrival","5 min of charging","0 orders waiting, 0/3 boxes on board"],"top":[],"end":58.6079499820559,"reward":0.0},{"t":58.6079499820559,"action":25,"text":"Wait for the next order","short":"Wait","facts":["0 orders waiting, 0/3 boxes on board"],"top":[],"end":62.60904071304874,"reward":0.0},{"t":62.60904071304874,"action":0,"text":"Pick up supplies at H3 for H1","short":"Pick supplies H3\u2192H1","facts":["Due in 75 min, expires in 150 min","3 min flight to H3","1 order waiting, 0/3 boxes on board"],"top":[],"end":67.27325427542183,"reward":-0.009324747468305805},{"t":67.27325427542183,"action":13,"text":"Deliver 1 supplies box to H1","short":"Deliver at H1","facts":["Tightest box on time with 66 min to spare","Frees 1 of 1 cargo slots","0 orders waiting, 1/3 boxes on board"],"top":[],"end":71.12680766601511,"reward":0.9923868080479266},{"t":71.12680766601511,"action":22,"text":"Charge at C2 to 80%","short":"Charge C2 to 80%","facts":["Battery 63% now, 60% on arrival","4 min of charging","0 orders waiting, 0/3 boxes on board"],"top":[],"end":76.14147707810814,"reward":-0.003349873734152631},{"t":76.14147707810814,"action":25,"text":"Wait for the next order","short":"Wait","facts":["0 orders waiting, 0/3 boxes on board"],"top":[],"end":76.5418046706064,"reward":0.0},{"t":76.5418046706064,"action":0,"text":"Pick up medicine at M for H5","short":"Pick medicine M\u2192H5","facts":["Due in 90 min, expires in 180 min","3 min flight to M","1 order waiting, 0/3 boxes on board"],"top":[],"end":81.10246484238621,"reward":-0.00896231060122954},{"t":81.10246484238621,"action":17,"text":"Deliver 1 medicine box to H5","short":"Deliver at H5","facts":["Tightest box on time with 82 min to spare","Frees 1 of 1 cargo slots","0 orders waiting, 1/3 boxes on board"],"top":[],"end":84.91312501416603,"reward":0.9927161470346668},{"t":84.91312501416603,"action":0,"text":"Pick up plasma at M for H3","short":"Pick plasma M\u2192H3","facts":["Due in 27 min, expires in 57 min","2 min flight to M","1 order waiting, 0/3 boxes on board"],"top":[],"end":88.72378518594584,"reward":-0.00633731060122944},{"t":88.72378518594584,"action":15,"text":"Deliver 1 plasma box to H3","short":"Deliver at H3","facts":["Tightest box on time with 18 min to spare","Frees 1 of 1 cargo slots","1 order waiting, 1/3 boxes on board"],"top":[],"end":93.38799874831894,"reward":0.9889251611314158},{"t":93.38799874831894,"action":0,"text":"Pick up medicine at M for H1","short":"Pick medicine M\u2192H1","facts":["Due in 83 min, expires in 173 min","3 min flight to M","2 orders waiting, 0/3 boxes on board"],"top":[],"end":98.05221231069203,"reward":-0.00932474746830625},{"t":98.05221231069203,"action":0,"text":"Pick up sample at H2 for M","short":"Pick sample H2\u2192M","facts":["Due in 57 min, expires in 117 min","2 min flight to H2","2 orders waiting, 1/3 boxes on board"],"top":[],"end":101.75931909187858,"reward":-0.006866800065666645},{"t":101.75931909187858,"action":12,"text":"Deliver 1 sample box to M","short":"Deliver at M","facts":["Tightest box on time with 50 min to spare","Frees 1 of 2 cargo slots","1 order waiting, 2/3 boxes on board"],"top":[],"end":105.46642587306513,"reward":0.9927239217975092},{"t":105.46642587306513,"action":0,"text":"Pick up medicine at M for H4","short":"Pick medicine M\u2192H4","facts":["Due in 75 min, expires in 165 min","Already at the pickup","1 order waiting, 1/3 boxes on board"],"top":[],"end":107.46642587306513,"reward":0.0},{"t":107.46642587306513,"action":19,"text":"Charge at C1 (M) to 80%","short":"Charge C1 to 80%","facts":["Battery 23% now, 23% on arrival","11 min of charging","0 orders waiting, 2/3 boxes on board"],"top":[],"end":118.89161362763303,"reward":0.0},{"t":118.89161362763303,"action":0,"text":"Pick up plasma at M for H4","short":"Pick plasma M\u2192H4","facts":["Due in 22 min, expires in 52 min","Already at the pickup","4 orders waiting, 2/3 boxes on board"],"top":[],"end":120.89161362763303,"reward":0.0},{"t":120.89161362763303,"action":16,"text":"Deliver 2 medicine and plasma boxes to H4","short":"Deliver at H4","facts":["Tightest box on time with 13 min to spare","Frees 2 of 3 cargo slots","3 orders waiting, 3/3 boxes on board"],"top":[],"end":127.95227379941285,"reward":1.9842969318580543},{"t":127.95227379941285,"action":0,"text":"Pick up sample at H3 for M","short":"Pick sample H3\u2192M","facts":["Due in 48 min, expires in 108 min","3 min flight to H3","4 orders waiting, 1/3 boxes on board"],"top":[],"end":132.97004075237922,"reward":-0.012138902228713278},{"t":132.97004075237922,"action":0,"text":"Pick up sample at H3 for M","short":"Pick sample H3\u2192M","facts":["Due in 49 min, expires in 109 min","Already at the pickup","3 orders waiting, 2/3 boxes on board"],"top":[],"end":134.97004075237922,"reward":0.0},{"t":134.97004075237922,"action":12,"text":"Deliver 2 sample boxes to M","short":"Deliver at M","facts":["Tightest box on time with 34 min to spare","Frees 2 of 3 cargo slots","2 orders waiting, 3/3 boxes on board"],"top":[],"end":141.63425431475233,"reward":1.9875272123928163},{"t":141.63425431475233,"action":13,"text":"Deliver 1 medicine box to H1","short":"Deliver at H1","facts":["Tightest box on time with 29 min to spare","Frees 1 of 1 cargo slots","2 orders waiting, 1/3 boxes on board"],"top":[],"end":147.00557465831196,"reward":0.9864389369126361},{"t":147.00557465831196,"action":22,"text":"Charge at C2 to 80%","short":"Charge C2 to 80%","facts":["Battery 26% now, 23% on arrival","11 min of charging","3 orders waiting, 0/3 boxes on board"],"top":[],"end":159.4078203993703,"reward":-0.003349873734153519},{"t":159.4078203993703,"action":0,"text":"Pick up supplies at H4 for H5","short":"Pick supplies H4\u2192H5","facts":["Due in 26 min, expires in 101 min","2 min flight to H4","3 orders waiting, 0/3 boxes on board"],"top":[],"end":163.32203396174341,"reward":-0.006699747468305262},{"t":163.32203396174341,"action":1,"text":"Pick up supplies at H4 for H5","short":"Pick supplies H4\u2192H5","facts":["Due in 27 min, expires in 102 min","Already at the pickup","3 orders waiting, 1/3 boxes on board"],"top":[],"end":165.32203396174341,"reward":0.0},{"t":165.32203396174341,"action":17,"text":"Deliver 2 supplies boxes to H5","short":"Deliver at H5","facts":["Tightest box on time with 15 min to spare","Frees 2 of 2 cargo slots","3 orders waiting, 2/3 boxes on board"],"top":[],"end":170.9255873523367,"reward":1.9929942253600643},{"t":170.9255873523367,"action":0,"text":"Pick up plasma at M for H4","short":"Pick plasma M\u2192H4","facts":["Due in 19 min, expires in 49 min","2 min flight to M","4 orders waiting, 0/3 boxes on board"],"top":[],"end":174.73624752411652,"reward":-0.006337310601228552},{"t":174.73624752411652,"action":1,"text":"Pick up medicine at M for H4","short":"Pick medicine M\u2192H4","facts":["Due in 57 min, expires in 147 min","Already at the pickup","3 orders waiting, 1/3 boxes on board"],"top":[],"end":176.73624752411652,"reward":0.0},{"t":176.73624752411652,"action":16,"text":"Deliver 2 medicine and plasma boxes to H4","short":"Deliver at H4","facts":["Tightest box on time with 6 min to spare","Frees 2 of 2 cargo slots","2 orders waiting, 2/3 boxes on board"],"top":[],"end":183.79690769589635,"reward":1.9867045455370604},{"t":183.79690769589635,"action":0,"text":"Pick up sample at H5 for M","short":"Pick sample H5\u2192M","facts":["Due in 40 min, expires in 100 min","2 min flight to H5","5 orders waiting, 0/3 boxes on board"],"top":[],"end":187.40046108648963,"reward":-0.005612436867075132},{"t":187.40046108648963,"action":12,"text":"Deliver 1 sample box to M","short":"Deliver at M","facts":["Tightest box on time with 33 min to spare","Frees 1 of 1 cargo slots","4 orders waiting, 1/3 boxes on board"],"top":[],"end":191.21112125826946,"reward":0.9930329480593159},{"t":191.21112125826946,"action":0,"text":"Pick up supplies at H4 for H2","short":"Pick supplies H4\u2192H2","facts":["Due in 50 min, expires in 125 min","3 min flight to H4","5 orders waiting, 0/3 boxes on board"],"top":[],"end":196.2717814300493,"reward":-0.010712310601228126},{"t":196.2717814300493,"action":0,"text":"Pick up sample at H4 for M","short":"Pick sample H4\u2192M","facts":["Due in 47 min, expires in 107 min","Already at the pickup","4 orders waiting, 1/3 boxes on board"],"top":[],"end":198.2717814300493,"reward":0.0},{"t":198.2717814300493,"action":22,"text":"Charge at C2 to 80%","short":"Charge C2 to 80%","facts":["Battery 23% now, 15% on arrival","13 min of charging","3 orders waiting, 2/3 boxes on board"],"top":[],"end":213.17690131541053,"reward":-0.008324445033544237},{"t":213.17690131541053,"action":14,"text":"Deliver 1 supplies box to H2","short":"Deliver at H2","facts":["Tightest box on time with 24 min to spare","Frees 1 of 2 cargo slots","3 orders waiting, 2/3 boxes on board"],"top":[],"end":217.5304547060038,"reward":0.9897649738677998},{"t":217.5304547060038,"action":12,"text":"Deliver 1 sample box to M","short":"Deliver at M","facts":["Tightest box on time with 22 min to spare","Frees 1 of 1 cargo slots","3 orders waiting, 1/3 boxes on board"],"top":[],"end":221.23756148719036,"reward":0.9934559173558917},{"t":221.23756148719036,"action":0,"text":"Pick up medicine at M for H3","short":"Pick medicine M\u2192H3","facts":["Due in 49 min, expires in 139 min","Already at the pickup","3 orders waiting, 0/3 boxes on board"],"top":[],"end":223.23756148719036,"reward":0.0},{"t":223.23756148719036,"action":15,"text":"Deliver 1 medicine box to H3","short":"Deliver at H3","facts":["Tightest box on time with 43 min to spare","Frees 1 of 1 cargo slots","2 orders waiting, 1/3 boxes on board"],"top":[],"end":227.90177504956347,"reward":0.9894092882638468},{"t":227.90177504956347,"action":0,"text":"Pick up medicine at M for H4","short":"Pick medicine M\u2192H4","facts":["Due in 43 min, expires in 133 min","3 min flight to M","2 orders waiting, 0/3 boxes on board"],"top":[],"end":232.56598861193658,"reward":-0.009324747468305361},{"t":232.56598861193658,"action":0,"text":"Pick up medicine at M for H4","short":"Pick medicine M\u2192H4","facts":["Due in 47 min, expires in 137 min","Already at the pickup","1 order waiting, 1/3 boxes on board"],"top":[],"end":234.56598861193658,"reward":0.0},{"t":234.56598861193658,"action":16,"text":"Deliver 2 medicine boxes to H4","short":"Deliver at H4","facts":["Tightest box on time with 29 min to spare","Frees 2 of 2 cargo slots","0 orders waiting, 2/3 boxes on board"],"top":[],"end":241.6266487837164,"reward":1.9868170394549516},{"t":241.6266487837164,"action":22,"text":"Charge at C2 to 80%","short":"Charge C2 to 80%","facts":["Battery 30% now, 23% on arrival","11 min of charging","0 orders waiting, 0/3 boxes on board"],"top":[],"end":254.85631754491357,"reward":-0.006699747468307038},{"t":254.85631754491357,"action":25,"text":"Wait for the next order","short":"Wait","facts":["0 orders waiting, 0/3 boxes on board"],"top":[],"end":264.85631754491357,"reward":0.0},{"t":264.85631754491357,"action":25,"text":"Wait for the next order","short":"Wait","facts":["0 orders waiting, 0/3 boxes on board"],"top":[],"end":269.936342007957,"reward":0.0},{"t":269.936342007957,"action":0,"text":"Pick up sample at H3 for M","short":"Pick sample H3\u2192M","facts":["Due in 60 min, expires in 120 min","1 min flight to H3","1 order waiting, 0/3 boxes on board"],"top":[],"end":273.0398953985503,"reward":-0.0038624368670774345},{"t":273.0398953985503,"action":12,"text":"Deliver 1 sample box to M","short":"Deliver at M","facts":["Tightest box on time with 52 min to spare","Frees 1 of 1 cargo slots","0 orders waiting, 1/3 boxes on board"],"top":[],"end":277.7041089609234,"reward":0.9899798162845244},{"t":277.7041089609234,"action":19,"text":"Charge at C1 (M) to 80%","short":"Charge C1 to 80%","facts":["Battery 66% now, 66% on arrival","3 min of charging","0 orders waiting, 0/3 boxes on board"],"top":[],"end":280.4806330774341,"reward":0.0},{"t":280.4806330774341,"action":25,"text":"Wait for the next order","short":"Wait","facts":["0 orders waiting, 0/3 boxes on board"],"top":[],"end":281.24947695083284,"reward":0.0},{"t":281.24947695083284,"action":0,"text":"Pick up sample at H1 for M","short":"Pick sample H1\u2192M","facts":["Due in 60 min, expires in 120 min","3 min flight to H1","1 order waiting, 0/3 boxes on board"],"top":[],"end":286.6207972943925,"reward":-0.011799621202460031},{"t":286.6207972943925,"action":12,"text":"Deliver 1 sample box to M","short":"Deliver at M","facts":["Tightest box on time with 49 min to spare","Frees 1 of 1 cargo slots","0 orders waiting, 1/3 boxes on board"],"top":[],"end":291.99211763795216,"reward":0.9875079693482824},{"t":291.99211763795216,"action":19,"text":"Charge at C1 (M) to 80%","short":"Charge C1 to 80%","facts":["Battery 56% now, 56% on arrival","5 min of charging","0 orders waiting, 0/3 boxes on board"],"top":[],"end":296.85044800878734,"reward":0.0},{"t":296.85044800878734,"action":25,"text":"Wait for the next order","short":"Wait","facts":["0 orders waiting, 0/3 boxes on board"],"top":[],"end":306.85044800878734,"reward":0.0},{"t":306.85044800878734,"action":25,"text":"Wait for the next order","short":"Wait","facts":["0 orders waiting, 0/3 boxes on board"],"top":[],"end":316.85044800878734,"reward":0.0},{"t":316.85044800878734,"action":25,"text":"Wait for the next order","short":"Wait","facts":["0 orders waiting, 0/3 boxes on board"],"top":[],"end":318.0102799478199,"reward":0.0},{"t":318.0102799478199,"action":0,"text":"Pick up supplies at H2 for H1","short":"Pick supplies H2\u2192H1","facts":["Due in 75 min, expires in 150 min","2 min flight to H2","1 order waiting, 0/3 boxes on board"],"top":[],"end":321.7173867290065,"reward":-0.0059748737341536184},{"t":321.7173867290065,"action":13,"text":"Deliver 1 supplies box to H1","short":"Deliver at H1","facts":["Tightest box on time with 66 min to spare","Frees 1 of 1 cargo slots","0 orders waiting, 1/3 boxes on board"],"top":[],"end":326.67449351019303,"reward":0.9885312935022732},{"t":326.67449351019303,"action":0,"text":"Pick up medicine at M for H5","short":"Pick medicine M\u2192H5","facts":["Due in 89 min, expires in 179 min","3 min flight to M","1 order waiting, 0/3 boxes on board"],"top":[],"end":332.0458138537527,"reward":-0.011799621202460031},{"t":332.0458138537527,"action":0,"text":"Pick up plasma at M for H1","short":"Pick plasma M\u2192H1","facts":["Due in 26 min, expires in 56 min","Already at the pickup","1 order waiting, 1/3 boxes on board"],"top":[],"end":334.0458138537527,"reward":0.0},{"t":334.0458138537527,"action":13,"text":"Deliver 1 plasma box to H1","short":"Deliver at H1","facts":["Tightest box on time with 18 min to spare","Frees 1 of 2 cargo slots","0 orders waiting, 2/3 boxes on board"],"top":[],"end":339.41713419731235,"reward":0.9846613186393007},{"t":339.41713419731235,"action":0,"text":"Pick up plasma at M for H3","short":"Pick plasma M\u2192H3","facts":["Due in 26 min, expires in 56 min","3 min flight to M","1 order waiting, 1/3 boxes on board"],"top":[],"end":344.788454540872,"reward":-0.0135261418079331},{"t":344.788454540872,"action":19,"text":"Charge at C1 (M) to 80%","short":"Charge C1 to 80%","facts":["Battery 22% now, 22% on arrival","12 min of charging","1 order waiting, 2/3 boxes on board"],"top":[],"end":356.41005946146595,"reward":0.0},{"t":356.41005946146595,"action":0,"text":"Pick up plasma at M for H3","short":"Pick plasma M\u2192H3","facts":["Due in 19 min, expires in 49 min","Already at the pickup","3 orders waiting, 2/3 boxes on board"],"top":[],"end":358.41005946146595,"reward":0.0},{"t":358.41005946146595,"action":15,"text":"Deliver 2 plasma boxes to H3","short":"Deliver at H3","facts":["Tightest box on time with 1 min to spare","Frees 2 of 3 cargo slots","2 orders waiting, 3/3 boxes on board"],"top":[],"end":365.07427302383905,"reward":1.986202391651009},{"t":365.07427302383905,"action":0,"text":"Pick up supplies at H5 for H3","short":"Pick supplies H5\u2192H3","facts":["Due in 50 min, expires in 125 min","1 min flight to H5","2 orders waiting, 1/3 boxes on board"],"top":[],"end":368.48848658621216,"reward":-0.0056739945309267625},{"t":368.48848658621216,"action":17,"text":"Deliver 1 medicine box to H5","short":"Deliver at H5","facts":["Tightest box on time with 45 min to spare","Frees 1 of 2 cargo slots","4 orders waiting, 2/3 boxes on board"],"top":[],"end":370.48848658621216,"reward":1.0},{"t":370.48848658621216,"action":0,"text":"Pick up plasma at M for H5","short":"Pick plasma M\u2192H5","facts":["Due in 30 min, expires in 60 min","2 min flight to M","5 orders waiting, 1/3 boxes on board"],"top":[],"end":374.299146757992,"reward":-0.007533104483400166},{"t":374.299146757992,"action":17,"text":"Deliver 1 plasma box to H5","short":"Deliver at H5","facts":["Tightest box on time with 22 min to spare","Frees 1 of 2 cargo slots","4 orders waiting, 2/3 boxes on board"],"top":[],"end":378.1098069297718,"reward":0.9911561381638343},{"t":378.1098069297718,"action":15,"text":"Deliver 1 supplies box to H3","short":"Deliver at H3","facts":["Tightest box on time with 33 min to spare","Frees 1 of 1 cargo slots","4 orders waiting, 1/3 boxes on board"],"top":[],"end":381.5240204921449,"reward":0.9941162794138627},{"t":381.5240204921449,"action":0,"text":"Pick up sample at H4 for M","short":"Pick sample H4\u2192M","facts":["Due in 35 min, expires in 95 min","3 min flight to H4","4 orders waiting, 0/3 boxes on board"],"top":[],"end":386.5417874451113,"reward":-0.01056218433538092},{"t":386.5417874451113,"action":12,"text":"Deliver 1 sample box to M","short":"Deliver at M","facts":["Tightest box on time with 25 min to spare","Frees 1 of 1 cargo slots","6 orders waiting, 1/3 boxes on board"],"top":[],"end":391.60244761689114,"reward":0.988338528372779},{"t":391.60244761689114,"action":19,"text":"Charge at C1 (M) to 80%","short":"Charge C1 to 80%","facts":["Battery 16% now, 16% on arrival","13 min of charging","7 orders waiting, 0/3 boxes on board"],"top":[],"end":404.3936367665367,"reward":0.0},{"t":404.3936367665367,"action":0,"text":"Pick up plasma at M for H1","short":"Pick plasma M\u2192H1","facts":["Due in 18 min, expires in 48 min","Already at the pickup","8 orders waiting, 0/3 boxes on board"],"top":[],"end":406.3936367665367,"reward":0.0},{"t":406.3936367665367,"action":13,"text":"Deliver 1 plasma box to H1","short":"Deliver at H1","facts":["Tightest box on time with 10 min to spare","Frees 1 of 1 cargo slots","7 orders waiting, 1/3 boxes on board"],"top":[],"end":411.76495711009636,"reward":0.9861874009289124},{"t":411.76495711009636,"action":0,"text":"Pick up sample at H1 for M","short":"Pick sample H1\u2192M","facts":["Due in 16 min, expires in 76 min","Already at the pickup","7 orders waiting, 0/3 boxes on board"],"top":[],"end":413.76495711009636,"reward":0.0},{"t":413.76495711009636,"action":12,"text":"Deliver 1 sample box to M","short":"Deliver at M","facts":["Tightest box on time with 8 min to spare","Frees 1 of 1 cargo slots","6 orders waiting, 1/3 boxes on board"],"top":[],"end":419.136277453656,"reward":0.9872952798303558},{"t":419.136277453656,"action":0,"text":"Pick up sample at H2 for M","short":"Pick sample H2\u2192M","facts":["Due in 9 min, expires in 69 min","2 min flight to H2","6 orders waiting, 0/3 boxes on board"],"top":[],"end":422.8433842348426,"reward":-0.0059748737341536184},{"t":422.8433842348426,"action":2,"text":"Pick up sample at H2 for M","short":"Pick sample H2\u2192M","facts":["Due in 22 min, expires in 82 min","Already at the pickup","5 orders waiting, 1/3 boxes on board"],"top":[],"end":424.8433842348426,"reward":0.0},{"t":424.8433842348426,"action":12,"text":"Deliver 2 sample boxes to M","short":"Deliver at M","facts":["Tightest box will be 2 min late","Frees 2 of 2 cargo slots","4 orders waiting, 2/3 boxes on board"],"top":[],"end":430.5504910160291,"reward":1.0931162283064992},{"t":430.5504910160291,"action":0,"text":"Pick up sample at H5 for M","short":"Pick sample H5\u2192M","facts":["Due in 12 min, expires in 72 min","2 min flight to H5","4 orders waiting, 0/3 boxes on board"],"top":[],"end":434.36115118780896,"reward":-0.0063373106012321045},{"t":434.36115118780896,"action":0,"text":"Pick up sample at H5 for M","short":"Pick sample H5\u2192M","facts":["Due in 15 min, expires in 75 min","Already at the pickup","3 orders waiting, 1/3 boxes on board"],"top":[],"end":436.36115118780896,"reward":0.0},{"t":436.36115118780896,"action":12,"text":"Deliver 2 sample boxes to M","short":"Deliver at M","facts":["Tightest box will be 0 min late","Frees 2 of 2 cargo slots","2 orders waiting, 2/3 boxes on board"],"top":[],"end":442.1718113595888,"reward":1.992621178726175},{"t":442.1718113595888,"action":0,"text":"Pick up medicine at M for H3","short":"Pick medicine M\u2192H3","facts":["Due in 32 min, expires in 122 min","Already at the pickup","3 orders waiting, 0/3 boxes on board"],"top":[],"end":444.1718113595888,"reward":0.0},{"t":444.1718113595888,"action":0,"text":"Pick up medicine at M for H4","short":"Pick medicine M\u2192H4","facts":["Due in 84 min, expires in 174 min","Already at the pickup","2 orders waiting, 1/3 boxes on board"],"top":[],"end":446.1718113595888,"reward":0.0},{"t":446.1718113595888,"action":19,"text":"Charge at C1 (M) to 80%","short":"Charge C1 to 80%","facts":["Battery 27% now, 27% on arrival","11 min of charging","1 order waiting, 2/3 boxes on board"],"top":[],"end":456.7902306682757,"reward":0.0},{"t":456.7902306682757,"action":15,"text":"Deliver 1 medicine box to H3","short":"Deliver at H3","facts":["Tightest box on time with 13 min to spare","Frees 1 of 2 cargo slots","3 orders waiting, 2/3 boxes on board"],"top":[],"end":461.4544442306488,"reward":0.98834900288265},{"t":461.4544442306488,"action":0,"text":"Pick up sample at H5 for M","short":"Pick sample H5\u2192M","facts":["Due in 56 min, expires in 116 min","1 min flight to H5","4 orders waiting, 1/3 boxes on board"],"top":[],"end":464.8686577930219,"reward":-0.005510082154799534},{"t":464.8686577930219,"action":0,"text":"Pick up supplies at H5 for H4","short":"Pick supplies H5\u2192H4","facts":["Due in 62 min, expires in 137 min","Already at the pickup","3 orders waiting, 2/3 boxes on board"],"top":[],"end":466.8686577930219,"reward":0.0},{"t":466.8686577930219,"action":12,"text":"Deliver 1 sample box to M","short":"Deliver at M","facts":["Tightest box on time with 46 min to spare","Frees 1 of 3 cargo slots","3 orders waiting, 3/3 boxes on board"],"top":[],"end":470.6793179648017,"reward":0.9913901313482611},{"t":470.6793179648017,"action":0,"text":"Pick up sample at H1 for M","short":"Pick sample H1\u2192M","facts":["Due in 56 min, expires in 116 min","3 min flight to H1","3 orders waiting, 2/3 boxes on board"],"top":[],"end":476.0506383083614,"reward":-0.015308242646348447},{"t":476.0506383083614,"action":12,"text":"Deliver 1 sample box to M","short":"Deliver at M","facts":["Tightest box on time with 45 min to spare","Frees 1 of 3 cargo slots","5 orders waiting, 3/3 boxes on board"],"top":[],"end":481.42195865192105,"reward":0.983687305307221},{"t":481.42195865192105,"action":0,"text":"Pick up plasma at M for H4","short":"Pick plasma M\u2192H4","facts":["Due in 20 min, expires in 50 min","Already at the pickup","5 orders waiting, 2/3 boxes on board"],"top":[],"end":483.42195865192105,"reward":0.0},{"t":483.42195865192105,"action":19,"text":"Charge at C1 (M) to 80%","short":"Charge C1 to 80%","facts":["Battery 23% now, 23% on arrival","11 min of charging","4 orders waiting, 3/3 boxes on board"],"top":[],"end":494.90033570452437,"reward":0.0},{"t":494.90033570452437,"action":16,"text":"Deliver 3 medicine and plasma and supplies boxes to H4","short":"Deliver at H4","facts":["Tightest box will be 2 min late","Frees 3 of 3 cargo slots","4 orders waiting, 3/3 boxes on board"],"top":[],"end":503.9609958763042,"reward":2.9841065814746983},{"t":503.9609958763042,"action":0,"text":"Pick up medicine at M for H1","short":"Pick medicine M\u2192H1","facts":["Due in 38 min, expires in 128 min","3 min flight to M","4 orders waiting, 0/3 boxes on board"],"top":[],"end":509.021656048084,"reward":-0.010712310601228126},{"t":509.021656048084,"action":13,"text":"Deliver 1 medicine box to H1","short":"Deliver at H1","facts":["Tightest box on time with 28 min to spare","Frees 1 of 1 cargo slots","3 orders waiting, 1/3 boxes on board"],"top":[],"end":514.3929763916436,"reward":0.9868202436697047},{"t":514.3929763916436,"action":0,"text":"Pick up supplies at H4 for H2","short":"Pick supplies H4\u2192H2","facts":["Due in 34 min, expires in 109 min","2 min flight to H4","3 orders waiting, 0/3 boxes on board"],"top":[],"end":518.4965297822368,"reward":-0.1073624368670778},{"t":518.4965297822368,"action":14,"text":"Deliver 1 supplies box to H2","short":"Deliver at H2","facts":["Tightest box on time with 25 min to spare","Frees 1 of 1 cargo slots","1 order waiting, 1/3 boxes on board"],"top":[],"end":522.5571899540166,"reward":0.9918323693580504},{"t":522.5571899540166,"action":19,"text":"Charge at C1 (M) to 80%","short":"Charge C1 to 80%","facts":["Battery 25% now, 19% on arrival","12 min of charging","1 order waiting, 0/3 boxes on board"],"top":[],"end":536.5223820752042,"reward":-0.0059748737341536184},{"t":536.5223820752042,"action":0,"text":"Pick up supplies at H3 for H4","short":"Pick supplies H3\u2192H4","facts":["Due in 14 min, expires in 89 min","3 min flight to H3","1 order waiting, 0/3 boxes on board"],"top":[],"end":541.1865956375773,"reward":-0.009324747468305361},{"t":541.1865956375773,"action":16,"text":"Deliver 1 supplies box to H4","short":"Deliver at H4","facts":["Tightest box on time with 4 min to spare","Frees 1 of 1 cargo slots","0 orders waiting, 1/3 boxes on board"],"top":[],"end":546.2043625905436,"reward":0.9875672967926832}]};
+
+// core:start — state at time t from the record; the tests run exactly this code in Node
+const EPS = 1e-9;
+function lastIndex(arr, t, key) {  // last index whose key is <= t, or -1
+  let lo = 0, hi = arr.length - 1, ans = -1;
+  while (lo <= hi) { const mid = (lo + hi) >> 1;
+    if (key(arr[mid]) <= t + EPS) { ans = mid; lo = mid + 1; } else hi = mid - 1; }
+  return ans;
+}
+function along(path, f) {  // the point at fraction f of a polyline's length
+  const len = []; let total = 0;
+  for (let i = 1; i < path.length; i++) {
+    const d = Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]); len.push(d); total += d; }
+  let goal = Math.min(Math.max(f, 0), 1) * total;
+  for (let i = 0; i < len.length; i++) {
+    if (goal <= len[i] || i === len.length - 1) { const g = len[i] ? Math.min(1, goal / len[i]) : 1;
+      return [path[i][0] + g * (path[i + 1][0] - path[i][0]), path[i][1] + g * (path[i + 1][1] - path[i][1])]; }
+    goal -= len[i];
+  }
+  return path[path.length - 1];
+}
+function stateAt(R, t) {
+  const segs = R.segments, nodes = R.map.nodes;
+  const i = lastIndex(segs, t, (s) => s[1]);
+  let xy = [nodes[0].x, nodes[0].y], battery = segs.length ? segs[0][5] : 100, active = null, f = 1;
+  if (i >= 0) {
+    const [kind, t0, t1, a, b, b0, b1] = segs[i];
+    f = t1 > t0 ? Math.min(1, Math.max(0, (t - t0) / (t1 - t0))) : 1;
+    battery = b0 + f * (b1 - b0);
+    xy = kind === "fly" && f < 1 ? along(R.map.routes[a + "-" + b], f) : [nodes[b].x, nodes[b].y];
+    if (f < 1) active = segs[i];
+  }
+  const cargo = [], waiting = []; let on_time = 0, late = 0, expired = 0;
+  for (const o of R.orders) {
+    if (o.release > t + EPS) continue;
+    const picked = o.pickup !== null && o.pickup <= t + EPS;
+    const closed = o.end !== null && o.end <= t + EPS;
+    if (o.status === "delivered" && closed) { if (o.end - o.release <= o.limit + EPS) on_time++; else late++; continue; }
+    if (o.status === "expired" && closed) expired++;
+    if (picked) { if (!(o.disposed !== null && o.disposed <= t + EPS)) cargo.push(o.id); }
+    else if (!closed) waiting.push(o.id);
+  }
+  cargo.sort((p, q) => p - q); waiting.sort((p, q) => p - q);
+  return { xy, battery, active, f, cargo, waiting, on_time, late, expired,
+           decision: lastIndex(R.decisions, t, (d) => d.t) };
+}
+// core:end
+
+(() => {
+  const D = DATA, M = D.meta, END = M.end;
+  const TYPE = ["plasma", "medicine", "sample", "supplies"];
+  const LABEL = ["Plasma", "Medicine", "Sample", "Supplies"];
+  const css = getComputedStyle(document.documentElement);
+  const color = (name) => css.getPropertyValue("--" + name).trim();
+  const NS = "http://www.w3.org/2000/svg";
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+  const text = (parent, attrs, s) => { const e = el("text", attrs, parent); e.textContent = s; return e; };
+  const nodes = D.map.nodes, segs = D.segments, orders = D.orders, decs = D.decisions;
+  const byId = new Map(orders.map((o) => [o.id, o]));
+  const clock = (t) => { const m = Math.floor(M.day_start_hour * 60 + t + 1e-9);
+    return String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0"); };
+  const mins = (x) => Math.round(x) + " min";
+  const onTime = (o) => o.end - o.release <= o.limit + EPS;
+
+  // ---------- map ----------
+  const map = $("map"), S = D.map.size, PAD = 0.18;
+  map.setAttribute("viewBox", `${-PAD} ${-PAD} ${S + 2 * PAD} ${S + 2 * PAD}`);
+  const defs = el("defs", {}, map);
+  const hatch = el("pattern", { id: "hatch", width: 0.09, height: 0.09, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, defs);
+  el("rect", { width: 0.09, height: 0.09, fill: "#eef1f5" }, hatch);
+  el("line", { x1: 0, y1: 0, x2: 0, y2: 0.09, stroke: "#c3cbd6", "stroke-width": 0.03 }, hatch);
+  el("rect", { x: 0, y: 0, width: S, height: S, fill: color("panel"), stroke: color("line"), "stroke-width": 0.012, rx: 0.04 }, map);
+  for (let k = 0.5; k < S; k += 0.5) {
+    el("line", { x1: k, y1: 0, x2: k, y2: S, stroke: color("wash"), "stroke-width": 0.008 }, map);
+    el("line", { x1: 0, y1: k, x2: S, y2: k, stroke: color("wash"), "stroke-width": 0.008 }, map);
+  }
+  for (const [x, y, w, h] of D.map.zones)
+    el("rect", { x, y, width: w, height: h, fill: "url(#hatch)", stroke: "#b8c1cd", "stroke-width": 0.01, rx: 0.02 }, map);
+  el("line", { x1: 0.12, y1: S - 0.14, x2: 1.12, y2: S - 0.14, stroke: color("ink"), "stroke-width": 0.02 }, map);
+  text(map, { x: 0.62, y: S - 0.2, "font-size": 0.11, "text-anchor": "middle", fill: color("ink") }, "1 km");
+  text(map, { x: S - 0.08, y: S - 0.1, "font-size": 0.1, "text-anchor": "end", fill: color("muted") }, `${S} × ${S} km`);
+  const routeDone = el("polyline", { fill: "none", stroke: color("ink"), "stroke-width": 0.03, "stroke-linecap": "round", "stroke-linejoin": "round" }, map);
+  const routeLeft = el("polyline", { fill: "none", stroke: color("ink"), "stroke-width": 0.022, "stroke-dasharray": "0.06 0.05", opacity: 0.6, "stroke-linecap": "round" }, map);
+  const target = el("circle", { r: 0.165, fill: "none", stroke: color("ink"), "stroke-width": 0.022, "stroke-dasharray": "0.05 0.04" }, map);
+  const nodeLayer = el("g", {}, map), waitLayer = el("g", {}, map), popLayer = el("g", {}, map);
+  const boltPath = (x, y, s) => `M${x + 0.015 * s} ${y - 0.09 * s} L${x - 0.045 * s} ${y + 0.01 * s} L${x + 0.005 * s} ${y + 0.01 * s} L${x - 0.015 * s} ${y + 0.09 * s} L${x + 0.05 * s} ${y - 0.015 * s} L${x} ${y - 0.015 * s} Z`;
+  nodes.forEach((n) => {
+    if (n.role === "center") {
+      el("circle", { cx: n.x, cy: n.y, r: 0.17, fill: "none", stroke: color("ontime"), "stroke-width": 0.02 }, nodeLayer);
+      el("rect", { x: n.x - 0.1, y: n.y - 0.1, width: 0.2, height: 0.2, rx: 0.03, fill: color("ink") }, nodeLayer);
+    } else if (n.role === "charger") {
+      el("circle", { cx: n.x, cy: n.y, r: 0.13, fill: color("panel"), stroke: color("ontime"), "stroke-width": 0.025 }, nodeLayer);
+      el("path", { d: boltPath(n.x, n.y, 1), fill: color("ontime") }, nodeLayer);
+    } else el("circle", { cx: n.x, cy: n.y, r: 0.09, fill: color("panel"), stroke: color("ink"), "stroke-width": 0.03 }, nodeLayer);
+    const up = n.y > 0.45;
+    text(nodeLayer, { x: n.x, y: up ? n.y - 0.27 : n.y + 0.37, "font-size": 0.13, "font-weight": 650, "text-anchor": "middle", fill: color("ink") },
+      n.role === "center" ? "M · C1" : n.name);
+  });
+  const drone = el("g", {}, map);
+  el("circle", { r: 0.16, fill: color("panel"), opacity: 0.9 }, drone);
+  for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+    el("line", { x1: 0, y1: 0, x2: dx * 0.075, y2: dy * 0.075, stroke: color("ink"), "stroke-width": 0.025 }, drone);
+    el("circle", { cx: dx * 0.085, cy: dy * 0.085, r: 0.04, fill: "none", stroke: color("ink"), "stroke-width": 0.018 }, drone);
+  }
+  el("circle", { r: 0.035, fill: color("ink") }, drone);
+  const cargoMarks = [0, 1, 2].map(() => el("rect", { width: 0.075, height: 0.075, rx: 0.012 }, drone));
+  const droneBolt = el("path", { d: boltPath(0.21, -0.17, 0.9), fill: color("ontime") }, drone);  // clear of the label
+
+  const sym = {
+    center: '<svg viewBox="0 0 14 14"><rect x="3" y="3" width="8" height="8" rx="1.5" fill="var(--ink)"/></svg>',
+    hospital: '<svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="4" fill="#fff" stroke="var(--ink)" stroke-width="1.6"/></svg>',
+    charger: '<svg viewBox="0 0 14 14"><path d="M8 1 3 8h4l-1 5 5-7H7z" fill="var(--ontime)"/></svg>',
+    zone: '<svg viewBox="0 0 14 14"><defs><pattern id="hl" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="4" height="4" fill="#eef1f5"/><line x1="0" y1="0" x2="0" y2="4" stroke="#c3cbd6" stroke-width="1.5"/></pattern></defs><rect width="14" height="14" fill="url(#hl)"/></svg>',
+  };
+  $("legend").innerHTML = `<span>${sym.center}Medical center M, charger C1</span><span>${sym.hospital}Hospital</span><span>${sym.charger}Charger C2</span><span>${sym.zone}No-fly zone</span>`
+    + TYPE.map((n, i) => `<span><i class="dot" style="background:var(--${n})"></i>${LABEL[i]}, on time within ${D.types[i].limit} min</span>`).join("");
+
+  function drawMap(s, t) {
+    drone.setAttribute("transform", `translate(${s.xy[0]} ${s.xy[1]})`);
+    cargoMarks.forEach((r, k) => { const o = byId.get(s.cargo[k]);
+      r.setAttribute("x", -0.1125 + k * 0.08); r.setAttribute("y", 0.13);
+      r.setAttribute("fill", o ? (o.status === "expired" && o.end <= t + EPS ? color("faint") : color(TYPE[o.type])) : "none");
+      r.setAttribute("stroke", o ? "none" : color("faint")); r.setAttribute("stroke-width", 0.01); });
+    droneBolt.setAttribute("opacity", s.active && s.active[0] === "charge" ? 1 : 0);
+    if (s.active && s.active[0] === "fly") {
+      const path = D.map.routes[s.active[3] + "-" + s.active[4]];
+      const cum = [0]; let total = 0;
+      for (let i = 1; i < path.length; i++) { total += Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]); cum.push(total); }
+      const done = path.filter((_, i) => cum[i] <= s.f * total).concat([s.xy]);
+      const left = [s.xy].concat(path.filter((_, i) => cum[i] > s.f * total));
+      routeDone.setAttribute("points", done.map((p) => p.join(",")).join(" "));
+      routeLeft.setAttribute("points", left.map((p) => p.join(",")).join(" "));
+      const n = nodes[s.active[4]]; target.setAttribute("cx", n.x); target.setAttribute("cy", n.y); target.setAttribute("opacity", 1);
+    } else { routeDone.setAttribute("points", ""); routeLeft.setAttribute("points", ""); target.setAttribute("opacity", 0); }
+    waitLayer.replaceChildren();
+    const byNode = {};
+    for (const id of s.waiting) { const o = byId.get(id); (byNode[o.from] = byNode[o.from] || []).push(o); }
+    for (const k in byNode) {
+      const n = nodes[k], list = byNode[k].sort((a, b) => a.deadline - b.deadline);
+      list.slice(0, 6).forEach((o, j) => el("rect", { x: n.x + 0.22 + (j % 3) * 0.085, y: n.y - 0.1 + Math.floor(j / 3) * 0.085,
+        width: 0.065, height: 0.065, rx: 0.012, fill: color(TYPE[o.type]), stroke: t > o.deadline ? color("late") : "none", "stroke-width": 0.02 }, waitLayer));
+      if (list.length > 6) text(waitLayer, { x: n.x + 0.22, y: n.y + 0.17, "font-size": 0.085, fill: color("muted") }, "+" + (list.length - 6));
+    }
+    // outcomes of the last few simulated minutes, where they happened
+    popLayer.replaceChildren();
+    const shown = {};
+    for (const o of orders) {
+      if (o.end === null || o.end > t + EPS || t - o.end > 4) continue;
+      const node = o.status === "delivered" ? o.to : (o.pickup !== null ? null : o.from);
+      if (node === null) continue;
+      const k = shown[node] = (shown[node] || 0) + 1;
+      const n = nodes[node], good = o.status === "delivered" && onTime(o);
+      const label = o.status === "delivered" ? (good ? "✓ on time" : "late") : "✕ expired";
+      const c = o.status === "delivered" ? (good ? color("ontime") : color("late")) : color("expired");
+      const g = el("g", { opacity: Math.max(0.25, 1 - (t - o.end) / 4) }, popLayer);
+      const y = n.y - 0.42 - (k - 1) * 0.17;
+      el("rect", { x: n.x - 0.27, y: y - 0.1, width: 0.54, height: 0.15, rx: 0.075, fill: c }, g);
+      text(g, { x: n.x, y: y + 0.01, "font-size": 0.085, "font-weight": 700, "text-anchor": "middle", fill: "#fff" }, label);
+    }
+  }
+
+  // ---------- side panel ----------
+  const icon = {
+    ontime: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="var(--ontime)"/><path d="m4.5 8.2 2.3 2.3 4.7-4.9" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    late: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="var(--late)"/><path d="M8 4v4.5l3 1.8" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    expired: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="var(--expired)"/><path d="m5.2 5.2 5.6 5.6m0-5.6-5.6 5.6" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    waiting: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2" fill="none" stroke="var(--muted)" stroke-width="1.6"/><circle cx="8" cy="8" r="2" fill="var(--muted)"/></svg>' };
+  function dueText(o, t) {
+    if (o.status === "expired" && o.end <= t + EPS) return [`expired ${clock(o.end)}`, "bad"];
+    const left = o.deadline - t;
+    if (left >= 0) return [`due in ${mins(left)}`, left < 10 ? "warn" : ""];
+    return [`late ${mins(-left)} · expires in ${mins(o.expiry - t)}`, "warn"];
+  }
+  function orderRow(o, t, cls, focus) {
+    const [due, dcls] = dueText(o, t);
+    return `<div class="${cls}${focus ? " focus" : ""}"><i class="dot" style="background:var(--${TYPE[o.type]})"></i>`
+      + `<span class="what">${LABEL[o.type]} ${nodes[o.from].name} → ${nodes[o.to].name} <span class="note num">${o.kg.toFixed(2)} kg</span></span>`
+      + `<span class="due num ${dcls}">${due}</span></div>`;
+  }
+  const during = (x, d) => x !== null && x > d.t + EPS && x <= d.end + EPS;
+  function concerned(d) {
+    const ids = new Set();
+    if (d) for (const o of orders) if (during(o.pickup, d) || (o.status === "delivered" && during(o.end, d))) ids.add(o.id);
+    return ids;
+  }
+  function resultText(d) {
+    let ot = 0, lt = 0, picked = 0;
+    for (const o of orders) {
+      if (during(o.pickup, d)) picked++;
+      if (o.status === "delivered" && during(o.end, d)) onTime(o) ? ot++ : lt++;
+    }
+    const parts = [];
+    if (ot) parts.push(`${ot} delivered on time`);
+    if (lt) parts.push(`${lt} delivered late`);
+    if (picked) parts.push(`${picked} picked up`);
+    return parts.length ? parts.join(", ") : `done at ${clock(d.end)}`;
+  }
+  function drawSide(s, t) {
+    $("clock").textContent = clock(t);
+    $("clocksub").textContent = t >= M.release_window ? "no new orders after 16:00" : "simulated time";
+    $("counters").innerHTML = [["ontime", s.on_time, "on time"], ["late", s.late, "late"], ["expired", s.expired, "expired"], ["waiting", s.waiting.length, "waiting"]]
+      .map(([k, n, l]) => `<span class="chip">${icon[k]}<span class="n num">${n}</span><small>${l}</small></span>`).join("");
+    const d = decs[s.decision];
+    if (t >= END - 1e-6) {
+      const sm = M.summary;
+      $("decnum").textContent = `Day complete · ${clock(END)}`;
+      $("action").textContent = `${sm.on_time} of ${sm.orders} orders delivered on time (${(100 * sm.on_time / sm.orders).toFixed(1)}%)`;
+      $("phase").textContent = `${decs.length} decisions`;
+      $("facts").innerHTML = "";
+      $("probs").innerHTML = `<div class="summary"><div><span class="note">Delivered</span><b class="num">${sm.delivered}</b></div><div><span class="note">Late</span><b class="num">${sm.delivered - sm.on_time}</b></div>`
+        + `<div><span class="note">Expired</span><b class="num">${sm.expired}</b></div><div><span class="note">Distance flown</span><b class="num">${sm.km.toFixed(1)} km</b></div></div>`;
+      $("prev").textContent = "";
+    } else if (d) {
+      $("decnum").textContent = `Decision ${s.decision + 1} of ${decs.length} · ${clock(d.t)}`;
+      $("action").textContent = d.text;
+      $("phase").textContent = Math.abs(t - d.t) < 0.02 ? "Deciding" : t < d.end - EPS ? `In progress · done at ${clock(d.end)}` : "Done · " + resultText(d);
+      $("facts").innerHTML = d.facts.map((x) => `<li>${x}</li>`).join("");
+      $("probs").innerHTML = d.top.length ? `<div class="eyebrow">The network's top choices</div>` + d.top.map((p, k) =>
+        `<div class="prob${k === 0 ? " chosen" : ""}"><span class="lab">${p[0]}</span><span class="pct num">${(p[1] * 100).toFixed(1)}%</span><span class="bar"><i style="width:${(p[1] * 100).toFixed(1)}%"></i></span></div>`).join("")
+        + `<div class="note">Policy probabilities, not chances of success.</div>` : "";
+      const p = decs[s.decision - 1];
+      $("prev").textContent = p ? `Before: ${p.text} — ${resultText(p)}` : "";
+    } else {
+      $("decnum").textContent = "Start of the day"; $("action").textContent = "Waiting for the first order";
+      $("phase").textContent = ""; $("facts").innerHTML = ""; $("probs").innerHTML = ""; $("prev").textContent = "";
+    }
+    const b = s.battery;
+    $("battpct").textContent = b.toFixed(0) + "%";
+    $("battfill").style.width = b + "%";
+    $("battfill").className = b < M.reserve + 10 ? "low" : "";
+    $("reserve").style.left = M.reserve + "%";
+    $("battnote").textContent = s.active && s.active[0] === "charge" ? `charging to ${s.active[6].toFixed(0)}%` : `reserve ${M.reserve}%`;
+    const cargo = s.cargo.map((id) => byId.get(id)).sort((a, b) => a.pickup - b.pickup);
+    const kg = cargo.reduce((a, o) => a + o.kg, 0);
+    $("cargonote").textContent = `${cargo.length}/${M.max_boxes} boxes · ${kg.toFixed(2)}/${M.max_kg.toFixed(2)} kg`;
+    const focus = concerned(d);
+    $("slots").innerHTML = [0, 1, 2].map((k) => cargo[k] ? orderRow(cargo[k], t, "slot", focus.has(cargo[k].id))
+      : `<div class="slot empty"><i class="dot"></i><span>Empty slot</span><span></span></div>`).join("");
+    const waiting = s.waiting.map((id) => byId.get(id)).sort((a, b) => a.deadline - b.deadline || a.id - b.id);
+    const recent = orders.filter((o) => o.status === "expired" && o.pickup === null && o.end <= t + EPS && t - o.end < 20);
+    const shown = waiting.slice(0, 5);
+    $("queue").innerHTML = recent.map((o) => orderRow(o, t, "row gone", false)).join("")
+      + shown.map((o) => orderRow(o, t, "row", focus.has(o.id))).join("")
+      + (waiting.length > shown.length ? `<div class="more">+${waiting.length - shown.length} more waiting</div>` : "")
+      + (!waiting.length && !recent.length ? `<div class="more">No orders waiting</div>` : "");
+    $("queuenote").textContent = `${waiting.length} waiting · most urgent first`;
+  }
+
+  // ---------- timeline ----------
+  const tl = $("timeline"), W = 1000, H = 132, L = 52, Rm = 12;
+  tl.setAttribute("viewBox", `0 0 ${W} ${H}`); tl.setAttribute("preserveAspectRatio", "none");
+  const X = (t) => L + (W - L - Rm) * t / END;
+  const BT = 14, BH = 50, DT = 74, EV = 88;
+  for (const [a, b] of M.peaks) el("rect", { x: X(a), y: 4, width: X(b) - X(a), height: H - 24, fill: color("wash") }, tl);
+  text(tl, { x: X(M.peaks[0][0]) + 4, y: 12, "font-size": 9, fill: color("muted") }, "demand peak");
+  if (M.release_window < END) {
+    el("line", { x1: X(M.release_window), y1: 4, x2: X(M.release_window), y2: H - 20, stroke: color("faint"), "stroke-dasharray": "3 3" }, tl);
+    text(tl, { x: X(M.release_window) + 4, y: 12, "font-size": 9, fill: color("muted") }, "last orders");
+  }
+  for (let h = 0; h * 60 <= END; h++) {
+    el("line", { x1: X(h * 60), y1: H - 20, x2: X(h * 60), y2: H - 16, stroke: color("faint") }, tl);
+    text(tl, { x: X(h * 60), y: H - 5, "font-size": 10, "text-anchor": "middle", fill: color("muted") }, clock(h * 60));
+  }
+  const by = (b) => BT + BH * (1 - b / 100);
+  const pts = segs.map((s) => [X(s[1]), by(s[5])]).concat(segs.length ? [[X(segs[segs.length - 1][2]), by(segs[segs.length - 1][6])]] : []);
+  if (pts.length) {
+    el("path", { d: `M${pts[0][0]},${by(0)} ` + pts.map((p) => "L" + p.join(",")).join(" ") + ` L${pts[pts.length - 1][0]},${by(0)} Z`, fill: color("ontime"), opacity: 0.12 }, tl);
+    el("polyline", { points: pts.map((p) => p.join(",")).join(" "), fill: "none", stroke: color("ontime"), "stroke-width": 1.4 }, tl);
+  }
+  el("line", { x1: L, y1: by(M.reserve), x2: W - Rm, y2: by(M.reserve), stroke: color("ink"), "stroke-dasharray": "2 3", opacity: 0.4 }, tl);
+  for (const [s, v] of [["100%", 100], ["battery", 55], [`${M.reserve}%`, M.reserve]]) text(tl, { x: L - 6, y: by(v) + 3, "font-size": 9, "text-anchor": "end", fill: color("muted") }, s);
+  text(tl, { x: L - 6, y: DT + 3, "font-size": 9, "text-anchor": "end", fill: color("muted") }, "decisions");
+  text(tl, { x: L - 6, y: EV + 3, "font-size": 9, "text-anchor": "end", fill: color("muted") }, "outcomes");
+  for (const d of decs) el("line", { x1: X(d.t), y1: DT - 4, x2: X(d.t), y2: DT + 4, stroke: color("faint"), "stroke-width": 0.8 }, tl);
+  for (const o of orders) {
+    if (o.end === null) continue;
+    if (o.status === "delivered") el("circle", { cx: X(o.end), cy: EV, r: 2.6, fill: onTime(o) ? color("ontime") : color("late") }, tl);
+    else { const x = X(o.end); el("path", { d: `M${x - 3},${EV - 3} L${x + 3},${EV + 3} M${x + 3},${EV - 3} L${x - 3},${EV + 3}`, stroke: color("expired"), "stroke-width": 1.6 }, tl); }
+  }
+  const cursor = el("line", { y1: 2, y2: H - 18, stroke: color("ink"), "stroke-width": 1.5 }, tl);
+  const knob = el("circle", { r: 4.5, cy: H - 18, fill: color("ink") }, tl);
+  tl.setAttribute("aria-valuemax", END.toFixed(0));
+
+  // ---------- playback ----------
+  // smart: flights at 1 simulated min per second, everything else at 8, a short pause at each decision
+  const SPEEDS = [["smart", "Smart"], [1, "1"], [5, "5"], [15, "15"]];
+  const FLY_RATE = 1, GROUND_RATE = 8, HOLD_MS = 600;
+  let t = 0, playing = false, speed = "smart", last = null, holdUntil = 0;
+  $("speeds").innerHTML = SPEEDS.map(([v, l]) => `<button data-s="${v}" aria-pressed="${v === speed}">${l}</button>`).join("");
+  const rateAt = (s) => speed !== "smart" ? speed : (s.active && s.active[0] === "fly" ? FLY_RATE : GROUND_RATE);
+  function speedNote(s) {
+    if (speed !== "smart") return `${speed} simulated min per second`;
+    if (!playing) return `flights ${FLY_RATE}, other activity ${GROUND_RATE} simulated min per second`;
+    return s.active && s.active[0] === "fly" ? `flying · ${FLY_RATE} simulated min per second` : `fast-forward · ${GROUND_RATE} simulated min per second`;
+  }
+  function render() {
+    const s = stateAt(D, t);
+    drawMap(s, t); drawSide(s, t);
+    cursor.setAttribute("x1", X(t)); cursor.setAttribute("x2", X(t)); knob.setAttribute("cx", X(t));
+    tl.setAttribute("aria-valuenow", t.toFixed(0)); tl.setAttribute("aria-valuetext", clock(t));
+    $("speednote").textContent = speedNote(s);
+    $("play").innerHTML = playing
+      ? '<svg viewBox="0 0 16 16"><rect x="3" y="2.5" width="3.6" height="11" rx="1" fill="currentColor"/><rect x="9.4" y="2.5" width="3.6" height="11" rx="1" fill="currentColor"/></svg>Pause'
+      : '<svg viewBox="0 0 16 16"><path d="M4 2.5v11l9.5-5.5z" fill="currentColor"/></svg>Play';
+  }
+  function seek(v) { t = Math.max(0, Math.min(END, v)); render(); }
+  function frame(now) {
+    if (!playing) { last = null; return; }
+    if (last !== null && now >= holdUntil) {
+      const s = stateAt(D, t);
+      let next = t + rateAt(s) * (now - Math.max(last, holdUntil)) / 1000;
+      const nd = decs.find((d) => d.t > t + EPS);
+      if (nd && next >= nd.t) {
+        next = nd.t;
+        if ($("stopeach").checked) { t = next; playing = false; render(); return; }
+        if (speed === "smart") holdUntil = now + HOLD_MS;
+      }
+      t = Math.min(END, next);
+      if (t >= END) playing = false;
+      render();
+    }
+    last = now; requestAnimationFrame(frame);
+  }
+  function play(on) { playing = on; if (on && t >= END - 1e-6) t = 0; holdUntil = 0; render(); if (on) requestAnimationFrame(frame); }
+  function gotoDecision(dir) {
+    const i = lastIndex(decs, t, (d) => d.t);
+    const k = dir > 0 ? i + 1 : (decs[i] && Math.abs(decs[i].t - t) < 0.02 ? i - 1 : i);
+    playing = false;
+    if (decs[k]) seek(decs[k].t); else if (dir > 0) seek(END);
+  }
+  $("play").onclick = () => play(!playing);
+  $("restart").onclick = () => { playing = false; seek(0); };
+  $("prevd").onclick = () => gotoDecision(-1);
+  $("nextd").onclick = () => gotoDecision(1);
+  $("speeds").onclick = (e) => { const b = e.target.closest("button"); if (!b) return;
+    speed = b.dataset.s === "smart" ? "smart" : +b.dataset.s;
+    for (const x of $("speeds").children) x.setAttribute("aria-pressed", String(x.dataset.s === String(speed)));
+    render(); };
+  const fromPointer = (e) => { const r = tl.getBoundingClientRect(); return ((e.clientX - r.left) / r.width * W - L) / (W - L - Rm) * END; };
+  let dragging = false;
+  tl.addEventListener("pointerdown", (e) => { dragging = true; tl.setPointerCapture(e.pointerId); playing = false; seek(fromPointer(e)); });
+  tl.addEventListener("pointermove", (e) => { if (dragging) seek(fromPointer(e)); });
+  tl.addEventListener("pointerup", () => { dragging = false; });
+  document.addEventListener("keydown", (e) => {
+    if (e.target.closest && e.target.closest("input, button, summary") && (e.key === " " || e.key === "Enter")) return;
+    if (e.key === " ") { e.preventDefault(); play(!playing); }
+    else if (e.key === "ArrowRight") { e.preventDefault(); gotoDecision(1); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); gotoDecision(-1); }
+    else if (e.key === "Home") { playing = false; seek(0); }
+    else if (e.key === "End") { playing = false; seek(END); }
+  });
+  document.addEventListener("visibilitychange", () => { if (document.hidden && playing) play(false); });
+
+  // ---------- moments worth a look ----------
+  const marks = [];
+  // the network's closest call: deliver or charge if there is one, else any
+  const calls = decs.filter((d) => d.top.length > 1).sort((a, b) => (a.top[0][1] - a.top[1][1]) - (b.top[0][1] - b.top[1][1]));
+  const tradeoff = calls.find((d) => d.text.startsWith("Deliver") && d.top[1][0].startsWith("Charge"));
+  const close = tradeoff || calls[0];
+  if (close) marks.push([tradeoff ? "Deliver now or charge first?" : "A close call", close.t]);
+  const hub = decs.findIndex((d, i) => d.text.startsWith("Charge at C1") && decs[i + 1] && decs[i + 1].text.includes(" at M for"));
+  if (hub >= 0) marks.push(["Charging at the medical center", decs[hub].t + 0.5]);
+  const lost = orders.filter((o) => o.status === "expired").sort((a, b) => a.end - b.end)[0];
+  if (lost) marks.push(["An order expires", lost.end + 0.05]);
+  marks.push(["End of the day", END]);
+  for (const [label, at] of marks) {
+    const b = document.createElement("button"); b.textContent = label;
+    b.onclick = () => { playing = false; seek(at); };
+    $("marks").appendChild(b);
+    if (at < END) el("path", { d: `M${X(at) - 4},2 L${X(at) + 4},2 L${X(at)},8 Z`, fill: color("ink") }, tl);
+  }
+
+  $("title").textContent = M.policy;
+  document.title = "UAV Dispatch Replay · " + M.policy;
+  $("sub").textContent = `${M.load[0].toUpperCase() + M.load.slice(1)} load · demand seed ${M.seed} · map ${M.map_seed}`;
+  const peak = decs.find((d) => d.t >= M.peaks[0][0]) || decs[0];
+  seek(close ? close.t : (peak ? peak.t : 0));  // open on a moment worth reading
+})();
+</script>
+</body>
+</html>

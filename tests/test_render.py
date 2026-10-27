@@ -45,14 +45,6 @@ def test_env_render_rgb_array():
     assert frame.ndim == 3 and frame.shape[2] == 3
 
 
-def test_frame_times_every_minute_then_the_end():
-    from medical_uav.env.render import frame_times
-
-    assert frame_times(3.0) == pytest.approx([0.0, 1.0, 2.0, 3.0])
-    assert frame_times(2.5) == pytest.approx([0.0, 1.0, 2.0, 2.5])
-    assert frame_times(0.0) == [0.0]
-
-
 def test_save_animation_streams_generator(tmp_path):
     import imageio.v2 as imageio
 
@@ -147,40 +139,6 @@ def test_every_order_type_has_a_colour():
 LOG = [(10.0, "PICK medicine M->H2", 0.0), (15.0, "DELIVER(H2)", 1.0), (20.0, "WAIT", 0.0)]
 
 
-def test_explanation_holds_each_decision():
-    from medical_uav.env.render import explanation_times
-
-    frames = explanation_times(LOG, 0, 3, hold_s=2.0, travel_s=3.0, fps=12, t_end=25.0)
-    assert len(frames) >= 3 * (2 * 2 + 3) * 12
-    for n, (t0, label, _) in enumerate(LOG, start=1):
-        held = [t == t0 and label in caption and f"Decision {n}" in caption
-                for t, caption in frames]
-        longest, run = 0, 0
-        for h in held:
-            run = run + 1 if h else 0
-            longest = max(longest, run)
-        assert longest >= 24
-
-
-def test_explanation_near_end_of_day():
-    from medical_uav.env.render import explanation_times
-
-    frames = explanation_times(LOG, 2, 8, hold_s=1.0, travel_s=1.0, fps=4, t_end=25.0)
-    assert frames and all("Decision 3" in caption for _, caption in frames)
-    assert min(t for t, _ in frames) == 20.0 and max(t for t, _ in frames) == 25.0
-
-
-def test_outcome_text_reports_deliveries(line_map):
-    from medical_uav.env.render import outcome_text
-
-    sim = make_sim(line_map, [make_order(0, 1, M, 2, 0.5, 0.0)])
-    sim.do_pick(sim.orders[0])
-    t0 = sim.t
-    sim.do_deliver(2)
-    text = outcome_text(sim, t0, sim.t)
-    assert "1 delivered on time" in text and "battery" in text
-
-
 def test_draw_with_highlight_probs_and_speed(line_map):
     sim = make_sim(line_map, [make_order(0, 1, M, 2, 0.5, 0.0)])
     r = Renderer(line_map, sim.cfg)
@@ -188,17 +146,6 @@ def test_draw_with_highlight_probs_and_speed(line_map):
     marked = r.draw(sim, 0.0, "Decision 1", highlight={0}, probs=[("PICK medicine M->H2", 0.8)],
                     speed="5 simulated min per second")
     assert marked.shape == plain.shape and not np.array_equal(marked, plain)
-
-
-def test_outcome_and_highlight_exclude_events_at_the_start(line_map):
-    from medical_uav.env.render import highlight_ids, outcome_text
-
-    sim = make_sim(line_map, [make_order(0, 1, M, 2, 0.5, 0.0)])
-    sim.do_pick(sim.orders[0])  # pickup event at t0 belongs to the previous decision
-    t0 = sim.t
-    sim.do_deliver(2)
-    assert "picked up" not in outcome_text(sim, t0, sim.t)
-    assert highlight_ids(sim, t0, sim.t) == {0}
 
 
 def test_state_at_end_of_a_decision_shows_the_finished_action(line_map):

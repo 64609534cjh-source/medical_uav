@@ -10,13 +10,12 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 from matplotlib.patches import Circle, Rectangle
 
-from medical_uav.env.config import (CHARGERS, EPS, FULL_BATTERY, M, NODE_NAMES, ORDER_TYPES,
-                                    EnvConfig)
+from medical_uav.env.config import (CHARGERS, DAY_START_HOUR, EPS, FULL_BATTERY, M, NODE_NAMES,
+                                    ORDER_TYPES, EnvConfig)
 from medical_uav.env.map_gen import CityMap
 
 TYPE_COLORS = {"plasma": "#d62728", "medicine": "#1f77b4", "sample": "#9467bd",
                "supplies": "#ff7f0e"}
-DAY_START_HOUR = 8  # clock hour at simulation time 0
 PANEL_ROWS = 8  # rows of the pending-order table; when more wait, the last row counts them
 PANEL_ROWS_WITH_CHOICES = 7  # fewer rows when the network's top choices are shown below
 FRAME_PX = (960, 528)  # frame width and height in pixels; video codecs need multiples of 16
@@ -356,75 +355,6 @@ class Renderer:
                 fontsize=10.5, color=TEXT, ha="right", va="center")
         ax.text(w, 35, f"Expired {c['expired']}   Open {c['open']}",
                 fontsize=10.5, color=TEXT, ha="right", va="center")
-
-
-def frame_times(t_end: float) -> list[float]:
-    """Return the animation frame times: every simulated minute from 0, then t_end."""
-    times = [float(m) for m in range(math.floor(t_end + EPS) + 1)]
-    if times[-1] < t_end - EPS:
-        times.append(t_end)
-    return times
-
-
-def explanation_times(decision_log: list, first: int, count: int, hold_s: float, travel_s: float,
-                      fps: int, t_end: float) -> list[tuple[float, str]]:
-    """Return (simulated time, caption) per video frame for decisions first .. first+count-1:
-    each decision is held hold_s seconds, its action plays over travel_s seconds, and its end
-    is held hold_s seconds. t_end is the end of the day (where the last decision finishes)."""
-    frames = []
-    last = min(first + count, len(decision_log))
-    for i in range(first, last):
-        t0, label, _ = decision_log[i]
-        t1 = decision_log[i + 1][0] if i + 1 < len(decision_log) else t_end
-        n = i + 1
-        frames += [(t0, f"Decision {n} at {clock(t0)}: {label}")] * round(hold_s * fps)
-        steps = round(travel_s * fps)
-        playing = f"Decision {n}: {label} ({t1 - t0:.0f} min, shown in {travel_s:g} s)"
-        frames += [(t0 + (t1 - t0) * k / steps, playing) for k in range(steps)]
-        frames += [(t1, f"Decision {n} done at {clock(t1)}: {label}")] * round(hold_s * fps)
-    return frames
-
-
-def overview_times(t_end: float, minutes_per_second: float, fps: int) -> list[float]:
-    """Return frame times for a whole-day video at the given simulated minutes per video second."""
-    step = minutes_per_second / fps
-    times = [k * step for k in range(math.floor(t_end / step + EPS) + 1)]
-    if times[-1] < t_end - EPS:
-        times.append(t_end)
-    return times
-
-
-def _events_between(sim, t0: float, t1: float) -> list:
-    """Events after t0 (those exactly at t0 end the previous action) and up to t1."""
-    return [e for e in sim.events if t0 + EPS < e[0] <= t1 + EPS]
-
-
-def highlight_ids(sim, t0: float, t1: float) -> set[int]:
-    """Return the ids of orders picked up, delivered or unloaded between t0 and t1."""
-    return {oid for _, kind, oid in _events_between(sim, t0, t1)
-            if kind in ("pickup", "deliver", "dispose")}
-
-
-def outcome_text(sim, t0: float, t1: float) -> str:
-    """Describe what happened to orders and the battery between t0 and t1, in a few words."""
-    orders = {o.id: o for o in sim.orders}
-    counts = {"picked up": 0, "delivered on time": 0, "delivered late": 0, "expired": 0,
-              "expired box unloaded": 0}
-    for _, kind, oid in _events_between(sim, t0, t1):
-        o = orders[oid]
-        if kind == "pickup":
-            counts["picked up"] += 1
-        elif kind == "deliver":
-            on_time = o.end_time - o.release <= o.limit + EPS
-            counts["delivered on time" if on_time else "delivered late"] += 1
-        elif kind == "expire":
-            counts["expired"] += 1
-        elif kind == "dispose":
-            counts["expired box unloaded"] += 1
-    parts = [f"{n} {what}" for what, n in counts.items() if n]
-    b0, b1 = drone_state_at(sim, t0)["battery"], drone_state_at(sim, t1, at_end=True)["battery"]
-    parts.append(f"battery {b0:.0f}% \u2192 {b1:.0f}%")
-    return ", ".join(parts)
 
 
 def save_animation(frames, path: str, fps: int) -> int:
