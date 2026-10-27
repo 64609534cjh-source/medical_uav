@@ -21,7 +21,7 @@ from medical_uav.agents.ppo import collect, compute_gae, make_envs, ppo_update, 
 from medical_uav.env import EnvConfig
 from medical_uav.env.config import REWARDS
 from medical_uav.evaluation import run_day, run_metadata
-from medical_uav.splits import SELECT_SEEDS
+from medical_uav.splits import SELECT_MAP_SEEDS, SELECT_SEEDS, TRAIN_MAP_SEEDS
 
 N_ENVS, N_STEPS = 16, 128  # decisions per update = 2048
 LR, LR_FLOOR = 3e-4, 0.05  # learning rate, decayed linearly to 5 % of it
@@ -29,12 +29,15 @@ ENT, ENT_FLOOR = 0.01, 0.1  # entropy bonus, decayed linearly to 10 % of it
 EVAL_LOADS = ("medium", "high")
 
 
-def evaluate_net(net, days: int) -> dict:
-    """Mean greedy on-time rate on the first `days` selection days at medium and high load."""
+def evaluate_net(net, days: int, many_maps: bool = False) -> dict:
+    """Mean greedy on-time rate on the first `days` selection days at medium and high load; with
+    many_maps the days rotate over the selection maps instead of map 0."""
     policy = NetworkPolicy(net)
     net.eval()
-    result = {load: float(np.mean([run_day(policy, load, s)["on_time_rate"]
-                                   for s in list(SELECT_SEEDS)[:days]])) for load in EVAL_LOADS}
+    maps = [SELECT_MAP_SEEDS[k % len(SELECT_MAP_SEEDS)] if many_maps else 0 for k in range(days)]
+    result = {load: float(np.mean([run_day(policy, load, s, EnvConfig(map_seed=m))["on_time_rate"]
+                                   for s, m in zip(list(SELECT_SEEDS)[:days], maps)]))
+              for load in EVAL_LOADS}
     net.train()
     return result
 
@@ -50,6 +53,8 @@ def main():
     parser.add_argument("--reward", choices=list(REWARDS), default="v2",
                         help="reward variant: v2 (default), m1 (Milestone 1 reward), ontime")
     parser.add_argument("--init", default=None, help="start from this checkpoint (e.g. BC)")
+    parser.add_argument("--maps", choices=["train"], default=None,
+                        help="train: draw each day's map from the training maps (default: map 0)")
     parser.add_argument("--warmup-rollouts", type=int, default=40,
                         help="value warm-up rollouts before PPO when --init is given")
     parser.add_argument("--out", required=True)
@@ -62,7 +67,8 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     total, eval_every = int(args.decisions), int(args.eval_every)
 
-    envs, state = make_envs(N_ENVS, rng, EnvConfig(**REWARDS[args.reward]))
+    maps = list(TRAIN_MAP_SEEDS) if args.maps == "train" else None
+    envs, state = make_envs(N_ENVS, rng, EnvConfig(**REWARDS[args.reward]), maps)
     meta = run_metadata(vars(args))
     if args.init:  # start from a trained network; warm up its critic first
         net, info = load_checkpoint(args.init)
@@ -103,12 +109,12 @@ def main():
                             + [round(train_on_time, 4)])
         updates.flush()
         if decisions >= next_eval or decisions >= total:
-            result = evaluate_net(net, args.eval_days)
+            result = evaluate_net(net, args.eval_days, many_maps=maps is not None)
             eval_log.writerow([decisions, round(time.time() - t0, 1)] + list(result.values()))
             evals.flush()
             save_checkpoint(net, args.net, out / f"ckpt_{decisions:08d}.pt",
                             {"decisions": decisions, "seed": args.seed, "net": args.net,
-                             "reward": args.reward, "init": args.init,
+                             "reward": args.reward, "init": args.init, "maps": args.maps,
                              "git_revision": meta["git_revision"],
                              "eval_days": args.eval_days, **{f"on_time_{k}": v
                                                              for k, v in result.items()}})

@@ -30,21 +30,25 @@ class RolloutBuffer:
     last_value: np.ndarray  # value of the state after the last decision, [N]
 
 
-def _new_day(env, rng):
-    """Reset env to a random online-RL training day at a random load; return (obs, mask)."""
-    obs, info = env.reset(options={"demand_seed": int(rng.integers(*RL_SEED_RANGE)),
-                                   "load": LOADS[int(rng.integers(len(LOADS)))]})
+def _new_day(env, rng, maps=None):
+    """Reset env to a random online-RL training day at a random load, on a map drawn from
+    `maps` if given (else the env's map); return (obs, mask)."""
+    options = {"demand_seed": int(rng.integers(*RL_SEED_RANGE)),
+               "load": LOADS[int(rng.integers(len(LOADS)))]}
+    if maps is not None:
+        options["map_seed"] = int(maps[int(rng.integers(len(maps)))])
+    obs, info = env.reset(options=options)
     return obs, info["action_mask"]
 
 
-def make_envs(n_envs: int, rng, config: EnvConfig | None = None) -> tuple[list, dict]:
+def make_envs(n_envs: int, rng, config: EnvConfig | None = None, maps=None) -> tuple[list, dict]:
     """Create n_envs environments (with the given settings, e.g. a reward variant), each started
-    on a random day; return them and the collection state (current obs and masks, and the
-    results of finished days)."""
+    on a random day (on a random map from `maps` if given); return them and the collection
+    state (current obs and masks, the map pool, and the results of finished days)."""
     envs = [MedicalUAVEnv(config=config) for _ in range(n_envs)]
-    starts = [_new_day(env, rng) for env in envs]
+    starts = [_new_day(env, rng, maps) for env in envs]
     state = {"obs": np.array([s[0] for s in starts]), "mask": np.array([s[1] for s in starts]),
-             "finished": []}
+             "maps": maps, "finished": []}
     return envs, state
 
 
@@ -72,7 +76,7 @@ def collect(envs, net, state: dict, n_steps: int, rng) -> RolloutBuffer:
             buf.reward[t, k], buf.done[t, k] = reward / REWARD_SCALE, done
             if done:
                 state["finished"].append(episode_metrics(env.sim))
-                obs, mask = _new_day(env, rng)
+                obs, mask = _new_day(env, rng, state["maps"])
             else:
                 mask = info["action_mask"]
             state["obs"][k], state["mask"][k] = obs, mask

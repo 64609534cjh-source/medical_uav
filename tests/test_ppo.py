@@ -172,3 +172,54 @@ def test_train_ppo_from_a_bc_checkpoint(tmp_path):
     assert meta["init"].endswith("bc_set.pt") and meta["warmup"]["decisions"] == 16 * (128 + 512)
     _, info = load_checkpoint(next((tmp_path / "run").glob("ckpt_*.pt")))
     assert info["reward"] == "v2" and info["init"].endswith("bc_set.pt") and info["git_revision"]
+
+
+def test_new_days_on_a_pool_of_maps():
+    from medical_uav.agents.ppo import _new_day
+    from medical_uav.env import MedicalUAVEnv
+    from medical_uav.splits import (DEV_MAP_SEEDS, SELECT_MAP_SEEDS, TEST_MAP_SEEDS,
+                                    TRAIN_MAP_SEEDS)
+
+    pools = [set(TRAIN_MAP_SEEDS), set(SELECT_MAP_SEEDS), set(TEST_MAP_SEEDS), set(DEV_MAP_SEEDS)]
+    assert all(not a & b for i, a in enumerate(pools) for b in pools[i + 1:])
+    assert 0 not in set().union(*pools)  # map 0 stays the evaluation map of the main results
+    env, rng = MedicalUAVEnv(), np.random.default_rng(11)
+    maps = [(_new_day(env, rng, TRAIN_MAP_SEEDS), env.cfg.map_seed)[1] for _ in range(30)]
+    assert set(maps) <= set(TRAIN_MAP_SEEDS) and len(set(maps)) > 20
+
+
+def test_new_days_without_maps_draw_as_before():
+    from medical_uav.agents.ppo import _new_day
+    from medical_uav.env import MedicalUAVEnv
+
+    env, rng = MedicalUAVEnv(), np.random.default_rng(11)
+    seen = []
+    for _ in range(5):
+        _new_day(env, rng)
+        seen.append((env.demand_seed, round(env.lam, 3), env.cfg.map_seed))
+    rng = np.random.default_rng(11)  # the same draws the single-map runs made
+    expected = []
+    for _ in range(5):
+        seed = int(rng.integers(1_000, 100_000))
+        load = ("low", "medium", "high")[int(rng.integers(3))]
+        expected.append((seed, env.cfg.loads[load], 0))
+    assert seen == expected
+
+
+def test_train_ppo_on_many_maps(tmp_path):
+    import json
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    from medical_uav.agents.policy import load_checkpoint
+
+    repo = Path(__file__).resolve().parents[1]
+    result = subprocess.run([sys.executable, str(repo / "scripts" / "train_ppo.py"), "--net", "set",
+                             "--maps", "train", "--decisions", "2048", "--eval-every", "2048",
+                             "--eval-days", "2", "--out", str(tmp_path / "run")],
+                            capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    assert json.loads((tmp_path / "run" / "run.json").read_text())["maps"] == "train"
+    _, info = load_checkpoint(next((tmp_path / "run").glob("ckpt_*.pt")))
+    assert info["maps"] == "train"
