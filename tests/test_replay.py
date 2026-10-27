@@ -110,3 +110,19 @@ def test_write_html_is_a_single_offline_file(high_day, tmp_path):
     assert "/*DATA*/" not in html and "</script><b>" not in html
     assert "http://" not in html.replace("http://www.w3.org/2000/svg", "")
     assert "https://" not in html and "<link" not in html and "src=" not in html
+
+
+def test_opening_decision_matches_the_player_rule():
+    from medical_uav.env.replay import opening_decision
+
+    decs = [{"t": 0.0, "text": "Wait for the next order", "top": []},
+            {"t": 70.0, "text": "Pick up sample at H2 for M", "top": [["a", 0.5], ["b", 0.45]]},
+            {"t": 80.0, "text": "Deliver 1 sample box to M", "top": [["Deliver at M", 0.7], ["Charge C1 to 60%", 0.3]]},
+            {"t": 90.0, "text": "Deliver 2 medicine boxes to H3", "top": [["Deliver at H3", 0.9], ["Wait", 0.1]]}]
+    record = {"decisions": decs, "meta": {"peaks": [[60.0, 180.0]]}}
+    assert opening_decision(record) == 2  # deliver-or-charge beats a closer pick call
+    decs[2]["top"][1][0] = "Wait"
+    assert opening_decision(record) == 1  # otherwise the closest call
+    for d in decs:
+        d["top"] = []
+    assert opening_decision(record) == 1  # a rule: the first decision in the first peak

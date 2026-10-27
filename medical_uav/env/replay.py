@@ -147,18 +147,21 @@ def _along(path: list, f: float) -> tuple[float, float]:
 
 
 def state_at(record: dict, t: float) -> dict:
-    """What the player shows at time t: the drone's position and battery, the ids of the boxes
-    on board and of the waiting orders, the outcome counts so far, and the index of the
-    current decision (-1 before the first)."""
+    """What the player shows at time t: the drone's position and battery, the activity under
+    way (index into the segments and the fraction done, or None), the ids of the boxes on board
+    and of the waiting orders, the outcome counts so far, and the index of the current
+    decision (-1 before the first)."""
     segs, nodes = record["segments"], record["map"]["nodes"]
     i = bisect.bisect_right([s[1] for s in segs], t + EPS) - 1
     xy, battery = (nodes[M]["x"], nodes[M]["y"]), (segs[0][5] if segs else 100.0)
+    active, f = None, 1.0
     if i >= 0:
         kind, t0, t1, a, b, b0, b1 = segs[i][:7]
         f = min(1.0, max(0.0, (t - t0) / (t1 - t0))) if t1 > t0 else 1.0
         battery = b0 + f * (b1 - b0)
         xy = (_along(record["map"]["routes"][f"{a}-{b}"], f) if kind == "fly" and f < 1
               else (nodes[b]["x"], nodes[b]["y"]))
+        active = i if f < 1 else None
     cargo, waiting, on_time, late, expired = [], [], 0, 0, 0
     for o in record["orders"]:
         if o["release"] > t + EPS:
@@ -179,8 +182,24 @@ def state_at(record: dict, t: float) -> dict:
         elif not closed:
             waiting.append(o["id"])
     decision = bisect.bisect_right([d["t"] for d in record["decisions"]], t + EPS) - 1
-    return {"xy": xy, "battery": battery, "cargo": sorted(cargo), "waiting": sorted(waiting),
-            "on_time": on_time, "late": late, "expired": expired, "decision": decision}
+    return {"xy": xy, "battery": battery, "active": active, "f": f, "cargo": sorted(cargo),
+            "waiting": sorted(waiting), "on_time": on_time, "late": late, "expired": expired,
+            "decision": decision}
+
+
+def opening_decision(record: dict) -> int:
+    """The decision the player and the videos open on: the network's closest call between
+    delivering and charging, else its closest call, else the first decision in the first
+    demand peak (as the player's script chooses)."""
+    decs = record["decisions"]
+    calls = sorted((i for i, d in enumerate(decs) if len(d["top"]) > 1),
+                   key=lambda i: decs[i]["top"][0][1] - decs[i]["top"][1][1])
+    tradeoff = [i for i in calls if decs[i]["text"].startswith("Deliver")
+                and decs[i]["top"][1][0].startswith("Charge")]
+    if tradeoff or calls:
+        return (tradeoff or calls)[0]
+    peak = record["meta"]["peaks"][0][0]
+    return next((i for i, d in enumerate(decs) if d["t"] >= peak), 0)
 
 
 def write_html(record: dict, path) -> Path:
