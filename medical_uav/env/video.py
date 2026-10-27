@@ -244,13 +244,13 @@ class ReplayFrames:
             cx = x + 360
             self._text(ax, cx, y + 94, "THE NETWORK'S TOP CHOICES", 11, MUTED, "bold")
             for k, (label, p) in enumerate(d["top"]):
-                yy = y + 116 + 34 * k
+                yy = y + 112 + 30 * k
                 self._text(ax, cx, yy, label, 13, INK, "bold" if k == 0 else "normal")
                 self._text(ax, x + w - 16, yy, f"{100 * p:.1f}%", 13, INK, ha="right")
                 ax.add_patch(Rectangle((cx, yy + 18), x + w - 16 - cx, 5, fc=WASH, ec="none"))
                 ax.add_patch(Rectangle((cx, yy + 18), (x + w - 16 - cx) * p, 5,
                                        fc=INK if k == 0 else FAINT, ec="none"))
-            self._text(ax, cx, y + h - 22, "Policy probabilities, not chances of success.", 11,
+            self._text(ax, cx, y + h - 18, "Policy probabilities, not chances of success.", 11,
                        MUTED)
 
     def _state(self, ax, s, t):
