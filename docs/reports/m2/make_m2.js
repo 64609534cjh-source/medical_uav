@@ -92,8 +92,8 @@ const children = [
         margins: { top: 0, bottom: 0, left: 120, right: 0 }, children: [
           new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 20 },
             children: [new ImageRun({ type: "png", data: fs.readFileSync(`${__dirname}/frame.png`),
-              transformation: { width: 320, height: 176 } })] }),
-          caption("Figure 2.", "Explanation video, decision 38 at 10:58: the set network trained by imitation takes the sample on board back to M.", 40, 60)] }),
+              transformation: { width: 320, height: 180 } })] }),
+          caption("Figure 2.", "Replay of the set network trained by imitation, decision 81 at 14:30: it is split between charging at C1 and picking up a medicine order.", 40, 60)] }),
     ] })] }),
   heading("5. Existing code, libraries and AI use"), ...section(5),
   heading("6. Reflections and lessons learned"), ...section(6),
