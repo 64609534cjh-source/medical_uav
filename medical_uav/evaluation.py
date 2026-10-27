@@ -10,7 +10,7 @@ import torch
 
 from medical_uav.env import MedicalUAVEnv
 from medical_uav.env.config import ENV_VERSION, EPS, ORDER_TYPES
-from medical_uav.metrics import episode_metrics
+from medical_uav.metrics import behaviour_metrics, distance_breakdown, episode_metrics
 
 
 def run_metadata(extra: dict) -> dict:
@@ -36,9 +36,10 @@ def heuristic(fn):
     return lambda env, obs, mask: fn(env)
 
 
-def run_day(policy, load: str, demand_seed: int, config=None) -> dict:
+def run_day(policy, load: str, demand_seed: int, config=None, details: bool = False) -> dict:
     """Run one day with the policy and return its metrics, total reward and decision count;
-    `config` (an EnvConfig) changes the settings, e.g. the map."""
+    `config` (an EnvConfig) changes the settings, e.g. the map; `details` adds the behaviour
+    metrics, the distance breakdown and every decision's time."""
     env = MedicalUAVEnv(config=config, load=load)
     obs, info = env.reset(options={"demand_seed": demand_seed})
     total, decisions, done, seconds = 0.0, 0, False, []
@@ -66,6 +67,9 @@ def run_day(policy, load: str, demand_seed: int, config=None) -> dict:
         row[f"released_{order_type.name}"] = len(mine)
         row[f"on_time_count_{order_type.name}"] = sum(
             1 for o in mine if o.status == "delivered" and o.end_time - o.release <= o.limit + EPS)
+    if details:
+        row.update(**behaviour_metrics(env.sim, env.decision_log), **distance_breakdown(env.sim))
+        row["decision_ms"] = [1000 * s for s in seconds]
     return row
 
 

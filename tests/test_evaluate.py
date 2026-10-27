@@ -298,3 +298,13 @@ def test_map_stress_script(tmp_path):
     assert {(r["method"], r["map"]) for r in rows} == {
         ("slack", "1"), ("slack", "2"), ("bc_set", "1"), ("bc_set", "2")}
     assert "networks - slack" in result.stdout
+
+
+def test_run_day_details_add_behaviour_and_every_decision_time():
+    from medical_uav.baselines.heuristics import slack_aware_policy
+    from medical_uav.evaluation import heuristic, run_day
+
+    row = run_day(heuristic(slack_aware_policy), "medium", 100_040, details=True)
+    assert len(row["decision_ms"]) == row["decisions"]
+    assert {"battery_at_peak", "peak_charge_minutes", "boxes_per_stop", "km_to_pickup"} <= set(row)
+    assert row["on_time_rate"] == run_day(heuristic(slack_aware_policy), "medium", 100_040)["on_time_rate"]
