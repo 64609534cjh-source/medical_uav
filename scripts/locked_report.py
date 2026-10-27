@@ -76,7 +76,7 @@ def against(a: dict, b: dict) -> tuple:
 
 def map0(rows, times) -> None:
     methods = list(dict.fromkeys(r["method"] for r in rows))
-    loads = list(dict.fromkeys(r["load"] for r in rows))
+    loads = [x for x in ("low", "medium", "high") if any(r["load"] == x for r in rows)]
     for load in loads:
         n = len(rate(rows, "slack", load))
         print(f"\n== map 0, {load} load, {n} days: mean daily rate (on-time / served / expired)")
