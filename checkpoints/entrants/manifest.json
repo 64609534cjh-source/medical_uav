@@ -1,0 +1,285 @@
+{
+ "registered": [
+  "docs/superpowers/specs/2026-10-27-final-phase-preregistration.md",
+  "docs/superpowers/specs/2026-10-27-multimap-preregistration.md"
+ ],
+ "shipped": {
+  "entrant": "m3_set_s11",
+  "file": "checkpoints/ppo_set.pt",
+  "sha256": "155be547e1434aae699c30e35b7c5fdec940e80db0d9ae79339dea5c1418876a"
+ },
+ "entrants": {
+  "random": {
+   "policy": "random"
+  },
+  "edf": {
+   "policy": "edf"
+  },
+  "fcfs": {
+   "policy": "fcfs"
+  },
+  "nearest": {
+   "policy": "nearest"
+  },
+  "slack": {
+   "policy": "slack"
+  },
+  "rollout": {
+   "policy": "rollout"
+  },
+  "scenario16": {
+   "policy": "scenario16"
+  },
+  "slack100": {
+   "policy": "slack100"
+  },
+  "prepeak": {
+   "policy": "prepeak"
+  },
+  "m3_set_s11": {
+   "policy": "checkpoints/entrants/m3_set_s11.pt",
+   "sha256": "155be547e1434aae699c30e35b7c5fdec940e80db0d9ae79339dea5c1418876a",
+   "source": "runs/m3_set_s11/ckpt_06000640.pt"
+  },
+  "m3_set_s22": {
+   "policy": "checkpoints/entrants/m3_set_s22.pt",
+   "sha256": "0dfba41b51d268769f516bc55b1d282a2545f8252ce4db9ce4a486b2cf06c2b1",
+   "source": "runs/m3_set_s22/ckpt_05500928.pt"
+  },
+  "m3_set_s33": {
+   "policy": "checkpoints/entrants/m3_set_s33.pt",
+   "sha256": "29c46d1702ae7c7d92a0a11c9e622ae6cf404219bf3b0ab26d0c0ed809f4ea78",
+   "source": "runs/m3_set_s33/ckpt_04501504.pt"
+  },
+  "m3_set_s44": {
+   "policy": "checkpoints/entrants/m3_set_s44.pt",
+   "sha256": "d72e4b33ce49832daf5a08406388eb9f313f89675d331ea1bfe7081af205ca85",
+   "source": "runs/m3_set_s44/ckpt_06000640.pt"
+  },
+  "m3_set_s55": {
+   "policy": "checkpoints/entrants/m3_set_s55.pt",
+   "sha256": "19e3a6f98f3739b498c4fa9d22dea8df7d4aa4b078c3e18d7a1ab676b5adf8b4",
+   "source": "runs/m3_set_s55/ckpt_05001216.pt"
+  },
+  "mm_set_s11": {
+   "policy": "checkpoints/entrants/mm_set_s11.pt",
+   "sha256": "409965c5ab58d024085c3bdb5c9b79e67750b87ae6d7986e3485649af89240a5",
+   "source": "runs/mm_set_s11/ckpt_05001216.pt"
+  },
+  "mm_set_s22": {
+   "policy": "checkpoints/entrants/mm_set_s22.pt",
+   "sha256": "e460ac2d79afd24f059ac6743f829ab988a336bbb8462a932027bca9099d713e",
+   "source": "runs/mm_set_s22/ckpt_06000640.pt"
+  },
+  "mm_set_s33": {
+   "policy": "checkpoints/entrants/mm_set_s33.pt",
+   "sha256": "4437301581af1379070777c479b91ab4d684602b1100b9e1368eff5c5118e121",
+   "source": "runs/mm_set_s33/ckpt_05500928.pt"
+  },
+  "mm_set_s44": {
+   "policy": "checkpoints/entrants/mm_set_s44.pt",
+   "sha256": "6207d2486598f983815fa0a0d6e7094fa323201b7cc616ae32617667b913eeb3",
+   "source": "runs/mm_set_s44/ckpt_06000640.pt"
+  },
+  "mm_set_s55": {
+   "policy": "checkpoints/entrants/mm_set_s55.pt",
+   "sha256": "e499bf07e7860d4ab169d74540f2fda451b79acc61cf2c0120aaf55ed0db6625",
+   "source": "runs/mm_set_s55/ckpt_05500928.pt"
+  },
+  "m3_mlp_s11": {
+   "policy": "checkpoints/entrants/m3_mlp_s11.pt",
+   "sha256": "c525ff2e235a09855e54a73d1a9b334cf9498e5a846d4ed383cd4cb1575908c0",
+   "source": "runs/m3_mlp_s11/ckpt_06000640.pt"
+  },
+  "m3_mlp_s22": {
+   "policy": "checkpoints/entrants/m3_mlp_s22.pt",
+   "sha256": "4f3a57d094684002de6015ecd92e5a692dea6bff064fd3481e41ed25fd0b7383",
+   "source": "runs/m3_mlp_s22/ckpt_06000640.pt"
+  },
+  "m3_mlp_s33": {
+   "policy": "checkpoints/entrants/m3_mlp_s33.pt",
+   "sha256": "71b7c9fdf052d7e2613408dbf45d2c229ede4418e28076c4373eb6e77078cdf2",
+   "source": "runs/m3_mlp_s33/ckpt_06000640.pt"
+  },
+  "m3_set_m1_s11": {
+   "policy": "checkpoints/entrants/m3_set_m1_s11.pt",
+   "sha256": "c7f2b1e36ae400101e09f00048ccefcb641d27f9a7cab104ac95be79c6b84eb7",
+   "source": "runs/m3_set_m1_s11/ckpt_05001216.pt"
+  },
+  "m3_set_m1_s22": {
+   "policy": "checkpoints/entrants/m3_set_m1_s22.pt",
+   "sha256": "2db2c803fe65921bc94083ddf18ef61fc3374709d8c44f0a5d96b688bca6a930",
+   "source": "runs/m3_set_m1_s22/ckpt_05001216.pt"
+  },
+  "m3_set_m1_s33": {
+   "policy": "checkpoints/entrants/m3_set_m1_s33.pt",
+   "sha256": "2d1433354db1e003f01d48b6063bd36b7d170974cfd5a0508befcaf0ba37553b",
+   "source": "runs/m3_set_m1_s33/ckpt_02000896.pt"
+  },
+  "m3_set_ontime_s11": {
+   "policy": "checkpoints/entrants/m3_set_ontime_s11.pt",
+   "sha256": "c7c4b08339967d927df3871a7ea9e82789af1d292f37301ef072acadeb04cad9",
+   "source": "runs/m3_set_ontime_s11/ckpt_06000640.pt"
+  },
+  "m3_set_ontime_s22": {
+   "policy": "checkpoints/entrants/m3_set_ontime_s22.pt",
+   "sha256": "50af0d0d596a3751d65df1decdda622c1631171891dad63064df42c17b0d9cf3",
+   "source": "runs/m3_set_ontime_s22/ckpt_05500928.pt"
+  },
+  "m3_set_ontime_s33": {
+   "policy": "checkpoints/entrants/m3_set_ontime_s33.pt",
+   "sha256": "c2061f6e95fbc0b4ff06c0d838bace54d10667fa81d2fbf22c189c9bd792c9c5",
+   "source": "runs/m3_set_ontime_s33/ckpt_05500928.pt"
+  },
+  "m3_set_bc_s11": {
+   "policy": "checkpoints/entrants/m3_set_bc_s11.pt",
+   "sha256": "1c6cf63e42940c7c8c2d0f274bcd9b0208801da3aa0f90ffea82ce0fc2375964",
+   "source": "runs/m3_set_bc_s11/ckpt_06000640.pt"
+  },
+  "m3_set_bc_s22": {
+   "policy": "checkpoints/entrants/m3_set_bc_s22.pt",
+   "sha256": "f04468718f1a271893e53ff288efa04ba47136d173c1f423898cb4b5ff7f7268",
+   "source": "runs/m3_set_bc_s22/ckpt_06000640.pt"
+  },
+  "m3_set_bc_s33": {
+   "policy": "checkpoints/entrants/m3_set_bc_s33.pt",
+   "sha256": "1501c45733b9cc1c2d9d4e34f6d0dfa52ccd74055ff89c973f22ec617c176c2a",
+   "source": "runs/m3_set_bc_s33/ckpt_05001216.pt"
+  },
+  "bc_set": {
+   "policy": "checkpoints/bc_set.pt",
+   "sha256": "cf5c36fd0db530df3b596d8300948d67af5236cb79801543be5f7b5e43faf29d"
+  },
+  "bc_mlp": {
+   "policy": "checkpoints/bc_mlp.pt",
+   "sha256": "f3a59f65594b97df38368f611c719d1b3ede32dd5266c7b2c6429499ae19b33e"
+  },
+  "m3_set_s11/no100": {
+   "policy": "checkpoints/entrants/m3_set_s11.pt#no100",
+   "sha256": "155be547e1434aae699c30e35b7c5fdec940e80db0d9ae79339dea5c1418876a",
+   "source": "runs/m3_set_s11/ckpt_06000640.pt"
+  },
+  "m3_set_s22/no100": {
+   "policy": "checkpoints/entrants/m3_set_s22.pt#no100",
+   "sha256": "0dfba41b51d268769f516bc55b1d282a2545f8252ce4db9ce4a486b2cf06c2b1",
+   "source": "runs/m3_set_s22/ckpt_05500928.pt"
+  },
+  "m3_set_s33/no100": {
+   "policy": "checkpoints/entrants/m3_set_s33.pt#no100",
+   "sha256": "29c46d1702ae7c7d92a0a11c9e622ae6cf404219bf3b0ab26d0c0ed809f4ea78",
+   "source": "runs/m3_set_s33/ckpt_04501504.pt"
+  },
+  "m3_set_s44/no100": {
+   "policy": "checkpoints/entrants/m3_set_s44.pt#no100",
+   "sha256": "d72e4b33ce49832daf5a08406388eb9f313f89675d331ea1bfe7081af205ca85",
+   "source": "runs/m3_set_s44/ckpt_06000640.pt"
+  },
+  "m3_set_s55/no100": {
+   "policy": "checkpoints/entrants/m3_set_s55.pt#no100",
+   "sha256": "19e3a6f98f3739b498c4fa9d22dea8df7d4aa4b078c3e18d7a1ab676b5adf8b4",
+   "source": "runs/m3_set_s55/ckpt_05001216.pt"
+  }
+ },
+ "blocks": [
+  {
+   "name": "map0",
+   "entrants": [
+    "random",
+    "edf",
+    "fcfs",
+    "nearest",
+    "slack",
+    "rollout",
+    "scenario16",
+    "slack100",
+    "prepeak",
+    "m3_set_s11",
+    "m3_set_s22",
+    "m3_set_s33",
+    "m3_set_s44",
+    "m3_set_s55",
+    "mm_set_s11",
+    "mm_set_s22",
+    "mm_set_s33",
+    "mm_set_s44",
+    "mm_set_s55",
+    "m3_mlp_s11",
+    "m3_mlp_s22",
+    "m3_mlp_s33",
+    "m3_set_m1_s11",
+    "m3_set_m1_s22",
+    "m3_set_m1_s33",
+    "m3_set_ontime_s11",
+    "m3_set_ontime_s22",
+    "m3_set_ontime_s33",
+    "m3_set_bc_s11",
+    "m3_set_bc_s22",
+    "m3_set_bc_s33",
+    "bc_set",
+    "bc_mlp",
+    "m3_set_s11/no100",
+    "m3_set_s22/no100",
+    "m3_set_s33/no100",
+    "m3_set_s44/no100",
+    "m3_set_s55/no100"
+   ],
+   "maps": "map 0",
+   "loads": [
+    "low",
+    "medium",
+    "high"
+   ],
+   "days": "all"
+  },
+  {
+   "name": "maps",
+   "entrants": [
+    "m3_set_s11",
+    "m3_set_s22",
+    "m3_set_s33",
+    "m3_set_s44",
+    "m3_set_s55",
+    "mm_set_s11",
+    "mm_set_s22",
+    "mm_set_s33",
+    "mm_set_s44",
+    "mm_set_s55",
+    "slack",
+    "rollout"
+   ],
+   "maps": "all",
+   "loads": [
+    "medium",
+    "high"
+   ],
+   "days": 30
+  }
+ ],
+ "days": {
+  "select": [
+   100040,
+   100139,
+   100,
+   109
+  ],
+  "test": [
+   200000,
+   200299,
+   200,
+   209
+  ]
+ },
+ "rng": {
+  "scenario16": "master seed 271828, streams [seed, decision, scenario]",
+  "random": "seeded by each day's demand seed",
+  "bootstrap": "seed 0, 10 000"
+ },
+ "threads": "one torch thread per worker",
+ "metadata": {
+  "env_version": "v2",
+  "git_revision": "845a09d",
+  "python": "3.11.17",
+  "torch": "2.14.1+cpu",
+  "numpy": "2.4.6"
+ }
+}
