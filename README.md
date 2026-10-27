@@ -180,6 +180,24 @@ With `--video` it also saves (10–15 minutes):
 `scripts/demo.py` is also the usage example: it creates the environment, starts a day, lets a
 policy choose actions until the day is over, and then shows the day.
 
+To compare the shipped PPO and Slack-aware on identical arrivals:
+
+```bash
+PYTHONPATH=. python scripts/compare_video.py --out outputs/compare_high_seed100004.mp4
+```
+
+The defaults show high-load seed 100004, minutes 50–200 at 12 fps, with one shared clock.
+This is the high-load screen day nearest the median PPO-minus-Slack on-time difference,
+using the registered lowest-day-ID tie break. The first charging decision and first service
+decision that differs from Slack pause for seven seconds each. The ending reports whole-day
+outcomes and the first PPO failure. Peak, paused and end-card PNGs are saved beside the video.
+
+Use `--summary FILE` for UTF-8 aggregate-result lines on the ending cards. Without it, the
+script computes development averages from `runs/m3_screen_eval_all.csv`, falling back to the
+sibling `medical_uav/runs/` directory for this worktree; absent data adds no aggregate lines.
+The prescribed window and speeds produce about 111 seconds; use `--start` and `--end` to
+choose a longer window for the registered 3–4 minute target.
+
 ## The environment
 
 | | |
