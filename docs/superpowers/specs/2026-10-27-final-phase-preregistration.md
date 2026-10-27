@@ -1,6 +1,6 @@
 # Final phase: pre-registered energy study, scenario rollout and locked test (2026-10-27)
 
-Designed by Codex (astra high) from roadmap §1–§10 and the M3 results; adopted as written and committed before any of these experiments ran. Scope changes: planner-BC → PPO and longer PPO continuation are dropped (item 4). Schedule: item 5 (29–30 Oct reserved for the M2 report and submission).
+Designed by Codex (astra high) from roadmap §1–§10 and the M3 results; adopted as written and committed before any of these experiments ran. Scope changes: planner-BC → PPO and longer PPO continuation are dropped (item 4). Schedule: item 5 (29–30 Oct reserved for the M2 report and submission). Amended 10/27, after the registration and before any multi-map result: mixed-map training was added at the owner's request with its own registration (`2026-10-27-multimap-preregistration.md`); both the single-map and the multi-map agent enter the locked test.
 
 Keep the shipped PPO and existing controls frozen. The final technical contribution should be **one controlled energy study, one audited scenario planner, and one locked evaluation**. Do not start another training campaign.
 
