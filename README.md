@@ -9,9 +9,25 @@ own masked PPO implementation.
 
 NUS ME5418, Group 17 (Jihang Cai, Yu Liu, Yufeng Zhang). Milestone 3: the learning agent.
 
-![A decision of the PPO agent: deliver three boxes now or charge first](assets/demo.png)
+![A decision of the PPO agent](assets/demo.png)
 
-Ready-made videos are in `assets/` (see [Videos](#videos)).
+## See it first
+
+Download `assets/replay_ppo.html` and open it in a web browser (double-click; no installation or
+internet connection is needed). It replays one day, medium load and demand seed 100000 (a day
+outside training), driven by the PPO agent: play, pause, step from decision to decision or drag
+the timeline. Each decision is shown with the situation it was taken in and the agent's three
+most likely actions.
+
+| File in `assets/` | What it shows |
+|---|---|
+| `replay_ppo.html` | the PPO agent, one whole day, in a web browser |
+| `replay_slack.html` | the Slack-aware rule, the strongest hand-written rule, on the same day |
+| `replay_set_network.html` | the set network trained by imitation (Milestone 2) on the same day |
+| `ppo_explained.mp4` | eight decisions of the PPO agent, each held before, during and after its action |
+| `ppo_day.mp4` | the whole day in under five minutes at smart speed: flights at 1 and everything else at 8 simulated minutes per second, a short pause at each decision |
+| `set_network_explained.mp4`, `set_network_day.mp4` | the same for the set network trained by imitation |
+| `demo.png` | the picture above |
 
 ## Requirements
 
@@ -52,8 +68,8 @@ Completed at 16:37 (t=517.0 min) after 126 decisions
 ```
 
 On the same day Slack-aware, the strongest rule, delivers 53 of the 70 orders, 47 on time.
-A frame and two videos are saved in `outputs/` as described in
-[Run the day demo](#run-the-day-demo); the panel shows the agent's three most likely actions.
+The replay page and a frame are saved in `outputs/` (add `--video` for the two videos), as
+described in [Run the day demo](#run-the-day-demo).
 
 ## Train the agent
 
@@ -142,31 +158,27 @@ Completed at 17:05 (t=545.8 min) after 113 decisions
   Orders   70 released: delivered 53/70 (75.7%), expired 17/70 (24.3%)
 ```
 
-It then saves three files in `outputs/` (about two minutes):
+It then saves, within a few seconds, in `outputs/`:
 
-- `demo_slack_medium_seed0_t182min.png`, a snapshot at 11:02
-- `demo_slack_medium_seed0_explained.mp4`, eight decisions from 11:02, each shown before, during
-  and after its action, with the orders it concerns highlighted
-- `demo_slack_medium_seed0_day.mp4`, the whole day at 5 simulated minutes per second
+- `demo_slack_medium_seed0_replay.html`, the whole day in a web browser, as in
+  [See it first](#see-it-first)
+- `demo_slack_medium_seed0_decision.png`, one decision worth a look
+
+With `--video` it also saves (10–15 minutes):
+
+- `demo_slack_medium_seed0_explained.mp4`, eight consecutive decisions, each shown before,
+  during and after its action
+- `demo_slack_medium_seed0_day.mp4`, the whole day at smart speed
 
 | Option | Values |
 |---|---|
-| `--policy` | `slack` (default), `edf`, `random`, `mlp`, `set` (trained by imitation), `ppo` (the PPO agent); for the networks the top choices are shown in the panel |
+| `--policy` | `slack` (default), `edf`, `random`, `mlp`, `set` (the networks trained by imitation), `ppo` (the PPO agent); for the networks the top choices are shown |
 | `--load` | `low`, `medium` (default), `high` |
 | `--seed` | which day of orders (default `0`) |
-| `--explain-count`, `--day-speed` | decisions in the explanation video (8), simulated minutes per second in the day video (5) |
+| `--video`, `--explain-count`, `--fps` | also save the two videos; decisions in the explanation video (8); video frames per second (12) |
 
 `scripts/demo.py` is also the usage example: it creates the environment, starts a day, lets a
-policy choose actions until the day is over, and then draws the day.
-
-## Videos
-
-| File in `assets/` | What it shows |
-|---|---|
-| `demo_ppo_explained.mp4` | the PPO agent deciding, eight decisions from 10:54, with its top three choices |
-| `demo_ppo_day.mp4` | the same day driven by the PPO agent, 5 simulated minutes per second |
-| `demo_slack_explained.mp4` | the eight-decision explanation for the Slack-aware rule (from 11:02) |
-| `demo_network_explained.mp4`, `demo_network_day.mp4` | the same for the set network trained by imitation (Milestone 2) |
+policy choose actions until the day is over, and then shows the day.
 
 ## The environment
 
@@ -219,7 +231,10 @@ medical_uav/
     astar.py         shortest path around no-fly zones
     orders.py        orders and the order stream of one day
     physics.py       flight time, energy, charging time, delivery reward
-    render.py        drawing, explanation and day videos
+    render.py        drawing a day for env.render()
+    replay.py        a finished day as a record; the replay web page
+    replay_player.html  the replay web page (the record is put inside it)
+    video.py         frames and videos of a finished day, in the replay's style
   agents/
     networks.py      the MLP and the set/attention network
     policy.py        a network as a policy; saving and loading checkpoints
@@ -244,8 +259,8 @@ checkpoints/
   ppo_set.pt         the PPO agent (set network); ppo_set.json, how it was trained and chosen
   bc_mlp.pt, bc_set.pt  the imitation-trained networks; bc_history.json, their training curves
 assets/
-  demo.png           the PPO agent at 10:54 (the picture at the top of this page)
-  *.mp4              the videos listed above
+  *.html, *.mp4      the replays and videos listed in "See it first"
+  demo.png           the picture at the top of this page
 ME5418_Group17_M3_Report.pdf   the two-page report
 environment.yml      conda environment
 requirements.txt     the same packages for pip
