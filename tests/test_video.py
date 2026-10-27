@@ -78,13 +78,29 @@ def test_compare_times_follow_either_flight_and_include_window_endpoints():
     assert compare_times(left, right, fps=10, start=3, end=3) == [3]
 
 
-def test_development_summary_uses_shipped_checkpoint_and_daily_rates(tmp_path):
-    from scripts.compare_video import SHIPPED_METHOD, development_summary
+def test_locked_test_summary_uses_shipped_model_and_daily_rates(tmp_path, monkeypatch):
+    from scripts import compare_video
 
-    path = tmp_path / "screen.csv"
-    path.write_text("method,load,on_time_rate\n"
-                    f"{SHIPPED_METHOD},high,0.8\n{SHIPPED_METHOD},high,0.9\n"
-                    "slack,high,0.6\nslack,high,0.7\nedf,high,0.1\n")
-    assert development_summary(path)[0] == (
-        "2 high-load screen days: PPO 85.0% vs Slack 65.0% on time")
-    assert development_summary(tmp_path / "absent.csv") == []
+    path = tmp_path / "map0.csv"
+    path.write_text("method,load,seed,on_time_rate\n"
+                    "m3_set_s11,high,1,0.8\nm3_set_s11,high,2,0.9\n"
+                    "slack,high,1,0.6\nslack,high,2,0.7\n"
+                    "m3_set_s11,medium,1,0.9\nm3_set_s11,medium,2,0.95\n"
+                    "slack,medium,1,0.7\nslack,medium,2,0.9\n"
+                    "m3_set_s11,low,1,1.0\nslack,low,1,1.0\n"
+                    "m3_set_s11/ckpt_06000640,high,1,0.1\n"
+                    "m3_set_s22,medium,1,0.1\nedf,high,1,0.1\n")
+    expected = ["Locked test, 2 high-load days: PPO 85.0% vs Slack 65.0% on time",
+                "Locked test, 2 medium-load days: PPO 92.5% vs Slack 80.0% on time"]
+    assert compare_video.locked_test_summary(path) == expected
+    monkeypatch.setattr(compare_video, "LOCKED_TEST", path)
+    assert compare_video.locked_test_summary() == expected
+
+
+def test_locked_test_summary_omits_results_when_file_is_absent(tmp_path, monkeypatch):
+    from scripts import compare_video
+
+    path = tmp_path / "absent.csv"
+    assert compare_video.locked_test_summary(path) == []
+    monkeypatch.setattr(compare_video, "LOCKED_TEST", path)
+    assert compare_video.locked_test_summary() == []

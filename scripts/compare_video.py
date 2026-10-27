@@ -17,9 +17,8 @@ from medical_uav.env.video import ComparisonFrames, TYPE_LABELS, clock, compare_
 from scripts.demo import POLICY_NAMES, make_policy
 
 ROOT = Path(__file__).resolve().parents[1]
-SCREEN = ROOT / "runs/m3_screen_eval_all.csv"
-SCREEN_FALLBACK = ROOT.parent / "medical_uav/runs/m3_screen_eval_all.csv"
-SHIPPED_METHOD = "m3_set_s11/ckpt_06000640"
+LOCKED_TEST = ROOT / "runs/locked/map0.csv"
+SHIPPED_METHOD = "m3_set_s11"
 
 
 def record_day(name, load, seed):
@@ -67,19 +66,25 @@ def pauses(left, right, start, end):
     return sorted(found.values())
 
 
-def development_summary(path=None):
-    """Mean daily rates on the 40 screen days, never presented as locked-test results."""
+def locked_test_summary(path=None):
+    """Mean daily on-time rates for the shipped model and Slack-aware on the locked test."""
     if path is None:
-        path = SCREEN if SCREEN.exists() else SCREEN_FALLBACK
+        path = LOCKED_TEST
     if not path.exists():
         return []
     with path.open() as f:
-        rows = [r for r in csv.DictReader(f) if r["load"] == "high"]
-    means = [np.mean([float(r["on_time_rate"]) for r in rows if r["method"] == method])
-             for method in (SHIPPED_METHOD, "slack")]
-    days = sum(r["method"] == SHIPPED_METHOD for r in rows)
-    return [f"{days} high-load screen days: PPO {100 * means[0]:.1f}% vs "
-            f"Slack {100 * means[1]:.1f}% on time", "Development results; not the locked test."]
+        rows = list(csv.DictReader(f))
+    lines = []
+    for load in ("high", "medium"):
+        rates = [[float(r["on_time_rate"]) for r in rows
+                  if r["load"] == load and r["method"] == method]
+                 for method in (SHIPPED_METHOD, "slack")]
+        if not all(rates):
+            continue
+        means = [np.mean(values) for values in rates]
+        lines.append(f"Locked test, {len(rates[0])} {load}-load days: "
+                     f"PPO {100 * means[0]:.1f}% vs Slack {100 * means[1]:.1f}% on time")
+    return lines
 
 
 def failure_lines(left, right):
@@ -152,7 +157,7 @@ def main():
     times = sorted(set(compare_times(left, right, args.fps, args.start, args.end)) |
                    {t for t, _ in holds})
     summary = (args.summary.read_text(encoding="utf-8").splitlines() if args.summary else
-               development_summary())
+               locked_test_summary())
     lines = end_lines(left, right, summary)
     endings = [renderer.card("The whole day, including a failure", lines[i:i + 12])
                for i in range(0, len(lines), 12)]
