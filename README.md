@@ -40,8 +40,7 @@ The demo takes a few seconds (allow 15 s), saves no files and prints:
 1. both networks' parameter counts and the input batch: observations `[64, 452]`, action masks
    `[64, 26]`;
 2. **forward pass** of the trained set network (`checkpoints/bc_set.pt`): logits `[64, 26]`,
-   values `[64]`, and three
-   example decisions next to Slack-aware's;
+   values `[64]`, and three example decisions next to Slack-aware's;
 3. **backward pass** of a fresh set network: policy and value losses, gradient norms, and the loss
    before and after one Adam step;
 4. a whole day for each trained network and for Slack-aware (a single day; it says little about
