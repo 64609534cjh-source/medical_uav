@@ -35,8 +35,8 @@ body { background: var(--paper); color: var(--ink); font: 14px/1.45 var(--ui); m
 details { color: var(--muted); font-size: 13px; max-width: 76ch; }
 details summary { cursor: pointer; color: var(--ink); font-weight: 600; font-size: 13px; }
 details ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 3px; }
-.clock { display: grid; justify-items: end; }
-.clock b { font-size: 40px; line-height: 1; font-weight: 650; letter-spacing: -.02em; }
+.clock { display: grid; justify-items: end; margin-left: auto; }
+.clock b { font-size: 32px; line-height: 1; font-weight: 650; letter-spacing: -.02em; }
 .clock span { color: var(--muted); font-size: 12px; }
 .counters { display: flex; flex-wrap: wrap; gap: 8px; align-self: center; }
 .chip { display: inline-flex; align-items: center; gap: 7px; padding: 6px 11px; border-radius: 999px;
@@ -150,11 +150,11 @@ kbd { font: 11px var(--mono); border: 1px solid var(--line); border-bottom-width
           <li>Right: the current decision in words, the situation it was taken in and, for a network, up to three of its most likely actions (the drone takes the most likely one). Below: battery (the line marks the 15 % reserve), cargo and the most urgent waiting orders.</li>
           <li>Timeline: grey bands are demand peaks, the green curve is the battery, ticks are decisions, dots are deliveries (green on time, amber late) and crosses are orders that expired. Click or drag it to jump.</li>
           <li>At 1× flights play at 1 simulated minute per second, loading or unloading boxes at 1.5 and charging or waiting at 3, and each new decision holds the clock for about 2 s: its choices, the pick and its move into the action line. 2× and 3× play everything two or three times faster. The pauses are for reading, not the network's decision time: it decides in milliseconds. To stop at every decision, tick Stop at each decision.</li>
+          <li>On a small screen, zoom the browser out (Ctrl or Cmd and −) to see the whole page at once.</li>
         </ul>
       </details>
     </div>
     <div class="counters" id="counters" aria-live="polite"></div>
-    <div class="clock"><b class="num" id="clock">08:00</b><span id="clocksub">simulated time</span></div>
   </header>
 
   <section class="panel playbar" aria-label="Playback">
@@ -169,6 +169,7 @@ kbd { font: 11px var(--mono); border: 1px solid var(--line); border-bottom-width
         <div class="seg" role="group" aria-label="Playback speed" id="speeds"></div>
         <span class="note" id="speednote"></span></div>
       <label class="toggle"><input type="checkbox" id="stopeach"> Stop at each decision</label>
+      <div class="clock"><b class="num" id="clock">08:00</b><span id="clocksub">simulated time</span></div>
     </div>
   </section>
 
