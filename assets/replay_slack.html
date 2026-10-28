@@ -104,6 +104,8 @@ details ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 3px; }
 .more { color: var(--muted); font-size: 12px; padding-left: 4px; }
 
 .tl { padding: 12px 14px 14px; display: grid; gap: 10px; }
+/* the playback bar stays at the top of the window, so Play is always in view */
+.bar { position: sticky; top: 8px; z-index: 10; padding: 8px 14px; box-shadow: 0 4px 16px rgba(19, 33, 60, .10); }
 #timeline { width: 100%; height: 132px; display: block; cursor: pointer; touch-action: none; }
 .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
 .btns { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -154,6 +156,21 @@ kbd { font: 11px var(--mono); border: 1px solid var(--line); border-bottom-width
     <div class="clock"><b class="num" id="clock">08:00</b><span id="clocksub">simulated time</span></div>
   </header>
 
+  <section class="panel bar" aria-label="Playback">
+    <div class="controls">
+      <div class="btns">
+        <button id="restart" aria-label="Back to the start"><svg viewBox="0 0 16 16"><path d="M3 2v12M13 2 5 8l8 6z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></button>
+        <button id="prevd"><svg viewBox="0 0 16 16"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Previous decision</button>
+        <button id="play" class="primary"></button>
+        <button id="nextd">Next decision<svg viewBox="0 0 16 16"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+      <div class="speed"><span class="note">Speed</span>
+        <div class="seg" role="group" aria-label="Playback speed" id="speeds"></div>
+        <span class="note" id="speednote"></span></div>
+      <label class="toggle"><input type="checkbox" id="stopeach"> Stop at each decision</label>
+    </div>
+  </section>
+
   <div class="main">
     <section class="panel mapwrap" aria-label="Map">
       <svg id="map" role="img" aria-label="Map of the medical center, hospitals, chargers and no-fly zones"></svg>
@@ -182,22 +199,10 @@ kbd { font: 11px var(--mono); border: 1px solid var(--line); border-bottom-width
     </aside>
   </div>
 
-  <section class="panel tl" aria-label="Timeline and playback">
+  <section class="panel tl" aria-label="Timeline">
     <svg id="timeline" role="slider" tabindex="0" aria-label="Time of day" aria-valuemin="0"></svg>
-    <div class="controls">
-      <div class="btns">
-        <button id="restart" aria-label="Back to the start"><svg viewBox="0 0 16 16"><path d="M3 2v12M13 2 5 8l8 6z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></button>
-        <button id="prevd"><svg viewBox="0 0 16 16"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Previous decision</button>
-        <button id="play" class="primary"></button>
-        <button id="nextd">Next decision<svg viewBox="0 0 16 16"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-      </div>
-      <div class="speed"><span class="note">Speed</span>
-        <div class="seg" role="group" aria-label="Playback speed" id="speeds"></div>
-        <span class="note" id="speednote"></span></div>
-      <label class="toggle"><input type="checkbox" id="stopeach"> Stop at each decision</label>
-      <span class="keys"><kbd>Space</kbd> play · <kbd>←</kbd> <kbd>→</kbd> decisions · drag the timeline</span>
-    </div>
     <div class="marks" id="marks"><span class="eyebrow">Jump to</span></div>
+    <span class="keys"><kbd>Space</kbd> play · <kbd>←</kbd> <kbd>→</kbd> decisions · drag the timeline</span>
   </section>
 </div>
 

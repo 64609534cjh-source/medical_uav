@@ -55,12 +55,13 @@ browser (it works offline); it opens at 09:58, as orders start to pile up.
 | [set_network_backlog.mp4](assets/set_network_backlog.mp4) | For viewers who cannot open the page: an afternoon excerpt at the replay's 1× rates, 32 decisions from 14:06 to 16:37 including the closest call (2 min 50 s). |
 | [demo.png](assets/demo.png) | The picture above: the network's closest call of the day (14:30). |
 
-Press **Play** (or Space). At each decision the clock stops for about 2 s: the choices appear, the
-chosen one is highlighted and moves up into the action line, which then shows its progress. These
-pauses are for reading, not the network's decision time: it decides in milliseconds. At **1×**
-(the default) flights play at 1 simulated min/s, box handling at 1.5, charging and waiting at 3;
-**2×** and **3×** play everything faster. **Previous / Next decision** (← →) and **Stop at each
-decision** step through the day; **How to read this screen** explains the display.
+Press **Play** in the bar at the top (or Space). At each decision the clock stops for about 2 s:
+the choices appear, the chosen one is highlighted and moves up into the action line, which then
+shows its progress. These pauses are for reading, not the network's decision time: it decides in
+milliseconds. At **1×** (the default) flights play at 1 simulated min/s, box handling at 1.5,
+charging and waiting at 3; **2×** and **3×** play everything faster. **Previous / Next decision**
+(← →) and **Stop at each decision** step through the day; **How to read this screen** explains the
+display.
 
 ## Other commands
 
