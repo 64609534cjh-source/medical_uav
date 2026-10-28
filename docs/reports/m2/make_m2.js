@@ -2,7 +2,7 @@
 const fs = require("fs");
 const {
   Document, Packer, Paragraph, TextRun, ImageRun, Table, TableRow, TableCell, WidthType,
-  AlignmentType, BorderStyle, ShadingType, HeadingLevel, Footer, PageNumber, TabStopType,
+  AlignmentType, BorderStyle, ShadingType, HeadingLevel, Footer, PageNumber, TabStopType, LevelFormat,
 } = require("docx");
 
 const SERIF = "Times New Roman", SANS = "Arial";
@@ -12,18 +12,18 @@ const NAVY = "000000", GREY = "595959";
 function runs(text) {
   const out = [];
   text.split("`").forEach((s, i) => {
-    if (i % 2) { out.push(new TextRun({ text: s, font: SERIF, size: 22 })); return; }  // code names in the body font
+    if (i % 2) { out.push(new TextRun({ text: s, font: SERIF, size: 21 })); return; }  // code names in the body font
     s.split("**").forEach((p, j) => {
       // [[...]] marks text the group still has to confirm
       p.split(/\[\[|\]\]/).forEach((q, k) => {
-        if (q) out.push(new TextRun({ text: q, font: SERIF, size: 22, bold: j % 2 === 1,
+        if (q) out.push(new TextRun({ text: q, font: SERIF, size: 21, bold: j % 2 === 1,
           highlight: k % 2 ? "yellow" : undefined }));
       });
     });
   });
   return out;
 }
-const body = (t) => new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { after: 80, line: 240 },
+const body = (t) => new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { after: 50, line: 240 },
   children: runs(t) });
 const heading = (t, before = 90) => new Paragraph({ heading: HeadingLevel.HEADING_2, keepNext: true,
   spacing: { before, after: 40 },
@@ -36,30 +36,67 @@ const caption = (label, t, before, after, keepNext = false) => new Paragraph({
   children: [new TextRun({ text: label + " ", bold: true, size: 17, font: SANS }),
     new TextRun({ text: t, size: 17, font: SANS, color: "404040" })] });
 
-const section = (n, para = body) => fs.readFileSync(`${__dirname}/sec${n}.md`, "utf8").trim().split(/\n\s*\n/).map(para);
-// the narrow column beside Figure 2 is set ragged-right: long file names leave gaps when justified
-const ragged = (t) => new Paragraph({ alignment: AlignmentType.LEFT, spacing: { after: 80, line: 240 }, children: runs(t) });
+// a block of "- " lines is a bullet list; a block that is only bold text heads the lines below it
+const bullet = (t) => new Paragraph({ alignment: AlignmentType.JUSTIFIED, numbering: { reference: "dots", level: 0 },
+  spacing: { after: 20, line: 240 }, children: runs(t) });
+const group = (t) => new Paragraph({ keepNext: true, spacing: { before: 40, after: 20 }, children: runs(t) });
+const block = (para) => (t) => t === "{{fig1}}" ? figure1() : t === "{{table1}}" ? table1() : t === "{{fig2}}" ? figure2()
+  : t.startsWith("- ") ? t.split(/\n(?=- )/).map((b) => bullet(b.slice(2).replace(/\n/g, " ")))
+  : /^\*\*[^*]+\*\*( \([^)]*\))?$/.test(t) ? [group(t)] : [para(t)];
+const section = (n, para = body) => fs.readFileSync(`${__dirname}/sec${n}.md`, "utf8").trim().split(/\n\s*\n/).flatMap(block(para));
 
-// table 1: three-line table
+// table 1: three-line table across the page, on-time and served rates side by side; one-cell rows head a group
 const thick = { style: BorderStyle.SINGLE, size: 10, color: "000000" };
 const thin = { style: BorderStyle.SINGLE, size: 4, color: "000000" };
 const none = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
-const W = [3300, 1800, 1800, 1800];
-const rows = [["Policy", "Low load (22)", "Medium load (52)", "High load (68)"],
-  ["Random", "55.5%", "26.3%", "22.6%"], ["EDF (earliest deadline first)", "99.6%", "40.6%", "27.5%"],
-  ["FCFS (first come, first served)", "97.0%", "49.3%", "32.1%"], ["Nearest-first", "99.2%", "71.6%", "53.2%"],
-  ["Slack-aware (teacher)", "99.3%", "81.0%", "65.9%"],
-  ["MLP, imitation (training seed 0)", "99.2%", "79.3%", "62.7%"], ["Set network, imitation (training seed 0)", "99.5%", "79.5%", "64.4%"]];
-const cell = (t, i, k) => new TableCell({ width: { size: W[i], type: WidthType.DXA },
-  borders: { left: none, right: none, top: k === 0 ? thick : k === 6 ? thin : none,
-    bottom: k === 0 ? thin : k === rows.length - 1 ? thick : none },
-  margins: { top: 20, bottom: 20, left: 80, right: 80 },
-  children: [new Paragraph({ alignment: i ? AlignmentType.CENTER : AlignmentType.LEFT,
-    keepNext: k < rows.length - 1,
-    children: [new TextRun({ text: t, bold: k === 0, size: 18, font: SANS })] })] });
-const table = new Table({ alignment: AlignmentType.CENTER, width: { size: 8700, type: WidthType.DXA },
-  columnWidths: W, rows: rows.map((r, k) => new TableRow({ cantSplit: true,
-    children: r.map((t, i) => cell(t, i, k)) })) });
+const W = [3466, 1050, 1100, 1050, 1050, 1100, 1050];
+const TW = W.reduce((a, b) => a + b, 0);
+const rows = [
+  ["Random", "55.5", "26.3", "22.6", "84.4", "52.3", "44.1"],
+  ["EDF (earliest deadline first)", "99.6", "40.6", "27.5", "100.0", "89.0", "72.1"],
+  ["FCFS (first come, first served)", "97.0", "49.3", "32.1", "99.9", "84.6", "71.4"],
+  ["Nearest-first (soonest to finish)", "99.2", "71.6", "53.2", "100.0", "93.2", "83.7"],
+  ["Slack-aware (main teacher)", "99.3", "81.0", "65.9", "100.0", "90.6", "80.7"],
+  ["Rollout planner (slow look-ahead)", "99.9", "89.7", "76.8", "100.0", "94.6", "85.4"],
+  ["Imitating Slack-aware"],
+  ["MLP", "99.2", "80.2", "63.7", "100.0", "91.5", "80.5"],
+  ["Set network", "99.3", "81.2", "66.2", "100.0", "91.3", "80.5"],
+  ["Imitating rollout"],
+  ["MLP", "98.8", "82.5", "67.6", "100.0", "95.1", "85.7"],
+  ["Set network", "99.3", "84.1", "72.6", "99.9", "93.3", "85.6"]];
+const GROUP = rows.findIndex((r) => r.length === 1);  // first group row: a rule above, rows below indented
+const tcell = (t, w, o = {}) => new TableCell({ width: { size: w, type: WidthType.DXA }, columnSpan: o.span || 1,
+  borders: { left: none, right: none, top: o.top || none, bottom: o.bottom || none },
+  margins: { top: 2, bottom: 2, left: o.indent ? 180 : 60, right: 40 },
+  children: [new Paragraph({ alignment: o.left ? AlignmentType.LEFT : AlignmentType.CENTER, keepNext: !o.last,
+    children: [new TextRun({ text: t, size: 16, font: SANS, bold: o.bold, italics: o.italics })] })] });
+const head = [
+  new TableRow({ cantSplit: true, children: [tcell("", W[0], { top: thick }),
+    tcell("On-time rate (%)", W[1] + W[2] + W[3], { span: 3, top: thick, bottom: thin, bold: true }),
+    tcell("Served rate (%)", W[4] + W[5] + W[6], { span: 3, top: thick, bottom: thin, bold: true })] }),
+  new TableRow({ cantSplit: true, children: ["Policy", "Low (22)", "Medium (52)", "High (68)", "Low", "Medium", "High"]
+    .map((t, i) => tcell(t, W[i], { bottom: thin, bold: true, left: i === 0 })) })];
+const tableRows = rows.map((r, k) => {
+  const last = k === rows.length - 1, o = { top: k === GROUP ? thin : none, bottom: last ? thick : none, last };
+  return new TableRow({ cantSplit: true, children: r.length === 1
+    ? [tcell(r[0], TW, { ...o, span: 7, left: true, italics: true })]
+    : r.map((t, i) => tcell(t, W[i], { ...o, left: i === 0, indent: i === 0 && k > GROUP })) });
+});
+const table1 = () => [
+  caption("Table 1.", "Mean daily on-time and served rates (orders delivered on time, or at all, as % of orders released) at each demand level, map 0, the same 40 development days; orders per day in brackets; networks trained once.", 60, 30, true),
+  new Table({ alignment: AlignmentType.CENTER, width: { size: TW, type: WidthType.DXA }, columnWidths: W,
+    rows: [...head, ...tableRows] })];
+
+const figure1 = () => [
+  new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 40 }, keepNext: true,
+    children: [new ImageRun({ type: "png", data: fs.readFileSync(`${__dirname}/setnet.png`),
+      transformation: { width: 510, height: 148 } })] }),
+  caption("Figure 1.", "The set network from observation to output (B: batch size; ⊕: concatenation). Encoders use ReLU throughout; each head has one ReLU hidden layer of 64 and a linear output.", 40, 100)];
+const figure2 = () => [
+  new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 80 }, keepNext: true,
+    children: [new ImageRun({ type: "png", data: fs.readFileSync(`${__dirname}/bc_curve.png`),
+      transformation: { width: 470, height: 115 } })] }),
+  caption("Figure 2.", "Validation decisions matching the teacher (%), one point per epoch; ○ marks the epoch kept (lowest validation loss).", 20, 80)];
 
 const children = [
   new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 60 },
@@ -72,37 +109,19 @@ const children = [
     children: [new TextRun({ text: "NUS ME5418  |  Milestone 2: Neural Network Code and Report",
       size: 18, font: SANS, color: GREY })] }),
 
-  body("Our agent dispatches one UAV that picks up and delivers medical orders under deadline, battery and payload limits. This milestone builds its policy and value networks (the set/attention network of our proposal and a plain MLP for comparison) and trains both to imitate our strongest rule. We also revised the reward and observation, added two baselines and an evaluator, and slowed the visualization down after the M1 feedback."),
-
-  heading("1. Network code"), section(1)[0],
-  new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 40 }, keepNext: true,
-    children: [new ImageRun({ type: "png", data: fs.readFileSync(`${__dirname}/setnet.png`),
-      transformation: { width: 650, height: 189 } })] }),
-  caption("Figure 1.", "The set network from observation to output (B: batch size; ⊕: concatenation). Encoders use ReLU throughout; each head has one ReLU hidden layer of 64 and a linear output.", 40, 100),
-  section(1)[1],
-  heading("2. Training by imitation"), ...section(2),
-  caption("Table 1.", "Mean daily on-time rate (on-time / released), map 0, the same 40 development days; mean orders/day in brackets.", 80, 40, true),
-  table,
-  heading("3. Changes to the environment and evaluation", 200), ...section(3),
-  heading("4. Demo and visualization"),
-  new Table({ width: { size: 9866, type: WidthType.DXA }, columnWidths: [4766, 5100],
-    borders: { top: none, bottom: none, left: none, right: none, insideHorizontal: none, insideVertical: none },
-    rows: [new TableRow({ cantSplit: true, children: [
-      new TableCell({ width: { size: 4766, type: WidthType.DXA }, borders: { top: none, bottom: none, left: none, right: none },
-        margins: { top: 0, bottom: 0, left: 0, right: 160 }, children: section(4, ragged) }),
-      new TableCell({ width: { size: 5100, type: WidthType.DXA }, borders: { top: none, bottom: none, left: none, right: none },
-        margins: { top: 0, bottom: 0, left: 120, right: 0 }, children: [
-          new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 20 },
-            children: [new ImageRun({ type: "png", data: fs.readFileSync(`${__dirname}/frame.png`),
-              transformation: { width: 320, height: 146 } })] }),
-          caption("Figure 2.", "Decision 81 (14:30) in the replay: the set network gives 50.03% to charging at C1 and 49.97% to picking up medicine for H3, and charges.", 40, 60)] }),
-    ] })] }),
+  body("Our agent dispatches one UAV that delivers medical orders between a medical center and five hospitals under deadline, battery and payload limits. M2 builds the policy and value networks (our proposal's set/attention network and an MLP control), tests by imitation that they can learn, and updates the environment, baselines and visualization."),
+  heading("1. Network code"), ...section(1),
+  heading("2. Changes to the environment and evaluation"), ...section(2),
+  heading("3. Training by imitation"), ...section(3),
+  heading("4. Demo and visualization"), ...section(4),
   heading("5. Existing code, libraries and AI use"), ...section(5),
   heading("6. Reflections and lessons learned"), ...section(6),
 ];
 
 const doc = new Document({
-  styles: { default: { document: { run: { font: SERIF, size: 22 } } },
+  numbering: { config: [{ reference: "dots", levels: [{ level: 0, format: LevelFormat.BULLET, text: "•",
+    alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 300, hanging: 200 } } } }] }] },
+  styles: { default: { document: { run: { font: SERIF, size: 21 } } },
     paragraphStyles: [{ id: "Footer", name: "footer", run: { font: SANS, size: 16, color: "808080" } }] },
   sections: [{
     properties: { page: { size: { width: 11906, height: 16838 },
