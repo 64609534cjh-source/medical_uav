@@ -11,7 +11,7 @@ NUS ME5418, Group 17 (Jihang Cai, Yu Liu, Yufeng Zhang). Milestone 2: the neural
 | | Where | Section |
 |---|---|---|
 | Two policy/value networks: a set/attention network and an MLP control, both with action masking | `medical_uav/agents/networks.py`, `policy.py` | [The networks](#the-networks) |
-| **Network demo**: both networks, a forward and a backward pass on real observations, a day driven by each trained network | `scripts/demo_network.py` | [Run the network demo](#run-the-network-demo) |
+| **Network demo**: creates both networks; a forward pass of the trained set network and a backward pass of a fresh one on real observations; a day driven by each trained network | `scripts/demo_network.py` | [Run the network demo](#run-the-network-demo) |
 | Both networks trained by behaviour cloning of the strongest rule, with the trained weights | `medical_uav/agents/bc.py`, `scripts/train_bc.py`, `checkpoints/` | [The networks](#the-networks) |
 | Environment v2 (reward, travel times in the observation), FCFS and nearest-first rules, an evaluator for comparing policies on the same days | `medical_uav/env/`, `medical_uav/baselines/`, `scripts/evaluate.py` | [The environment](#the-environment) |
 | Visualisation of the network's decisions: a replay web page and two paced videos, made because the Milestone 1 animation was too fast to follow | `scripts/demo.py`, `assets/` | [Visualisation](#visualisation-included-results-and-how-to-make-them) |
@@ -47,8 +47,9 @@ command and activate that name instead. Without conda, use Python 3.11 and run
 python scripts/demo_network.py
 ```
 
-It creates both networks, runs a forward pass and a backward pass on real observations from the
-environment, and lets the trained networks (in `checkpoints/`) run a whole day. It takes a few
+It creates both networks, runs a forward pass of the trained set network and a backward pass and
+one Adam step of a fresh set network on real observations from the environment, and lets both
+trained networks (in `checkpoints/`) run a whole day. It takes a few
 seconds, prints to the terminal only (no files are saved) and shows, among other things:
 
 ```
@@ -72,7 +73,7 @@ The submission already contains a replay and two videos in `assets/`. Download
 internet connection is needed). It replays one day, medium load and demand seed 100000 (a day the
 network never trained on), driven by the set network trained by imitation: play, pause, step from
 decision to decision or drag the timeline. Each decision is shown with the situation it was taken
-in and the network's three most likely actions.
+in and up to three of the network's most likely actions.
 
 | File in `assets/` | What it shows |
 |---|---|
@@ -89,10 +90,13 @@ in and the network's three most likely actions.
 ```bash
 python scripts/demo.py --policy set --seed 100000           # replay page and picture, a few seconds
 python scripts/demo.py --policy set --seed 100000 --video   # also the two videos, 10-15 minutes
+python scripts/demo.py --policy slack --seed 100000         # the teacher's replay of the same day
 ```
 
-which save `outputs/demo_set_medium_seed100000_replay.html`, `..._decision.png`,
-`..._explained.mp4` and `..._day.mp4` (the same replay as in `assets/`). Without options,
+They write to `outputs/` (the included files in `assets/` are not touched):
+`demo_set_medium_seed100000_replay.html` (the same file as `assets/replay_set_network.html`),
+`..._decision.png`, `..._explained.mp4`, `..._day.mp4` and
+`demo_slack_medium_seed100000_replay.html` (`assets/replay_slack.html`). Without options,
 `python scripts/demo.py` runs the Slack-aware rule on demand seed 0 and prints a summary that
 starts with:
 
