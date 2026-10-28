@@ -6,7 +6,7 @@ is over, then read the results and show the day.
 Outputs, in outputs/:
   *_replay.html    the whole day in a web browser: play, pause, step through the decisions
   *_decision.png   one decision worth a look, as in the replay
-  *_explained.mp4  with --video: a few consecutive decisions, each held so it can be read
+  *_explained.mp4  with --video: the demand peak around the opening decision, each decision held so it can be read
   *_day.mp4        with --video: the whole day at the replay's smart speed
 """
 import argparse
@@ -58,9 +58,10 @@ def main():
     parser.add_argument("--load", choices=["low", "medium", "high"], default="medium")
     parser.add_argument("--seed", type=int, default=0, help="demand seed (which day of orders)")
     parser.add_argument("--video", action="store_true",
-                        help="also save the explanation and day videos (10-15 minutes)")
-    parser.add_argument("--explain-count", type=int, default=8,
-                        help="decisions shown in the explanation video")
+                        help="also save the explanation and day videos (15-20 minutes)")
+    parser.add_argument("--explain-after", type=int, default=10,
+                        help="decisions after the opening one in the explanation video, which "
+                             "starts at the demand peak the opening decision falls in")
     parser.add_argument("--fps", type=int, default=12, help="video frames per second")
     args = parser.parse_args()
 
@@ -108,10 +109,13 @@ def main():
     imageio.imwrite(f"{base}_decision.png", renderer.draw(record["decisions"][first]["t"]))
     print(f"Saved: {base}_decision.png")
     if not args.video:
-        print("Add --video to also save the explanation and day videos (10-15 minutes).")
+        print("Add --video to also save the explanation and day videos (15-20 minutes).")
         return
-    print("Drawing the explanation video (about a minute) ...", flush=True)
-    times = explained_times(record, first, args.explain_count, args.fps)
+    print("Drawing the explanation video (a few minutes) ...", flush=True)
+    decs = record["decisions"]
+    peaks = [p for p in record["meta"]["peaks"] if p[0] <= decs[first]["t"]]
+    start = next(i for i, d in enumerate(decs) if d["t"] >= peaks[-1][0]) if peaks else first
+    times = explained_times(record, start, first - start + 1 + args.explain_after, args.fps)
     n = save_animation(frames(renderer, times, "decision by decision"),
                        f"{base}_explained.mp4", args.fps)
     print(f"Saved: {base}_explained.mp4 ({n / args.fps:.0f} s)")

@@ -132,9 +132,9 @@ kbd { font: 11px var(--mono); border: 1px solid var(--line); border-bottom-width
         <summary>How to read this screen</summary>
         <ul>
           <li>Map: the square is the medical center M with charger C1, circles are hospitals, the bolt is charger C2, hatched areas are no-fly zones. Coloured squares next to a place are orders waiting there (all of them; the network sees at most 12); the three squares under the drone are its cargo slots.</li>
-          <li>Right: the current decision in words, the situation it was taken in and, for a network, its three most likely actions. Below: battery (the line marks the 15 % reserve), cargo and the most urgent waiting orders.</li>
+          <li>Right: the current decision in words, the situation it was taken in and, for a network, up to three of its most likely actions (the drone takes the most likely one). Below: battery (the line marks the 15 % reserve), cargo and the most urgent waiting orders.</li>
           <li>Timeline: grey bands are demand peaks, the green curve is the battery, ticks are decisions, dots are deliveries (green on time, amber late) and crosses are orders that expired. Click or drag it to jump.</li>
-          <li>Smart speed plays flights at 1 simulated minute per second and fast-forwards loading, charging and waiting at 8; it pauses briefly at each decision. The fixed speeds play everything at one rate.</li>
+          <li>Smart speed plays flights at 1 simulated minute per second and fast-forwards loading, charging and waiting at 8; it pauses 3 s at each decision. The fixed speeds play everything at one rate and pause 1 s at each decision.</li>
         </ul>
       </details>
     </div>
@@ -409,9 +409,11 @@ function stateAt(R, t) {
       $("action").textContent = d.text;
       $("phase").textContent = Math.abs(t - d.t) < 0.02 ? "Deciding" : t < d.end - EPS ? `In progress · done at ${clock(d.end)}` : "Done · " + resultText(d);
       $("facts").innerHTML = d.facts.map((x) => `<li>${x}</li>`).join("");
+      const shown = d.top.map((p) => (p[1] * 100).toFixed(1));
+      const digits = new Set(shown).size < shown.length ? 2 : 1;  // a near tie needs more digits
       $("probs").innerHTML = d.top.length ? `<div class="eyebrow">The network's top choices</div>` + d.top.map((p, k) =>
-        `<div class="prob${k === 0 ? " chosen" : ""}"><span class="lab">${p[0]}</span><span class="pct num">${(p[1] * 100).toFixed(1)}%</span><span class="bar"><i style="width:${(p[1] * 100).toFixed(1)}%"></i></span></div>`).join("")
-        + `<div class="note">Policy probabilities, not chances of success.</div>` : "";
+        `<div class="prob${k === 0 ? " chosen" : ""}"><span class="lab">${p[0]}</span><span class="pct num">${(p[1] * 100).toFixed(digits)}%</span><span class="bar"><i style="width:${(p[1] * 100).toFixed(1)}%"></i></span></div>`).join("")
+        + `<div class="note">Policy probabilities, not chances of success. The drone takes the most likely action.</div>` : "";
       const p = decs[s.decision - 1];
       $("prev").textContent = p ? `Before: ${p.text} — ${resultText(p)}` : "";
     } else {
@@ -476,9 +478,10 @@ function stateAt(R, t) {
   tl.setAttribute("aria-valuemax", END.toFixed(0));
 
   // ---------- playback ----------
-  // smart: flights at 1 simulated min per second, everything else at 8, a short pause at each decision
+  // smart: flights at 1 simulated min per second, everything else at 8, a 3 s pause at each decision;
+  // the fixed speeds pause 1 s, so every decision is seen while it is being taken
   const SPEEDS = [["smart", "Smart"], [1, "1"], [5, "5"], [15, "15"]];
-  const FLY_RATE = 1, GROUND_RATE = 8, HOLD_MS = 600;
+  const FLY_RATE = 1, GROUND_RATE = 8, HOLD_MS = 3000, FIXED_HOLD_MS = 1000;
   let t = 0, playing = false, speed = "smart", last = null, holdUntil = 0;
   $("speeds").innerHTML = SPEEDS.map(([v, l]) => `<button data-s="${v}" aria-pressed="${v === speed}">${l}</button>`).join("");
   const rateAt = (s) => speed !== "smart" ? speed : (s.active && s.active[0] === "fly" ? FLY_RATE : GROUND_RATE);
@@ -507,7 +510,7 @@ function stateAt(R, t) {
       if (nd && next >= nd.t) {
         next = nd.t;
         if ($("stopeach").checked) { t = next; playing = false; render(); return; }
-        if (speed === "smart") holdUntil = now + HOLD_MS;
+        holdUntil = now + (speed === "smart" ? HOLD_MS : FIXED_HOLD_MS);
       }
       t = Math.min(END, next);
       if (t >= END) playing = false;

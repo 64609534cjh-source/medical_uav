@@ -19,7 +19,7 @@ LINE, WASH = "#d9e0e8", "#e9eef5"
 ONTIME, LATE, EXPIRED = "#11806a", "#9a6500", "#c8402a"
 TYPE_COLORS = ("#c0267a", "#2f6fdb", "#7a4fd0", "#9a6b2f")  # plasma, medicine, sample, supplies
 TYPE_LABELS = ("Plasma", "Medicine", "Sample", "Supplies")
-FLY_RATE, GROUND_RATE, HOLD_S = 1.0, 8.0, 0.6  # smart speed, as in the replay
+FLY_RATE, GROUND_RATE, HOLD_S = 1.0, 8.0, 1.5  # smart speed of the replay, with a shorter hold
 
 
 def pt(px: float) -> float:
@@ -212,7 +212,10 @@ class ReplayFrames:
         x, y, w, h = 560, 92, 696, 230
         self._panel(ax, x, y, w, h)
         decs, end = r["decisions"], r["meta"]["end"]
-        d = decs[s["decision"]] if s["decision"] >= 0 else None
+        i = s["decision"]
+        if phase == "Done":  # the action that just finished, drawn after its pickups or deliveries
+            i = max(k for k, x in enumerate(decs) if x["end"] <= t)
+        d = decs[i] if i >= 0 else None
         if t >= end - 1e-6:
             sm = r["meta"]["summary"]
             self._text(ax, x + 16, y + 14, f"DAY COMPLETE · {self._clock(end)}", 11, MUTED, "bold")
@@ -226,7 +229,7 @@ class ReplayFrames:
         if d is None:
             self._text(ax, x + 16, y + 14, "START OF THE DAY", 11, MUTED, "bold")
             return
-        self._text(ax, x + 16, y + 14, f"DECISION {s['decision'] + 1} OF {len(decs)} · "
+        self._text(ax, x + 16, y + 14, f"DECISION {i + 1} OF {len(decs)} · "
                    f"{self._clock(d['t'])}", 11, MUTED, "bold")
         self._text(ax, x + 16, y + 32, d["text"], 19, INK, "bold")
         if phase is None and abs(t - d["t"]) < 0.02:
@@ -242,16 +245,19 @@ class ReplayFrames:
             self._text(ax, x + 32, y + 94 + 20 * k, fact, 13)
         if d["top"]:
             cx = x + 360
+            shown = [round(100 * p, 1) for _, p in d["top"]]
+            digits = 2 if len(set(shown)) < len(shown) else 1  # a near tie needs more digits
             self._text(ax, cx, y + 94, "THE NETWORK'S TOP CHOICES", 11, MUTED, "bold")
             for k, (label, p) in enumerate(d["top"]):
                 yy = y + 112 + 30 * k
                 self._text(ax, cx, yy, label, 13, INK, "bold" if k == 0 else "normal")
-                self._text(ax, x + w - 16, yy, f"{100 * p:.1f}%", 13, INK, ha="right")
+                self._text(ax, x + w - 16, yy, f"{100 * p:.{digits}f}%", 13, INK, ha="right")
                 ax.add_patch(Rectangle((cx, yy + 18), x + w - 16 - cx, 5, fc=WASH, ec="none"))
                 ax.add_patch(Rectangle((cx, yy + 18), (x + w - 16 - cx) * p, 5,
                                        fc=INK if k == 0 else FAINT, ec="none"))
-            self._text(ax, cx, y + h - 18, "Policy probabilities, not chances of success.", 11,
+            self._text(ax, cx, y + h - 31, "Policy probabilities, not chances of success.", 11,
                        MUTED)
+            self._text(ax, cx, y + h - 15, "The drone takes the most likely action.", 11, MUTED)
 
     def _state(self, ax, s, t):
         r = self.r
@@ -342,7 +348,7 @@ class ReplayFrames:
 
 def smart_times(record: dict, fps: int) -> list[float]:
     """Frame times for the whole day at smart speed: flights at 1 simulated minute per second,
-    everything else at 8, each decision held for 0.6 s."""
+    everything else at 8, each decision held for 1.5 s."""
     segs, decs, end = record["segments"], record["decisions"], record["meta"]["end"]
     times, t, d = [], 0.0, 0
     while t < end:
@@ -357,7 +363,7 @@ def smart_times(record: dict, fps: int) -> list[float]:
             t_next = min(t_next, decs[d]["t"])
         times.append(t)
         t = min(t_next, end) if t_next > t + EPS else end
-    return times + [end] * fps
+    return times + [end] * (5 * fps)  # hold the day's result
 
 
 def explained_times(record: dict, first: int, count: int, fps: int,
@@ -369,5 +375,5 @@ def explained_times(record: dict, first: int, count: int, fps: int,
         out += [(d["t"], "Deciding")] * round(before_s * fps)
         n = round(action_s * fps)
         out += [(d["t"] + (d["end"] - d["t"]) * k / n, None) for k in range(n)]
-        out += [(d["end"] - 1e-6, "Done")] * round(after_s * fps)
+        out += [(d["end"] + 1e-6, "Done")] * round(after_s * fps)
     return out
