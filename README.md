@@ -46,7 +46,7 @@ imageio-ffmpeg 0.6.0 and torch 2.14.1 (CPU). If `medical-uav-rl` already exists,
 python scripts/demo_network.py
 ```
 
-In a few seconds it prints (no files are saved):
+It prints (no files are saved; about 15 s):
 
 1. both networks and their sizes (MLP 370,459 parameters, set network 62,928);
 2. the input: 64 real observations `[64, 452]` with their action masks `[64, 26]`;
@@ -55,6 +55,9 @@ In a few seconds it prints (no files are saved):
 4. a **backward pass** of a fresh set network: policy and value losses, gradient norms per
    module, and one Adam step after which the loss falls;
 5. a whole day driven by each trained network.
+
+The inputs are Slack-aware's first 64 decisions of a day. Imitation trains only the policy, so the
+value head is still untrained.
 
 ```
 3. forward pass (trained set network): logits (64, 26), value (64,)
@@ -68,26 +71,29 @@ In a few seconds it prints (no files are saved):
 
 ## 2. The visualisation (`assets/`, nothing to install)
 
-All files show the same day (medium load, demand seed 100000, never used in training) driven by
-the trained set network. They answer the Milestone 1 feedback that the animation was too fast:
-the video is slowed down so each decision can be read without touching anything, and the web
-page lets you explore the whole day at your own pace.
+All files show one medium-load day never used in training (demand seed 100000), driven by the
+trained set network (`replay_slack.html`: by its teacher). Because the Milestone 1 animation was
+too fast, the video is slowed down so each decision can be read without touching anything, and
+the web page lets you explore the whole day at your own pace.
 
 | File | What it is for |
 |---|---|
-| `set_network_explained.mp4` (3.5 min) | **Watch first: the decisions, slowed down.** The afternoon peak, 29 decisions from 13:06 to 15:17; each is held 7 s (before, during and after its action) with the situation and the network's most likely actions on screen. |
+| `set_network_explained.mp4` (3:23) | **Watch first: the decisions, slowed down.** 29 decisions around the afternoon peak, 13:06–15:30; each takes 7 s (2 s before, 3 s during and 2 s after its action) with the situation and the network's most likely actions on screen. |
 | `replay_set_network.html` | **Explore the whole day yourself.** Download it and double-click: it opens offline in any browser. You choose the speed, stop at any decision and jump to any time; every decision shows the situation and up to three of the network's most likely actions (the drone takes the most likely one). It opens at the network's closest call (14:30). |
 | `replay_slack.html` | The same page for the teacher, Slack-aware, on the same day (47 of 49 orders on time; the network 45), to compare the two. |
 | `set_network_day.mp4` (6.5 min) | An overview of the whole day without clicking: flights at 1 simulated minute per second, the rest at 8, a 1.5 s pause at each decision. |
 | `demo.png` | The picture above: the closest call in the replay. |
 
-Using the replay: **Play** (or the space bar) runs it at **Smart** speed (flights 1 simulated
-minute per second, the rest 8, a 3 s pause at each decision); **1**, **5** and **15** are fixed
-speeds in simulated minutes per second, with a 1 s pause at each decision. To read decision by decision, tick **Stop at each
-decision** or use **Previous / Next decision** (← →). Drag the timeline or use **Jump to** (start
-of the day, closest call, ...) to move. **How to read this screen**, at the top, explains the map,
-panels and timeline. The percentages are the network's probabilities of choosing each action,
-not chances of success.
+Using the replay:
+
+- **Speed.** **Play** (or the space bar) uses the selected speed, initially **Smart**: flights at
+  1 simulated minute per second, loading, charging and waiting at 8, and a 3 s pause at each
+  decision. **1**, **5** and **15** play everything at that many simulated minutes per second,
+  with a 1 s pause at each decision.
+- **Decision by decision.** Tick **Stop at each decision**, or use **Previous / Next decision**
+  (← →). Drag the timeline or use **Jump to** (start of the day, closest call, ...) to move.
+- **Reading it.** **How to read this screen**, at the top, explains the map, panels and timeline.
+  The percentages are the network's probabilities of choosing each action, not chances of success.
 
 To make these files yourself (they go to `outputs/`; `assets/` is not touched):
 
