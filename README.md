@@ -110,12 +110,16 @@ the highest logit.
 ## Main files
 
 ```
-medical_uav/agents/     networks.py (both networks), policy.py (inference, checkpoints), bc.py (imitation)
+medical_uav/agents/     networks.py (both networks), policy.py (inference, checkpoints),
+                        bc.py (behaviour cloning, i.e. imitation)
 medical_uav/env/        the environment; replay.py, replay_player.html, video.py (replays)
-medical_uav/baselines/  Random, EDF, FCFS, nearest-first, Slack-aware, rollout planner
+medical_uav/baselines/  heuristics.py: Random, EDF (earliest deadline first), FCFS (first come,
+                        first served), nearest-first, Slack-aware; rollout.py: rollout planner
 medical_uav/            evaluation.py, metrics.py, splits.py (which days are for what)
 scripts/                demo_network.py, demo.py, train_bc.py, evaluate.py
-checkpoints/            bc_set.pt, bc_mlp.pt, bc_rollout_set.pt, bc_rollout_mlp.pt, *history.json
+checkpoints/            bc_set.pt, bc_mlp.pt: imitating Slack-aware (bc = behaviour cloning);
+                        bc_rollout_set.pt, bc_rollout_mlp.pt: imitating the rollout planner;
+                        bc_history.json, bc_rollout_history.json: training curves
 assets/                 replays, video, picture
 environment.yml         the exact environment
 ```
