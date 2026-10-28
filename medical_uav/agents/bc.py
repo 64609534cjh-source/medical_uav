@@ -7,8 +7,46 @@ import torch
 
 from medical_uav.env import MedicalUAVEnv
 from medical_uav.env.actions import decode
+from medical_uav.agents.networks import masked_logits
 
 LOADS = ("low", "medium", "high")  # stored as indices in the "load" array
+
+
+def masked_imitation_loss(logits, mask, labels, reduction="mean"):
+    """Cross-entropy to valid labels, independently of the actions executed in a rollout."""
+    if (torch.any(labels < 0) or torch.any(labels >= mask.shape[1])
+            or not mask.gather(1, labels[:, None]).all()):
+        raise ValueError("Imitation label is forbidden by its recorded mask")
+    return torch.nn.functional.cross_entropy(masked_logits(logits, mask), labels,
+                                             reduction=reduction)
+
+
+def train_imitation(net, data: dict, epochs: int = 5, batch_size: int = 256,
+                    lr: float = 3e-5, seed: int = 0) -> list[float]:
+    """Fixed epochs over an aggregate; `action` records execution, `label` is the target."""
+    rng = np.random.default_rng(seed)
+    obs, mask, labels = (torch.as_tensor(data[k]) for k in ("obs", "mask", "label"))
+    if not len(labels) or epochs < 1 or batch_size < 1:
+        raise ValueError("Imitation needs data and positive epochs/batch size")
+    opt = torch.optim.Adam(net.parameters(), lr=lr)
+    losses = []
+    net.train()
+    for _ in range(epochs):
+        total = 0.0
+        order = rng.permutation(len(labels))
+        for i in range(0, len(order), batch_size):
+            b = order[i:i + batch_size]
+            loss = masked_imitation_loss(net(obs[b], mask[b])[0], mask[b], labels[b])
+            if not torch.isfinite(loss):
+                raise ValueError("Non-finite imitation loss")
+            opt.zero_grad()
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(net.parameters(), 0.5)
+            opt.step()
+            total += loss.item() * len(b)
+        losses.append(total / len(labels))
+    net.eval()
+    return losses
 
 
 def _episode(job):
