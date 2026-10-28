@@ -2,6 +2,6 @@
 
 {{table1}}
 
-**Result.** Imitating Slack-aware, the set network agrees with the teacher on 97.4% of validation decisions and matches its daily on-time rate; the MLP agrees on 94.2% and delivers 0.8 and 2.2 percentage points fewer orders on time at medium and high load (Table 1, Figure 2). Imitating the rollout planner, agreement is 74.6% (MLP) and 78.0% (set network), yet at these loads both deliver more orders on time than when imitating Slack-aware. With either teacher the set network beats the MLP at high load, by 2.4 and 4.9 points (paired 95% intervals above zero), with a sixth of the parameters. Served rates move the same way, so no network trades expired orders for on-time deliveries.
+**Result.** Imitating Slack-aware, the set network agrees with the teacher on 97.4% of validation decisions and matches its daily on-time rate; the MLP agrees on 94.2% and delivers 0.8 and 2.2 points fewer orders on time at medium and high load (Table 1, Figure 2). Imitating the rollout planner, agreement is 74.6% (MLP) and 78.0% (set network), yet at these loads both deliver more orders on time than when imitating Slack-aware. With either teacher the set network beats the MLP at high load, by 2.4 and 4.9 points (paired 95% intervals above zero), with a sixth of the parameters. None trades expiries for on-time deliveries: each serves within 0.2 points of Slack-aware or more.
 
 {{fig2}}
