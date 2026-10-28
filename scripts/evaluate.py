@@ -2,6 +2,7 @@
 
 Usage:
     python scripts/evaluate.py --methods random,edf,slack,fcfs,nearest --loads low,medium,high
+    python scripts/evaluate.py --methods rollout --loads medium   # slow: a lookahead per action
     python scripts/evaluate.py --methods slack --checkpoints checkpoints/bc_set.pt
 """
 import argparse
@@ -13,6 +14,7 @@ import numpy as np
 from medical_uav.agents.policy import NetworkPolicy, load_checkpoint
 from medical_uav.baselines.heuristics import (edf_policy, fcfs_policy, nearest_policy,
                                               random_policy, slack_aware_policy)
+from medical_uav.baselines.rollout import rollout_policy
 from medical_uav.evaluation import checkpoint_labels, evaluate, heuristic, paired_ci
 from medical_uav.splits import SCREEN_SEEDS, SELECT_SEEDS
 
@@ -34,7 +36,7 @@ class DailyRandom:
 def make_policies(methods: list[str], checkpoints: list[str]) -> dict:
     """Return the named rule-based policies and one network policy per checkpoint file."""
     rules = {"random": DailyRandom(), "edf": edf_policy, "slack": slack_aware_policy,
-             "fcfs": fcfs_policy, "nearest": nearest_policy}
+             "fcfs": fcfs_policy, "nearest": nearest_policy, "rollout": rollout_policy}
     policies = {m: heuristic(rules[m]) for m in methods}
     for path, label in zip(checkpoints, checkpoint_labels(checkpoints)):
         net, _ = load_checkpoint(path)

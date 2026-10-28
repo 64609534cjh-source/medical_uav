@@ -1,27 +1,29 @@
 # Medical UAV Delivery: Policy and Value Networks
 
-NUS ME5418, Group 17 (Jihang Cai, Yu Liu, Yufeng Zhang). **Milestone 2: the neural network.**
+NUS ME5418, Group 17 (Jihang Cai, Yu Liu, Yufeng Zhang). **Milestone 2: neural network code.**
 
-A drone picks up and delivers medical orders between a medical center and five hospitals over a
-simulated day (our Milestone 1 Gymnasium environment). A policy network chooses its next action
-at every decision. Design and results: the two-page report `ME5418_Group17_M2_Report.pdf`.
+One drone collects and delivers medical orders between a medical center and five hospitals in our
+Milestone 1 Gymnasium environment; a policy network chooses each action. Design and results are in
+the two-page report `ME5418_Group17_M2_Report.pdf`.
 
 ## What Milestone 2 contains
 
-1. **Two policy/value networks** (`medical_uav/agents/networks.py`): a set/attention network
-   (our proposal's design) and a plain MLP as a control, both with action masking.
-2. **The network demo** (`scripts/demo_network.py`): a forward and a backward pass.
-3. **Both networks trained by imitation** of our best rule, Slack-aware; weights in `checkpoints/`.
-4. **Replays of the network's decisions** (`assets/`), paced so each decision can be read.
-5. **Environment updates**: revised reward, travel times in the observation, FCFS and
-   nearest-first rules, an evaluator.
+1. **Two policy/value networks** (`medical_uav/agents/networks.py`): the proposed set/attention
+   network and an MLP control, both with action masking.
+2. **A network demo** (`scripts/demo_network.py`): forward and backward passes on real observations.
+3. **Trained checkpoints** (`checkpoints/`): both networks trained by imitation (behaviour cloning)
+   of Slack-aware, and a second pair imitating the rollout planner.
+4. **A new replay** (`assets/`) that replaces the M1 animation, which was too fast to follow: it
+   pauses at each decision to show the network's choices.
+5. **Environment updates:** revised reward, travel times in the observation, more baselines and an
+   evaluator.
 
-![A decision of the set network: charge first or pick up medicine, 50.03 % against 49.97 %](assets/demo.png)
+![A decision in the set network's replay](assets/demo.png)
 
 ## Install and run the network demo
 
-Needs Conda; no GPU; tested on Linux. `environment.yml` pins the exact environment (Python
-3.11.17, PyTorch 2.14.1 CPU and the other libraries). In a terminal in the unzipped folder:
+Requires Conda; no GPU. Tested on Linux. `environment.yml` pins the exact environment (Python
+3.11.17, PyTorch 2.14.1 CPU and the other libraries). Open a terminal in the unzipped folder:
 
 ```bash
 conda env create -f environment.yml
@@ -30,62 +32,75 @@ python -m pip install -e .
 python scripts/demo_network.py
 ```
 
-(If `medical-uav-rl` already exists, use `-n <name>` in the first command and activate `<name>`.)
+If `medical-uav-rl` already exists, add `-n medical-uav-m2` to the first command and activate
+`medical-uav-m2` instead.
 
-In about 15 s the demo prints (no files saved):
+The demo takes a few seconds (allow 15 s), saves no files and prints:
 
-1. both networks' sizes, and the input: 64 real observations `[64, 452]` with masks `[64, 26]`;
-2. **forward pass** of the trained set network: logits `[64, 26]`, values `[64]`, three
-   decisions next to Slack-aware's;
-3. **backward pass** of a fresh set network: policy and value losses, gradient norms, one Adam
-   step (the loss falls);
-4. a whole day driven by each trained network and by the teacher.
-
-Imitation trains only the policy, so the trained networks' value heads are still untrained.
+1. both networks' parameter counts and the input batch: observations `[64, 452]`, action masks
+   `[64, 26]`;
+2. **forward pass** of the trained set network: logits `[64, 26]`, values `[64]`, and three
+   example decisions next to Slack-aware's;
+3. **backward pass** of a fresh set network: policy and value losses, gradient norms, and the loss
+   before and after one Adam step;
+4. a whole day for each trained network and for Slack-aware (a single day; it says little about
+   average performance).
 
 ## Replays (`assets/`, nothing to install)
 
-All show the same unseen medium-load day (demand seed 100000). Download a page and open it in a
-browser (it works offline); it opens at 09:58, as orders start to pile up.
-
 | File | What it shows |
 |---|---|
-| [replay_set_network.html](assets/replay_set_network.html) | The trained set network over the whole day (45 of 49 orders on time). Each decision shows the situation and the network's top choices with their probabilities; the drone takes the most likely one. |
-| [replay_slack.html](assets/replay_slack.html) | Its teacher, Slack-aware, on the same day (47 of 49), for comparison. |
-| [set_network_backlog.mp4](assets/set_network_backlog.mp4) | For viewers who cannot open the page: an afternoon excerpt at the replay's 1× rates, 32 decisions from 14:06 to 16:37 including the closest call (2 min 50 s). |
-| [demo.png](assets/demo.png) | The picture above: the network's closest call of the day (14:30). |
+| [replay_set_network.html](assets/replay_set_network.html) | The trained set network's whole day: the situation at each decision and up to three top choices with their probabilities. |
+| [replay_slack.html](assets/replay_slack.html) | Slack-aware on the same day, for comparison. |
+| [set_network_backlog.mp4](assets/set_network_backlog.mp4) | The set network's replay as a video, over the busy part of the day (09:58–16:38, 5 min 18 s). |
+| [demo.png](assets/demo.png) | The decision pictured above. |
 
-Press **Play** in the bar at the top (or Space). At each decision the clock stops for about 2 s:
-the choices appear, the chosen one is highlighted and moves up into the action line, which then
-shows its progress. These pauses are for reading, not the network's decision time: it decides in
-milliseconds. At **1×** (the default) flights play at 1 simulated min/s, box handling at 1.5,
-charging and waiting at 3; **2×** and **3×** play everything faster. **Previous / Next decision**
-(← →) and **Stop at each decision** step through the day; **How to read this screen** explains the
-display.
+All show the same unseen medium-load day (demand seed 100000). Open an HTML file in a browser; it
+works offline. It opens at 09:58, where orders start to pile up; **Start of the day** goes back to
+08:00.
+
+- **Play** (or Space) plays and pauses.
+- **1×**, **2×**, **3×** set the speed. At 1× a flight plays at one simulated minute per second;
+  box handling, charging and waiting play faster.
+- **Previous / Next decision** (← →) step through the decisions; tick **Stop at each decision** to
+  pause at every decision while playing. Click or drag the timeline to jump.
+- **How to read this screen** explains the display.
+
+At 1× the clock stops for about 2 s at each decision to show the choices. **This pause is for
+reading, not the network's decision time:** the network decides in milliseconds.
 
 ## Other commands
 
+Run from the unzipped folder with the environment active. Times are rough CPU estimates.
+
 ```bash
-python scripts/demo.py --policy set --seed 100000 --video   # replay, picture and video in outputs/
-python scripts/train_bc.py                                  # retrain both networks (~1 min)
-python scripts/evaluate.py --checkpoints checkpoints/bc_mlp.pt checkpoints/bc_set.pt
+python scripts/demo.py --policy set --seed 100000 --video   # replay, picture, video (~10 min)
+python scripts/train_bc.py                                  # retrain imitating Slack-aware (~6 min)
+python scripts/train_bc.py --teacher rollout                # retrain imitating rollout (~11 min)
+python scripts/evaluate.py --checkpoints checkpoints/bc_mlp.pt checkpoints/bc_set.pt   # ~1 min
+python scripts/evaluate.py --methods slack,rollout --out outputs/evaluation_rollout.csv  # ~5 min
 ```
 
-`demo.py` is also the environment's usage example (`--policy slack` for the teacher).
-`train_bc.py` overwrites `checkpoints/`. `evaluate.py` runs the five rules and both networks on
-the same 40 days per load (the report's Table 1) and saves `outputs/evaluation.csv`.
+- `demo.py` saves the replay and picture in `outputs/` within seconds; `--video` adds the video.
+  It is also the environment's usage example (`--policy slack` runs the teacher).
+- `train_bc.py` overwrites `bc_mlp.pt`, `bc_set.pt` and `bc_history.json` in `checkpoints/` (with
+  `--teacher rollout`, the `bc_rollout_*` files).
+- `evaluate.py` runs the given policies on the same 40 days per load, prints a summary and saves a
+  CSV (`outputs/evaluation.csv` by default). Without `--methods` it runs Random, EDF, FCFS,
+  nearest-first and Slack-aware.
 
 ## Environment and networks
 
 | Environment | |
 |---|---|
-| Observation | `Box(452)`: 80 global features (drone, travel times), 12 waiting orders × 27, 3 cargo slots × 16 |
+| Observation | `Box(452)`: 80 global features, 12 waiting-order slots × 27, 3 cargo slots × 16 |
 | Action | `Discrete(26)`: 12 pick up, 6 deliver, 6 charge, return, wait; allowed ones in `info["action_mask"]` |
 | Reward | +1 on time, +0.1 late, −0.1 expired, −0.001 per battery % used |
-| Episode | one day, low, medium or high demand; `reset(options={"demand_seed": ..., "load": ...})` |
+| Episode | one day at low, medium or high demand; `reset(options={"demand_seed": ..., "load": ...})` |
 
-Both networks take observations `[B, 452]` and masks `[B, 26]` and return logits `[B, 26]`
-(forbidden actions set to −10⁹) and values `[B]`.
+Both networks take observations `[B, 452]` and masks `[B, 26]` and return action logits `[B, 26]`
+(forbidden actions set to −10⁹) and values `[B]`; a network policy takes the allowed action with
+the highest logit.
 
 | Network | Structure | Parameters |
 |---|---|---:|
@@ -95,11 +110,12 @@ Both networks take observations `[B, 452]` and masks `[B, 26]` and return logits
 ## Main files
 
 ```
-medical_uav/agents/     networks.py (both networks), policy.py (inference, checkpoints), bc.py
-medical_uav/env/        the environment; replay.py, replay_player.html, video.py draw a day
-medical_uav/baselines/  rule policies: Random, EDF, FCFS, nearest-first, Slack-aware
+medical_uav/agents/     networks.py (both networks), policy.py (inference, checkpoints), bc.py (imitation)
+medical_uav/env/        the environment; replay.py, replay_player.html, video.py (replays)
+medical_uav/baselines/  Random, EDF, FCFS, nearest-first, Slack-aware, rollout planner
 medical_uav/            evaluation.py, metrics.py, splits.py (which days are for what)
 scripts/                demo_network.py, demo.py, train_bc.py, evaluate.py
-checkpoints/            bc_set.pt, bc_mlp.pt (weights), bc_history.json (training curves)
+checkpoints/            bc_set.pt, bc_mlp.pt, bc_rollout_set.pt, bc_rollout_mlp.pt, *history.json
 assets/                 replays, video, picture
+environment.yml         the exact environment
 ```

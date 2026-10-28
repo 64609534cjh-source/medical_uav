@@ -81,7 +81,7 @@ def _loss_and_accuracy(net, data: dict, batch_size: int, device: str) -> tuple[f
     return sum(losses) / len(data["action"]), np.concatenate(correct)
 
 
-def train_bc(net, train: dict, val: dict, epochs: int = 30, batch_size: int = 256,
+def train_bc(net, train: dict, val: dict, epochs: int = 100, batch_size: int = 256,
              lr: float = 3e-4, seed: int = 0, device: str = "cpu") -> list[dict]:
     """Train the policy head to predict the teacher's action (cross-entropy on masked logits).
 
