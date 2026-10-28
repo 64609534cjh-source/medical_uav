@@ -1,9 +1,9 @@
 """Compare policies on the same days: per-day CSV and a per-load summary against Slack-aware.
 
-Methods: random, edf, fcfs, nearest, slack, rollout (visible-order planner), scenario4 and
-scenario16 (scenario rollout with 4 or 16 sampled arrival streams), horizon and foresight
-(rolling-horizon optimizer with the agent's information or with the next hour's real orders);
-plus any checkpoints.
+Methods: random, edf, fcfs, nearest, slack, insertion (route insertion heuristic), rollout
+(visible-order planner), scenario4 and scenario16 (scenario rollout with 4 or 16 sampled arrival
+streams), horizon and foresight (rolling-horizon optimizer with the agent's information or with
+the next hour's real orders); plus any checkpoints.
 
 Usage:
     python scripts/evaluate.py --methods random,edf,slack,fcfs,nearest --loads low,medium,high
@@ -22,6 +22,7 @@ from medical_uav.agents.policy import NetworkPolicy, load_checkpoint
 from medical_uav.baselines.heuristics import (edf_policy, fcfs_policy, nearest_policy,
                                               random_policy, slack_aware_policy)
 from medical_uav.baselines.horizon import RollingHorizon
+from medical_uav.baselines.insertion import insertion_policy
 from medical_uav.baselines.rollout import rollout_policy
 from medical_uav.baselines.scenario import ScenarioRollout
 from medical_uav.evaluation import checkpoint_labels, evaluate, heuristic, paired_ci
@@ -45,7 +46,7 @@ class DailyRandom:
 def make_policies(methods: list[str], checkpoints: list[str]) -> dict:
     """Return the named rule-based policies and one network policy per checkpoint file."""
     rules = {"random": DailyRandom(), "edf": edf_policy, "slack": slack_aware_policy,
-             "fcfs": fcfs_policy, "nearest": nearest_policy, "rollout": rollout_policy,
+             "fcfs": fcfs_policy, "nearest": nearest_policy, "insertion": insertion_policy, "rollout": rollout_policy,
              "scenario4": ScenarioRollout(4), "scenario16": ScenarioRollout(16),
              "horizon": RollingHorizon(), "foresight": RollingHorizon(foresight=True)}
     policies = {m: heuristic(rules[m]) for m in methods}
