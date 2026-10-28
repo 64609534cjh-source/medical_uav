@@ -298,10 +298,10 @@ def export_selection(arm, selection, directory):
     subprocess.run(cmd, check=True)
 
 
-def validate_choice(choice):
+def validate_choice(choice, references=("frozen", "mm")):
     if not choice.get("selection_only") or not choice.get("ready_for_fresh"):
         raise ValueError("Freeze all selection decisions before fresh access")
-    expected = set(choice["completed"]) | {"frozen", "mm"}
+    expected = set(choice["completed"]) | set(references)
     if set(choice["paths"]) != expected or choice["candidate"] not in expected - {"mm"}:
         raise ValueError("Invalid frozen choice manifest")
     for arm, paths in choice["paths"].items():
@@ -344,12 +344,15 @@ def target_readings(on_time, served, expiry_reduction, horizon="horizon"):
     return result
 
 
-def confirm(choice, paths, horizon="horizon", n_boot=N_BOOT):
-    arms = validate_choice(choice)
+def confirm(choice, paths, horizon="horizon", n_boot=N_BOOT, days=None,
+            references=("frozen", "mm")):
+    """Shared confirmation estimators; later preregistered rounds supply new days/references."""
+    days = FRESH_SEEDS if days is None else days
+    arms = validate_choice(choice, references)
     methods = [m for group in arms.values() for m in group] + ["slack", "rollout", "scenario16", horizon]
     if len(set(methods)) != len(methods):
         raise ValueError("Duplicate entrant labels")
-    rows = read_rows(paths, methods, FRESH_SEEDS, horizon=horizon)
+    rows = read_rows(paths, methods, days, horizon=horizon)
     candidate = choice["candidate"]
     groups = {**arms, "slack": ["slack"], "rollout": ["rollout"],
               "scenario16": ["scenario16"], horizon: [horizon]}
@@ -372,13 +375,13 @@ def confirm(choice, paths, horizon="horizon", n_boot=N_BOOT):
                 type_key = typ or "all"
                 for metric in primary:
                     key = f"{type_key}/{metric}"
-                    b = grid(rows, labels, FRESH_SEEDS, metric=metric, order_type=typ, loads=load_group)
+                    b = grid(rows, labels, days, metric=metric, order_type=typ, loads=load_group)
                     result["absolute"][name][endpoint][key] = estimate(b)
                     result["per_seed"][name][endpoint][key] = [estimate(tuple(x[s:s+1] for x in b))
                                                               for s in range(len(labels))]
                     if name == candidate:
                         continue
-                    a = grid(rows, arms[candidate], FRESH_SEEDS, metric=metric,
+                    a = grid(rows, arms[candidate], days, metric=metric,
                              order_type=typ, loads=load_group)
                     ci = bootstrap(a, b, n_boot)
                     result["contrasts"][name][endpoint][key] = ci
@@ -394,7 +397,7 @@ def confirm(choice, paths, horizon="horizon", n_boot=N_BOOT):
             values = result["factor_contrasts"][arm]["endpoints"][endpoint] = {}
             for typ in [None] + [t.name for t in ORDER_TYPES]:
                 for metric in primary:
-                    a, b = [grid(rows, labels, FRESH_SEEDS, metric=metric, order_type=typ,
+                    a, b = [grid(rows, labels, days, metric=metric, order_type=typ,
                                  loads=load_group) for labels in (arms[arm], arms[reference])]
                     values[f"{typ or 'all'}/{metric}"] = bootstrap(a, b, n_boot)
     if candidate == "frozen":
