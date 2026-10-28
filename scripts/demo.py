@@ -20,7 +20,8 @@ from medical_uav.agents.policy import NetworkPolicy, load_checkpoint
 from medical_uav.baselines.heuristics import edf_policy, random_policy, slack_aware_policy
 from medical_uav.env import MedicalUAVEnv
 from medical_uav.env.render import clock, save_animation
-from medical_uav.env.replay import day_record, decision_record, opening_decision, write_html
+from medical_uav.env.replay import (day_record, decision_record, opening_decision, state_at,
+                                    write_html)
 from medical_uav.env.video import ReplayFrames, explained_times, smart_times
 from medical_uav.metrics import episode_metrics, summary_lines
 
@@ -59,9 +60,9 @@ def main():
     parser.add_argument("--seed", type=int, default=0, help="demand seed (which day of orders)")
     parser.add_argument("--video", action="store_true",
                         help="also save the explanation and day videos (15-20 minutes)")
-    parser.add_argument("--explain-after", type=int, default=10,
-                        help="decisions after the opening one in the explanation video, which "
-                             "starts at the demand peak the opening decision falls in")
+    parser.add_argument("--explain-count", type=int, default=31,
+                        help="decisions in the explanation video, which starts where orders "
+                             "pile up (3 or more waiting) in the peak of the opening decision")
     parser.add_argument("--fps", type=int, default=12, help="video frames per second")
     args = parser.parse_args()
 
@@ -114,8 +115,9 @@ def main():
     print("Drawing the explanation video (a few minutes) ...", flush=True)
     decs = record["decisions"]
     peaks = [p for p in record["meta"]["peaks"] if p[0] <= decs[first]["t"]]
-    start = next(i for i, d in enumerate(decs) if d["t"] >= peaks[-1][0]) if peaks else first
-    times = explained_times(record, start, first - start + 1 + args.explain_after, args.fps)
+    start = next((i for i, d in enumerate(decs) if peaks and d["t"] >= peaks[-1][0]
+                  and len(state_at(record, d["t"])["waiting"]) >= 3), first)
+    times = explained_times(record, start, args.explain_count, args.fps)
     note = "slowed down for reading · the network decides in about 1 ms"
     n = save_animation(frames(renderer, times, note),
                        f"{base}_explained.mp4", args.fps)

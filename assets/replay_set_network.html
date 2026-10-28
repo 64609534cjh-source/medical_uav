@@ -58,6 +58,20 @@ details ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 3px; }
 .action { font-size: 20px; font-weight: 650; margin: 0; letter-spacing: -.01em; text-wrap: balance; }
 .phase { justify-self: start; display: inline-flex; gap: 6px; align-items: center; padding: 3px 10px;
   border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--wash); }
+.phase.deciding { background: #fff0c2; color: #6f4600; box-shadow: inset 0 0 0 1px #e9bf55; }
+.phase.progress { background: #dfe9fd; color: #1c49b8; }
+.phase.done { background: #d9f1e7; color: #0d6b58; }
+.actbar { height: 4px; background: var(--wash); border-radius: 2px; overflow: hidden; }
+.actbar i { display: block; height: 100%; width: 0; background: var(--focus); }
+.actbar.done i { background: var(--ontime); }
+/* during playback a new decision is shown in steps while the simulated clock stands still: the
+   choices, the chosen one highlighted, then it moves up into the action line */
+.prob.picked { background: #fff0c2; border-radius: 4px; }
+.flyer { position: fixed; z-index: 20; pointer-events: none; transform-origin: left top; padding: 0 4px;
+  font-size: 13px; font-weight: 650; color: var(--ink); background: #fff0c2; border-radius: 4px; white-space: nowrap; }
+.enter { animation: enter .25s ease-out; }
+@keyframes enter { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .enter { animation: none; } .flyer { display: none; } }
 .facts { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
 .facts li { display: grid; grid-template-columns: 14px 1fr; gap: 6px; }
 .facts li::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--faint); margin: 8px 0 0 3px; }
@@ -134,7 +148,7 @@ kbd { font: 11px var(--mono); border: 1px solid var(--line); border-bottom-width
           <li>Map: the square is the medical center M with charger C1, circles are hospitals, the bolt is charger C2, hatched areas are no-fly zones. Coloured squares next to a place are orders waiting there (all of them; the network sees at most 12); the three squares under the drone are its cargo slots.</li>
           <li>Right: the current decision in words, the situation it was taken in and, for a network, up to three of its most likely actions (the drone takes the most likely one). Below: battery (the line marks the 15 % reserve), cargo and the most urgent waiting orders.</li>
           <li>Timeline: grey bands are demand peaks, the green curve is the battery, ticks are decisions, dots are deliveries (green on time, amber late) and crosses are orders that expired. Click or drag it to jump.</li>
-          <li>Smart speed plays flights and loading or unloading boxes at 1 simulated minute per second and fast-forwards charging and waiting at 3; it pauses 3 s at each decision. The fixed speeds play everything at one rate and pause 1 s at each decision.</li>
+          <li>Smart speed plays flights at 1 simulated minute per second, loading or unloading boxes at 1.5, and fast-forwards charging and waiting at 3; the decision card stays on screen while its action runs. The fixed speeds play everything at one rate. At every speed a new decision holds the clock for about 2 s: its choices, the pick and its move into the action line; to stop at every decision, tick Stop at each decision.</li>
         </ul>
       </details>
     </div>
@@ -152,6 +166,7 @@ kbd { font: 11px var(--mono); border: 1px solid var(--line); border-bottom-width
         <div class="eyebrow" id="decnum"></div>
         <p class="action" id="action"></p>
         <span class="phase" id="phase"></span>
+        <div class="actbar" id="actbar" aria-hidden="true"><i></i></div>
         <ul class="facts" id="facts"></ul>
         <div class="probs" id="probs"></div>
         <div class="prev" id="prev"></div>
@@ -389,6 +404,7 @@ function stateAt(R, t) {
     if (picked) parts.push(`${picked} picked up`);
     return parts.length ? parts.join(", ") : `done at ${clock(d.end)}`;
   }
+  let cardFor = null;  // decision whose card is on screen
   function drawSide(s, t) {
     $("clock").textContent = clock(t);
     $("clocksub").textContent = t >= M.release_window ? "no new orders after 16:00" : "simulated time";
@@ -403,22 +419,32 @@ function stateAt(R, t) {
       $("facts").innerHTML = "";
       $("probs").innerHTML = `<div class="summary"><div><span class="note">Delivered</span><b class="num">${sm.delivered}</b></div><div><span class="note">Late</span><b class="num">${sm.delivered - sm.on_time}</b></div>`
         + `<div><span class="note">Expired</span><b class="num">${sm.expired}</b></div><div><span class="note">Distance flown</span><b class="num">${sm.km.toFixed(1)} km</b></div></div>`;
-      $("prev").textContent = "";
+      $("prev").textContent = ""; $("phase").className = "phase"; $("actbar").style.visibility = "hidden"; cardFor = null;
     } else if (d) {
-      $("decnum").textContent = `Decision ${s.decision + 1} of ${decs.length} · ${clock(d.t)}`;
-      $("action").textContent = d.text;
-      $("phase").textContent = Math.abs(t - d.t) < 0.02 ? "Deciding" : t < d.end - EPS ? `In progress · done at ${clock(d.end)}` : "Done · " + resultText(d);
-      $("facts").innerHTML = d.facts.map((x) => `<li>${x}</li>`).join("");
-      const shown = d.top.map((p) => (p[1] * 100).toFixed(1));
-      const digits = new Set(shown).size < shown.length ? 2 : 1;  // a near tie needs more digits
-      $("probs").innerHTML = d.top.length ? `<div class="eyebrow">The network's top choices</div>` + d.top.map((p, k) =>
-        `<div class="prob${k === 0 ? " chosen" : ""}"><span class="lab">${p[0]}</span><span class="pct num">${(p[1] * 100).toFixed(digits)}%</span><span class="bar"><i style="width:${(p[1] * 100).toFixed(1)}%"></i></span></div>`).join("")
-        + `<div class="note">Policy probabilities, not chances of success. The drone takes the most likely action.</div>` : "";
-      const p = decs[s.decision - 1];
-      $("prev").textContent = p ? `Before: ${p.text} — ${resultText(p)}` : "";
+      const deciding = Math.abs(t - d.t) < 0.02, running = !deciding && t < d.end - EPS;
+      $("phase").textContent = deciding ? "Deciding" : running ? `In progress · done at ${clock(d.end)}` : "Done · " + resultText(d);
+      $("phase").className = "phase " + (deciding ? "deciding" : running ? "progress" : "done");
+      const frac = d.end > d.t ? Math.min(1, Math.max(0, (t - d.t) / (d.end - d.t))) : 1;
+      $("actbar").style.visibility = "visible";
+      $("actbar").className = "actbar" + (running || deciding ? "" : " done");
+      $("actbar").firstChild.style.width = (100 * frac).toFixed(1) + "%";
+      if (cardFor !== s.decision) {  // the rest of the card changes only with the decision
+        cardFor = s.decision;
+        $("decnum").textContent = `Decision ${s.decision + 1} of ${decs.length} · ${clock(d.t)}`;
+        $("action").textContent = d.text;
+        $("facts").innerHTML = d.facts.map((x) => `<li>${x}</li>`).join("");
+        const shown = d.top.map((p) => (p[1] * 100).toFixed(1));
+        const digits = new Set(shown).size < shown.length ? 2 : 1;  // a near tie needs more digits
+        $("probs").innerHTML = d.top.length ? `<div class="eyebrow">The network's top choices</div>` + d.top.map((p, k) =>
+          `<div class="prob${k === 0 ? " chosen" : ""}"><span class="lab">${p[0]}</span><span class="pct num">${(p[1] * 100).toFixed(digits)}%</span><span class="bar"><i style="width:${(p[1] * 100).toFixed(1)}%"></i></span></div>`).join("")
+          + `<div class="note">Policy probabilities, not chances of success. The drone takes the most likely action.</div>` : "";
+        const p = decs[s.decision - 1];
+        $("prev").textContent = p ? `Before: ${p.text} — ${resultText(p)}` : "";
+      }
     } else {
       $("decnum").textContent = "Start of the day"; $("action").textContent = "Waiting for the first order";
       $("phase").textContent = ""; $("facts").innerHTML = ""; $("probs").innerHTML = ""; $("prev").textContent = "";
+      $("phase").className = "phase"; $("actbar").style.visibility = "hidden"; cardFor = null;
     }
     const b = s.battery;
     $("battpct").textContent = b.toFixed(0) + "%";
@@ -478,20 +504,22 @@ function stateAt(R, t) {
   tl.setAttribute("aria-valuemax", END.toFixed(0));
 
   // ---------- playback ----------
-  // smart: flights and box handling at 1 simulated min per second, charging and waiting at 3,
-  // a 3 s pause at each decision;
-  // the fixed speeds pause 1 s, so every decision is seen while it is being taken
+  // smart: flights at 1 simulated min per second, box handling at 1.5, charging and waiting at 3;
+  // at every speed a new decision holds the clock for HOLD_MS: choices, the pick, its move up
   const SPEEDS = [["smart", "Smart"], [1, "1"], [5, "5"], [15, "15"]];
-  const FLY_RATE = 1, GROUND_RATE = 3, HOLD_MS = 3000, FIXED_HOLD_MS = 1000;
-  let t = 0, playing = false, speed = "smart", last = null, holdUntil = 0;
+  const FLY_RATE = 1, BOX_RATE = 1.5, GROUND_RATE = 3;
+  const DECIDE_MS = 700, PICK_MS = 400, MOVE_MS = 600, HOLD_MS = DECIDE_MS + PICK_MS + MOVE_MS;
+  let t = 0, playing = false, speed = "smart", last = null, holdUntil = 0, holdFrom = 0, held = false;
+  let flyer = null, leaving = "";  // leaving: text of the action that is cleared at a new decision
   $("speeds").innerHTML = SPEEDS.map(([v, l]) => `<button data-s="${v}" aria-pressed="${v === speed}">${l}</button>`).join("");
-  const SLOW = ["fly", "load", "unload", "dispose"];  // played at FLY_RATE
-  const slow = (s) => s.active && SLOW.includes(s.active[0]);
-  const rateAt = (s) => speed !== "smart" ? speed : (slow(s) ? FLY_RATE : GROUND_RATE);
+  const BOX = ["load", "unload", "dispose"];
+  const flying = (s) => s.active && s.active[0] === "fly";
+  const boxes = (s) => s.active && BOX.includes(s.active[0]);
+  const rateAt = (s) => speed !== "smart" ? speed : flying(s) ? FLY_RATE : boxes(s) ? BOX_RATE : GROUND_RATE;
   function speedNote(s) {
     if (speed !== "smart") return `${speed} simulated min per second`;
-    if (!playing) return `flights and boxes ${FLY_RATE}, charging and waiting ${GROUND_RATE} simulated min per second`;
-    return slow(s) ? `${s.active[0] === "fly" ? "flying" : "handling boxes"} · ${FLY_RATE} simulated min per second` : `fast-forward · ${GROUND_RATE} simulated min per second`;
+    if (!playing) return `flights ${FLY_RATE}, boxes ${BOX_RATE}, charging and waiting ${GROUND_RATE} simulated min per second`;
+    return flying(s) ? `flying · ${FLY_RATE} simulated min per second` : boxes(s) ? `handling boxes · ${BOX_RATE} simulated min per second` : `fast-forward · ${GROUND_RATE} simulated min per second`;
   }
   function render() {
     const s = stateAt(D, t);
@@ -504,24 +532,57 @@ function stateAt(R, t) {
       : '<svg viewBox="0 0 16 16"><path d="M4 2.5v11l9.5-5.5z" fill="currentColor"/></svg>Play';
   }
   function seek(v) { t = Math.max(0, Math.min(END, v)); render(); }
+  function holdStep(now) {  // the steps of a new decision while the clock stands still
+    const e = now - holdFrom, row = $("probs").querySelector(".prob.chosen"), title = $("action");
+    title.style.visibility = "hidden";
+    if (leaving) {  // the finished action fades out upwards
+      const r = title.getBoundingClientRect(), ghost = title.cloneNode(false);
+      ghost.removeAttribute("id"); ghost.textContent = leaving; leaving = "";
+      Object.assign(ghost.style, { position: "fixed", left: r.left + "px", top: r.top + "px", width: r.width + "px",
+        margin: 0, visibility: "visible", pointerEvents: "none", zIndex: 20 });
+      document.body.appendChild(ghost);
+      ghost.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(-12px)" }],
+        { duration: 350, easing: "ease-in", fill: "forwards" }).onfinish = () => ghost.remove();
+    }
+    if (row) row.classList.toggle("picked", e >= DECIDE_MS);
+    if (row && !flyer && e >= DECIDE_MS + PICK_MS) {
+      const lab = row.querySelector(".lab"), a = lab.getBoundingClientRect(), b = title.getBoundingClientRect();
+      flyer = document.createElement("div"); flyer.className = "flyer"; flyer.textContent = lab.textContent;
+      Object.assign(flyer.style, { left: a.left - 4 + "px", top: a.top + "px" });
+      document.body.appendChild(flyer);
+      flyer.animate([{ transform: "none" }, { transform: `translate(${b.left - a.left}px, ${b.top - a.top}px) scale(1.5)` }],
+        { duration: MOVE_MS, easing: "ease-in-out", fill: "forwards" });
+    }
+  }
+  function land() {  // the hold is over (or playback stopped): the chosen action takes its place
+    if (flyer) { flyer.remove(); flyer = null; }
+    const row = $("probs").querySelector(".prob.picked");
+    if (row) row.classList.remove("picked");
+    const title = $("action");
+    if (title.style.visibility !== "hidden") return;
+    title.style.visibility = ""; title.classList.remove("enter"); void title.offsetWidth; title.classList.add("enter");
+  }
   function frame(now) {
-    if (!playing) { last = null; return; }
-    if (last !== null && now >= holdUntil) {
+    if (!playing) { last = null; land(); return; }
+    if (last !== null && now < holdUntil) holdStep(now);
+    else if (last !== null) {
+      if (held) { held = false; land(); }
       const s = stateAt(D, t);
       let next = t + rateAt(s) * (now - Math.max(last, holdUntil)) / 1000;
       const nd = decs.find((d) => d.t > t + EPS);
       if (nd && next >= nd.t) {
         next = nd.t;
         if ($("stopeach").checked) { t = next; playing = false; render(); return; }
-        holdUntil = now + (speed === "smart" ? HOLD_MS : FIXED_HOLD_MS);
+        holdFrom = now; holdUntil = now + HOLD_MS; held = true; leaving = $("action").textContent;
       }
       t = Math.min(END, next);
       if (t >= END) playing = false;
       render();
+      if (held) holdStep(now);
     }
     last = now; requestAnimationFrame(frame);
   }
-  function play(on) { playing = on; if (on && t >= END - 1e-6) t = 0; holdUntil = 0; render(); if (on) requestAnimationFrame(frame); }
+  function play(on) { playing = on; if (on && t >= END - 1e-6) t = 0; holdUntil = 0; held = false; land(); render(); if (on) requestAnimationFrame(frame); }
   function gotoDecision(dir) {
     const i = lastIndex(decs, t, (d) => d.t);
     const k = dir > 0 ? i + 1 : (decs[i] && Math.abs(decs[i].t - t) < 0.02 ? i - 1 : i);
