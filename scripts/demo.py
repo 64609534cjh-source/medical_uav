@@ -58,7 +58,7 @@ def main():
     parser.add_argument("--load", choices=["low", "medium", "high"], default="medium")
     parser.add_argument("--seed", type=int, default=0, help="demand seed (which day of orders)")
     parser.add_argument("--video", action="store_true",
-                        help="also save the explanation and day videos (a few minutes)")
+                        help="also save the explanation and day videos (10-15 minutes)")
     parser.add_argument("--explain-count", type=int, default=8,
                         help="decisions shown in the explanation video")
     parser.add_argument("--fps", type=int, default=12, help="video frames per second")
@@ -108,12 +108,14 @@ def main():
     imageio.imwrite(f"{base}_decision.png", renderer.draw(record["decisions"][first]["t"]))
     print(f"Saved: {base}_decision.png")
     if not args.video:
-        print("Add --video to also save the explanation and day videos (a few minutes).")
+        print("Add --video to also save the explanation and day videos (10-15 minutes).")
         return
+    print("Drawing the explanation video (about a minute) ...", flush=True)
     times = explained_times(record, first, args.explain_count, args.fps)
     n = save_animation(frames(renderer, times, "decision by decision"),
                        f"{base}_explained.mp4", args.fps)
     print(f"Saved: {base}_explained.mp4 ({n / args.fps:.0f} s)")
+    print("Drawing the day video (about 10 minutes) ...", flush=True)
     times = [(t, None) for t in smart_times(record, args.fps)]
     n = save_animation(frames(renderer, times, "smart speed: flights 1, other activity 8 "
                                                "simulated min per second"),
