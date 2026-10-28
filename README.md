@@ -26,6 +26,16 @@ shown with the situation it was taken in and the network's three most likely act
 | `set_network_day.mp4` | the whole day in under five minutes at smart speed: flights at 1 and everything else at 8 simulated minutes per second, a short pause at each decision |
 | `demo.png` | the picture above |
 
+These files were made by the day demo below with
+`python scripts/demo.py --policy set --seed 100000 --video`.
+
+## Two demos
+
+| Command | Shows | Output |
+|---|---|---|
+| `python scripts/demo_network.py` | **the Milestone 2 network demo**: both networks, a forward and a backward pass, a day driven by each trained network | printed in the terminal only; no files |
+| `python scripts/demo.py` | the environment in action (the Milestone 1 demo), now with a replay web page and videos; any policy, including the trained networks | printed summary, plus files in `outputs/` |
+
 ## Requirements
 
 - Conda (Miniconda or Anaconda) and an internet connection for the installation.
@@ -57,7 +67,7 @@ python scripts/demo_network.py
 
 It creates both networks, runs a forward pass and a backward pass on real observations from the
 environment, and lets the trained networks (in `checkpoints/`) run a whole day. It takes a few
-seconds and prints, among other things:
+seconds, saves no files and prints, among other things:
 
 ```
 3. forward pass (trained set network): logits (64, 26), value (64,)
@@ -103,6 +113,10 @@ With `--video` it also saves (10–15 minutes):
 | `--load` | `low`, `medium` (default), `high` |
 | `--seed` | which day of orders (default `0`) |
 | `--video`, `--explain-count`, `--fps` | also save the two videos; decisions in the explanation video (8); video frames per second (12) |
+
+For example, `python scripts/demo.py --policy set --seed 100000` saves
+`outputs/demo_set_medium_seed100000_replay.html`, the replay in `assets/`; add `--video` for the
+two videos.
 
 `scripts/demo.py` is also the usage example: it creates the environment, starts a day, lets a
 policy choose actions until the day is over, and then shows the day.
