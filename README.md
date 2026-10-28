@@ -52,15 +52,15 @@ browser (it works offline); it opens at 09:58, as orders start to pile up.
 |---|---|
 | [replay_set_network.html](assets/replay_set_network.html) | The trained set network over the whole day (45 of 49 orders on time). Each decision shows the situation and the network's top choices with their probabilities; the drone takes the most likely one. |
 | [replay_slack.html](assets/replay_slack.html) | Its teacher, Slack-aware, on the same day (47 of 49), for comparison. |
-| [set_network_backlog.mp4](assets/set_network_backlog.mp4) | The same replay at 1× as a 3-min video, for viewers who cannot open the page: the afternoon backlog, 32 decisions from 14:06 to 16:37, including the closest call. |
+| [set_network_backlog.mp4](assets/set_network_backlog.mp4) | For viewers who cannot open the page: an afternoon excerpt at the replay's 1× rates, 32 decisions from 14:06 to 16:37 including the closest call (2 min 50 s). |
 | [demo.png](assets/demo.png) | The picture above: the network's closest call of the day (14:30). |
 
 Press **Play** (or Space). At each decision the clock stops for about 2 s: the choices appear, the
 chosen one is highlighted and moves up into the action line, which then shows its progress. These
-pauses are only for reading; the network decides in about 1 ms. At **1×** (the default) flights
-play at 1 simulated min/s, box handling at 1.5, charging and waiting at 3; **2×** and **3×** play
-everything faster. **Previous / Next decision** (← →) and **Stop at each decision** step through
-the day; **How to read this screen** explains the display.
+pauses are for reading, not the network's decision time: it decides in milliseconds. At **1×**
+(the default) flights play at 1 simulated min/s, box handling at 1.5, charging and waiting at 3;
+**2×** and **3×** play everything faster. **Previous / Next decision** (← →) and **Stop at each
+decision** step through the day; **How to read this screen** explains the display.
 
 ## Other commands
 
@@ -100,5 +100,5 @@ medical_uav/baselines/  rule policies: Random, EDF, FCFS, nearest-first, Slack-a
 medical_uav/            evaluation.py, metrics.py, splits.py (which days are for what)
 scripts/                demo_network.py, demo.py, train_bc.py, evaluate.py
 checkpoints/            bc_set.pt, bc_mlp.pt (weights), bc_history.json (training curves)
-assets/                 replays, videos, picture
+assets/                 replays, video, picture
 ```

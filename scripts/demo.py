@@ -121,7 +121,7 @@ def main():
     stop = min(busy[-1] + 1, len(decs) - 1) if busy else start
     print(f"Drawing the backlog video, decisions {start + 1}-{stop + 1} ...", flush=True)
     times = explained_times(record, start, stop - start + 1, args.fps)
-    note = "the replay at 1× · pauses for reading; the network decides in about 1 ms"
+    note = "the replay at 1× · pauses for reading, not decision time"
     n = save_animation(frames(renderer, times, note), f"{base}_backlog.mp4", args.fps)
     print(f"Saved: {base}_backlog.mp4 ({n / args.fps:.0f} s)")
 

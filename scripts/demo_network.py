@@ -2,7 +2,7 @@
 then let the trained networks run a whole day.
 
 Usage:
-    python scripts/demo_network.py           # about a minute on a CPU
+    python scripts/demo_network.py           # about 15 s on a CPU
     python scripts/demo_network.py --quick   # smaller batch, low-load day
 """
 import argparse

@@ -263,18 +263,18 @@ class ReplayFrames:
             self._text(ax, x + 32, y + 94 + 20 * k, fact, 13)
         if d["top"]:
             cx = x + 360
-            shown = [round(100 * p, 1) for _, p in d["top"]]
+            shown = [round(100 * prob, 1) for _, prob in d["top"]]
             digits = 2 if len(set(shown)) < len(shown) else 1  # a near tie needs more digits
             self._text(ax, cx, y + 94, "THE NETWORK'S TOP CHOICES", 11, MUTED, "bold")
-            for k, (label, p) in enumerate(d["top"]):
+            for k, (label, prob) in enumerate(d["top"]):
                 yy = y + 112 + 30 * k
                 if k == 0 and name in ("Picked", "Moving", "Chosen"):
                     ax.add_patch(Rectangle((cx - 6, yy - 4), x + w - 10 - cx, 28, fc=DECIDING[0],
                                            ec="none"))
                 self._text(ax, cx, yy, label, 13, INK, "bold" if k == 0 else "normal")
-                self._text(ax, x + w - 16, yy, f"{100 * p:.{digits}f}%", 13, INK, ha="right")
+                self._text(ax, x + w - 16, yy, f"{100 * prob:.{digits}f}%", 13, INK, ha="right")
                 ax.add_patch(Rectangle((cx, yy + 18), x + w - 16 - cx, 5, fc=WASH, ec="none"))
-                ax.add_patch(Rectangle((cx, yy + 18), (x + w - 16 - cx) * p, 5,
+                ax.add_patch(Rectangle((cx, yy + 18), (x + w - 16 - cx) * prob, 5,
                                        fc=INK if k == 0 else FAINT, ec="none"))
             self._text(ax, cx, y + h - 31, "Policy probabilities, not chances of success.", 11,
                        MUTED)
