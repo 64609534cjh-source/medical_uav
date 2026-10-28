@@ -50,9 +50,9 @@ The demo takes a few seconds (allow 15 s), saves no files and prints:
 
 | File | What it shows |
 |---|---|
-| [replay_set_network.html](assets/replay_set_network.html) | The trained set network's whole day: the situation at each decision and up to three top choices with their probabilities. |
+| [replay_set_network.html](assets/replay_set_network.html) | The trained set network's whole day; at each decision it shows the situation and the network's top choices (up to three) with their probabilities. |
 | [replay_slack.html](assets/replay_slack.html) | Slack-aware on the same day, for comparison. |
-| [set_network_backlog.mp4](assets/set_network_backlog.mp4) | The set network's replay as a video, over the busy part of the day (09:58–16:38, 5 min 18 s). |
+| [set_network_backlog.mp4](assets/set_network_backlog.mp4) | The set network's replay as a video, over the busy part of the day (09:58–16:42, 7 min 10 s). |
 | [demo.png](assets/demo.png) | The decision pictured above. |
 
 All show the same unseen medium-load day (demand seed 100000). Open an HTML file in a browser; it
