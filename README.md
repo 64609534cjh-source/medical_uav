@@ -87,7 +87,7 @@ the web page lets you explore the whole day at your own pace.
 Using the replay:
 
 - **Speed.** **Play** (or the space bar) uses the selected speed, initially **Smart**: flights and
-  loading or unloading boxes at 1 simulated minute per second, charging and waiting at 8, and a
+  loading or unloading boxes at 1 simulated minute per second, charging and waiting at 3, and a
   3 s pause at each decision. **1**, **5** and **15** play everything at that many simulated minutes per second,
   with a 1 s pause at each decision.
 - **Decision by decision.** Tick **Stop at each decision**, or use **Previous / Next decision**

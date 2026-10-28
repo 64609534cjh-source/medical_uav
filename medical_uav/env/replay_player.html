@@ -134,7 +134,7 @@ kbd { font: 11px var(--mono); border: 1px solid var(--line); border-bottom-width
           <li>Map: the square is the medical center M with charger C1, circles are hospitals, the bolt is charger C2, hatched areas are no-fly zones. Coloured squares next to a place are orders waiting there (all of them; the network sees at most 12); the three squares under the drone are its cargo slots.</li>
           <li>Right: the current decision in words, the situation it was taken in and, for a network, up to three of its most likely actions (the drone takes the most likely one). Below: battery (the line marks the 15 % reserve), cargo and the most urgent waiting orders.</li>
           <li>Timeline: grey bands are demand peaks, the green curve is the battery, ticks are decisions, dots are deliveries (green on time, amber late) and crosses are orders that expired. Click or drag it to jump.</li>
-          <li>Smart speed plays flights and loading or unloading boxes at 1 simulated minute per second and fast-forwards charging and waiting at 8; it pauses 3 s at each decision. The fixed speeds play everything at one rate and pause 1 s at each decision.</li>
+          <li>Smart speed plays flights and loading or unloading boxes at 1 simulated minute per second and fast-forwards charging and waiting at 3; it pauses 3 s at each decision. The fixed speeds play everything at one rate and pause 1 s at each decision.</li>
         </ul>
       </details>
     </div>
@@ -478,11 +478,11 @@ function stateAt(R, t) {
   tl.setAttribute("aria-valuemax", END.toFixed(0));
 
   // ---------- playback ----------
-  // smart: flights and box handling at 1 simulated min per second, charging and waiting at 8,
+  // smart: flights and box handling at 1 simulated min per second, charging and waiting at 3,
   // a 3 s pause at each decision;
   // the fixed speeds pause 1 s, so every decision is seen while it is being taken
   const SPEEDS = [["smart", "Smart"], [1, "1"], [5, "5"], [15, "15"]];
-  const FLY_RATE = 1, GROUND_RATE = 8, HOLD_MS = 3000, FIXED_HOLD_MS = 1000;
+  const FLY_RATE = 1, GROUND_RATE = 3, HOLD_MS = 3000, FIXED_HOLD_MS = 1000;
   let t = 0, playing = false, speed = "smart", last = null, holdUntil = 0;
   $("speeds").innerHTML = SPEEDS.map(([v, l]) => `<button data-s="${v}" aria-pressed="${v === speed}">${l}</button>`).join("");
   const SLOW = ["fly", "load", "unload", "dispose"];  // played at FLY_RATE
