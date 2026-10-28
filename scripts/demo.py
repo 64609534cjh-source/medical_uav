@@ -1,4 +1,4 @@
-"""Run one day with a policy, print the results and save a replay, a frame and two videos.
+"""Run one day with a policy, print the results and save a replay, a frame and a video.
 
 This is also the usage example: create the environment, reset it to a day, step until the day
 is over, then read the results and show the day.
@@ -6,8 +6,8 @@ is over, then read the results and show the day.
 Outputs, in outputs/:
   *_replay.html    the whole day in a web browser: play, pause, step through the decisions
   *_decision.png   one decision worth a look, as in the replay
-  *_explained.mp4  with --video: a few consecutive decisions, each held so it can be read
-  *_day.mp4        with --video: the whole day at the replay's smart speed
+  *_backlog.mp4    with --video: the backlog around the opening decision, each decision slowed down
+                   as in the replay
 """
 import argparse
 import os
@@ -20,8 +20,9 @@ from medical_uav.agents.policy import NetworkPolicy, load_checkpoint
 from medical_uav.baselines.heuristics import edf_policy, random_policy, slack_aware_policy
 from medical_uav.env import MedicalUAVEnv
 from medical_uav.env.render import clock, save_animation
-from medical_uav.env.replay import day_record, decision_record, opening_decision, write_html
-from medical_uav.env.video import ReplayFrames, explained_times, smart_times
+from medical_uav.env.replay import (day_record, decision_record, opening_decision, state_at,
+                                    write_html)
+from medical_uav.env.video import ReplayFrames, explained_times
 from medical_uav.metrics import episode_metrics, summary_lines
 
 POLICY_NAMES = {"slack": "Slack-aware rule", "edf": "EDF rule", "random": "Random policy",
@@ -61,9 +62,7 @@ def main():
     parser.add_argument("--load", choices=["low", "medium", "high"], default="medium")
     parser.add_argument("--seed", type=int, default=0, help="demand seed (which day of orders)")
     parser.add_argument("--video", action="store_true",
-                        help="also save the explanation and day videos (a few minutes)")
-    parser.add_argument("--explain-count", type=int, default=8,
-                        help="decisions shown in the explanation video")
+                        help="also save a video of the backlog (a few minutes)")
     parser.add_argument("--fps", type=int, default=12, help="video frames per second")
     args = parser.parse_args()
 
@@ -108,20 +107,26 @@ def main():
     renderer = ReplayFrames(record, f"{args.load.capitalize()} load · demand seed {args.seed} · "
                                     f"map {env.cfg.map_seed}")
     first = opening_decision(record)
-    imageio.imwrite(f"{base}_decision.png", renderer.draw(record["decisions"][first]["t"]))
+    still = renderer.draw(record["decisions"][first]["t"], "Chosen")
+    imageio.imwrite(f"{base}_decision.png", still)
     print(f"Saved: {base}_decision.png")
     if not args.video:
-        print("Add --video to also save the explanation and day videos (a few minutes).")
+        print("Add --video to also save a video of the backlog (a few minutes).")
         return
-    times = explained_times(record, first, args.explain_count, args.fps)
-    n = save_animation(frames(renderer, times, "decision by decision"),
-                       f"{base}_explained.mp4", args.fps)
-    print(f"Saved: {base}_explained.mp4 ({n / args.fps:.0f} s)")
-    times = [(t, None) for t in smart_times(record, args.fps)]
-    n = save_animation(frames(renderer, times, "smart speed: flights 1, other activity 8 "
-                                               "simulated min per second"),
-                       f"{base}_day.mp4", args.fps)
-    print(f"Saved: {base}_day.mp4 ({n / args.fps:.0f} s)")
+    # the backlog: from where 3 or more orders wait in the opening decision's demand peak until
+    # fewer than 3 wait for the last time
+    decs = record["decisions"]
+    waiting = [len(state_at(record, d["t"])["waiting"]) for d in decs]
+    peaks = [p for p in record["meta"]["peaks"] if p[0] <= decs[first]["t"]]
+    start = next((i for i, d in enumerate(decs) if peaks and d["t"] >= peaks[-1][0]
+                  and waiting[i] >= 3), first)
+    busy = [i for i in range(start, len(decs)) if waiting[i] >= 3]
+    stop = min(busy[-1] + 1, len(decs) - 1) if busy else start
+    print(f"Drawing the backlog video, decisions {start + 1}-{stop + 1} ...", flush=True)
+    times = explained_times(record, start, stop - start + 1, args.fps)
+    note = "the replay at 1× · pauses for reading, not decision time"
+    n = save_animation(frames(renderer, times, note), f"{base}_backlog.mp4", args.fps)
+    print(f"Saved: {base}_backlog.mp4 ({n / args.fps:.0f} s)")
 
 
 if __name__ == "__main__":

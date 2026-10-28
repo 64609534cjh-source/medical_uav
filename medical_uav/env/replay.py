@@ -188,9 +188,9 @@ def state_at(record: dict, t: float) -> dict:
 
 
 def opening_decision(record: dict) -> int:
-    """The decision the player and the videos open on: the network's closest call between
-    delivering and charging, else its closest call, else the first decision in the first
-    demand peak (as the player's script chooses)."""
+    """The featured decision of the still and of the backlog video: the network's closest call
+    between delivering and charging, else its closest call, else the first decision in the
+    first demand peak."""
     decs = record["decisions"]
     calls = sorted((i for i, d in enumerate(decs) if len(d["top"]) > 1),
                    key=lambda i: decs[i]["top"][0][1] - decs[i]["top"][1][1])
