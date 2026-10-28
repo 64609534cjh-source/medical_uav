@@ -2,6 +2,6 @@
 
 **Simplifications.** Only 12 waiting orders get detailed slots, with those that can still be on time first; the others count towards the backlog but cannot be picked up until they enter a slot. We use one fixed map instead of the proposed random maps, and one training seed per network. We have not yet shown that the networks work on new maps, or that the set network beats the MLP.
 
-**Lessons.** High agreement with the teacher did not guarantee equal performance over a day, so we judge policies on complete unseen days, never on per-decision accuracy. The reward comparison showed a trade-off rather than a free gain: more orders on time, slightly fewer served; we now check reward changes against both measures. And the M1 feedback taught us to pace a visualization for the reader, not for the data.
+**Lessons.** High agreement with the teacher did not guarantee equal performance over a day, so we judge policies on complete unseen days rather than on per-decision accuracy alone. The reward comparison showed a trade-off rather than a free gain: more orders on time, slightly fewer served; we now check reward changes against both measures. And the M1 feedback taught us to pace a visualization for the reader, not for the data.
 
 **Next.** We will train both networks with our own masked PPO, from scratch and from the imitation weights, and compare them with all baselines and stronger planners.

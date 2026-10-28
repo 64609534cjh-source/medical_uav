@@ -78,7 +78,7 @@ const children = [
   new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 40 }, keepNext: true,
     children: [new ImageRun({ type: "png", data: fs.readFileSync(`${__dirname}/setnet.png`),
       transformation: { width: 650, height: 189 } })] }),
-  caption("Figure 1.", "The set network from observation to output (B: batch size). Encoders use ReLU throughout; each head has one ReLU hidden layer of 64 and a linear output.", 40, 100),
+  caption("Figure 1.", "The set network from observation to output (B: batch size; ⊕: concatenation). Encoders use ReLU throughout; each head has one ReLU hidden layer of 64 and a linear output.", 40, 100),
   section(1)[1],
   heading("2. Training by imitation"), ...section(2),
   caption("Table 1.", "Mean daily on-time rate (on-time / released), map 0, the same 40 development days; mean orders/day in brackets.", 80, 40, true),
