@@ -8,6 +8,7 @@ and a checkpoint at every evaluation.
 """
 import argparse
 import csv
+from dataclasses import replace
 import json
 import time
 from pathlib import Path
@@ -29,13 +30,14 @@ ENT, ENT_FLOOR = 0.01, 0.1  # entropy bonus, decayed linearly to 10 % of it
 EVAL_LOADS = ("medium", "high")
 
 
-def evaluate_net(net, days: int, many_maps: bool = False) -> dict:
+def evaluate_net(net, days: int, many_maps: bool = False, config=None) -> dict:
     """Mean greedy on-time rate on the first `days` selection days at medium and high load; with
     many_maps the days rotate over the selection maps instead of map 0."""
     policy = NetworkPolicy(net)
     net.eval()
     maps = [SELECT_MAP_SEEDS[k % len(SELECT_MAP_SEEDS)] if many_maps else 0 for k in range(days)]
-    result = {load: float(np.mean([run_day(policy, load, s, EnvConfig(map_seed=m))["on_time_rate"]
+    config = config or EnvConfig()
+    result = {load: float(np.mean([run_day(policy, load, s, replace(config, map_seed=m))["on_time_rate"]
                                    for s, m in zip(list(SELECT_SEEDS)[:days], maps)]))
               for load in EVAL_LOADS}
     net.train()
@@ -51,7 +53,9 @@ def main():
     parser.add_argument("--eval-days", type=int, default=20)
     parser.add_argument("--threads", type=int, default=4)
     parser.add_argument("--reward", choices=list(REWARDS), default="v2",
-                        help="reward variant: v2 (default), m1 (Milestone 1 reward), ontime")
+                        help="reward variant (default: v2); v2_expiry* change only the expiry penalty")
+    parser.add_argument("--no-travel-table", action="store_true",
+                        help="omit only the 7x7 travel-time observation block (452 -> 403)")
     parser.add_argument("--init", default=None, help="start from this checkpoint (e.g. BC)")
     parser.add_argument("--maps", choices=["train"], default=None,
                         help="train: draw each day's map from the training maps (default: map 0)")
@@ -68,11 +72,15 @@ def main():
     total, eval_every = int(args.decisions), int(args.eval_every)
 
     maps = list(TRAIN_MAP_SEEDS) if args.maps == "train" else None
-    envs, state = make_envs(N_ENVS, rng, EnvConfig(**REWARDS[args.reward]), maps)
+    config = EnvConfig(**REWARDS[args.reward], include_travel_table=not args.no_travel_table)
+    envs, state = make_envs(N_ENVS, rng, config, maps)
+    obs_dim = envs[0].observation_space.shape[0]
     meta = run_metadata(vars(args))
     if args.init:  # start from a trained network; warm up its critic first
         net, info = load_checkpoint(args.init)
         assert info["kind"] == args.net, f"{args.init} holds a {info['kind']} network"
+        if net.obs_dim != obs_dim:
+            raise ValueError("Initial checkpoint observation layout does not match environment")
         net.train()
         meta["warmup"] = warm_up_value(net, envs, state, rng, rollouts=args.warmup_rollouts)
         w = meta["warmup"]
@@ -81,7 +89,7 @@ def main():
               f"{w['explained_variance_before']:.2f} -> {w['explained_variance_after']:.2f} "
               f"({w['decisions']} decisions, not counted below)", flush=True)
     else:
-        net = NETWORKS[args.net]()
+        net = NETWORKS[args.net](obs_dim=obs_dim)
     (out / "run.json").write_text(json.dumps(meta, indent=1))
     opt = torch.optim.Adam(net.parameters(), lr=LR, eps=1e-5)
     updates = open(out / "updates.csv", "w", newline="")
@@ -109,12 +117,13 @@ def main():
                             + [round(train_on_time, 4)])
         updates.flush()
         if decisions >= next_eval or decisions >= total:
-            result = evaluate_net(net, args.eval_days, many_maps=maps is not None)
+            result = evaluate_net(net, args.eval_days, many_maps=maps is not None, config=config)
             eval_log.writerow([decisions, round(time.time() - t0, 1)] + list(result.values()))
             evals.flush()
             save_checkpoint(net, args.net, out / f"ckpt_{decisions:08d}.pt",
                             {"decisions": decisions, "seed": args.seed, "net": args.net,
                              "reward": args.reward, "init": args.init, "maps": args.maps,
+                             "obs_dim": obs_dim, "no_travel_table": args.no_travel_table,
                              "git_revision": meta["git_revision"],
                              "eval_days": args.eval_days, **{f"on_time_{k}": v
                                                              for k, v in result.items()}})

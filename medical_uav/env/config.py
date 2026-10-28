@@ -79,6 +79,9 @@ class EnvConfig:
     # base arrival rate for each load level, in orders per minute
     loads: dict = field(default_factory=lambda: {"low": 0.04, "medium": 0.09, "high": 0.12})
 
+    # observation ablation (physics and action masks are unchanged)
+    include_travel_table: bool = True
+
     # actions
     wait_max: float = 10.0  # longest duration of one WAIT action, minutes
 
@@ -101,6 +104,8 @@ class EnvConfig:
 # Reward variants: settings that replace the v2 reward, used for the reward controls.
 REWARDS = {
     "v2": {},  # +1 on time, +0.1 late, -0.1 expired, -0.001 per battery %
+    "v2_expiry03": {"expiry_penalty": 0.3},
+    "v2_expiry05": {"expiry_penalty": 0.5},
     "m1": {"late_reward": "linear", "expiry_penalty": 0.5},  # the Milestone 1 reward
     "ontime": {"reward_late": 0.0, "expiry_penalty": 0.0, "energy_cost": 0.0},  # on-time count only
 }

@@ -1,6 +1,7 @@
 """Run policies on the same days and compare them. A policy is called as
 policy(env, obs, mask) and returns a valid action index."""
 import platform
+from dataclasses import replace
 import subprocess
 import time
 from pathlib import Path
@@ -9,7 +10,8 @@ import numpy as np
 import torch
 
 from medical_uav.env import MedicalUAVEnv
-from medical_uav.env.config import ENV_VERSION, EPS, ORDER_TYPES
+from medical_uav.env.config import ENV_VERSION, EPS, ORDER_TYPES, EnvConfig
+from medical_uav.env.observation import OBS_DIM, observation_dim
 from medical_uav.metrics import behaviour_metrics, distance_breakdown, episode_metrics
 
 
@@ -41,6 +43,12 @@ def run_day(policy, load: str, demand_seed: int, config=None, details: bool = Fa
     `config` (an EnvConfig) changes the settings, e.g. the map; `details` adds the behaviour
     metrics, the distance breakdown, the share of decisions with more waiting orders than slots
     and every decision's time."""
+    # A checkpoint's layout is intrinsic to the network, including legacy full-table files.
+    if hasattr(policy, "net"):
+        dim = policy.net.obs_dim
+        if dim not in (OBS_DIM, observation_dim(False)):
+            raise ValueError(f"Unsupported policy observation dimension: {dim}")
+        config = replace(config or EnvConfig(), include_travel_table=dim == OBS_DIM)
     env = MedicalUAVEnv(config=config, load=load)
     obs, info = env.reset(options={"demand_seed": demand_seed})
     total, decisions, done, seconds, overflow = 0.0, 0, False, [], 0
@@ -69,6 +77,8 @@ def run_day(policy, load: str, demand_seed: int, config=None, details: bool = Fa
         row[f"released_{order_type.name}"] = len(mine)
         row[f"on_time_count_{order_type.name}"] = sum(
             1 for o in mine if o.status == "delivered" and o.end_time - o.release <= o.limit + EPS)
+        row[f"served_count_{order_type.name}"] = sum(o.status == "delivered" for o in mine)
+        row[f"expired_count_{order_type.name}"] = sum(o.status == "expired" for o in mine)
     if details:
         row.update(**behaviour_metrics(env.sim, env.decision_log), **distance_breakdown(env.sim))
         row["overflow_share"] = overflow / decisions

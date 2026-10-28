@@ -9,7 +9,7 @@ from medical_uav.env.actions import N_ACTIONS, WAIT, action_name, decode
 from medical_uav.env.config import NODE_NAMES, ORDER_TYPES, EnvConfig
 from medical_uav.env.map_gen import generate_map
 from medical_uav.env.masks import compute_action_mask
-from medical_uav.env.observation import OBS_BOUND, OBS_DIM, build_observation, rank_pending
+from medical_uav.env.observation import OBS_BOUND, build_observation, observation_dim, rank_pending
 from medical_uav.env.orders import generate_orders
 from medical_uav.env.simulator import Simulator
 from medical_uav.splits import TRAIN_SEED_RANGE
@@ -36,7 +36,8 @@ class MedicalUAVEnv(gym.Env):
         self._maps = {}  # maps built so far, by seed (a map takes ~0.1 s to build)
         self.city_map = self._map(self.cfg.map_seed)
 
-        self.observation_space = spaces.Box(-OBS_BOUND, OBS_BOUND, shape=(OBS_DIM,),
+        obs_dim = observation_dim(self.cfg.include_travel_table)
+        self.observation_space = spaces.Box(-OBS_BOUND, OBS_BOUND, shape=(obs_dim,),
                                             dtype=np.float32)
         self.action_space = spaces.Discrete(N_ACTIONS)
 
@@ -46,7 +47,7 @@ class MedicalUAVEnv(gym.Env):
         self.sim: Simulator | None = None
         self.slots = []  # visible pending orders, indexed by PICK slot
         self._mask = np.zeros(N_ACTIONS, dtype=bool)
-        self._obs = np.zeros(OBS_DIM, dtype=np.float32)
+        self._obs = np.zeros(obs_dim, dtype=np.float32)
         self._done = False
         self._renderer = None
 

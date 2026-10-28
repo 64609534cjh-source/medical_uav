@@ -3,17 +3,21 @@ masked action logits [B, 26] and state values [B]."""
 import torch
 
 from medical_uav.env.actions import N_ACTIONS, N_SLOTS
-from medical_uav.env.config import N_ONBOARD
-from medical_uav.env.observation import GLOBAL_DIM, OBS_DIM, ONBOARD_DIM, PENDING_DIM
+from medical_uav.env.config import FACILITIES, N_NODES, N_ONBOARD
+from medical_uav.env.observation import (GLOBAL_DIM, N_FACILITIES, N_TYPES, OBS_DIM,
+                                        ONBOARD_DIM, PENDING_DIM)
 
 MASK_VALUE = -1e9  # logit given to actions the mask forbids
 
 
 def split_obs(obs: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    """Split observations [B, 452] into global [B, 80], pending [B, 12, 27] and cargo [B, 3, 16]."""
-    pending_end = GLOBAL_DIM + N_SLOTS * PENDING_DIM
-    g = obs[:, :GLOBAL_DIM]
-    pending = obs[:, GLOBAL_DIM:pending_end].reshape(-1, N_SLOTS, PENDING_DIM)
+    """Split either observation layout; order and cargo field widths stay fixed."""
+    global_dim = obs.shape[-1] - N_SLOTS * PENDING_DIM - N_ONBOARD * ONBOARD_DIM
+    if global_dim not in (GLOBAL_DIM, GLOBAL_DIM - N_NODES * N_NODES):
+        raise ValueError(f"Unsupported observation dimension: {obs.shape[-1]}")
+    pending_end = global_dim + N_SLOTS * PENDING_DIM
+    g = obs[:, :global_dim]
+    pending = obs[:, global_dim:pending_end].reshape(-1, N_SLOTS, PENDING_DIM)
     cargo = obs[:, pending_end:].reshape(-1, N_ONBOARD, ONBOARD_DIM)
     return g, pending, cargo
 
@@ -43,6 +47,7 @@ class MLPNet(torch.nn.Module):
 
     def __init__(self, obs_dim: int = OBS_DIM, hidden: int = 256, n_actions: int = N_ACTIONS):
         super().__init__()
+        self.obs_dim = obs_dim
         self.actor = _mlp([obs_dim, hidden, hidden, n_actions])
         self.critic = _mlp([obs_dim, hidden, hidden, 1])
 
@@ -65,11 +70,15 @@ class SetNet(torch.nn.Module):
     time by shared encoders, the UAV state attends over them, and every PICK slot is scored
     by the same scorer, so reordering the slots reorders the PICK logits."""
 
-    def __init__(self, width: int = 64, heads: int = 4):
+    def __init__(self, width: int = 64, heads: int = 4, obs_dim: int = OBS_DIM):
         super().__init__()
+        self.obs_dim = obs_dim
+        global_dim = obs_dim - N_SLOTS * PENDING_DIM - N_ONBOARD * ONBOARD_DIM
+        if global_dim not in (GLOBAL_DIM, GLOBAL_DIM - N_NODES * N_NODES):
+            raise ValueError(f"Unsupported observation dimension: {obs_dim}")
         self.pending_enc = _relu_mlp([PENDING_DIM, width, width], last_relu=True)
         self.cargo_enc = _relu_mlp([ONBOARD_DIM, width], last_relu=True)
-        self.global_enc = _relu_mlp([GLOBAL_DIM, width], last_relu=True)
+        self.global_enc = _relu_mlp([global_dim, width], last_relu=True)
         self.null = torch.nn.Parameter(0.02 * torch.randn(1, 1, width))  # always-valid key
         self.attn = torch.nn.MultiheadAttention(width, heads, batch_first=True)
         self.pick_head = _relu_mlp([3 * width, width, 1], last_relu=False)
@@ -101,4 +110,51 @@ class SetNet(torch.nn.Module):
         return masked_logits(logits, mask), value
 
 
-NETWORKS = {"mlp": MLPNet, "set": SetNet}  # network kinds by name, as stored in checkpoints
+def destination_means(slots: torch.Tensor, embeddings: torch.Tensor, dest_start: int):
+    """Occupied-slot embedding means and counts, in facility order; empty means are zero."""
+    destinations = slots[:, :, dest_start:dest_start + N_FACILITIES]
+    members = destinations * (slots[:, :, :1] > 0).to(embeddings.dtype)
+    counts = members.sum(1)
+    means = members.transpose(1, 2) @ embeddings
+    return means / counts.clamp(min=1)[:, :, None], counts
+
+
+class SetDestNet(SetNet):
+    """SetNet with one shared destination-conditioned scorer for the DELIVER actions."""
+
+    def __init__(self, width: int = 64, heads: int = 4, obs_dim: int = OBS_DIM):
+        super().__init__(width, heads, obs_dim)
+        self.other_head = _relu_mlp([2 * width, width, N_ACTIONS - N_SLOTS - N_FACILITIES],
+                                   last_relu=False)
+        self.facility_emb = torch.nn.Embedding(N_FACILITIES, 8)
+        self.deliver_head = _relu_mlp([4 * width + 11, width, 1], last_relu=False)
+
+    def forward(self, obs: torch.Tensor, mask: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        g, pending, cargo = split_obs(obs)
+        b = obs.shape[0]
+        ge, pe, ce = self.global_enc(g), self.pending_enc(pending), self.cargo_enc(cargo)
+        keys = torch.cat([self.null.expand(b, -1, -1), pe, ce], dim=1)
+        empty = torch.cat([torch.zeros(b, 1, dtype=torch.bool, device=obs.device),
+                           pending[:, :, 0] == 0, cargo[:, :, 0] == 0], dim=1)
+        attended, _ = self.attn(ge[:, None], keys, keys, key_padding_mask=empty)
+        context = torch.cat([ge, attended[:, 0]], dim=1)
+        pick = self.pick_head(torch.cat([pe, context[:, None].expand(-1, N_SLOTS, -1)], dim=2))
+
+        # Destination one-hots follow type (and, for pending orders, origin) one-hots.
+        pm, pc = destination_means(pending, pe, 1 + N_TYPES + N_FACILITIES)
+        cm, cc = destination_means(cargo, ce, 1 + N_TYPES)
+        travel = g[:, 9 + N_NODES:9 + 2 * N_NODES][:, list(FACILITIES)]
+        features = torch.cat([context[:, None].expand(-1, N_FACILITIES, -1), cm, pm,
+                              (cc / N_ONBOARD)[:, :, None], (pc / N_SLOTS)[:, :, None],
+                              travel[:, :, None], self.facility_emb.weight[None].expand(b, -1, -1)],
+                             dim=2)
+        deliver = self.deliver_head(features)[:, :, 0]
+        logits = torch.cat([pick[:, :, 0], deliver, self.other_head(context)], dim=1)
+
+        occupied = (pending[:, :, 0] > 0).float()[:, :, None]
+        mean = (pe * occupied).sum(1) / occupied.sum(1).clamp(min=1.0)
+        value = self.value_head(torch.cat([context, mean], dim=1))[:, 0]
+        return masked_logits(logits, mask), value
+
+
+NETWORKS = {"mlp": MLPNet, "set": SetNet, "set_dest": SetDestNet}
