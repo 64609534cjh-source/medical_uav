@@ -574,11 +574,11 @@ function stateAt(R, t) {
   document.title = "UAV Dispatch Replay · " + M.policy;
   $("sub").textContent = `${M.load[0].toUpperCase() + M.load.slice(1)} load · demand seed ${M.seed} · map ${M.map_seed}`;
   const peak = decs.find((d) => d.t >= M.peaks[0][0]) || decs[0];
-  const opened = close ? close.t : (peak ? peak.t : 0);  // open on a moment worth reading
+  const opened = peak ? peak.t : 0;  // open where the first demand peak begins
   seek(opened);
   if (opened > 0) {
     const n = document.createElement("span"); n.className = "note";
-    n.textContent = `Opened at ${clock(opened)}, ${close ? "the network's closest call" : "the first demand peak"}; "Start of the day" goes back to ${clock(0)}.`;
+    n.textContent = `Opened at ${clock(opened)}, where the first demand peak begins; "Start of the day" goes back to ${clock(0)}.`;
     $("marks").appendChild(n);
   }
 })();

@@ -79,10 +79,10 @@ the web page lets you explore the whole day at your own pace.
 | File | What it is for |
 |---|---|
 | `set_network_explained.mp4` (3:23) | **Watch first: the decisions, slowed down.** 29 decisions around the afternoon peak, 13:06–15:30; each takes 7 s (2 s before, 3 s during and 2 s after its action) with the situation and the network's most likely actions on screen. |
-| `replay_set_network.html` | **Explore the whole day yourself.** Download it and double-click: it opens offline in any browser. You choose the speed, stop at any decision and jump to any time; every decision shows the situation and up to three of the network's most likely actions (the drone takes the most likely one). It opens at the network's closest call (14:30). |
+| `replay_set_network.html` | **Explore the whole day yourself.** Download it and double-click: it opens offline in any browser. You choose the speed, stop at any decision and jump to any time; every decision shows the situation and up to three of the network's most likely actions (the drone takes the most likely one). It opens where the first demand peak begins (09:02); **Jump to** reaches the network's closest call (14:30). |
 | `replay_slack.html` | The same page for the teacher, Slack-aware, on the same day (47 of 49 orders on time; the network 45), to compare the two. |
 | `set_network_day.mp4` (6.5 min) | An overview of the whole day without clicking: flights at 1 simulated minute per second, the rest at 8, a 1.5 s pause at each decision. |
-| `demo.png` | The picture above: the closest call in the replay. |
+| `demo.png` | The picture above: the network's closest call of the day (14:30). |
 
 Using the replay:
 
