@@ -10,7 +10,8 @@ BUSY_KINDS = ("fly", "load", "unload", "dispose")  # segment kinds counted as bu
 def episode_metrics(sim: Simulator) -> dict:
     """Return metrics over the orders released so far (all orders once the day is over).
 
-    Mean lateness averages over late deliveries only.
+    Mean lateness averages over late deliveries only; mean backlog is the time-averaged number of
+    released orders waiting to be picked up.
     """
     orders = [o for o in sim.orders if o.status != "future"]
     n = len(orders)
@@ -19,6 +20,10 @@ def episode_metrics(sim: Simulator) -> dict:
     late = [o for o in delivered if o.end_time - o.release > o.limit + EPS]
     duration = max(sim.t, EPS)
     busy = sum(s.t1 - s.t0 for s in sim.segments if s.kind in BUSY_KINDS)
+    # an order waits from release until pickup, expiry or now
+    waiting = sum(min(o.pickup_time if o.pickup_time is not None else
+                      o.end_time if o.end_time is not None else sim.t, sim.t) - o.release
+                  for o in orders)
 
     def rate(count):
         return count / n if n else 0.0
@@ -38,6 +43,8 @@ def episode_metrics(sim: Simulator) -> dict:
         "expiry_rate": rate(sum(1 for o in orders if o.status == "expired")),
         "mean_lateness": (sum(o.end_time - o.deadline for o in late) / len(late)) if late else 0.0,
         "km_flown": sim.km_flown,
+        "empty_km": sim.empty_km,
+        "mean_backlog": waiting / duration,
         "energy_used": sim.energy_used,
         "charge_minutes": sim.charging_time,
         "episode_minutes": sim.t,

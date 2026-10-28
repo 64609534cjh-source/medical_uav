@@ -46,6 +46,7 @@ class Simulator:
         self.total_reward = 0.0
         self.energy_used = 0.0  # total battery % used for flying
         self.km_flown = 0.0
+        self.empty_km = 0.0  # flown with no box on board
         self.charging_time = 0.0
 
         self._next_release = 0  # index of the next order to be released
@@ -150,6 +151,8 @@ class Simulator:
             self.battery -= e
             self.energy_used += e
             self.km_flown += self.city_map.dist_km[self.location, node]
+            if not self.onboard:
+                self.empty_km += self.city_map.dist_km[self.location, node]
             self.total_reward -= self.cfg.energy_cost * e
             self.advance_to(t_arrive)
             self.location = node

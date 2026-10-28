@@ -186,3 +186,15 @@ def test_failure_analysis_script(tmp_path):
     assert {o["outcome"] for o in orders} <= {"on time", "late", "expired before pickup",
                                               "expired on board"}
     assert "snowball check" in result.stdout and "workload" in result.stdout
+
+
+def test_empty_flight_and_backlog(line_map):
+    sample = make_order(0, 2, 1, M, 0.3, 0.0)  # waiting at H1 (2 km) for M
+    medicine = make_order(1, 1, M, 2, 0.5, 0.0)  # never picked; expires at 180
+    sim = make_sim(line_map, [sample, medicine])
+    sim.do_pick(sample)  # empty flight M -> H1, loaded at t = 4
+    sim.do_deliver(M)  # loaded flight back
+    sim.advance_to(200.0)
+    m = episode_metrics(sim)
+    assert m["empty_km"] == pytest.approx(2.0) and m["km_flown"] == pytest.approx(4.0)
+    assert m["mean_backlog"] == pytest.approx((4.0 + 180.0) / 200.0)  # waiting minutes per minute
