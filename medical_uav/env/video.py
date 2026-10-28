@@ -2,8 +2,8 @@
 
 ReplayFrames(record).draw(t) returns one 1280 x 720 RGB frame: header with the clock and the
 outcome counts, the map, the current decision, battery and cargo, the most urgent waiting
-orders and the day's timeline. smart_times() paces a whole day like the replay's smart speed;
-explained_times() holds a few decisions so each can be read.
+orders and the day's timeline. explained_times() paces a stretch of decisions so each can be
+read.
 """
 import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg
@@ -19,7 +19,13 @@ LINE, WASH = "#d9e0e8", "#e9eef5"
 ONTIME, LATE, EXPIRED = "#11806a", "#9a6500", "#c8402a"
 TYPE_COLORS = ("#c0267a", "#2f6fdb", "#7a4fd0", "#9a6b2f")  # plasma, medicine, sample, supplies
 TYPE_LABELS = ("Plasma", "Medicine", "Sample", "Supplies")
-FLY_RATE, GROUND_RATE, HOLD_S = 1.0, 8.0, 1.5  # smart speed of the replay, with a shorter hold
+FOCUS = "#2f6fdb"
+# status colours of the replay: (background, text)
+DECIDING, PROGRESS = ("#fff0c2", "#6f4600"), ("#dfe9fd", "#1c49b8")
+# the replay at 1x: simulated minutes per second while flying or handling boxes (else 3), and the
+# steps of a new decision in seconds: the finished action leaves, choices, the pick, its move up
+RATES = {"fly": 1.0, "load": 1.5, "unload": 1.5, "dispose": 1.5}
+LEAVE_S, DECIDE_S, PICK_S, MOVE_S = 0.35, 0.7, 0.4, 0.6
 
 
 def pt(px: float) -> float:
@@ -213,8 +219,6 @@ class ReplayFrames:
         self._panel(ax, x, y, w, h)
         decs, end = r["decisions"], r["meta"]["end"]
         i = s["decision"]
-        if phase == "Done":  # the action that just finished, drawn after its pickups or deliveries
-            i = max(k for k, x in enumerate(decs) if x["end"] <= t)
         d = decs[i] if i >= 0 else None
         if t >= end - 1e-6:
             sm = r["meta"]["summary"]
@@ -231,15 +235,29 @@ class ReplayFrames:
             return
         self._text(ax, x + 16, y + 14, f"DECISION {i + 1} OF {len(decs)} · "
                    f"{self._clock(d['t'])}", 11, MUTED, "bold")
-        self._text(ax, x + 16, y + 32, d["text"], 19, INK, "bold")
-        if phase is None and abs(t - d["t"]) < 0.02:
-            phase = "Deciding"
-        elif phase is None:
-            running = t < d["end"] - EPS
-            phase = f"In progress · done at {self._clock(d['end'])}" if running else "Done"
-        ax.add_patch(FancyBboxPatch((x + 16, y + 62), 7.4 * len(phase) + 20, 22,
-                                    boxstyle="round,pad=0,rounding_size=11", fc=WASH, ec="none"))
-        self._text(ax, x + 26, y + 65, phase, 12, INK, "bold")
+        # phase: None (from t), "Chosen" (a still of the decision), or a step of a new decision:
+        # ("Leaving", p), "Deciding", "Picked", ("Moving", p) with p the step's progress
+        name, p = phase if isinstance(phase, tuple) else (phase, 0.0)
+        if name is None:
+            name = "Chosen" if abs(t - d["t"]) < 0.02 else "Running"
+        deciding = name != "Running"
+        if name in ("Running", "Chosen"):
+            self._text(ax, x + 16, y + 32, d["text"], 19, INK, "bold")
+        elif name == "Leaving" and i > 0:  # the finished action fades out upwards
+            self._text(ax, x + 16, y + 32 - 12 * p, decs[i - 1]["text"], 19, INK, "bold",
+                       alpha=1 - p)
+        label = "Deciding" if deciding else f"In progress · done at {self._clock(d['end'])}"
+        bg, fg = DECIDING if deciding else PROGRESS
+        bw = 7.4 * len(label) + 20
+        ax.add_patch(FancyBboxPatch((x + 16, y + 62), bw, 22,
+                                    boxstyle="round,pad=0,rounding_size=11",
+                                    fc=bg, ec="#e9bf55" if deciding else "none"))
+        self._text(ax, x + 26, y + 65, label, 12, fg, "bold")
+        # progress of the action, beside the status
+        frac = 0.0 if deciding else min(1.0, (t - d["t"]) / max(d["end"] - d["t"], EPS))
+        px = x + 16 + bw + 12
+        ax.add_patch(Rectangle((px, y + 71), x + 340 - px, 4, fc=WASH, ec="none"))
+        ax.add_patch(Rectangle((px, y + 71), (x + 340 - px) * frac, 4, fc=FOCUS, ec="none"))
         for k, fact in enumerate(d["facts"]):
             ax.add_patch(Circle((x + 22, y + 102 + 20 * k), 2.5, color=FAINT))
             self._text(ax, x + 32, y + 94 + 20 * k, fact, 13)
@@ -250,6 +268,9 @@ class ReplayFrames:
             self._text(ax, cx, y + 94, "THE NETWORK'S TOP CHOICES", 11, MUTED, "bold")
             for k, (label, p) in enumerate(d["top"]):
                 yy = y + 112 + 30 * k
+                if k == 0 and name in ("Picked", "Moving", "Chosen"):
+                    ax.add_patch(Rectangle((cx - 6, yy - 4), x + w - 10 - cx, 28, fc=DECIDING[0],
+                                           ec="none"))
                 self._text(ax, cx, yy, label, 13, INK, "bold" if k == 0 else "normal")
                 self._text(ax, x + w - 16, yy, f"{100 * p:.{digits}f}%", 13, INK, ha="right")
                 ax.add_patch(Rectangle((cx, yy + 18), x + w - 16 - cx, 5, fc=WASH, ec="none"))
@@ -258,6 +279,11 @@ class ReplayFrames:
             self._text(ax, cx, y + h - 31, "Policy probabilities, not chances of success.", 11,
                        MUTED)
             self._text(ax, cx, y + h - 15, "The drone takes the most likely action.", 11, MUTED)
+            if name == "Moving":  # the chosen action moves up into the action line
+                e = p * p * (3 - 2 * p)
+                self._text(ax, cx + (x + 16 - cx) * e, y + 112 - 80 * e, d["top"][0][0],
+                           13 + 6.5 * e, INK, "bold",
+                           bbox=dict(boxstyle="round,pad=0.2", fc=DECIDING[0], ec="none"))
 
     def _state(self, ax, s, t):
         r = self.r
@@ -346,34 +372,19 @@ class ReplayFrames:
             self._text(ax, R, y - 18, speed, 11, MUTED, ha="right")
 
 
-def smart_times(record: dict, fps: int) -> list[float]:
-    """Frame times for the whole day at smart speed: flights at 1 simulated minute per second,
-    everything else at 8, each decision held for 1.5 s."""
-    segs, decs, end = record["segments"], record["decisions"], record["meta"]["end"]
-    times, t, d = [], 0.0, 0
-    while t < end:
-        while d < len(decs) and decs[d]["t"] <= t + EPS:  # a decision: hold it
-            t = max(t, decs[d]["t"])
-            times += [decs[d]["t"]] * round(HOLD_S * fps)
-            d += 1
-        state = state_at(record, t)
-        flying = state["active"] is not None and segs[state["active"]][0] == "fly"
-        t_next = t + (FLY_RATE if flying else GROUND_RATE) / fps
-        if d < len(decs):
-            t_next = min(t_next, decs[d]["t"])
-        times.append(t)
-        t = min(t_next, end) if t_next > t + EPS else end
-    return times + [end] * (5 * fps)  # hold the day's result
-
-
-def explained_times(record: dict, first: int, count: int, fps: int,
-                    before_s: float = 2.0, action_s: float = 3.0, after_s: float = 2.0) -> list:
-    """(time, phase) for `count` decisions from index `first`: each shown before, during and
-    after its action."""
-    out = []
+def explained_times(record: dict, first: int, count: int, fps: int) -> list:
+    """(time, phase) for `count` decisions from index `first`, paced like the replay at 1x: the
+    steps of each new decision while the clock stands still, then its action."""
+    segs, out = record["segments"], []
     for d in record["decisions"][first:first + count]:
-        out += [(d["t"], "Deciding")] * round(before_s * fps)
-        n = round(action_s * fps)
-        out += [(d["t"] + (d["end"] - d["t"]) * k / n, None) for k in range(n)]
-        out += [(d["end"] + 1e-6, "Done")] * round(after_s * fps)
+        n, m = round(LEAVE_S * fps), round(MOVE_S * fps)
+        out += [(d["t"], ("Leaving", k / n)) for k in range(n)]
+        out += [(d["t"], "Deciding")] * round(DECIDE_S * fps)
+        out += [(d["t"], "Picked")] * round(PICK_S * fps)
+        out += [(d["t"], ("Moving", k / m)) for k in range(m)]
+        t = d["t"]
+        while t < d["end"] - EPS:
+            out.append((t, None))
+            a = state_at(record, t)["active"]
+            t = min(d["end"], t + (RATES.get(segs[a][0], 3.0) if a is not None else 3.0) / fps)
     return out

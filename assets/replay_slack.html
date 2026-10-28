@@ -148,7 +148,7 @@ kbd { font: 11px var(--mono); border: 1px solid var(--line); border-bottom-width
           <li>Map: the square is the medical center M with charger C1, circles are hospitals, the bolt is charger C2, hatched areas are no-fly zones. Coloured squares next to a place are orders waiting there (all of them; the network sees at most 12); the three squares under the drone are its cargo slots.</li>
           <li>Right: the current decision in words, the situation it was taken in and, for a network, up to three of its most likely actions (the drone takes the most likely one). Below: battery (the line marks the 15 % reserve), cargo and the most urgent waiting orders.</li>
           <li>Timeline: grey bands are demand peaks, the green curve is the battery, ticks are decisions, dots are deliveries (green on time, amber late) and crosses are orders that expired. Click or drag it to jump.</li>
-          <li>Smart speed plays flights at 1 simulated minute per second, loading or unloading boxes at 1.5, and fast-forwards charging and waiting at 3; the decision card stays on screen while its action runs. The fixed speeds play everything at one rate. At every speed a new decision holds the clock for about 2 s: its choices, the pick and its move into the action line; to stop at every decision, tick Stop at each decision.</li>
+          <li>At 1× flights play at 1 simulated minute per second, loading or unloading boxes at 1.5 and charging or waiting at 3, and each new decision holds the clock for about 2 s: its choices, the pick and its move into the action line. 2× and 3× play everything two or three times faster. The pauses are for reading; the network decides in about 1 ms. To stop at every decision, tick Stop at each decision.</li>
         </ul>
       </details>
     </div>
@@ -504,22 +504,21 @@ function stateAt(R, t) {
   tl.setAttribute("aria-valuemax", END.toFixed(0));
 
   // ---------- playback ----------
-  // smart: flights at 1 simulated min per second, box handling at 1.5, charging and waiting at 3;
-  // at every speed a new decision holds the clock for HOLD_MS: choices, the pick, its move up
-  const SPEEDS = [["smart", "Smart"], [1, "1"], [5, "5"], [15, "15"]];
+  // at 1x flights take 1 simulated min per second, box handling 1.5, charging and waiting 3, and a
+  // new decision holds the clock for HOLD_MS (choices, the pick, its move up); 2x and 3x scale all of it
+  const SPEEDS = [[1, "1×"], [2, "2×"], [3, "3×"]];
   const FLY_RATE = 1, BOX_RATE = 1.5, GROUND_RATE = 3;
   const DECIDE_MS = 700, PICK_MS = 400, MOVE_MS = 600, HOLD_MS = DECIDE_MS + PICK_MS + MOVE_MS;
-  let t = 0, playing = false, speed = "smart", last = null, holdUntil = 0, holdFrom = 0, held = false;
+  let t = 0, playing = false, speed = 1, last = null, holdUntil = 0, holdFrom = 0, held = false;
   let flyer = null, leaving = "";  // leaving: text of the action that is cleared at a new decision
   $("speeds").innerHTML = SPEEDS.map(([v, l]) => `<button data-s="${v}" aria-pressed="${v === speed}">${l}</button>`).join("");
   const BOX = ["load", "unload", "dispose"];
   const flying = (s) => s.active && s.active[0] === "fly";
   const boxes = (s) => s.active && BOX.includes(s.active[0]);
-  const rateAt = (s) => speed !== "smart" ? speed : flying(s) ? FLY_RATE : boxes(s) ? BOX_RATE : GROUND_RATE;
+  const rateAt = (s) => speed * (flying(s) ? FLY_RATE : boxes(s) ? BOX_RATE : GROUND_RATE);
   function speedNote(s) {
-    if (speed !== "smart") return `${speed} simulated min per second`;
-    if (!playing) return `flights ${FLY_RATE}, boxes ${BOX_RATE}, charging and waiting ${GROUND_RATE} simulated min per second`;
-    return flying(s) ? `flying · ${FLY_RATE} simulated min per second` : boxes(s) ? `handling boxes · ${BOX_RATE} simulated min per second` : `fast-forward · ${GROUND_RATE} simulated min per second`;
+    if (!playing) return `flights ${speed * FLY_RATE}, boxes ${speed * BOX_RATE}, charging and waiting ${speed * GROUND_RATE} simulated min per second`;
+    return `${flying(s) ? "flying" : boxes(s) ? "handling boxes" : "charging or waiting"} · ${rateAt(s)} simulated min per second`;
   }
   function render() {
     const s = stateAt(D, t);
@@ -533,7 +532,7 @@ function stateAt(R, t) {
   }
   function seek(v) { t = Math.max(0, Math.min(END, v)); render(); }
   function holdStep(now) {  // the steps of a new decision while the clock stands still
-    const e = now - holdFrom, row = $("probs").querySelector(".prob.chosen"), title = $("action");
+    const e = (now - holdFrom) * speed, row = $("probs").querySelector(".prob.chosen"), title = $("action");
     title.style.visibility = "hidden";
     if (leaving) {  // the finished action fades out upwards
       const r = title.getBoundingClientRect(), ghost = title.cloneNode(false);
@@ -542,7 +541,7 @@ function stateAt(R, t) {
         margin: 0, visibility: "visible", pointerEvents: "none", zIndex: 20 });
       document.body.appendChild(ghost);
       ghost.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(-12px)" }],
-        { duration: 350, easing: "ease-in", fill: "forwards" }).onfinish = () => ghost.remove();
+        { duration: 350 / speed, easing: "ease-in", fill: "forwards" }).onfinish = () => ghost.remove();
     }
     if (row) row.classList.toggle("picked", e >= DECIDE_MS);
     if (row && !flyer && e >= DECIDE_MS + PICK_MS) {
@@ -551,7 +550,7 @@ function stateAt(R, t) {
       Object.assign(flyer.style, { left: a.left - 4 + "px", top: a.top + "px" });
       document.body.appendChild(flyer);
       flyer.animate([{ transform: "none" }, { transform: `translate(${b.left - a.left}px, ${b.top - a.top}px) scale(1.5)` }],
-        { duration: MOVE_MS, easing: "ease-in-out", fill: "forwards" });
+        { duration: MOVE_MS / speed, easing: "ease-in-out", fill: "forwards" });
     }
   }
   function land() {  // the hold is over (or playback stopped): the chosen action takes its place
@@ -573,7 +572,7 @@ function stateAt(R, t) {
       if (nd && next >= nd.t) {
         next = nd.t;
         if ($("stopeach").checked) { t = next; playing = false; render(); return; }
-        holdFrom = now; holdUntil = now + HOLD_MS; held = true; leaving = $("action").textContent;
+        holdFrom = now; holdUntil = now + HOLD_MS / speed; held = true; leaving = $("action").textContent;
       }
       t = Math.min(END, next);
       if (t >= END) playing = false;
@@ -594,7 +593,7 @@ function stateAt(R, t) {
   $("prevd").onclick = () => gotoDecision(-1);
   $("nextd").onclick = () => gotoDecision(1);
   $("speeds").onclick = (e) => { const b = e.target.closest("button"); if (!b) return;
-    speed = b.dataset.s === "smart" ? "smart" : +b.dataset.s;
+    speed = +b.dataset.s;
     for (const x of $("speeds").children) x.setAttribute("aria-pressed", String(x.dataset.s === String(speed)));
     render(); };
   const fromPointer = (e) => { const r = tl.getBoundingClientRect(); return ((e.clientX - r.left) / r.width * W - L) / (W - L - Rm) * END; };

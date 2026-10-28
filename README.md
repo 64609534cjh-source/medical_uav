@@ -45,26 +45,27 @@ Imitation trains only the policy, so the trained networks' value heads are still
 
 ## Replays (`assets/`, nothing to install)
 
-Download a page and open it in a browser (it works offline). Both show the same unseen
-medium-load day (demand seed 100000) and open at 09:58, as orders start to pile up.
+All show the same unseen medium-load day (demand seed 100000). Download a page and open it in a
+browser (it works offline); it opens at 09:58, as orders start to pile up.
 
 | File | What it shows |
 |---|---|
-| [replay_set_network.html](assets/replay_set_network.html) | The trained set network: 45 of 49 orders on time. Each decision shows the situation and the network's top choices with their probabilities; the drone takes the most likely one. |
+| [replay_set_network.html](assets/replay_set_network.html) | The trained set network over the whole day (45 of 49 orders on time). Each decision shows the situation and the network's top choices with their probabilities; the drone takes the most likely one. |
 | [replay_slack.html](assets/replay_slack.html) | Its teacher, Slack-aware, on the same day (47 of 49), for comparison. |
+| [set_network_backlog.mp4](assets/set_network_backlog.mp4) | The same replay at 1× as a 3-min video, for viewers who cannot open the page: the afternoon backlog, 32 decisions from 14:06 to 16:37, including the closest call. |
 | [demo.png](assets/demo.png) | The picture above: the network's closest call of the day (14:30). |
 
 Press **Play** (or Space). At each decision the clock stops for about 2 s: the choices appear, the
 chosen one is highlighted and moves up into the action line, which then shows its progress. These
-pauses are only for reading; the network decides in about 1 ms. **Smart** speed (the default)
-plays flights at 1 simulated min/s, box handling at 1.5, charging and waiting at 3; **1 / 5 / 15**
-are fixed speeds. **Previous / Next decision** (← →) and **Stop at each decision** step through
+pauses are only for reading; the network decides in about 1 ms. At **1×** (the default) flights
+play at 1 simulated min/s, box handling at 1.5, charging and waiting at 3; **2×** and **3×** play
+everything faster. **Previous / Next decision** (← →) and **Stop at each decision** step through
 the day; **How to read this screen** explains the display.
 
 ## Other commands
 
 ```bash
-python scripts/demo.py --policy set --seed 100000           # the replay and picture in outputs/
+python scripts/demo.py --policy set --seed 100000 --video   # replay, picture and video in outputs/
 python scripts/train_bc.py                                  # retrain both networks (~1 min)
 python scripts/evaluate.py --checkpoints checkpoints/bc_mlp.pt checkpoints/bc_set.pt
 ```

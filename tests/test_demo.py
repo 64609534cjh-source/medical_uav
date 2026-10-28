@@ -28,10 +28,10 @@ def test_demo_writes_the_replay_and_a_frame_and_videos_on_request(tmp_path):
     assert names == {"demo_slack_low_seed0_replay.html", "demo_slack_low_seed0_decision.png"}
     assert "web browser" in result.stdout and "--video" in result.stdout
     result = subprocess.run([sys.executable, str(REPO / "scripts" / "demo.py"), "--load", "low",
-                             "--video", "--explain-count", "1", "--fps", "1"],
+                             "--video", "--fps", "1"],
                             capture_output=True, text=True, cwd=tmp_path)
     assert result.returncode == 0, result.stderr
     names = {p.name for p in (tmp_path / "outputs").iterdir()}
-    assert {"demo_slack_low_seed0_explained.mp4", "demo_slack_low_seed0_day.mp4"} <= names
+    assert "demo_slack_low_seed0_backlog.mp4" in names
 
 
