@@ -1,8 +1,8 @@
 """Behaviour cloning: record 900 teacher days, train both networks, save them.
 
 Usage:
-    python scripts/train_bc.py                    # Slack-aware: checkpoints/bc100_mlp.pt, bc100_set.pt,
-                                                  # bc100_history.json (about 6 minutes)
+    python scripts/train_bc.py                    # Slack-aware: checkpoints/bc_mlp.pt, bc_set.pt,
+                                                  # bc_history.json (about 6 minutes)
     python scripts/train_bc.py --teacher rollout  # the rollout planner: bc_rollout_mlp.pt, ...
                                                   # (about 11 minutes on 16 cores)
 """
@@ -24,8 +24,7 @@ from medical_uav.splits import DEMO_SEEDS
 REPO = Path(__file__).resolve().parents[1]
 LOADS = ["low", "medium", "high"]
 DEMAND_SEEDS = DEMO_SEEDS[:300]  # 300 demonstration seeds x 3 loads = 900 teacher days
-# name, policy, file prefix; bc_set.pt and bc_mlp.pt (30 epochs) stay frozen for the locked test
-TEACHERS = {"slack": ("slack-aware", slack_aware_policy, "bc100"),
+TEACHERS = {"slack": ("slack-aware", slack_aware_policy, "bc"),  # name, policy, file prefix
             "rollout": ("rollout", rollout_policy, "bc_rollout")}
 
 
