@@ -116,13 +116,14 @@ def main():
     peaks = [p for p in record["meta"]["peaks"] if p[0] <= decs[first]["t"]]
     start = next(i for i, d in enumerate(decs) if d["t"] >= peaks[-1][0]) if peaks else first
     times = explained_times(record, start, first - start + 1 + args.explain_after, args.fps)
-    n = save_animation(frames(renderer, times, "decision by decision"),
+    note = "slowed down for reading · the network decides in about 1 ms"
+    n = save_animation(frames(renderer, times, note),
                        f"{base}_explained.mp4", args.fps)
     print(f"Saved: {base}_explained.mp4 ({n / args.fps:.0f} s)")
     print("Drawing the day video (about 10 minutes) ...", flush=True)
     times = [(t, None) for t in smart_times(record, args.fps)]
-    n = save_animation(frames(renderer, times, "smart speed: flights 1, other activity 8 "
-                                               "simulated min per second"),
+    n = save_animation(frames(renderer, times, "smart speed: flights 1, other 8 simulated "
+                                               "min/s · pauses for reading"),
                        f"{base}_day.mp4", args.fps)
     print(f"Saved: {base}_day.mp4 ({n / args.fps:.0f} s)")
 

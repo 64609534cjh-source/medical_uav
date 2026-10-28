@@ -134,7 +134,7 @@ kbd { font: 11px var(--mono); border: 1px solid var(--line); border-bottom-width
           <li>Map: the square is the medical center M with charger C1, circles are hospitals, the bolt is charger C2, hatched areas are no-fly zones. Coloured squares next to a place are orders waiting there (all of them; the network sees at most 12); the three squares under the drone are its cargo slots.</li>
           <li>Right: the current decision in words, the situation it was taken in and, for a network, up to three of its most likely actions (the drone takes the most likely one). Below: battery (the line marks the 15 % reserve), cargo and the most urgent waiting orders.</li>
           <li>Timeline: grey bands are demand peaks, the green curve is the battery, ticks are decisions, dots are deliveries (green on time, amber late) and crosses are orders that expired. Click or drag it to jump.</li>
-          <li>Smart speed plays flights and loading or unloading boxes at 1 simulated minute per second and fast-forwards charging and waiting at 3; it pauses 3 s at each decision. The fixed speeds play everything at one rate and pause 1 s at each decision.</li>
+          <li>Smart speed plays flights and loading or unloading boxes at 1 simulated minute per second and fast-forwards charging and waiting at 3; it pauses 3 s at each decision. The fixed speeds play everything at one rate and pause 1 s at each decision. The pauses are for reading: the network itself decides in about 1 ms.</li>
         </ul>
       </details>
     </div>
@@ -489,6 +489,7 @@ function stateAt(R, t) {
   const slow = (s) => s.active && SLOW.includes(s.active[0]);
   const rateAt = (s) => speed !== "smart" ? speed : (slow(s) ? FLY_RATE : GROUND_RATE);
   function speedNote(s) {
+    if (playing && performance.now() < holdUntil) return "paused for reading · the network itself decides in about 1 ms";
     if (speed !== "smart") return `${speed} simulated min per second`;
     if (!playing) return `flights and boxes ${FLY_RATE}, charging and waiting ${GROUND_RATE} simulated min per second`;
     return slow(s) ? `${s.active[0] === "fly" ? "flying" : "handling boxes"} · ${FLY_RATE} simulated min per second` : `fast-forward · ${GROUND_RATE} simulated min per second`;
@@ -574,11 +575,14 @@ function stateAt(R, t) {
   document.title = "UAV Dispatch Replay · " + M.policy;
   $("sub").textContent = `${M.load[0].toUpperCase() + M.load.slice(1)} load · demand seed ${M.seed} · map ${M.map_seed}`;
   const peak = decs.find((d) => d.t >= M.peaks[0][0]) || decs[0];
-  const opened = peak ? peak.t : 0;  // open where the first demand peak begins
+  // open where orders start to pile up in a demand peak (3 or more waiting)
+  const inPeak = (t) => M.peaks.some(([a, b]) => t >= a && t < b);
+  const busy = decs.find((d) => inPeak(d.t) && stateAt(D, d.t).waiting.length >= 3);
+  const opened = busy ? busy.t : (peak ? peak.t : 0);
   seek(opened);
   if (opened > 0) {
     const n = document.createElement("span"); n.className = "note";
-    n.textContent = `Opened at ${clock(opened)}, where the first demand peak begins; "Start of the day" goes back to ${clock(0)}.`;
+    n.textContent = `Opened at ${clock(opened)}, ${busy ? "as orders start to pile up in a demand peak" : "where the first demand peak begins"}; "Start of the day" goes back to ${clock(0)}.`;
     $("marks").appendChild(n);
   }
 })();

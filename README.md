@@ -74,12 +74,13 @@ value head is still untrained.
 All files show one medium-load day never used in training (demand seed 100000), driven by the
 trained set network (`replay_slack.html`: by its teacher). Because the Milestone 1 animation was
 too fast, the video is slowed down so each decision can be read without touching anything, and
-the web page lets you explore the whole day at your own pace.
+the web page lets you explore the whole day at your own pace. All pauses at decisions are for
+reading: the network itself decides in about 1 ms.
 
 | File | What it is for |
 |---|---|
 | `set_network_explained.mp4` (3:23) | **Watch first: the decisions, slowed down.** 29 decisions around the afternoon peak, 13:06–15:30; each takes 7 s (2 s before, 3 s during and 2 s after its action) with the situation and the network's most likely actions on screen. |
-| `replay_set_network.html` | **Explore the whole day yourself.** Download it and double-click: it opens offline in any browser. You choose the speed, stop at any decision and jump to any time; every decision shows the situation and up to three of the network's most likely actions (the drone takes the most likely one). It opens where the first demand peak begins (09:02); **Jump to** reaches the network's closest call (14:30). |
+| `replay_set_network.html` | **Explore the whole day yourself.** Download it and double-click: it opens offline in any browser. You choose the speed, stop at any decision and jump to any time; every decision shows the situation and up to three of the network's most likely actions (the drone takes the most likely one). It opens at 09:58, as orders start to pile up in the morning peak; **Jump to** reaches the network's closest call (14:30). |
 | `replay_slack.html` | The same page for the teacher, Slack-aware, on the same day (47 of 49 orders on time; the network 45), to compare the two. |
 | `set_network_day.mp4` (6.5 min) | An overview of the whole day without clicking: flights at 1 simulated minute per second, the rest at 8, a 1.5 s pause at each decision. |
 | `demo.png` | The picture above: the network's closest call of the day (14:30). |
@@ -88,8 +89,8 @@ Using the replay:
 
 - **Speed.** **Play** (or the space bar) uses the selected speed, initially **Smart**: flights and
   loading or unloading boxes at 1 simulated minute per second, charging and waiting at 3, and a
-  3 s pause at each decision. **1**, **5** and **15** play everything at that many simulated minutes per second,
-  with a 1 s pause at each decision.
+  3 s pause at each decision. **1**, **5** and **15** play everything at that many simulated
+  minutes per second, with a 1 s pause at each decision.
 - **Decision by decision.** Tick **Stop at each decision**, or use **Previous / Next decision**
   (← →). Drag the timeline or use **Jump to** (start of the day, closest call, ...) to move.
 - **Reading it.** **How to read this screen**, at the top, explains the map, panels and timeline.
