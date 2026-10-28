@@ -22,7 +22,7 @@ case "${1:-smoke}" in
   smoke) smoke; exit 0 ;;
   full)
     # GNU timeout signals the complete campaign process group, including worker pools.
-    exec timeout --signal=TERM --kill-after=10s 28780s \
+    exec timeout --signal=TERM --kill-after=10s 35980s \
       env DAGGER_BUDGETED=1 bash "$0" _full
     ;;
   _full) [[ ${DAGGER_BUDGETED:-} == 1 ]] || exit 2 ;;
@@ -51,7 +51,7 @@ seeds=(11 22 33 44 55)
 for i in "${!seeds[@]}"; do
   seed=${seeds[$i]}
   "$PY" scripts/train_dagger.py --init "${initial[$i]}" --seed "$seed" \
-    --iterations 3 --days-per-iteration 16 --processes 24 --out "runs/dagger_set_s$seed" \
+    --iterations 3 --days-per-iteration 32 --processes 24 --out "runs/dagger_set_s$seed" \
     > "runs/dagger_set_s$seed.log" 2>&1
 done
 "$PY" scripts/dagger_campaign.py select --processes 24 --out runs/dagger_choice.json

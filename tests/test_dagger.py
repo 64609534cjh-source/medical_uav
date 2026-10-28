@@ -88,10 +88,10 @@ def test_imitation_uses_label_not_executed_action_and_masks_gradients():
 def test_registered_schedules_are_disjoint_and_confirmation_is_new():
     used = set()
     for seed in TRAINING_SEEDS:
-        medium, replay = day_schedule(seed, 3, 16)
-        assert len(medium) == 3 and all(len(block) == 16 for block in medium)
+        medium, replay = day_schedule(seed, 3, 32)
+        assert len(medium) == 3 and all(len(block) == 32 for block in medium)
         days = set(sum(medium, []) + replay)
-        assert len(days) == 64 and days <= set(DAGGER_SEEDS)
+        assert len(days) == 128 and days <= set(DAGGER_SEEDS)
         assert not used & days
         used |= days
     assert CONFIRM2_SEEDS == range(600000, 600300)

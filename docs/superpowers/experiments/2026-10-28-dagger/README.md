@@ -1,7 +1,7 @@
 # DAgger implementation and execution notes
 
 Protocol: [preregistration](../../specs/2026-10-28-dagger-preregistration.md), recorded before
-data. Three iterations × 16 medium days × five expiry05 students, fixed initial-student
+data. Three iterations × 32 medium days × five expiry05 students, fixed initial-student
 low/high replay, five epochs per aggregate. The horizon teacher uses visible information and
 default v2 planning rewards. Deployment uses the existing single-forward-pass NetworkPolicy.
 

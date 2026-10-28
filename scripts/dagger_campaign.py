@@ -70,9 +70,9 @@ def select(source, directory, processes):
     candidates = {}
     for seed, run, init in zip(TRAINING_SEEDS, runs, initial):
         meta = json.loads((run / "run.json").read_text())
-        medium, replay = day_schedule(seed, 3, 16)
+        medium, replay = day_schedule(seed, 3, 32)
         if (meta["smoke"] or meta["seed"] != seed or meta["iterations"] != 3
-                or meta["days_per_iteration"] != 16 or meta["medium_days"] != medium
+                or meta["days_per_iteration"] != 32 or meta["medium_days"] != medium
                 or meta["replay_days"] != replay or meta["init"] != init
                 or meta["init_sha256"] != file_hash(init)):
             raise ValueError(f"Unregistered training run: {run}")

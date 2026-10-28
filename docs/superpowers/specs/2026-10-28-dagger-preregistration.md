@@ -17,7 +17,7 @@ Teacher: the existing `RollingHorizon(depth=3, foresight=False)`, unchanged tie 
 default **v2 planning reward**, as used by the comparator. Rollout physics/observations are
 unchanged; imitation uses no rewards. Do not silently change the teacher to expiry05 reward.
 
-Run exactly **three iterations, 16 full medium days per iteration per student** (240 medium
+Run exactly **three iterations, 32 full medium days per iteration per student** (480 medium
 student-days total). The current student acts greedily at every decision, including WAIT;
 there is no teacher execution or teacher/student action mixture. Before each executed action,
 save `planning_root(env)`: copied visible slots with original IDs/order, cargo, time, place,
@@ -27,7 +27,7 @@ never reset a teacher environment to merely the same day and pretend its state i
 Keep executed `action` and teacher `label` separately, and validate both against that mask.
 
 Choose **fixed low/high self-labelled replay**, rather than PPO fine-tuning, for retention.
-Before iteration 1, collect 16 low and 16 high full days using the initial student; its greedy
+Before iteration 1, collect 32 low and 32 high full days using the initial student; its greedy
 executed actions are also its labels. Keep this replay fixed in all three iterations. Its
 single-forward-pass labels cost milliseconds instead of high-load horizon queries (~3.2 s
 each), and avoid another PPO collection, critic warm-up and optimization phase. This is a
@@ -35,7 +35,7 @@ cost choice, not a claim of guaranteed retention. The selection gates below meas
 
 Aggregate every medium iteration with all earlier medium records and the fixed replay, with
 equal weight per decision. After each collection, train five full shuffled epochs on the
-entire aggregate, masked cross-entropy to `label`, Adam LR 3e-5, batch 256, gradient norm
+entire aggregate, masked cross-entropy to `label`, Adam LR 1e-4, batch 256, gradient norm
 clip 0.5. Reset Adam per iteration, use training seed + iteration for minibatch shuffling.
 No entropy, value loss, early stopping, validation-driven epoch choice or PPO phase.
 Save the initial checkpoint (iteration 0) and each of the three iteration checkpoints,
@@ -49,8 +49,8 @@ Add `DAGGER_SEEDS = range(700_000, 710_000)` and
 `CONFIRM2_SEEDS = range(600_000, 600_300)` to `medical_uav/splits.py`.
 These are disjoint from demonstrations, RL, screen, selection, locked test, stress/energy
 days 300000–300099/400000–400099, and historical fresh days 500000–500299.
-For student index k=0..4 in seed order, use base=700000+1000*k: medium days base..base+47
-(consecutive 16-day iteration blocks), replay days base+500..base+515 at both low/high.
+For student index k=0..4 in seed order, use base=700000+1000*k: medium days base..base+95
+(consecutive 16-day iteration blocks), replay days base+500..base+531 at both low/high.
 No random reuse of these blocks across students. Map 0 throughout.
 
 Smoke uses only the reserved block 709900–709999, one iteration, one medium day and one
@@ -112,14 +112,22 @@ after complete audited reporting write `runs/dagger.done`; a target FAIL still c
 At most 24 single-thread CPU workers total; process-parallel teacher queries over saved
 student states, and day-parallel confirmation. Train the five students sequentially with
 up to 24 label workers each, then selection, then baselines and horizon concurrently with
-their worker totals <=24. Initial estimate: 240×120–160 medium decisions ×1.3 s = 10.4–13.9
+their worker totals <=24. Initial estimate: 480×120–160 medium decisions ×1.3 s = 21–28
 CPU-hours; 300 horizon days per load at 120–160 decisions ×(1.3+3.2) s = 45–60 CPU-hours.
 At 24 cores, allow 1–1.5 hours for collection/training/selection, 3–4.5 hours for confirmation
 including scenario16 and scheduling, and 0.5–1 hour for audit/bootstrap/reporting: approximately
 **5–7 hours**, with substantial uncertainty from slow search states and process overhead.
-The pipeline has a hard **8-hour wall-clock timeout**, including smoke and reporting, and
+The pipeline has a hard **10-hour wall-clock timeout**, including smoke and reporting, and
 terminates its process group on timeout. A timeout is an incomplete run, no done marker;
 never shrink days, omit seeds, or extend the budget to rescue it.
 
 For this implementation request, run only the isolated tiny smoke and full pytest suite
 with `PYTHONPATH=$PWD`. Prepare the full pipeline but **do not launch it**.
+
+## Amendment before any campaign data (2026-10-28, after the smoke test only)
+
+Medium days per iteration 16 → 32 (replay 16 → 32 per load), learning rate 3e-5 → 1e-4, timeout
+8 → 10 hours. Reason: with about 7 000 medium labels, 225 Adam steps of 3e-5 per iteration may
+leave the student where it started, so iteration 0 would win by default; the extra teacher
+queries cost about 12 CPU-hours (half an hour on 24 cores), small against the 45–60 CPU-hours of
+the confirmation horizon. The selection gates still guard high load and expiry.

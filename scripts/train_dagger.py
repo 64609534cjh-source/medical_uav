@@ -44,7 +44,7 @@ def main():
                          "teacher": "visible_horizon", "teacher_reward": "v2",
                          "foresight": False, "obs_dim": net.obs_dim,
                          "epochs": 1 if args.smoke else 5,
-                         "lr": 3e-5, "batch_size": 256})
+                         "lr": 1e-4, "batch_size": 256})
     meta["torch"] = str(meta["torch"])
     (out / "run.json").write_text(json.dumps(meta, indent=1))
     save_checkpoint(net, info["kind"], out / "ckpt_00000000.pt", {**meta, "iteration": 0,
@@ -60,7 +60,8 @@ def main():
         data = aggregate_datasets(data, current)
         np.savez_compressed(out / f"dataset_{iteration:02d}.npz", **data)
         labelled_seconds = time.monotonic() - before
-        losses = train_imitation(net, data, epochs=meta["epochs"], seed=args.seed + iteration)
+        losses = train_imitation(net, data, epochs=meta["epochs"], seed=args.seed + iteration,
+                                 lr=meta["lr"])
         record = {"iteration": iteration, "decisions": len(data["action"]),
                   "teacher_queries": len(current["label"]), "losses": losses,
                   "collection_seconds": labelled_seconds, "seconds": time.monotonic() - start}
