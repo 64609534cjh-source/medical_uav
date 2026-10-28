@@ -546,7 +546,7 @@ function stateAt(R, t) {
   document.addEventListener("visibilitychange", () => { if (document.hidden && playing) play(false); });
 
   // ---------- moments worth a look ----------
-  const marks = [];
+  const marks = [["Start of the day", 0]];
   // the network's closest call: deliver or charge if there is one, else any
   const calls = decs.filter((d) => d.top.length > 1).sort((a, b) => (a.top[0][1] - a.top[1][1]) - (b.top[0][1] - b.top[1][1]));
   const tradeoff = calls.find((d) => d.text.startsWith("Deliver") && d.top[1][0].startsWith("Charge"));
@@ -561,14 +561,20 @@ function stateAt(R, t) {
     const b = document.createElement("button"); b.textContent = label;
     b.onclick = () => { playing = false; seek(at); };
     $("marks").appendChild(b);
-    if (at < END) el("path", { d: `M${X(at) - 4},2 L${X(at) + 4},2 L${X(at)},8 Z`, fill: color("ink") }, tl);
+    if (at > 0 && at < END) el("path", { d: `M${X(at) - 4},2 L${X(at) + 4},2 L${X(at)},8 Z`, fill: color("ink") }, tl);
   }
 
   $("title").textContent = M.policy;
   document.title = "UAV Dispatch Replay · " + M.policy;
   $("sub").textContent = `${M.load[0].toUpperCase() + M.load.slice(1)} load · demand seed ${M.seed} · map ${M.map_seed}`;
   const peak = decs.find((d) => d.t >= M.peaks[0][0]) || decs[0];
-  seek(close ? close.t : (peak ? peak.t : 0));  // open on a moment worth reading
+  const opened = close ? close.t : (peak ? peak.t : 0);  // open on a moment worth reading
+  seek(opened);
+  if (opened > 0) {
+    const n = document.createElement("span"); n.className = "note";
+    n.textContent = `Opened at ${clock(opened)}, ${close ? "the network's closest call" : "the first demand peak"}; "Start of the day" goes back to ${clock(0)}.`;
+    $("marks").appendChild(n);
+  }
 })();
 </script>
 </body>
