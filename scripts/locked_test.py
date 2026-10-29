@@ -78,6 +78,36 @@ def describe(cells: dict) -> dict:
     return {name: [[m, days[0], days[-1]] for m, days in maps] for name, maps in cells.items()}
 
 
+def write_sidecar(source: str) -> None:
+    """checkpoints/ppo_set.json: how the shipped agent was trained and chosen."""
+    run = Path(source).parent
+    cfg = json.loads((run / "run.json").read_text())
+    sel = json.loads(Path(SELECTIONS[0]).read_text())["runs"]
+    seeds = {str(s): sel[f"runs/f12_mm_e05_s{s}"]["selected_results"] for s in SEEDS}
+    sidecar = {
+        "file": SHIPPED.name,
+        "sha256": sha256(SHIPPED),
+        "agent": "set/attention network trained from scratch with masked PPO "
+                 "(medical_uav/agents/ppo.py) on 500 random training maps, expiry penalty -0.5",
+        "training": {
+            "command": (f"python scripts/train_ppo.py --net set --seed {cfg['seed']} --maps train "
+                        f"--reward {cfg['reward']} --decisions 12e6 --threads {cfg['threads']} "
+                        f"--out {cfg['out']}"),
+            "commit": cfg["git_revision"], "checkpoint": source,
+        },
+        "selection": {
+            "rule": "one checkpoint per run on the first 20 selection days (demand seeds "
+                    "100040-100059) of each selection map (100-109): low-load on-time >= 97 %, "
+                    "every order type within 3 points of Slack-aware at medium and high load, "
+                    "then the highest mean of medium and high on-time; the shipped run is "
+                    "training seed 11, fixed in the registration before the test",
+            "selected_by_training_seed": seeds,
+        },
+        "registration": REGISTRATION,
+    }
+    SHIPPED.with_suffix(".json").write_text(json.dumps(sidecar, indent=1) + "\n")
+
+
 def freeze() -> None:
     """Copy the selected checkpoints to checkpoints/entrants/ (the 10/27 entrants are removed;
     git keeps them), ship the final agent's seed 11 and write the manifest."""
@@ -98,6 +128,7 @@ def freeze() -> None:
     for run in FINAL:
         entrants[f"{run}/no100"] = {**entrants[run], "policy": entrants[run]["policy"] + NO_FULL}
     shutil.copyfile(ENTRANTS / f"{FINAL[0]}.pt", SHIPPED)
+    write_sidecar(selected[FINAL[0]])
     manifest = {
         "registered": [REGISTRATION],
         "shipped": {"entrant": FINAL[0], "file": str(SHIPPED), "sha256": sha256(SHIPPED)},

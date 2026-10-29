@@ -1,7 +1,8 @@
 """Decision time of policies, one decision at a time on one CPU thread.
 
 Each method serves whole selection days at each load until it has taken at least --decisions
-decisions; this is repeated --passes times. Every decision's time is saved; the summary gives
+decisions; this is repeated --passes times. Methods are named as in the final-test manifest:
+rules, slack100, prepeak, checkpoint files and <checkpoint>#no100. Every decision's time is saved; the summary gives
 the mean, median, 95th percentile and maximum per method, load and pass.
 
 Usage:
@@ -19,7 +20,7 @@ import torch
 from medical_uav.env import MedicalUAVEnv
 from medical_uav.splits import SELECT_SEEDS
 
-import evaluate  # scripts/evaluate.py: the same policies as the evaluation
+from locked_test import make_policy  # scripts/locked_test.py: the same policies as the test
 
 
 def main():
@@ -33,7 +34,8 @@ def main():
     args = parser.parse_args()
     torch.set_num_threads(1)
 
-    policies = evaluate.make_policies([m for m in args.methods.split(",") if m], args.checkpoints)
+    specs = [m for m in args.methods.split(",") if m] + args.checkpoints
+    policies = {spec: make_policy(spec)[0] for spec in specs}
     rows = []
     for name, policy in policies.items():
         for load in args.loads.split(","):

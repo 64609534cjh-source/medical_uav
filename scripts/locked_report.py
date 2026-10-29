@@ -7,6 +7,8 @@ and <out>/summary.json (every printed number), and prints, per block and load:
   - secondary: the final agent against every other rule and planner;
   - the development path (map and reward effects) and the controls, with matched seeds;
   - pooled per-type on-time rates; decision times over all decisions (throughput run);
+  - operations: lateness (pooled over late deliveries), energy, distance, empty distance, backlog;
+  - on the unseen maps, per-map differences of the primary comparisons and maps won;
   - the transfer gap (unseen maps minus map 0, descriptive).
 Map 0 is resampled by day, the unseen maps by map (each map's days averaged first); PPO groups
 are averaged over their seeds per day. Intervals are per-comparison 95 % percentile intervals.
@@ -14,7 +16,7 @@ The energy contrasts come from
     python scripts/energy_contrasts.py <out>/map0.csv
 
 Usage:
-    python scripts/locked_report.py runs/final_test
+    python scripts/locked_report.py runs/final_test | tee runs/final_test/report.txt
 """
 import argparse
 import csv
@@ -28,7 +30,7 @@ from medical_uav.env.config import ORDER_TYPES
 from medical_uav.evaluation import paired_ci
 
 # scripts/locked_test.py
-from locked_test import CONTROLS, FINAL, LOADS, MANIFEST, PATH, expected, sha256
+from locked_test import CONTROLS, FINAL, LOADS, MANIFEST, PATH, RULES, expected, sha256
 
 GROUPS = {"final": FINAL, "final3": FINAL[:3], **{g: [r for r in PATH + CONTROLS if r.rsplit("_s", 1)[0] == g]
                              for g in dict.fromkeys(r.rsplit("_s", 1)[0] for r in PATH + CONTROLS)}}
@@ -38,6 +40,8 @@ MEDIUM_GAIN = 0.03
 SLACK_MARGIN = {"low": -0.01, "high": -0.02}
 PLANNER_MARGIN = -0.02
 EQUIVALENCE = 0.01  # practically equivalent: the interval within ±1 point
+OPS = ("energy_used", "km_flown", "empty_km", "mean_backlog")  # per-day means
+OPS_METHODS = ["final", "slack", "insertion", "rollout", "scenario16", "horizon"]
 PRIMARY = ("slack", "horizon")
 OTHERS = ("random", "edf", "fcfs", "nearest", "insertion", "rollout", "scenario16")
 # (name, a, b, metric): development path and controls
@@ -104,7 +108,7 @@ class Block:
         self.cells = defaultdict(dict)  # (method, load, key) -> {unit: [values]}
         for r in rows:
             unit = r["map"] if by_map else r["seed"]
-            for key in ("on_time_rate", "served_rate", "expiry_rate"):
+            for key in ("on_time_rate", "served_rate", "expiry_rate") + OPS:
                 self.cells[r["method"], r["load"], key].setdefault(unit, []).append(r[key])
         self.rows = rows
 
@@ -191,6 +195,31 @@ def report_block(name: str, b: Block, loads: list, times: dict, out: dict) -> No
                             for ra, rb in zip(GROUPS[a], GROUPS[c_b])]
                 matched = "  seeds " + " ".join(f"{d * 100:+.2f}" for d in per_seed)
             print(f"    {label:38s} {fmt(c)}  {reading(c)}{matched}")
+        print("  operations: mean lateness of late deliveries (min, pooled), energy (battery %), "
+              "km, empty km, backlog (orders waiting) per day:")
+        res["operations"] = {}
+        for m in OPS_METHODS:
+            runs = GROUPS.get(m, [m])
+            mine = [r for r in b.rows if r["method"] in runs and r["load"] == load]
+            if not mine:
+                continue
+            late = [r["delivered"] - r["on_time"] for r in mine]
+            lateness = sum(r["mean_lateness"] * n for r, n in zip(mine, late)) / max(1, sum(late))
+            ops = [lateness] + [b.mean(m, load, k) for k in OPS]
+            res["operations"][m] = ops
+            print(f"    {m:12s} lateness {ops[0]:5.1f}  energy {ops[1]:6.1f}  km {ops[2]:5.1f}  "
+                  f"empty km {ops[3]:5.1f}  backlog {ops[4]:5.2f}")
+        if b.by_map:
+            print("  per map, final agent minus (points): min / median / max, maps won of "
+                  f"{n}:")
+            for base in PRIMARY + ("insertion", "rollout"):
+                if not b.cells[base, load, "on_time_rate"]:
+                    continue
+                ua, ub = b.unit("final", load), b.unit(base, load)
+                d = np.array([ua[u] - ub[u] for u in sorted(ua)]) * 100
+                res.setdefault("per_map", {})[base] = d.tolist()
+                print(f"    {base:12s} {d.min():+6.2f} / {np.median(d):+6.2f} / {d.max():+6.2f}"
+                      f"   won {int((d > 0).sum())}")
         print("  pooled on-time by type (on time / released):")
         for m in ["final", "slack", "insertion", "rollout", "horizon"]:
             runs = GROUPS.get(m, [m])
@@ -226,7 +255,8 @@ def main():
     print("\n== transfer gap: unseen maps minus map 0, on-time points (different days: "
           "descriptive)")
     summary["transfer"] = {}
-    for m in list(GROUPS) + ["slack", "insertion", "rollout", "horizon"]:
+    rules = [m for m in dict.fromkeys(r["method"] for r in blocks["map0"]) if m in RULES]
+    for m in list(GROUPS) + rules:
         gaps = {load: b1.mean(m, load) - b0.mean(m, load) for load in LOADS
                 if b0.cells[GROUPS.get(m, [m])[0], load, "on_time_rate"]}
         summary["transfer"][m] = gaps
