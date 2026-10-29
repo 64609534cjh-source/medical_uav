@@ -1,3 +1,0 @@
-- **Reward (why: Section 6):** late +0.1 (was up to +1), expired −0.1 (was −0.5); other terms unchanged.
-- **Travel times in the observation:** M1 told the network only the flight time from where the drone is to each place; M2 adds the full 7 × 7 table of flight times between all seven places.
-- **Three more baselines** join M1's Random, EDF and Slack-aware (EDF plus batching, hopeless orders last): FCFS and nearest-first from the proposal, and the rollout planner promised in M1. For each allowed action it lets Slack-aware finish a copy of the day with only the visible orders, then picks the one with the highest reward.

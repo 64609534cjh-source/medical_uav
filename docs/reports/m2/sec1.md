@@ -1,7 +1,0 @@
-**Interface.** Both networks (`networks.py`) map observations [B, 452] and action masks [B, 26] to action logits [B, 26] and state values [B]. An observation holds 80 global features (time, demand, battery, location, cargo, travel times), 12 waiting-order slots of 27 features and 3 cargo slots of 16. Each of the 26 actions includes any flight it needs: 12 PICK (one per slot), 6 DELIVER (one per facility), 6 CHARGE (2 chargers × 3 charge levels), RETURN and WAIT. Forbidden actions get the logit −10⁹ (−∞ would make the entropy NaN).
-
-{{fig1}}
-
-**Set network (Figure 1).** Waiting orders form a set: which slot an order fills should not change the decision. As proposed, shared encoders read every order and cargo slot, and a third encoder the global state. In four-head attention the UAV encoding queries the orders, the cargo and a learned null token (empty slots are masked, so the token keeps attention defined); joined with the UAV encoding, it forms a 128-feature context. A shared scorer gives each order its PICK logit from its encoding and the context, so reordering the slots only reorders these logits; a second head scores the other 14 actions, and the value head uses the context and the mean order encoding (62,928 parameters).
-
-**MLP control.** To test whether this structure is worth it, a plain MLP has a separate actor and critic (452 → 256 → 256, tanh; 370,459 parameters). `policy.py` runs either network, taking the allowed action with the highest logit.
