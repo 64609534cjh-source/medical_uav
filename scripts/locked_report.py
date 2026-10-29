@@ -1,20 +1,20 @@
-"""Registered statistics of the locked test, from the per-day files of scripts/locked_test.py.
+"""Registered statistics of the final test, from the per-day files of scripts/locked_test.py.
 
 Writes <out>/map0.csv and <out>/maps.csv (one row per entrant and day, decision times left out)
-and <out>/controls.csv (the PPO runs as <run>/selected), and prints:
-  - map 0, per load: every entrant's mean daily on-time, served and expired rate;
-  - the five-seed PPO (seeds averaged per day) and the shipped model against Slack-aware and both
-    planners, with the registered targets; each seed's mean, their SD and range;
+and <out>/summary.json (every printed number), and prints, per block and load:
+  - every entrant's mean daily on-time, served and expired rate, each PPO group's per-seed means;
+  - primary: the final agent against Slack-aware and the rolling horizon, with the targets;
+  - secondary: the final agent against every other rule and planner;
+  - the development path (map and reward effects) and the controls, with matched seeds;
   - pooled per-type on-time rates; decision times over all decisions (throughput run);
-  - new maps: multi-map minus single-map PPO and both against the rules, bootstrap over maps.
-The energy contrasts and the matched-seed controls (including multi-map on map 0) come from
+  - the transfer gap (unseen maps minus map 0, descriptive).
+Map 0 is resampled by day, the unseen maps by map (each map's days averaged first); PPO groups
+are averaged over their seeds per day. Intervals are per-comparison 95 % percentile intervals.
+The energy contrasts come from
     python scripts/energy_contrasts.py <out>/map0.csv
-    python scripts/compare_variants.py <out>/controls.csv --reference m3_set
-
-Intervals are per-comparison 95 % intervals; the planner margin at low load is exploratory.
 
 Usage:
-    python scripts/locked_report.py runs/locked
+    python scripts/locked_report.py runs/final_test
 """
 import argparse
 import csv
@@ -28,14 +28,31 @@ from medical_uav.env.config import ORDER_TYPES
 from medical_uav.evaluation import paired_ci
 
 # scripts/locked_test.py
-from locked_test import DAYS, MANIFEST, MULTIMAP, PRIMARY, expected, sha256
+from locked_test import CONTROLS, FINAL, LOADS, MANIFEST, PATH, expected, sha256
 
-SHIPPED = "m3_set_s11"
-PLANNERS = ("rollout", "scenario16")
-# registered targets (roadmap §1): lower bound of PPO - Slack above the margin; planners -2
-SLACK_MARGIN = {"low": -0.01, "medium": None, "high": -0.02}
+GROUPS = {"final": FINAL, **{g: [r for r in PATH + CONTROLS if r.rsplit("_s", 1)[0] == g]
+                             for g in dict.fromkeys(r.rsplit("_s", 1)[0] for r in PATH + CONTROLS)}}
+SHIPPED = FINAL[0]
+# roadmap §1 targets: medium gain over Slack-aware and margins for the lower bound
 MEDIUM_GAIN = 0.03
+SLACK_MARGIN = {"low": -0.01, "high": -0.02}
 PLANNER_MARGIN = -0.02
+EQUIVALENCE = 0.01  # practically equivalent: the interval within ±1 point
+PRIMARY = ("slack", "horizon")
+OTHERS = ("random", "edf", "fcfs", "nearest", "insertion", "rollout", "scenario16")
+# (name, a, b, metric): development path and controls
+CONTRASTS = [("map effect, expiry -0.5", "final", "f12_sm_e05", "on_time_rate"),
+             ("map effect, v2", "f12_mm_v2", "f12_sm_v2", "on_time_rate"),
+             ("reward effect, multi-map", "final", "f12_mm_v2", "on_time_rate"),
+             ("reward effect, multi-map (expired)", "final", "f12_mm_v2", "expiry_rate"),
+             ("reward effect, single-map", "f12_sm_e05", "f12_sm_v2", "on_time_rate"),
+             ("reward effect, single-map (expired)", "f12_sm_e05", "f12_sm_v2", "expiry_rate"),
+             ("set - MLP, 12 M each", "f12_sm_v2", "f12_sm_v2_mlp", "on_time_rate"),
+             ("set 12 M - MLP 24 M", "f12_sm_v2", "f24_sm_v2_mlp", "on_time_rate"),
+             ("BC -> PPO - scratch", "f12_sm_e05_bc", "f12_sm_e05", "on_time_rate"),
+             ("BC -> PPO - its imitation start", "f12_sm_e05_bc", "bc_set", "on_time_rate"),
+             ("v2 - M1 reward", "f12_sm_v2", "f12_sm_m1", "on_time_rate"),
+             ("v2 - on-time-only reward", "f12_sm_v2", "f12_sm_ontime", "on_time_rate")]
 
 
 def load_rows(folder: Path, days: str, limit: int | None) -> tuple[dict, dict]:
@@ -76,110 +93,143 @@ def write_csv(rows: list, path: Path) -> None:
         writer.writerows(rows)
 
 
-def rate(rows, method, load, key="on_time_rate", m=0) -> dict:
-    """{day: value} of one entrant at one load on one map."""
-    return {r["seed"]: r[key] for r in rows if r["method"] == method and r["load"] == load
-            and r["map"] == m}
+class Block:
+    """One block's rows; values are per resampling unit: a day on map 0, a map on the unseen
+    maps (its days averaged)."""
+
+    def __init__(self, rows: list, by_map: bool):
+        self.by_map = by_map
+        self.cells = defaultdict(dict)  # (method, load, key) -> {unit: [values]}
+        for r in rows:
+            unit = r["map"] if by_map else r["seed"]
+            for key in ("on_time_rate", "served_rate", "expiry_rate"):
+                self.cells[r["method"], r["load"], key].setdefault(unit, []).append(r[key])
+        self.rows = rows
+
+    def unit(self, method: str, load: str, key="on_time_rate") -> dict:
+        """{unit: value} of one entrant, or of a group averaged over its seeds per day."""
+        runs = GROUPS.get(method, [method])
+        per_run = [self.cells[run, load, key] for run in runs]
+        days = sorted(per_run[0])
+        return {u: float(np.mean([np.mean(p[u]) for p in per_run])) for u in days}
+
+    def mean(self, method, load, key="on_time_rate") -> float:
+        return float(np.mean(list(self.unit(method, load, key).values())))
+
+    def diff(self, a, b, load, key="on_time_rate") -> tuple:
+        ua, ub = self.unit(a, load, key), self.unit(b, load, key)
+        return paired_ci(np.array([ua[u] - ub[u] for u in sorted(ua)]))
 
 
-def seed_mean(rows, runs, load, m=0) -> dict:
-    """{day: on-time averaged over the runs}."""
-    per = [rate(rows, run, load, m=m) for run in runs]
-    return {d: np.mean([p[d] for p in per]) for d in per[0]}
+def reading(c) -> str:
+    direction = "better" if c[1] > 0 else "worse" if c[2] < 0 else "no direction"
+    return direction + (", practically equivalent" if -EQUIVALENCE < c[1] and c[2] < EQUIVALENCE
+                        else "")
 
 
 def fmt(c) -> str:
     return f"{c[0] * 100:+6.2f} [{c[1] * 100:+6.2f}, {c[2] * 100:+6.2f}]"
 
 
-def against(a: dict, b: dict) -> tuple:
-    return paired_ci(np.array([a[d] - b[d] for d in sorted(a)]))
-
-
-def map0(rows, times) -> None:
-    methods = list(dict.fromkeys(r["method"] for r in rows))
-    loads = [x for x in ("low", "medium", "high") if any(r["load"] == x for r in rows)]
+def report_block(name: str, b: Block, loads: list, times: dict, out: dict) -> None:
+    methods = list(dict.fromkeys(r["method"] for r in b.rows))
+    unit = "maps" if b.by_map else "days"
     for load in loads:
-        n = len(rate(rows, "slack", load))
-        print(f"\n== map 0, {load} load, {n} days: mean daily rate (on-time / served / expired)")
-        for m in methods:
-            v = [np.mean(list(rate(rows, m, load, k).values()))
-                 for k in ("on_time_rate", "served_rate", "expiry_rate")]
-            print(f"  {m:22s} {v[0]:.3f} / {v[1]:.3f} / {v[2]:.3f}")
-        ppo, shipped = seed_mean(rows, PRIMARY, load), rate(rows, SHIPPED, load)
-        print("  differences in points, 95 % bootstrap over days:")
-        for base in ("slack",) + PLANNERS:
-            ref = rate(rows, base, load)
-            five, ship = against(ppo, ref), against(shipped, ref)
+        res = out.setdefault(name, {}).setdefault(load, {})
+        n = len(b.unit("slack", load))
+        print(f"\n== {name}, {load} load, {n} {unit}: mean daily rate (on-time / served / expired)")
+        res["means"] = {}
+        for m in methods + list(GROUPS):
+            if not b.cells[GROUPS.get(m, [m])[0], load, "on_time_rate"]:  # horizon at low load
+                continue
+            v = [b.mean(m, load, k) for k in ("on_time_rate", "served_rate", "expiry_rate")]
+            res["means"][m] = v
+            print(f"  {m:24s} {v[0]:.3f} / {v[1]:.3f} / {v[2]:.3f}")
+        print("  PPO groups, per-seed means (SD, range in points):")
+        res["seeds"] = {}
+        for g, runs in GROUPS.items():
+            means = [b.mean(r, load) for r in runs]
+            res["seeds"][g] = means
+            print(f"    {g:16s} " + " ".join(f"{v:.3f}" for v in means)
+                  + f"  (SD {np.std(means, ddof=1) * 100:.2f}, range "
+                  f"{(max(means) - min(means)) * 100:.2f})")
+        print(f"  primary, final agent minus (points, 95 % bootstrap over {unit}):")
+        res["primary"] = {}
+        for base in PRIMARY:
+            if not b.cells[base, load, "on_time_rate"]:
+                continue
+            c = b.diff("final", base, load)
             if base == "slack":
-                target = (f"target ≥ +{MEDIUM_GAIN * 100:.0f}, lower bound > 0" if load == "medium"
-                          else f"margin {SLACK_MARGIN[load] * 100:+.0f}")
-                met = (five[0] >= MEDIUM_GAIN and five[1] > 0) if load == "medium" \
-                    else five[1] > SLACK_MARGIN[load]
+                target = (f"target >= +{MEDIUM_GAIN * 100:.0f} with lower bound > 0"
+                          if load == "medium" else f"margin {SLACK_MARGIN[load] * 100:+.0f}")
+                met = (c[0] >= MEDIUM_GAIN and c[1] > 0) if load == "medium" \
+                    else c[1] > SLACK_MARGIN[load]
             else:
-                target, met = f"margin {PLANNER_MARGIN * 100:+.0f}", five[1] > PLANNER_MARGIN
-            print(f"  PPO (5 seeds) - {base:10s} {fmt(five)}  {target}: "
-                  f"{'met' if met else 'NOT met'}   shipped - {base}: {fmt(ship)}")
-        means = [np.mean(list(rate(rows, run, load).values())) for run in PRIMARY]
-        print("  seed means " + " ".join(f"{r[-3:]} {v:.3f}" for r, v in zip(PRIMARY, means))
-              + f"; SD {np.std(means, ddof=1) * 100:.2f} points, range "
-              f"{(max(means) - min(means)) * 100:.2f}")
+                target, met = f"margin {PLANNER_MARGIN * 100:+.0f}", c[1] > PLANNER_MARGIN
+            res["primary"][base] = [*c, met]
+            served = b.diff("final", base, load, "served_rate")
+            print(f"    {base:12s} {fmt(c)}  {reading(c)}; {target}: "
+                  f"{'met' if met else 'NOT met'}; served {fmt(served)}")
+            print(f"    shipped - {base:12s} {fmt(b.diff(SHIPPED, base, load))}")
+        print("  secondary, final agent minus:")
+        res["secondary"] = {}
+        for base in OTHERS:
+            c = b.diff("final", base, load)
+            res["secondary"][base] = list(c)
+            print(f"    {base:12s} {fmt(c)}  {reading(c)}; served "
+                  f"{fmt(b.diff('final', base, load, 'served_rate'))}")
+        print("  development path and controls:")
+        res["contrasts"] = {}
+        for label, a, c_b, key in CONTRASTS:
+            c = b.diff(a, c_b, load, key)
+            res["contrasts"][label] = list(c)
+            matched = ""
+            if a in GROUPS and c_b in GROUPS and len(GROUPS[c_b]) == 3:
+                per_seed = [b.mean(ra, load, key) - b.mean(rb, load, key)
+                            for ra, rb in zip(GROUPS[a], GROUPS[c_b])]
+                matched = "  seeds " + " ".join(f"{d * 100:+.2f}" for d in per_seed)
+            print(f"    {label:38s} {fmt(c)}  {reading(c)}{matched}")
         print("  pooled on-time by type (on time / released):")
-        for m in ["slack", *PLANNERS, SHIPPED]:
-            mine = [r for r in rows if r["method"] == m and r["load"] == load]
+        for m in ["final", "slack", "insertion", "rollout", "horizon"]:
+            runs = GROUPS.get(m, [m])
+            mine = [r for r in b.rows if r["method"] in runs and r["load"] == load]
+            if not mine:
+                continue
             pooled = [sum(r[f"on_time_count_{t.name}"] for r in mine)
                       / max(1, sum(r[f"released_{t.name}"] for r in mine)) for t in ORDER_TYPES]
-            print(f"    {m:12s} "
-                  + "  ".join(f"{t.name} {v:.3f}" for t, v in zip(ORDER_TYPES, pooled)))
-    print("\n== map 0, decision times over all decisions, ms (8 parallel workers, not a latency "
-          "benchmark)")
+            print(f"    {m:12s} " + "  ".join(f"{t.name} {v:.3f}"
+                                              for t, v in zip(ORDER_TYPES, pooled)))
+    print(f"\n== {name}, decision times over all decisions, ms (throughput run, parallel "
+          "workers; not a latency benchmark): mean / p95")
     for m in methods:
-        cells = []
-        for load in loads:
-            t = np.array(times["map0", m, load])
-            cells.append(f"{load} {t.mean():7.2f} / {np.percentile(t, 95):7.2f}")
-        print(f"  {m:22s} mean / p95  " + "   ".join(cells))
-
-
-def map_bootstrap(per_map: np.ndarray) -> tuple:
-    boot = np.random.default_rng(0).choice(per_map, (10_000, len(per_map))).mean(axis=1)
-    return per_map.mean(), np.percentile(boot, 2.5), np.percentile(boot, 97.5)
-
-
-def new_maps(rows) -> None:
-    maps = sorted({r["map"] for r in rows})
-    days = sorted({r["seed"] for r in rows})
-    print(f"\n== new maps {maps[0]}-{maps[-1]}, {len(days)} days each: differences in points, "
-          "seeds averaged per day, 95 % bootstrap over maps")
-    for loads in (("medium", "high"), ("medium",), ("high",)):
-        arms = {"multi-map": MULTIMAP, "single-map": PRIMARY}
-        score = {name: {m: np.mean([np.mean(list(seed_mean(rows, runs, x, m).values()))
-                                    for x in loads]) for m in maps} for name, runs in arms.items()}
-        for base in ("slack", "rollout"):
-            score[base] = {m: np.mean([np.mean(list(rate(rows, base, x, m=m).values()))
-                                       for x in loads]) for m in maps}
-        print(f"  {'+'.join(loads)}")
-        for a, b in (("multi-map", "single-map"), ("single-map", "slack"), ("multi-map", "slack"),
-                     ("single-map", "rollout"), ("multi-map", "rollout")):
-            diff = np.array([score[a][m] - score[b][m] for m in maps])
-            print(f"    {a} - {b:10s} {fmt(map_bootstrap(diff))}")
+        cells = [f"{load} {np.mean(t):8.2f} / {np.percentile(t, 95):8.2f}"
+                 for load in loads if (t := times[name, m, load])]
+        print(f"  {m:24s} " + "   ".join(cells))
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("out")
-    parser.add_argument("--days", choices=list(DAYS), default="test")
+    parser.add_argument("--days", choices=["select", "test"], default="test")
     parser.add_argument("--limit", type=int, default=None, help="as given to the run")
     args = parser.parse_args()
     out = Path(args.out)
     blocks, times = load_rows(out, args.days, args.limit)
     write_csv(blocks["map0"], out / "map0.csv")
     write_csv(blocks["maps"], out / "maps.csv")
-    write_csv([{**r, "method": f"{r['method']}/selected"} for r in blocks["map0"]
-               if r["method"].startswith(("m3_", "mm_")) and "/" not in r["method"]],
-              out / "controls.csv")
-    map0(blocks["map0"], times)
-    new_maps(blocks["maps"])
+    summary = {}
+    b0, b1 = Block(blocks["map0"], by_map=False), Block(blocks["maps"], by_map=True)
+    report_block("map0", b0, list(LOADS), times, summary)
+    report_block("maps", b1, list(LOADS), times, summary)
+    print("\n== transfer gap: unseen maps minus map 0, on-time points (different days: "
+          "descriptive)")
+    summary["transfer"] = {}
+    for m in list(GROUPS) + ["slack", "insertion", "rollout", "horizon"]:
+        gaps = {load: b1.mean(m, load) - b0.mean(m, load) for load in LOADS
+                if b0.cells[GROUPS.get(m, [m])[0], load, "on_time_rate"]}
+        summary["transfer"][m] = gaps
+        print(f"  {m:16s} " + "  ".join(f"{k} {v * 100:+.2f}" for k, v in gaps.items()))
+    (out / "summary.json").write_text(json.dumps(summary, indent=1) + "\n")
 
 
 if __name__ == "__main__":
