@@ -9,6 +9,9 @@ TEST_SEEDS = range(200_000, 200_300)  # final reported results only
 FRESH_SEEDS = range(500_000, 500_300)  # post-locked-test exploration only
 CONFIRM2_SEEDS = range(600_000, 600_300)  # new DAgger confirmation, selection frozen first
 DAGGER_SEEDS = range(700_000, 710_000)  # student rollouts; last 100 days reserved for smoke
+FINAL_TEST_SEEDS = range(800_000, 800_300)  # final test, map 0
+FINAL_MAP_DAYS = 10  # final test days per unseen map; map i of FINAL_TEST_MAP_SEEDS uses
+FINAL_MAP_DAY0 = 800_300  # FINAL_MAP_DAY0 + FINAL_MAP_DAYS * i onwards
 TRAINING_SEEDS = (11, 22, 33, 44, 55)  # seeds of independent training runs
 
 # maps (map seeds); map 0 is the map of every result unless stated
@@ -16,3 +19,4 @@ TRAIN_MAP_SEEDS = range(1_000, 1_500)  # drawn per day by multi-map training
 DEV_MAP_SEEDS = range(1, 11)  # unseen-map development checks (the stress test)
 SELECT_MAP_SEEDS = range(100, 110)  # checkpoint selection of multi-map runs
 TEST_MAP_SEEDS = range(200, 210)  # final reported results only
+FINAL_TEST_MAP_SEEDS = range(2_000, 2_030)  # final test, unseen maps

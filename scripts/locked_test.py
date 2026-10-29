@@ -1,18 +1,18 @@
-"""The locked test: freeze the registered entrants, then run every day of them once.
+"""The final test: freeze the registered entrants, then run every day of them once.
 
-Registered in docs/superpowers/specs/2026-10-27-final-phase-preregistration.md (item 3) and
-2026-10-27-multimap-preregistration.md. `freeze` copies the selected checkpoints to
-checkpoints/entrants/ and writes the manifest (entrants, checkpoint hashes, blocks of days,
-versions). `run` checks the hashes and evaluates every (entrant, map, load, day) of the
-manifest's blocks, one JSON file per day written atomically and bound to the manifest, the code
-and the days, so an interrupted run resumes where it stopped and a file of another campaign is
-refused. `--days select` rehearses on the selection days and maps; only
-`--days test` opens the locked test days and maps.
+Registered in docs/superpowers/specs/2026-10-29-final-test-preregistration.md, which supersedes
+the 10/27 locked test (its manifest and results stay in git history). `freeze` copies the
+selected checkpoints to checkpoints/entrants/ and the shipped agent to checkpoints/ppo_set.pt,
+and writes the manifest (entrants, checkpoint hashes, days, versions). `run` checks the hashes
+and evaluates every (block, entrant, map, load, day), one JSON file per day written atomically
+and bound to the manifest, the code and the days, so an interrupted run resumes where it stopped
+and a file of another campaign is refused. `--days select` rehearses on the selection days and
+maps; only `--days test` opens the test days and maps.
 
 Usage:
     python scripts/locked_test.py freeze
-    python scripts/locked_test.py run --days select --limit 5 --out runs/locked_rehearsal
-    python scripts/locked_test.py run --days test --out runs/locked
+    python scripts/locked_test.py run --days select --limit 2 --out runs/final_rehearsal
+    python scripts/locked_test.py run --days test --out runs/final_test
 """
 import argparse
 import hashlib
@@ -31,56 +31,77 @@ from medical_uav.baselines.energy import PrePeakTopUp, slack100_policy, without_
 from medical_uav.baselines.scenario import MASTER_SEED
 from medical_uav.env import EnvConfig
 from medical_uav.evaluation import heuristic, run_day, run_metadata
-from medical_uav.splits import SELECT_MAP_SEEDS, SELECT_SEEDS, TEST_MAP_SEEDS, TEST_SEEDS
+from medical_uav.splits import (FINAL_MAP_DAY0, FINAL_MAP_DAYS, FINAL_TEST_MAP_SEEDS,
+                                FINAL_TEST_SEEDS, SELECT_MAP_SEEDS, SELECT_SEEDS)
 
 import evaluate  # scripts/evaluate.py: the rule-based policies
 
+REGISTRATION = "docs/superpowers/specs/2026-10-29-final-test-preregistration.md"
 MANIFEST = Path("checkpoints/entrants/manifest.json")
 ENTRANTS = Path("checkpoints/entrants")
+SHIPPED = Path("checkpoints/ppo_set.pt")
 NO_FULL = "#no100"  # a checkpoint run with CHARGE(*, 100) hidden
-RULES = ["random", "edf", "fcfs", "nearest", "slack", "rollout", "scenario16", "slack100",
-         "prepeak"]
+RULES = ["random", "edf", "fcfs", "nearest", "slack", "insertion", "rollout", "scenario16",
+         "horizon", "slack100", "prepeak"]
+SLOW = ("scenario16", "horizon")  # run first
+SKIP = [["horizon", "low"]]  # registered: the rolling horizon runs medium and high only
 SEEDS = (11, 22, 33, 44, 55)
-PRIMARY = [f"m3_set_s{s}" for s in SEEDS]  # single-map PPO; s11 is the shipped model
-MULTIMAP = [f"mm_set_s{s}" for s in SEEDS]
-CONTROLS = [f"m3_{v}_s{s}" for v in ("mlp", "set_m1", "set_ontime", "set_bc") for s in SEEDS[:3]]
-DAYS = {"select": (SELECT_SEEDS, SELECT_MAP_SEEDS), "test": (TEST_SEEDS, TEST_MAP_SEEDS)}
+FINAL = [f"f12_mm_e05_s{s}" for s in SEEDS]  # the final agent; s11 is shipped
+PATH = [f"f12_{v}_s{s}" for v in ("mm_v2", "sm_e05", "sm_v2") for s in SEEDS]
+CONTROLS = [f"{v}_s{s}" for v in ("f12_sm_v2_mlp", "f24_sm_v2_mlp", "f12_sm_e05_bc",
+                                   "f12_sm_m1", "f12_sm_ontime") for s in SEEDS[:3]]
+IMITATION = ["bc_set", "bc_mlp", "bc_rollout_set", "bc_rollout_mlp"]
+SELECTIONS = ["runs/f12_select_mm.json", "runs/f12_select_sm.json", "runs/f12_select_ctrl.json"]
+LOADS = ("low", "medium", "high")
 
 
 def sha256(path) -> str:
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def blocks(days: str) -> dict:
+    """{block: [(map, demand days)]}: map 0, and the unseen maps, each with its own test days
+    (the rehearsal shares the first selection days across the selection maps)."""
+    if days == "test":
+        return {"map0": [(0, FINAL_TEST_SEEDS)],
+                "maps": [(m, range(FINAL_MAP_DAY0 + FINAL_MAP_DAYS * i,
+                                   FINAL_MAP_DAY0 + FINAL_MAP_DAYS * (i + 1)))
+                         for i, m in enumerate(FINAL_TEST_MAP_SEEDS)]}
+    return {"map0": [(0, SELECT_SEEDS)],
+            "maps": [(m, SELECT_SEEDS[:FINAL_MAP_DAYS]) for m in SELECT_MAP_SEEDS]}
+
+
+def describe(cells: dict) -> dict:
+    """The blocks as [map, first day, last day] lists, as stored in the manifest."""
+    return {name: [[m, days[0], days[-1]] for m, days in maps] for name, maps in cells.items()}
+
+
 def freeze() -> None:
-    """Copy the selected checkpoints next to the submitted ones and write the manifest."""
-    selected = {Path(k).name: v for k, v in
-                json.loads(Path("outputs/m3/selected.json").read_text()).items()}
-    selected.update({Path(k).name: v["selected"] for k, v in
-                     json.loads(Path("runs/selection_mm.json").read_text())["runs"].items()})
-    ENTRANTS.mkdir(parents=True, exist_ok=True)
+    """Copy the selected checkpoints to checkpoints/entrants/ (the 10/27 entrants are removed;
+    git keeps them), ship the final agent's seed 11 and write the manifest."""
+    selected = {}
+    for f in SELECTIONS:
+        selected.update({Path(k).name: v["selected"]
+                         for k, v in json.loads(Path(f).read_text())["runs"].items()})
+    for old in ENTRANTS.glob("*.pt"):
+        old.unlink()
     entrants = {r: {"policy": r} for r in RULES}
-    for run in PRIMARY + MULTIMAP + CONTROLS:
+    for run in FINAL + PATH + CONTROLS:
         path = ENTRANTS / f"{run}.pt"
         shutil.copyfile(selected[run], path)
         entrants[run] = {"policy": str(path), "sha256": sha256(path), "source": selected[run]}
-    for name in ("bc_set", "bc_mlp"):
+    for name in IMITATION:
         path = f"checkpoints/{name}.pt"
         entrants[name] = {"policy": path, "sha256": sha256(path)}
-    for run in PRIMARY:
+    for run in FINAL:
         entrants[f"{run}/no100"] = {**entrants[run], "policy": entrants[run]["policy"] + NO_FULL}
+    shutil.copyfile(ENTRANTS / f"{FINAL[0]}.pt", SHIPPED)
     manifest = {
-        "registered": ["docs/superpowers/specs/2026-10-27-final-phase-preregistration.md",
-                       "docs/superpowers/specs/2026-10-27-multimap-preregistration.md"],
-        "shipped": {"entrant": "m3_set_s11", "file": "checkpoints/ppo_set.pt",
-                    "sha256": sha256("checkpoints/ppo_set.pt")},
+        "registered": [REGISTRATION],
+        "shipped": {"entrant": FINAL[0], "file": str(SHIPPED), "sha256": sha256(SHIPPED)},
         "entrants": entrants,
-        # map 0: every entrant, every day, every load; new maps: both PPO arms and two rules,
-        # the first 30 days on each map, medium and high
-        "blocks": [{"name": "map0", "entrants": list(entrants), "maps": "map 0",
-                    "loads": ["low", "medium", "high"], "days": "all"},
-                   {"name": "maps", "entrants": PRIMARY + MULTIMAP + ["slack", "rollout"],
-                    "maps": "all", "loads": ["medium", "high"], "days": 30}],
-        "days": {k: [days[0], days[-1], maps[0], maps[-1]] for k, (days, maps) in DAYS.items()},
+        "skip": SKIP,
+        "days": {k: describe(blocks(k)) for k in ("select", "test")},
         "rng": {"scenario16": f"master seed {MASTER_SEED}, streams [seed, decision, scenario]",
                 "random": "seeded by each day's demand seed", "bootstrap": "seed 0, 10 000"},
         "threads": "one torch thread per worker",
@@ -119,20 +140,21 @@ def fingerprint(days: str, limit: int | None) -> dict:
 
 def expected(manifest: dict, days: str, limit: int | None, out: Path) -> list:
     """Every (block, entrant, policy, map, load, day, file) of the campaign."""
-    seeds, maps = DAYS[days]
-    if [seeds[0], seeds[-1], maps[0], maps[-1]] != manifest["days"][days]:
-        raise SystemExit("the day ranges differ from the manifest")
+    cells = blocks(days)
+    if describe(cells) != manifest["days"][days]:
+        raise SystemExit("the days differ from the manifest")
+    skip = {tuple(x) for x in manifest["skip"]}
     todo = []
-    for b in manifest["blocks"]:
-        block_days = list(seeds)[:b["days"] if b["days"] != "all" else None][:limit]
-        block_maps = [0] if b["maps"] == "map 0" else list(maps)
-        for label in b["entrants"]:
-            folder = out / b["name"] / label.replace("/", "__")
-            for m in block_maps:
-                for load in b["loads"]:
-                    for day in block_days:
-                        todo.append((b["name"], label, manifest["entrants"][label]["policy"],
-                                     m, load, day, folder / f"{m}_{load}_{day}.json"))
+    for name, maps in cells.items():
+        for label, entrant in manifest["entrants"].items():
+            folder = out / name / label.replace("/", "__")
+            for m, seeds in maps:
+                for load in LOADS:
+                    if (label, load) in skip:
+                        continue
+                    for day in list(seeds)[:limit]:
+                        todo.append((name, label, entrant["policy"], m, load, day,
+                                     folder / f"{m}_{load}_{day}.json"))
     return todo
 
 
@@ -159,7 +181,7 @@ def run_job(job) -> None:
 
 def run(args) -> None:
     if args.days == "test" and args.limit is not None:
-        raise SystemExit("the locked test runs every day")
+        raise SystemExit("the final test runs every day")
     manifest = json.loads(MANIFEST.read_text())
     for label, e in manifest["entrants"].items():
         if "sha256" in e and sha256(e["policy"].removesuffix(NO_FULL)) != e["sha256"]:
@@ -176,7 +198,7 @@ def run(args) -> None:
                 check_saved(job, campaign)
             else:
                 todo.append((job, campaign))
-        todo.sort(key=lambda j: j[0][1] != "scenario16")  # the slow planner's days first
+        todo.sort(key=lambda j: j[0][1] not in SLOW)  # the slow planners' days first
         print(f"{len(todo)} days to run", flush=True)
         with Pool(args.processes) as pool:
             for k, _ in enumerate(pool.imap_unordered(run_job, todo, chunksize=1), 1):
@@ -189,10 +211,10 @@ def run(args) -> None:
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("command", choices=["freeze", "run"])
-    parser.add_argument("--days", choices=list(DAYS), default="select")
-    parser.add_argument("--limit", type=int, default=None, help="at most LIMIT days per block")
-    parser.add_argument("--processes", type=int, default=8, help="registered maximum: 8")
-    parser.add_argument("--out", default="runs/locked_rehearsal")
+    parser.add_argument("--days", choices=["select", "test"], default="select")
+    parser.add_argument("--limit", type=int, default=None, help="at most LIMIT days per map")
+    parser.add_argument("--processes", type=int, default=8)
+    parser.add_argument("--out", default="runs/final_rehearsal")
     args = parser.parse_args()
     freeze() if args.command == "freeze" else run(args)
 
