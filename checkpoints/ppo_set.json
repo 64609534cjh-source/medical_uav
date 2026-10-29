@@ -1,33 +1,161 @@
 {
  "file": "ppo_set.pt",
- "sha256": "155be547e1434aae699c30e35b7c5fdec940e80db0d9ae79339dea5c1418876a",
- "agent": "set/attention network trained from scratch with masked PPO (medical_uav/agents/ppo.py)",
+ "sha256": "612d35d37d4a6779292186bc8c09e2aa806cfec1c3aefa86de095d75754f1118",
+ "agent": "set/attention network trained from scratch with masked PPO (medical_uav/agents/ppo.py) on 500 random training maps, expiry penalty -0.5",
  "training": {
-  "command": "python scripts/train_ppo.py --net set --seed 11 --decisions 6e6 --out runs/set_s11",
-  "seed": 11,
-  "decisions": 6000640,
-  "reward": "v2",
-  "environment_version": "v2",
-  "commit": "bfc8fb4",
-  "commit_note": "the run predates run.json; its start time follows commit bfc8fb4 by one second, and that commit and the submitted code both reproduce the run's first three updates exactly"
+  "command": "python scripts/train_ppo.py --net set --seed 11 --maps train --reward v2_expiry05 --decisions 12e6 --threads 2 --out runs/f12_mm_e05_s11",
+  "commit": "6a3464a",
+  "checkpoint": "runs/f12_mm_e05_s11/ckpt_10500096.pt"
  },
  "selection": {
-  "rule": "one checkpoint per run on the 100 selection days (demand seeds 100040-100139): low-load on-time >= 97 %, every order type within 3 points of Slack-aware at medium and high load, then the highest mean of medium and high on-time; the shipped run is the training seed whose selected checkpoint scores highest",
-  "this_checkpoint": {
-   "low": 0.998,
-   "medium": 0.9219,
-   "high": 0.8267
-  },
-  "score_by_training_seed": {
-   "11": 0.87431,
-   "22": 0.87428,
-   "33": 0.86027,
-   "44": 0.8649,
-   "55": 0.85977
-  },
-  "score_mean_sd": [
-   0.8667,
-   0.0072
-  ]
- }
+  "rule": "one checkpoint per run on the first 20 selection days (demand seeds 100040-100059) of each selection map (100-109): low-load on-time >= 97 %, every order type within 3 points of Slack-aware at medium and high load, then the highest mean of medium and high on-time; the shipped run is training seed 11, fixed in the registration before the test",
+  "selected_by_training_seed": {
+   "11": {
+    "low": {
+     "on_time_rate": 0.999198717948718,
+     "served_rate": 1.0,
+     "expiry_rate": 0.0,
+     "on_time_plasma": 0.995,
+     "on_time_medicine": 1.0,
+     "on_time_sample": 1.0,
+     "on_time_supplies": 1.0
+    },
+    "medium": {
+     "on_time_rate": 0.9363944009809972,
+     "served_rate": 0.9726737626713384,
+     "expiry_rate": 0.027326237328661664,
+     "on_time_plasma": 0.900497512437811,
+     "on_time_medicine": 0.9644366197183099,
+     "on_time_sample": 0.9473186119873817,
+     "on_time_supplies": 0.9070484581497797
+    },
+    "high": {
+     "on_time_rate": 0.839540675227654,
+     "served_rate": 0.8909775672099332,
+     "expiry_rate": 0.1090224327900669,
+     "on_time_plasma": 0.8124542124542125,
+     "on_time_medicine": 0.8964824120603015,
+     "on_time_sample": 0.8590799031476998,
+     "on_time_supplies": 0.7312925170068028
+    }
+   },
+   "22": {
+    "low": {
+     "on_time_rate": 0.9994230769230767,
+     "served_rate": 1.0,
+     "expiry_rate": 0.0,
+     "on_time_plasma": 0.99625,
+     "on_time_medicine": 1.0,
+     "on_time_sample": 1.0,
+     "on_time_supplies": 1.0
+    },
+    "medium": {
+     "on_time_rate": 0.9364686918000094,
+     "served_rate": 0.9705653127492124,
+     "expiry_rate": 0.029434687250787555,
+     "on_time_plasma": 0.9049751243781095,
+     "on_time_medicine": 0.9669014084507043,
+     "on_time_sample": 0.9511041009463722,
+     "on_time_supplies": 0.8964757709251101
+    },
+    "high": {
+     "on_time_rate": 0.837623276389805,
+     "served_rate": 0.894958834689184,
+     "expiry_rate": 0.10504116531081592,
+     "on_time_plasma": 0.8278388278388278,
+     "on_time_medicine": 0.8932160804020101,
+     "on_time_sample": 0.8600484261501211,
+     "on_time_supplies": 0.7098639455782313
+    }
+   },
+   "33": {
+    "low": {
+     "on_time_rate": 0.9993910256410257,
+     "served_rate": 1.0,
+     "expiry_rate": 0.0,
+     "on_time_plasma": 0.99625,
+     "on_time_medicine": 1.0,
+     "on_time_sample": 1.0,
+     "on_time_supplies": 1.0
+    },
+    "medium": {
+     "on_time_rate": 0.9318906536606549,
+     "served_rate": 0.9705158518019315,
+     "expiry_rate": 0.0294841481980686,
+     "on_time_plasma": 0.8681592039800995,
+     "on_time_medicine": 0.9683098591549296,
+     "on_time_sample": 0.9410094637223975,
+     "on_time_supplies": 0.9193832599118943
+    },
+    "high": {
+     "on_time_rate": 0.8377361091771488,
+     "served_rate": 0.8932218480524476,
+     "expiry_rate": 0.10677815194755247,
+     "on_time_plasma": 0.7835164835164835,
+     "on_time_medicine": 0.9123115577889447,
+     "on_time_sample": 0.8588377723970945,
+     "on_time_supplies": 0.7295918367346939
+    }
+   },
+   "44": {
+    "low": {
+     "on_time_rate": 0.9993981481481482,
+     "served_rate": 0.9997916666666667,
+     "expiry_rate": 0.00020833333333333332,
+     "on_time_plasma": 0.99625,
+     "on_time_medicine": 1.0,
+     "on_time_sample": 1.0,
+     "on_time_supplies": 1.0
+    },
+    "medium": {
+     "on_time_rate": 0.9361967322944786,
+     "served_rate": 0.9676731412172584,
+     "expiry_rate": 0.032326858782741524,
+     "on_time_plasma": 0.8895522388059701,
+     "on_time_medicine": 0.971830985915493,
+     "on_time_sample": 0.9466876971608833,
+     "on_time_supplies": 0.9066079295154185
+    },
+    "high": {
+     "on_time_rate": 0.833150093168562,
+     "served_rate": 0.8835352101745901,
+     "expiry_rate": 0.11646478982540981,
+     "on_time_plasma": 0.7827838827838828,
+     "on_time_medicine": 0.9103015075376885,
+     "on_time_sample": 0.8462469733656174,
+     "on_time_supplies": 0.7292517006802721
+    }
+   },
+   "55": {
+    "low": {
+     "on_time_rate": 0.9991278677462888,
+     "served_rate": 1.0,
+     "expiry_rate": 0.0,
+     "on_time_plasma": 0.99625,
+     "on_time_medicine": 1.0,
+     "on_time_sample": 0.9992125984251968,
+     "on_time_supplies": 1.0
+    },
+    "medium": {
+     "on_time_rate": 0.9341898914859922,
+     "served_rate": 0.9692989701026486,
+     "expiry_rate": 0.030701029897351323,
+     "on_time_plasma": 0.8721393034825871,
+     "on_time_medicine": 0.9686619718309859,
+     "on_time_sample": 0.9454258675078865,
+     "on_time_supplies": 0.918942731277533
+    },
+    "high": {
+     "on_time_rate": 0.836730388486198,
+     "served_rate": 0.8845080502894576,
+     "expiry_rate": 0.1154919497105426,
+     "on_time_plasma": 0.7970695970695971,
+     "on_time_medicine": 0.9062814070351759,
+     "on_time_sample": 0.8414043583535109,
+     "on_time_supplies": 0.7438775510204082
+    }
+   }
+  }
+ },
+ "registration": "docs/superpowers/specs/2026-10-29-final-test-preregistration.md"
 }
