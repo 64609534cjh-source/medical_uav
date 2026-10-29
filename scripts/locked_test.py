@@ -48,10 +48,12 @@ SKIP = [["horizon", "low"]]  # registered: the rolling horizon runs medium and h
 SEEDS = (11, 22, 33, 44, 55)
 FINAL = [f"f12_mm_e05_s{s}" for s in SEEDS]  # the final agent; s11 is shipped
 PATH = [f"f12_{v}_s{s}" for v in ("mm_v2", "sm_e05", "sm_v2") for s in SEEDS]
-CONTROLS = [f"{v}_s{s}" for v in ("f12_sm_v2_mlp", "f24_sm_v2_mlp", "f12_sm_e05_bc",
-                                   "f12_sm_m1", "f12_sm_ontime") for s in SEEDS[:3]]
+CONTROLS = [f"{v}_s{s}" for v in ("f12_sm_v2_mlp", "f24_sm_v2_mlp", "f12_mm_e05_mlp",
+                                   "f24_mm_e05_mlp", "f12_sm_e05_bc", "f12_sm_m1",
+                                   "f12_sm_ontime") for s in SEEDS[:3]]
 IMITATION = ["bc_set", "bc_mlp", "bc_rollout_set", "bc_rollout_mlp"]
-SELECTIONS = ["runs/f12_select_mm.json", "runs/f12_select_sm.json", "runs/f12_select_ctrl.json"]
+SELECTIONS = ["runs/f12_select_mm.json", "runs/f12_select_sm.json", "runs/f12_select_ctrl.json",
+              "runs/f12_select_mmmlp.json"]
 LOADS = ("low", "medium", "high")
 
 

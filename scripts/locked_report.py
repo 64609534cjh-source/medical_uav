@@ -30,7 +30,7 @@ from medical_uav.evaluation import paired_ci
 # scripts/locked_test.py
 from locked_test import CONTROLS, FINAL, LOADS, MANIFEST, PATH, expected, sha256
 
-GROUPS = {"final": FINAL, **{g: [r for r in PATH + CONTROLS if r.rsplit("_s", 1)[0] == g]
+GROUPS = {"final": FINAL, "final3": FINAL[:3], **{g: [r for r in PATH + CONTROLS if r.rsplit("_s", 1)[0] == g]
                              for g in dict.fromkeys(r.rsplit("_s", 1)[0] for r in PATH + CONTROLS)}}
 SHIPPED = FINAL[0]
 # roadmap §1 targets: medium gain over Slack-aware and margins for the lower bound
@@ -49,6 +49,8 @@ CONTRASTS = [("map effect, expiry -0.5", "final", "f12_sm_e05", "on_time_rate"),
              ("reward effect, single-map (expired)", "f12_sm_e05", "f12_sm_v2", "expiry_rate"),
              ("set - MLP, 12 M each", "f12_sm_v2", "f12_sm_v2_mlp", "on_time_rate"),
              ("set 12 M - MLP 24 M", "f12_sm_v2", "f24_sm_v2_mlp", "on_time_rate"),
+             ("final - MLP, multi-map 12 M each", "final3", "f12_mm_e05_mlp", "on_time_rate"),
+             ("final - MLP, multi-map 24 M", "final3", "f24_mm_e05_mlp", "on_time_rate"),
              ("BC -> PPO - scratch", "f12_sm_e05_bc", "f12_sm_e05", "on_time_rate"),
              ("BC -> PPO - its imitation start", "f12_sm_e05_bc", "bc_set", "on_time_rate"),
              ("v2 - M1 reward", "f12_sm_v2", "f12_sm_m1", "on_time_rate"),
