@@ -26,7 +26,7 @@ python -m pip install -e .
 
 If `medical-uav-rl` already exists, add `-n medical-uav-m3` to the first command and activate
 `medical-uav-m3` instead. Run all commands below from this folder with the environment active.
-Times are approximate, measured on a 24-core Linux CPU machine.
+Times are approximate, measured on a Linux CPU machine with 24 hardware threads.
 
 ## Run the shipped agent
 
@@ -142,8 +142,8 @@ python scripts/select_checkpoints.py runs/f12_mm_e05_s11 --maps select --days 20
 ```
 
 Selection evaluates the first 20 selection days on each of maps 100–109. Eligible checkpoints
-must reach 97% on time at low load and stay within 3 percentage points of Slack-aware for every
-order type at medium and high load. Among them, the highest medium/high mean wins.
+must reach 97% on time at low load, with no order type more than 3 percentage points below
+Slack-aware at medium and high load. Among them, the highest medium/high mean wins.
 
 To rerun the registered final test with the supplied frozen checkpoints:
 
@@ -163,8 +163,8 @@ For a short serial decision-time benchmark:
 python scripts/latency.py --methods slack,horizon --checkpoints checkpoints/ppo_set.pt --loads medium,high --decisions 100 --passes 1 --out outputs/latency.csv
 ```
 
-This times policies on one CPU thread, separately from parallel evaluation; horizon is slow.
-The short sample is a timing check. The published samples are in `evidence/latency/`.
+About 2 min: it times policies on one CPU thread, separately from parallel evaluation; the
+rolling horizon takes most of it. The short sample is a timing check. The published samples are in `evidence/latency/`.
 
 ## M2 network demo and imitation training
 
