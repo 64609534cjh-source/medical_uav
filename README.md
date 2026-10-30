@@ -1,46 +1,22 @@
-# Medical UAV Delivery: Environment, Networks and a PPO Agent
+# Medical UAV Delivery: A PPO Learning Agent
 
-A Gymnasium environment in which one drone picks up and delivers medical orders between a medical
-center and five hospitals over one simulated day. Orders arrive at random and have deadlines; the
-drone must avoid no-fly zones, carry at most 3 boxes and 2 kg, and never run out of battery.
-The package contains rule-based baselines, a planner that looks one step ahead, two
-policy/value networks (an MLP and a set/attention network) and a dispatcher trained with our
-own masked PPO implementation.
+NUS ME5418, Group 17 (Jihang Cai, Yu Liu, Yufeng Zhang). **Milestone 3: the learning agent.**
 
-NUS ME5418, Group 17 (Jihang Cai, Yu Liu, Yufeng Zhang). Milestone 3: the learning agent.
+One drone collects and delivers medical orders between a medical center and five hospitals in
+our Gymnasium environment. It must meet deadlines, avoid no-fly zones, respect cargo limits and
+manage its battery. A set/attention network chooses actions using masked proximal policy
+optimization (PPO), implemented in `medical_uav/agents/ppo.py`.
 
-![A decision of the PPO agent](assets/demo.png)
+The final agent was trained from scratch on 500 random maps (map seeds 1000–1499), with reward
+variant `v2_expiry05`, for 12 million decisions per run and five training seeds.
+Design and results are in the two-page report `ME5418_Group17_M3_Report.pdf`.
 
-## See it first
+![A decision in the PPO replay](assets/demo.png)
 
-Download `assets/replay_ppo.html` and open it in a web browser (double-click; no installation or
-internet connection is needed). It replays one day, medium load and demand seed 100000 (a day
-outside training), driven by the PPO agent: play, pause, step from decision to decision or drag
-the timeline. Each decision is shown with the situation it was taken in and the agent's three
-most likely actions.
+## Install
 
-| File in `assets/` | What it shows |
-|---|---|
-| `replay_ppo.html` | the PPO agent, one whole day, in a web browser |
-| `replay_slack.html` | the Slack-aware rule, the strongest hand-written rule, on the same day |
-| `replay_set_network.html` | the set network trained by imitation (Milestone 2) on the same day |
-| `ppo_explained.mp4` | eight decisions of the PPO agent, each held before, during and after its action |
-| `ppo_day.mp4` | the whole day in under five minutes at smart speed: flights at 1 and everything else at 8 simulated minutes per second, a short pause at each decision |
-| `set_network_explained.mp4`, `set_network_day.mp4` | the same for the set network trained by imitation |
-| `demo.png` | the picture above |
-
-## Requirements
-
-- Conda (Miniconda or Anaconda) and an internet connection for the installation.
-- Python 3.11 with numpy 2.4.6, gymnasium 1.4.0, matplotlib 3.11.2, imageio 2.38.1,
-  imageio-ffmpeg 0.6.0 (video export; it includes FFmpeg) and torch 2.14.1 (CPU build).
-  `environment.yml` installs all of them; no GPU is needed.
-- Tested on Linux.
-
-## Installation
-
-Unzip the submission, open a terminal (Anaconda Prompt on Windows) in the folder that contains
-`environment.yml`, and run:
+Requires Conda; no GPU. Tested on Linux. `environment.yml` pins the environment, including
+Python 3.11.17 and PyTorch 2.14.1 CPU. Open a terminal in the unzipped folder:
 
 ```bash
 conda env create -f environment.yml
@@ -48,239 +24,218 @@ conda activate medical-uav-rl
 python -m pip install -e .
 ```
 
-If an environment named `medical-uav-rl` already exists, add `-n <another name>` to the first
-command and activate that name instead. Without conda, use Python 3.11 and run
-`python -m pip install -r requirements.txt`, then `python -m pip install -e .`.
+If `medical-uav-rl` already exists, add `-n medical-uav-m3` to the first command and activate
+`medical-uav-m3` instead. Run all commands below from this folder with the environment active.
+Times are approximate, measured on a 24-core Linux CPU machine.
 
-## Run the trained agent
-
-```bash
-python scripts/demo.py --policy ppo
-```
-
-The PPO agent in `checkpoints/ppo_set.pt` dispatches one day (medium load, demand seed 0) and
-prints the results, which start with:
-
-```
-Completed at 16:37 (t=517.0 min) after 126 decisions
-  Orders   70 released: delivered 61/70 (87.1%), expired 9/70 (12.9%)
-  On time  58/70 (82.9%); late 3 (mean 10.5 min late)
-```
-
-On the same day Slack-aware, the strongest rule, delivers 53 of the 70 orders, 47 on time.
-The replay page and a frame are saved in `outputs/` (add `--video` for the two videos), as
-described in [Run the day demo](#run-the-day-demo).
-
-## Train the agent
+## Run the shipped agent
 
 ```bash
-python scripts/train_ppo.py --net set --seed 11 --decisions 6e6 --out runs/set_s11
+python scripts/demo.py --policy ppo --load high --seed 100007
+python scripts/demo.py --policy slack --load high --seed 100007
+python scripts/demo.py --policy ppo --load high --seed 100007 --map 2000
 ```
 
-Masked PPO on randomly drawn training days at all three loads (about an hour on 4 CPU threads).
-Every 0.5 M decisions it saves a checkpoint and the greedy on-time rate on 20 selection days;
-`updates.csv` logs the losses, entropy, KL and clip fraction of every update. Options:
-`--net mlp`, `--reward m1` or `--reward ontime` (reward variants), `--init checkpoints/bc_set.pt`
-(start from the imitation-trained network after a value warm-up).
+The first command takes about 2 s, prints the day's results and saves
+`outputs/demo_ppo_high_seed100007_replay.html` and
+`outputs/demo_ppo_high_seed100007_decision.png`.
+The second runs Slack-aware on the same arrivals and map. The third uses an unseen test map;
+its output names include `_map2000`.
+
+Options: `--policy random|edf|slack|set|mlp|ppo`, `--load low|medium|high`, `--seed` for the demand
+day, `--map` for the geography, and `--checkpoint PATH` for a compatible saved network with
+`ppo`, `set` or `mlp`. The `set` and `mlp` defaults load the M2 imitation-trained networks.
+Add `--video` to save a `_backlog.mp4` video; rendering takes a few minutes.
+
+The shipped agent is `checkpoints/ppo_set.pt`: training seed 11, checkpoint at 10,500,096
+decisions. `checkpoints/ppo_set.json` records its hash, training command and selection rule.
+The training seed was fixed before the final test.
+
+## Replays without installation
+
+Open an HTML file in `assets/` in a browser; it works offline.
+
+| File | What it shows |
+|---|---|
+| [replay_ppo.html](assets/replay_ppo.html) | The shipped agent's whole day; at each decision, the situation and its top choices with their probabilities. |
+| [replay_slack.html](assets/replay_slack.html) | Slack-aware on the same day. |
+| [demo.png](assets/demo.png) | The decision pictured above. |
+
+Both show high load, demand seed 100007, map 0: the development day on which PPO's lead over
+Slack-aware is closest to its median over the 40 development days (PPO 78.8 %, Slack-aware
+62.1 % on time). They are the outputs of the first two commands above.
+**Play** or Space plays and pauses; ← and → step through decisions.
+Drag the timeline to jump, or tick **Stop at each decision**.
+**How to read this screen** explains the display.
+Pauses at decisions allow time to read the choices; they are not computation time.
+
+## A short training run
 
 ```bash
-python scripts/select_checkpoints.py runs/set_s11 --out runs/selection.json
-python scripts/plot_training.py "PPO:runs/set_s11" --out outputs/training_curves.png
+python scripts/train_ppo.py --net set --seed 11 --maps train --reward v2_expiry05 --decisions 5e5 --eval-every 1e5 --eval-days 10 --threads 2 --out outputs/quick_s11
 ```
 
-The first chooses one checkpoint per run by a rule fixed before training (best medium/high
-on-time rate on 100 selection days, keeping the low load at least 97 % on time and every order
-type within 3 points of Slack-aware); the second draws the learning curves.
+This takes about 5 min. It trains on randomly drawn days at all three loads and prints greedy
+on-time rates on 10 selection days at medium and high load, rotating over selection maps.
+In the checked run, medium/high rates were 43.4/28.7% before training, 80.7/67.2% at about
+100,000 decisions and 85.1/69.1% at about 500,000 decisions.
 
-## Test the trained agent
+It saves `ckpt_*.pt`, `evals.csv`, `updates.csv` and `run.json` in `outputs/quick_s11/`.
+Updates contain 2,048 decisions, so evaluation and checkpoint counts round up to whole updates.
+Plot its learning curve, with Slack-aware on the same days and maps (about 30 s):
 
 ```bash
-python scripts/evaluate.py --methods slack,rollout --checkpoints checkpoints/ppo_set.pt --processes 8
+python scripts/plot_training.py "Quick PPO:outputs/quick_s11" --eval-days 10 --out outputs/quick_learning.png
 ```
 
-It runs every policy on the same 40 days at each load, writes one row per day to
-`outputs/evaluation.csv` and prints each method against Slack-aware with a 95 % bootstrap
-interval over days. `python scripts/analyze_behaviour.py --checkpoints checkpoints/ppo_set.pt`
-compares how the policies serve those days (boxes per stop, charging, waiting, peak hours).
+Run the final checkpoint from this short run with:
 
-On-time rate (orders delivered within their time limit) on the same 40 days per load
-(`--seeds screen`, demand seeds 100000–100039):
+```bash
+python scripts/demo.py --policy ppo --checkpoint outputs/quick_s11/ckpt_00501760.pt --load high --seed 100007
+```
 
-| Policy | Low | Medium | High |
-|---|---|---|---|
-| Random | 55.5% | 26.3% | 22.6% |
-| EDF (earliest deadline first) | 99.6% | 40.6% | 27.5% |
-| FCFS (first come, first served) | 97.0% | 49.3% | 32.1% |
-| Nearest-first | 99.2% | 71.6% | 53.2% |
-| Slack-aware (strongest rule) | 99.3% | 81.0% | 65.9% |
-| One-step lookahead planner (`rollout`) | 99.9% | 89.7% | 76.8% |
-| Set network trained by imitation (`bc_set.pt`) | 99.5% | 79.5% | 64.4% |
-| **PPO agent (`ppo_set.pt`)** | **100.0%** | **92.3%** | **84.2%** |
-| PPO, mean (range) of 5 training seeds | 100.0% | 91.7% (90.8–92.3) | 82.9% (81.9–84.2) |
+This uses the same output names as the shipped-agent demo and replaces those replay files.
+The short run demonstrates learning; it does not reproduce the final agent.
 
-The PPO agent was chosen among the five training seeds on 100 other days (`--seeds select`);
-the last row shows how much the result varies with the training seed. A decision takes the agent
-about 0.5 ms and the planner about 30 ms on one CPU thread.
+## A quick evaluation
 
-## Run the network demo
+```bash
+python scripts/evaluate.py --methods slack,insertion,rollout --checkpoints checkpoints/ppo_set.pt --loads medium,high --days 5 --out outputs/quick_eval.csv
+```
+
+About 25 s. Each policy runs the same five development (screen) days per load on map 0.
+The script saves one CSV row per policy-day and prints on-time and served rates, plus paired
+differences from Slack-aware with 95% bootstrap intervals. This is a functional check;
+the final results below use separate test days.
+
+## Final results
+
+Mean daily on-time rate (%). PPO is the mean of five independently trained seeds.
+Map 0 uses 300 new demand days per load; unseen maps use 30 maps × 10 days per load.
+
+| Policy | Map 0 medium | Map 0 high | Unseen medium | Unseen high |
+|---|---:|---:|---:|---:|
+| Slack-aware | 79.6 | 63.3 | 82.6 | 66.1 |
+| Insertion | 85.7 | 69.1 | 87.8 | 71.3 |
+| Visible-order rollout | 89.0 | 74.6 | 90.5 | 76.1 |
+| Scenario rollout (16 futures) | 89.2 | 76.5 | 90.4 | 77.8 |
+| Rolling horizon | 92.2 | 79.4 | 93.2 | 80.6 |
+| PPO | 91.8 | 80.8 | 92.7 | 81.7 |
+
+Serial decisions take about 0.23 ms for PPO, compared with 564/1,373 ms for rolling horizon at
+medium/high load. See the report for comparisons and uncertainty, `evidence/final_test/` for
+the complete results, and `evidence/latency/` for serial timing samples.
+
+## Full reproduction (optional)
+
+Train one final-agent run, about 3–4 h:
+
+```bash
+python scripts/train_ppo.py --net set --seed 11 --maps train --reward v2_expiry05 --decisions 12e6 --threads 2 --out runs/f12_mm_e05_s11
+```
+
+The five final runs used seeds 11, 22, 33, 44 and 55, each with its own output directory.
+The final agent uses checkpoint selection, rather than automatically taking the last checkpoint:
+
+```bash
+python scripts/select_checkpoints.py runs/f12_mm_e05_s11 --maps select --days 20 --processes 8 --out runs/f12_selection.json
+```
+
+Selection evaluates the first 20 selection days on each of maps 100–109. Eligible checkpoints
+must reach 97% on time at low load and stay within 3 percentage points of Slack-aware for every
+order type at medium and high load. Among them, the highest medium/high mean wins.
+
+To rerun the registered final test with the supplied frozen checkpoints:
+
+```bash
+python scripts/locked_test.py run --days test --processes 8 --out outputs/final_rerun
+python scripts/locked_report.py outputs/final_rerun > outputs/final_rerun/report.txt
+```
+
+This runs 109,200 policy-days: about 11 h with 8–24 workers here, much longer on a laptop.
+The rolling-horizon planner dominates the time. Git must be available on PATH; use unchanged
+code and the supplied checkpoints. Interrupted runs resume from saved days.
+Do not run the `freeze` command: the entrants and their hashes are already supplied.
+
+For a short serial decision-time benchmark:
+
+```bash
+python scripts/latency.py --methods slack,horizon --checkpoints checkpoints/ppo_set.pt --loads medium,high --decisions 100 --passes 1 --out outputs/latency.csv
+```
+
+This times policies on one CPU thread, separately from parallel evaluation; horizon is slow.
+The short sample is a timing check. The published samples are in `evidence/latency/`.
+
+## M2 network demo and imitation training
 
 ```bash
 python scripts/demo_network.py
+python scripts/train_bc.py
+python scripts/train_bc.py --teacher rollout
 ```
 
-It creates both networks, runs a forward pass and a backward pass on real observations from the
-environment, and lets the trained networks (in `checkpoints/`) run a whole day. It takes a few
-seconds and prints, among other things:
+The network demo takes a few seconds: parameter counts, forward and backward passes on real
+observations, then a day with each trained network and Slack-aware. It saves no files.
+Behaviour cloning (BC) trains both networks to imitate a teacher. The two training commands
+overwrite the corresponding `bc_*` or `bc_rollout_*` checkpoints and histories.
 
-```
-3. forward pass (trained set network): logits (64, 26), value (64,)
-   decision 30: PICK sample H3->M 0.83, DELIVER(M) 0.12, DELIVER(H1) 0.05   (Slack-aware chose PICK sample H3->M)
-      their logits: PICK sample H3->M 15.71, DELIVER(M) 13.74, DELIVER(H1) 12.95;  value estimate -0.237 (untrained: BC does not train the value head)
-4. backward pass (untrained set network): policy loss 1.849, value loss 13.408
-   after one Adam step the loss falls from 8.553 to 8.509
-5. A whole day (medium load, demand seed 100000) driven by each trained network
-   BC mlp network (validation accuracy 0.935): 95.9% on time
-   BC set network (validation accuracy 0.939): 91.8% on time
-   Slack-aware (the teacher) on the same day: 95.9% on time
-```
+## Environment and networks
 
-## Run the day demo
-
-```bash
-python scripts/demo.py
-```
-
-This simulates one day with the Slack-aware policy (medium load, demand seed 0) and prints the
-results, which start with:
-
-```
-Completed at 17:05 (t=545.8 min) after 113 decisions
-  Orders   70 released: delivered 53/70 (75.7%), expired 17/70 (24.3%)
-```
-
-It then saves, within a few seconds, in `outputs/`:
-
-- `demo_slack_medium_seed0_replay.html`, the whole day in a web browser, as in
-  [See it first](#see-it-first)
-- `demo_slack_medium_seed0_decision.png`, one decision worth a look
-
-With `--video` it also saves (10–15 minutes):
-
-- `demo_slack_medium_seed0_explained.mp4`, eight consecutive decisions, each shown before,
-  during and after its action
-- `demo_slack_medium_seed0_day.mp4`, the whole day at smart speed
-
-| Option | Values |
+| Environment | |
 |---|---|
-| `--policy` | `slack` (default), `edf`, `random`, `mlp`, `set` (the networks trained by imitation), `ppo` (the PPO agent); for the networks the top choices are shown |
-| `--load` | `low`, `medium` (default), `high` |
-| `--seed` | which day of orders (default `0`) |
-| `--video`, `--explain-count`, `--fps` | also save the two videos; decisions in the explanation video (8); video frames per second (12) |
+| Observation | `Box(452)`: 80 global features, 12 waiting-order slots × 27, 3 cargo slots × 16 |
+| Action | `Discrete(26)`: 12 pick up, 6 deliver, 6 charge, return, wait; allowed actions in `info["action_mask"]` |
+| PPO training reward | `v2_expiry05`: +1 on time, +0.1 late, −0.5 expired, −0.001 per battery % used |
+| Episode | one day at low, medium or high demand; `reset(options={"demand_seed": ..., "load": ...})` |
 
-`scripts/demo.py` is also the usage example: it creates the environment, starts a day, lets a
-policy choose actions until the day is over, and then shows the day.
+The default environment and day demo retain the `v2` expiry penalty of −0.1; the training
+commands above explicitly select −0.5.
 
-To compare the shipped PPO and Slack-aware on identical arrivals:
+Both networks take observations `[B, 452]` and masks `[B, 26]`, returning action logits `[B, 26]`
+and values `[B]`. Forbidden logits are set to −10⁹. Inference chooses the highest allowed logit.
 
-```bash
-PYTHONPATH=. python scripts/compare_video.py --out outputs/compare_high_seed100004.mp4
-```
+| Network | Structure | Parameters |
+|---|---|---:|
+| Multilayer perceptron (MLP) | separate actor and critic, each 452 → 256 → 256, tanh | 370,459 |
+| Set/attention | shared order and cargo encoders, width 64, four-head attention, shared pick-up scorer | 62,928 |
 
-The defaults show high-load seed 100004, minutes 50–200 at 12 fps, with one shared clock.
-This is the high-load screen day nearest the median PPO-minus-Slack on-time difference,
-using the registered lowest-day-ID tie break. The first charging decision and first service
-decision that differs from Slack pause for seven seconds each. The ending reports whole-day
-outcomes and the first PPO failure. Peak, paused and end-card PNGs are saved beside the video.
+Baselines include Random, earliest deadline first (EDF), first come first served (FCFS),
+nearest-first, Slack-aware, insertion, visible-order rollout, scenario rollout with 16 sampled
+futures, rolling horizon and energy-management variants.
 
-Use `--summary FILE` for UTF-8 aggregate-result lines on the ending cards. Without it, the
-script computes development averages from `runs/m3_screen_eval_all.csv`, falling back to the
-sibling `medical_uav/runs/` directory for this worktree; absent data adds no aggregate lines.
-The prescribed window and speeds produce about 111 seconds; use `--start` and `--end` to
-choose a longer window for the registered 3–4 minute target.
+## Main files
 
-## The environment
-
-| | |
-|---|---|
-| Observation | `Box(452)`: the drone, travel times between all nodes, up to 12 waiting orders (those that can still be on time first) and the cargo on board |
-| Action | `Discrete(26)`: pick up, deliver, charge, return to the center, wait; `info["action_mask"]` marks the allowed ones |
-| Reward | +1 per on-time delivery, +0.1 per late delivery, −0.1 per expired order, −0.001 per battery % used |
-| Episode | one day, about 80–120 decisions |
-| `reset` options | `demand_seed` (which day of orders), `load` (`"low"`, `"medium"` or `"high"`) |
-| Baselines | `random_policy`, `edf_policy`, `fcfs_policy`, `nearest_policy`, `slack_aware_policy` in `medical_uav.baselines.heuristics`; `rollout_policy` (one-step lookahead over Slack-aware, visible orders only) in `medical_uav.baselines.rollout` |
-
-Since Milestone 1 the reward and the observation have changed (environment version `v2`): late
-deliveries now earn a small fixed reward instead of a value falling to −0.5, and the observation
-adds the 7 × 7 travel-time matrix. Most settings are in `medical_uav/env/config.py`; pass
-`MedicalUAVEnv(config=EnvConfig(...))` to change them.
-
-## The networks
-
-| | MLP | Set network |
-|---|---|---|
-| Input | observation `[B, 452]` and action mask `[B, 26]` | the same, split into the global state, 12 order slots and 3 cargo slots |
-| Structure | separate actor and critic, 452 → 256 → 256 (tanh) | shared encoders per slot, one attention layer, one shared scorer for every pick-up slot |
-| Output | action logits `[B, 26]` (forbidden actions masked) and a value `[B]` | the same |
-| Parameters | 370,459 | 62,928 |
-
-Both were trained by behaviour cloning on 900 days of Slack-aware decisions
-(`python scripts/train_bc.py`, about a minute on a CPU). Compare any policies on the same days
-with the evaluator, for example:
-
-```bash
-python scripts/evaluate.py --methods random,edf,fcfs,nearest,slack --checkpoints checkpoints/bc_mlp.pt checkpoints/bc_set.pt
-```
-
-The rules of the environment are described in the Milestone 1 report, the networks in the
-Milestone 2 report and the PPO agent in the two-page report `ME5418_Group17_M3_Report.pdf`.
-
-## Files
-
-```
-medical_uav/
-  env/
-    uav_env.py       MedicalUAVEnv, the Gymnasium environment
-    config.py        settings
-    simulator.py     simulation of one day
-    actions.py       the 26 actions
-    masks.py         which actions are allowed
-    observation.py   the observation vector
-    map_gen.py       random map generation
-    astar.py         shortest path around no-fly zones
-    orders.py        orders and the order stream of one day
-    physics.py       flight time, energy, charging time, delivery reward
-    render.py        drawing a day for env.render()
-    replay.py        a finished day as a record; the replay web page
-    replay_player.html  the replay web page (the record is put inside it)
-    video.py         frames and videos of a finished day, in the replay's style
-  agents/
-    networks.py      the MLP and the set/attention network
-    policy.py        a network as a policy; saving and loading checkpoints
-    bc.py            behaviour cloning: recording a teacher, training a network
-    ppo.py           masked PPO: collection, advantages, update, value warm-up
-  baselines/
-    heuristics.py    Random, EDF, FCFS, nearest-first and Slack-aware policies
-    rollout.py       the one-step lookahead planner
-  evaluation.py      running policies on the same days and comparing them
-  metrics.py         per-day metrics
-  splits.py          seeds for training, screening, model selection and testing
+```text
+medical_uav/agents/     ppo.py (masked PPO), networks.py (both networks),
+                        policy.py (inference and checkpoints), bc.py (imitation)
+medical_uav/env/        Gymnasium environment, simulator, maps, masks and observations;
+                        replay.py, replay_player.html, video.py (replays)
+medical_uav/baselines/  heuristics.py, insertion.py, rollout.py, scenario.py,
+                        horizon.py, energy.py
+medical_uav/            evaluation.py, metrics.py, splits.py (day and map seed ranges)
 scripts/
-  demo_network.py    network demo: forward and backward pass, a day with each network
-  demo.py            run and show one day; also the usage example
-  train_bc.py        behaviour cloning of Slack-aware for both networks
-  train_ppo.py       PPO training of one run
-  select_checkpoints.py  choose one checkpoint per run on the selection days
-  plot_training.py   learning curves of groups of runs
-  evaluate.py        compare policies on the same days
-  analyze_behaviour.py   how policies serve the same days
-checkpoints/
-  ppo_set.pt         the PPO agent (set network); ppo_set.json, how it was trained and chosen
-  bc_mlp.pt, bc_set.pt  the imitation-trained networks; bc_history.json, their training curves
-assets/
-  *.html, *.mp4      the replays and videos listed in "See it first"
-  demo.png           the picture at the top of this page
-ME5418_Group17_M3_Report.pdf   the two-page report
-environment.yml      conda environment
-requirements.txt     the same packages for pip
-pyproject.toml       package definition for `pip install -e .`
+  demo.py               run one day; save replay, picture and optional backlog video
+  demo_network.py       M2 forward/backward passes and whole-day network demo
+  train_ppo.py          train one PPO run; save checkpoints, evaluations and updates
+  train_bc.py           imitate Slack-aware or rollout with both networks
+  evaluate.py           paired development evaluation and per-day CSV
+  select_checkpoints.py choose one eligible checkpoint per run on selection days
+  plot_training.py      learning curves and Slack-aware comparison
+  locked_test.py        run the frozen final-test entrants and check hashes
+  locked_report.py      final-test statistics, CSVs and summary JSON
+  latency.py            serial decision-time benchmark
+checkpoints/            ppo_set.pt and ppo_set.json (shipped agent and provenance);
+                        entrants/ (41 frozen PPO checkpoints and manifest.json);
+                        bc_set.pt, bc_mlp.pt (Slack-aware imitation);
+                        bc_rollout_set.pt, bc_rollout_mlp.pt (rollout imitation);
+                        bc_history.json, bc_rollout_history.json
+evidence/final_test/    report.txt, map0.csv, maps.csv, summary.json
+evidence/selection/     f12_select_*.json (checkpoint selection)
+evidence/latency/       serial timing CSVs
+evidence/training/      evals.csv for all final-test PPO runs, with run logs
+evidence/registration/  2026-10-29-final-test-preregistration.md
+assets/                 offline replays and picture
+ME5418_Group17_M3_Report.pdf  the two-page report
+environment.yml         exact Conda environment
+pyproject.toml          package definition for editable installation
 ```
