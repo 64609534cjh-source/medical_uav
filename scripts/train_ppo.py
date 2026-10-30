@@ -109,7 +109,8 @@ def main():
         return result
 
     t0, decisions, next_eval = time.time(), 0, eval_every
-    evaluate(0)  # the untrained network, as the curve's starting point
+    if total > 0:
+        evaluate(0)  # the untrained network, as the curve's starting point
     while decisions < total:
         buf = collect(envs, net, state, N_STEPS, rng)
         decisions += N_ENVS * N_STEPS
