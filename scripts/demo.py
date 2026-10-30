@@ -18,7 +18,7 @@ import numpy as np
 
 from medical_uav.agents.policy import NetworkPolicy, load_checkpoint
 from medical_uav.baselines.heuristics import edf_policy, random_policy, slack_aware_policy
-from medical_uav.env import MedicalUAVEnv
+from medical_uav.env import EnvConfig, MedicalUAVEnv
 from medical_uav.env.render import clock, save_animation
 from medical_uav.env.replay import (day_record, decision_record, opening_decision, state_at,
                                     write_html)
@@ -32,10 +32,11 @@ CHECKPOINTS = Path(__file__).resolve().parents[1] / "checkpoints"
 CHECKPOINT_FILES = {"mlp": "bc_mlp.pt", "set": "bc_set.pt", "ppo": "ppo_set.pt"}
 
 
-def make_policy(name: str, seed: int):
-    """Return the named policy, called as policy(env, obs, mask), and its network if any."""
+def make_policy(name: str, seed: int, checkpoint: str | None = None):
+    """Return the named policy, called as policy(env, obs, mask), and its network if any; a
+    network policy loads `checkpoint` if given."""
     if name in CHECKPOINT_FILES:
-        net, _ = load_checkpoint(CHECKPOINTS / CHECKPOINT_FILES[name])
+        net, _ = load_checkpoint(checkpoint or CHECKPOINTS / CHECKPOINT_FILES[name])
         return NetworkPolicy(net), NetworkPolicy(net)
     if name == "random":
         rng = np.random.default_rng(seed)
@@ -61,16 +62,21 @@ def main():
                              "agent (all in checkpoints/)")
     parser.add_argument("--load", choices=["low", "medium", "high"], default="medium")
     parser.add_argument("--seed", type=int, default=0, help="demand seed (which day of orders)")
+    parser.add_argument("--map", type=int, default=0,
+                        help="map seed (0: the map of the results; e.g. 2000-2029: test maps)")
+    parser.add_argument("--checkpoint", default=None,
+                        help="network file for mlp/set/ppo, e.g. one saved by train_ppo.py")
     parser.add_argument("--video", action="store_true",
                         help="also save a video of the backlog (a few minutes)")
     parser.add_argument("--fps", type=int, default=12, help="video frames per second")
     args = parser.parse_args()
 
-    name = POLICY_NAMES[args.policy]
-    policy, network = make_policy(args.policy, args.seed)
+    name = POLICY_NAMES[args.policy] + (f" ({Path(args.checkpoint).name})" if args.checkpoint
+                                        else "")
+    policy, network = make_policy(args.policy, args.seed, args.checkpoint)
 
     # 1. create the environment and start a day
-    env = MedicalUAVEnv(load=args.load)
+    env = MedicalUAVEnv(config=EnvConfig(map_seed=args.map), load=args.load)
     obs, info = env.reset(options={"demand_seed": args.seed})
     print(f"Medical UAV | {name} | {args.load} load | demand seed {args.seed} | "
           f"map seed {env.cfg.map_seed}")
@@ -97,7 +103,8 @@ def main():
     print()
 
     # 4. the replay: one HTML file with the whole day, opened in any web browser
-    base = f"outputs/demo_{args.policy}_{args.load}_seed{args.seed}"
+    base = (f"outputs/demo_{args.policy}_{args.load}_seed{args.seed}"
+            + (f"_map{args.map}" if args.map else ""))
     os.makedirs("outputs", exist_ok=True)
     record = day_record(env, decisions, name)
     write_html(record, f"{base}_replay.html")

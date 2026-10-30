@@ -43,3 +43,13 @@ def test_demo_runs_the_trained_agent(tmp_path):
     assert result.returncode == 0, result.stderr
     assert "PPO agent" in result.stdout
     assert (tmp_path / "outputs" / "demo_ppo_low_seed0_replay.html").exists()
+
+
+def test_demo_runs_a_given_checkpoint_on_another_map(tmp_path):
+    result = subprocess.run([sys.executable, str(REPO / "scripts" / "demo.py"), "--policy", "ppo",
+                             "--checkpoint", str(REPO / "checkpoints" / "bc_set.pt"),
+                             "--map", "2000", "--load", "low"],
+                            capture_output=True, text=True, cwd=tmp_path)
+    assert result.returncode == 0, result.stderr
+    assert "bc_set.pt" in result.stdout and "map seed 2000" in result.stdout
+    assert (tmp_path / "outputs" / "demo_ppo_low_seed0_map2000_replay.html").exists()

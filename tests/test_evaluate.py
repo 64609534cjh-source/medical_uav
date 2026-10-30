@@ -207,6 +207,7 @@ def test_plot_training_runs_on_logged_curves(tmp_path):
         lines = ["decisions,seconds,on_time_medium,on_time_high"]
         lines += [f"{d},0,{s},{s}" for d, s in zip((500, 1000, 1500), scores)]
         (tmp_path / name / "evals.csv").write_text("\n".join(lines))
+        (tmp_path / name / "run.json").write_text('{"maps": null}')
     repo = Path(__file__).resolve().parents[1]
     result = subprocess.run([sys.executable, str(repo / "scripts" / "plot_training.py"),
                              f"A:{tmp_path / 'a_s11'}", f"B:{tmp_path / 'b_s11'}",
@@ -225,6 +226,12 @@ def test_plot_training_runs_on_logged_curves(tmp_path):
                              "--extra-cost", "B=300", "--extra-cost", "A=100", "--eval-days", "1",
                              "--out", str(tmp_path / "curves.png")], capture_output=True, text=True)
     assert "median 300 decisions" in result.stdout
+    # Slack-aware is drawn on one set of maps, so single- and multi-map runs do not mix
+    (tmp_path / "b_s11" / "run.json").write_text('{"maps": "train"}')
+    result = subprocess.run([sys.executable, str(repo / "scripts" / "plot_training.py"),
+                             f"A:{tmp_path / 'a_s11'}", f"B:{tmp_path / 'b_s11'}",
+                             "--out", str(tmp_path / "curves.png")], capture_output=True, text=True)
+    assert result.returncode != 0 and "different maps" in result.stderr
 
 
 def test_compare_variants_pairs_runs_by_seed(tmp_path):

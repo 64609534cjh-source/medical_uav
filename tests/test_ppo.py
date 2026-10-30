@@ -75,7 +75,9 @@ def test_train_ppo_smoke(tmp_path):
     assert result.returncode == 0, result.stderr
     assert (tmp_path / "run" / "updates.csv").exists() and (tmp_path / "run" / "evals.csv").exists()
     checkpoints = sorted((tmp_path / "run").glob("ckpt_*.pt"))
-    assert len(checkpoints) == 1
+    assert len(checkpoints) == 1  # the untrained network is evaluated, not saved
+    rows = (tmp_path / "run" / "evals.csv").read_text().splitlines()
+    assert [r.split(",")[0] for r in rows[1:]] == ["0", "4096"]
     _, info = load_checkpoint(checkpoints[0])
     assert info["decisions"] == 4096 and info["seed"] == 11
     import json

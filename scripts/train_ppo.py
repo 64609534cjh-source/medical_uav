@@ -100,7 +100,16 @@ def main():
                          "approx_kl", "clip_frac", "train_on_time"])
     eval_log.writerow(["decisions", "seconds"] + [f"on_time_{load}" for load in EVAL_LOADS])
 
+    def evaluate(decisions: int) -> dict:
+        result = evaluate_net(net, args.eval_days, many_maps=maps is not None, config=config)
+        eval_log.writerow([decisions, round(time.time() - t0, 1)] + list(result.values()))
+        evals.flush()
+        print(f"{decisions:>9d} decisions  {time.time() - t0:6.0f} s  "
+              + "  ".join(f"{k} {v:.3f}" for k, v in result.items()), flush=True)
+        return result
+
     t0, decisions, next_eval = time.time(), 0, eval_every
+    evaluate(0)  # the untrained network, as the curve's starting point
     while decisions < total:
         buf = collect(envs, net, state, N_STEPS, rng)
         decisions += N_ENVS * N_STEPS
@@ -117,9 +126,7 @@ def main():
                             + [round(train_on_time, 4)])
         updates.flush()
         if decisions >= next_eval or decisions >= total:
-            result = evaluate_net(net, args.eval_days, many_maps=maps is not None, config=config)
-            eval_log.writerow([decisions, round(time.time() - t0, 1)] + list(result.values()))
-            evals.flush()
+            result = evaluate(decisions)
             save_checkpoint(net, args.net, out / f"ckpt_{decisions:08d}.pt",
                             {"decisions": decisions, "seed": args.seed, "net": args.net,
                              "reward": args.reward, "init": args.init, "maps": args.maps,
@@ -127,8 +134,6 @@ def main():
                              "git_revision": meta["git_revision"],
                              "eval_days": args.eval_days, **{f"on_time_{k}": v
                                                              for k, v in result.items()}})
-            print(f"{decisions:>9d} decisions  {time.time() - t0:6.0f} s  "
-                  + "  ".join(f"{k} {v:.3f}" for k, v in result.items()), flush=True)
             next_eval += eval_every
     updates.close()
     evals.close()

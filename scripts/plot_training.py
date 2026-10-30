@@ -1,8 +1,9 @@
 """Learning curves of groups of PPO runs, and how fast each run reaches a fixed score.
 
 Each run's evals.csv holds the greedy on-time rate on the first 20 selection days at medium and
-high load; the score is their mean. The figure shows each group's mean over its runs with the
-range as a band, and Slack-aware on the same days. The table gives each run's final score, its
+high load (multi-map runs: the days rotate over the selection maps); the score is their mean. The
+figure shows each group's mean over its runs with the range as a band, and Slack-aware on the
+same days and maps (all runs must share map 0 or the selection maps). The table gives each run's final score, its
 mean score over the logged curve, and the decisions at which it first reaches (and keeps at the
 next evaluation) 95 % of the final score of the first group's run with the same training seed.
 For every other group, the decisions saved against the first group, seed by seed, after adding
@@ -16,6 +17,7 @@ Usage:
 """
 import argparse
 import csv
+import json
 import re
 from pathlib import Path
 
@@ -23,8 +25,9 @@ import numpy as np
 from matplotlib.figure import Figure
 
 from medical_uav.baselines.heuristics import slack_aware_policy
+from medical_uav.env import EnvConfig
 from medical_uav.evaluation import curve_mean, first_sustained_crossing, heuristic, run_day
-from medical_uav.splits import SELECT_SEEDS
+from medical_uav.splits import SELECT_MAP_SEEDS, SELECT_SEEDS
 
 LOADS = ("medium", "high")
 COLORS = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#6250d6"]
@@ -57,9 +60,16 @@ def main():
     for g in args.groups:
         label, runs = g.split(":")
         groups[label] = {run: read_run(run) for run in runs.split(",")}
+    runs = [run for g in groups.values() for run in g]
+    many = {json.loads((Path(run) / "run.json").read_text()).get("maps") == "train" for run in runs}
+    if len(many) > 1:
+        raise SystemExit("single-map and multi-map runs were evaluated on different maps")
     days = list(SELECT_SEEDS)[:args.eval_days]
-    slack = {load: np.mean([run_day(heuristic(slack_aware_policy), load, s)["on_time_rate"]
-                            for s in days]) for load in LOADS}
+    maps = [SELECT_MAP_SEEDS[k % len(SELECT_MAP_SEEDS)] if many.pop() else 0
+            for k in range(len(days))]  # as train_ppo.py's evaluation
+    slack = {load: np.mean([run_day(heuristic(slack_aware_policy), load, s,
+                                    EnvConfig(map_seed=m))["on_time_rate"]
+                            for s, m in zip(days, maps)]) for load in LOADS}
 
     fig = Figure(figsize=(9, 3.4), dpi=150)
     for k, load in enumerate(LOADS):
