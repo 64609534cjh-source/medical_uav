@@ -64,8 +64,8 @@ def main():
     many = {json.loads((Path(run) / "run.json").read_text()).get("maps") == "train" for run in runs}
     if len(many) > 1:
         raise SystemExit("single-map and multi-map runs were evaluated on different maps")
-    days = list(SELECT_SEEDS)[:args.eval_days]
-    maps = [SELECT_MAP_SEEDS[k % len(SELECT_MAP_SEEDS)] if many.pop() else 0
+    days, many_maps = list(SELECT_SEEDS)[:args.eval_days], many.pop()
+    maps = [SELECT_MAP_SEEDS[k % len(SELECT_MAP_SEEDS)] if many_maps else 0
             for k in range(len(days))]  # as train_ppo.py's evaluation
     slack = {load: np.mean([run_day(heuristic(slack_aware_policy), load, s,
                                     EnvConfig(map_seed=m))["on_time_rate"]

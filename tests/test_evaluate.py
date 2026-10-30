@@ -211,7 +211,7 @@ def test_plot_training_runs_on_logged_curves(tmp_path):
     repo = Path(__file__).resolve().parents[1]
     result = subprocess.run([sys.executable, str(repo / "scripts" / "plot_training.py"),
                              f"A:{tmp_path / 'a_s11'}", f"B:{tmp_path / 'b_s11'}",
-                             "--extra-cost", "B=300", "--eval-days", "1",
+                             "--extra-cost", "B=300", "--eval-days", "2",
                              "--out", str(tmp_path / "curves.png")],
                             capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
