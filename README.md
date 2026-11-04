@@ -4,7 +4,7 @@ NUS ME5418, Group 17 (Jihang Cai, Yu Liu, Yufeng Zhang). **Milestone 3: the lear
 
 One drone collects and delivers medical orders between a medical center and five hospitals in
 our Gymnasium environment. It must meet deadlines, avoid no-fly zones, respect cargo limits and
-manage its battery. A set/attention network chooses actions using masked proximal policy
+manage its battery. A set network with attention chooses actions using masked proximal policy
 optimization (PPO), implemented in `medical_uav/agents/ppo.py`.
 
 The final agent was trained from scratch on 500 random maps (map seeds 1000–1499), with reward
