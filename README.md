@@ -75,7 +75,7 @@ Pauses at decisions allow time to read the choices; they are not computation tim
 python scripts/train_ppo.py --net set --seed 11 --maps train --reward v2_expiry05 --decisions 5e5 --eval-every 1e5 --eval-days 10 --threads 2 --out outputs/quick_s11
 ```
 
-This takes about 5 min. It trains on randomly drawn days at all three loads and prints greedy
+This takes about 5–7 min. It trains on randomly drawn days at all three loads and prints greedy
 on-time rates on 10 selection days at medium and high load, rotating over selection maps.
 In the checked run, medium/high rates were 43.4/28.7% before training, 80.7/67.2% at about
 100,000 decisions and 85.1/69.1% at about 500,000 decisions.
@@ -122,8 +122,8 @@ Map 0 uses 300 new demand days per load; unseen maps use 30 maps × 10 days per 
 | Rolling horizon | 92.2 | 79.4 | 93.2 | 80.6 |
 | PPO | 91.8 | 80.8 | 92.7 | 81.7 |
 
-Serial decisions take about 0.23 ms for PPO, compared with 564/1,373 ms for rolling horizon at
-medium/high load. See the report for comparisons and uncertainty, `evidence/final_test/` for
+Serial decisions take about 0.23 ms for PPO, compared with 564 ms at medium load and 1,373 ms
+at high load for rolling horizon. See the report for comparisons and uncertainty, `evidence/final_test/` for
 the complete results, and `evidence/latency/` for serial timing samples.
 
 ## Full reproduction (optional)
@@ -154,7 +154,7 @@ python scripts/locked_report.py outputs/final_rerun > outputs/final_rerun/report
 
 This runs 109,200 policy-days: about 11 h with 8–24 workers here, much longer on a laptop.
 The rolling-horizon planner dominates the time. Git must be available on PATH; use unchanged
-code and the supplied checkpoints. Interrupted runs resume from saved days.
+code and the supplied checkpoints. Rerunning resumes from saved days. After a crash, if `outputs/final_rerun/.lock` remains, confirm the old test has stopped, remove that file, and rerun.
 Do not run the `freeze` command: the entrants and their hashes are already supplied.
 
 For a short serial decision-time benchmark:
@@ -176,7 +176,7 @@ python scripts/train_bc.py --teacher rollout
 
 The network demo takes a few seconds: parameter counts, forward and backward passes on real
 observations, then a day with each trained network and Slack-aware. It saves no files.
-Behaviour cloning (BC) trains both networks to imitate a teacher. The two training commands
+Behaviour cloning (BC) trains `mlp`, `set` and `set_dest` (an unused variant) to imitate a teacher. The two training commands
 overwrite the corresponding `bc_*` or `bc_rollout_*` checkpoints and histories.
 
 ## Environment and networks
@@ -197,7 +197,7 @@ and values `[B]`. Forbidden logits are set to −10⁹. Inference chooses the hi
 | Network | Structure | Parameters |
 |---|---|---:|
 | Multilayer perceptron (MLP) | separate actor and critic, each 452 → 256 → 256, tanh | 370,459 |
-| Set/attention | shared order and cargo encoders, width 64, four-head attention, shared pick-up scorer | 62,928 |
+| Set network with attention | shared order and cargo encoders, width 64, four-head attention, shared pick-up scorer | 62,928 |
 
 Baselines include Random, earliest deadline first (EDF), first come first served (FCFS),
 nearest-first, Slack-aware, insertion, visible-order rollout, scenario rollout with 16 sampled
@@ -217,7 +217,7 @@ scripts/
   demo.py               run one day; save replay, picture and optional backlog video
   demo_network.py       M2 forward/backward passes and whole-day network demo
   train_ppo.py          train one PPO run; save checkpoints, evaluations and updates
-  train_bc.py           imitate Slack-aware or rollout with both networks
+  train_bc.py           imitate Slack-aware or rollout with all three architectures
   evaluate.py           paired development evaluation and per-day CSV
   select_checkpoints.py choose one eligible checkpoint per run on selection days
   plot_training.py      learning curves and Slack-aware comparison
