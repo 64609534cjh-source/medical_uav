@@ -1,0 +1,930 @@
+campaign: manifest 9fb0c1174a68, code 43ac6067e13e, days test, limit None
+
+== map0, low load, 300 days: mean daily rate (on-time / served / expired)
+  random                   0.504 / 0.811 / 0.189
+  edf                      0.985 / 1.000 / 0.000
+  fcfs                     0.962 / 0.996 / 0.004
+  nearest                  0.982 / 0.998 / 0.002
+  slack                    0.994 / 0.998 / 0.002
+  insertion                0.991 / 0.999 / 0.001
+  rollout                  0.998 / 1.000 / 0.000
+  scenario16               0.997 / 0.999 / 0.001
+  slack100                 0.991 / 0.997 / 0.003
+  prepeak                  0.991 / 0.997 / 0.003
+  f12_mm_e05_s11           0.999 / 1.000 / 0.000
+  f12_mm_e05_s22           0.999 / 1.000 / 0.000
+  f12_mm_e05_s33           0.999 / 1.000 / 0.000
+  f12_mm_e05_s44           0.999 / 1.000 / 0.000
+  f12_mm_e05_s55           0.999 / 0.999 / 0.001
+  f12_mm_v2_s11            0.999 / 0.999 / 0.001
+  f12_mm_v2_s22            0.999 / 0.999 / 0.001
+  f12_mm_v2_s33            0.999 / 1.000 / 0.000
+  f12_mm_v2_s44            0.999 / 1.000 / 0.000
+  f12_mm_v2_s55            0.999 / 0.999 / 0.001
+  f12_sm_e05_s11           0.999 / 1.000 / 0.000
+  f12_sm_e05_s22           0.999 / 1.000 / 0.000
+  f12_sm_e05_s33           0.999 / 1.000 / 0.000
+  f12_sm_e05_s44           0.999 / 1.000 / 0.000
+  f12_sm_e05_s55           0.999 / 1.000 / 0.000
+  f12_sm_v2_s11            0.999 / 0.999 / 0.001
+  f12_sm_v2_s22            0.998 / 1.000 / 0.000
+  f12_sm_v2_s33            0.998 / 1.000 / 0.000
+  f12_sm_v2_s44            0.999 / 1.000 / 0.000
+  f12_sm_v2_s55            0.999 / 1.000 / 0.000
+  f12_sm_v2_mlp_s11        0.997 / 0.999 / 0.001
+  f12_sm_v2_mlp_s22        0.997 / 0.999 / 0.001
+  f12_sm_v2_mlp_s33        0.998 / 1.000 / 0.000
+  f24_sm_v2_mlp_s11        0.997 / 0.999 / 0.001
+  f24_sm_v2_mlp_s22        0.996 / 1.000 / 0.000
+  f24_sm_v2_mlp_s33        0.997 / 1.000 / 0.000
+  f12_mm_e05_mlp_s11       0.997 / 1.000 / 0.000
+  f12_mm_e05_mlp_s22       0.997 / 1.000 / 0.000
+  f12_mm_e05_mlp_s33       0.998 / 1.000 / 0.000
+  f24_mm_e05_mlp_s11       0.998 / 1.000 / 0.000
+  f24_mm_e05_mlp_s22       0.997 / 1.000 / 0.000
+  f24_mm_e05_mlp_s33       0.999 / 0.999 / 0.001
+  f12_sm_e05_bc_s11        0.999 / 1.000 / 0.000
+  f12_sm_e05_bc_s22        0.999 / 1.000 / 0.000
+  f12_sm_e05_bc_s33        0.999 / 1.000 / 0.000
+  f12_sm_m1_s11            0.999 / 1.000 / 0.000
+  f12_sm_m1_s22            0.996 / 1.000 / 0.000
+  f12_sm_m1_s33            0.997 / 1.000 / 0.000
+  f12_sm_ontime_s11        0.999 / 0.999 / 0.001
+  f12_sm_ontime_s22        0.999 / 0.999 / 0.001
+  f12_sm_ontime_s33        0.998 / 0.998 / 0.002
+  bc_set                   0.993 / 0.998 / 0.002
+  bc_mlp                   0.991 / 0.998 / 0.002
+  bc_rollout_set           0.990 / 0.999 / 0.001
+  bc_rollout_mlp           0.987 / 1.000 / 0.000
+  f12_mm_e05_s11/no100     0.998 / 1.000 / 0.000
+  f12_mm_e05_s22/no100     0.998 / 1.000 / 0.000
+  f12_mm_e05_s33/no100     0.998 / 0.999 / 0.001
+  f12_mm_e05_s44/no100     0.998 / 1.000 / 0.000
+  f12_mm_e05_s55/no100     0.998 / 0.999 / 0.001
+  final                    0.999 / 1.000 / 0.000
+  final3                   0.999 / 1.000 / 0.000
+  f12_mm_v2                0.999 / 0.999 / 0.001
+  f12_sm_e05               0.999 / 1.000 / 0.000
+  f12_sm_v2                0.999 / 0.999 / 0.001
+  f12_sm_v2_mlp            0.998 / 0.999 / 0.001
+  f24_sm_v2_mlp            0.997 / 1.000 / 0.000
+  f12_mm_e05_mlp           0.997 / 1.000 / 0.000
+  f24_mm_e05_mlp           0.998 / 1.000 / 0.000
+  f12_sm_e05_bc            0.999 / 1.000 / 0.000
+  f12_sm_m1                0.997 / 1.000 / 0.000
+  f12_sm_ontime            0.998 / 0.999 / 0.001
+  PPO groups, per-seed means (SD, range in points):
+    final            0.999 0.999 0.999 0.999 0.999  (SD 0.02, range 0.04)
+    final3           0.999 0.999 0.999  (SD 0.02, range 0.04)
+    f12_mm_v2        0.999 0.999 0.999 0.999 0.999  (SD 0.02, range 0.04)
+    f12_sm_e05       0.999 0.999 0.999 0.999 0.999  (SD 0.01, range 0.03)
+    f12_sm_v2        0.999 0.998 0.998 0.999 0.999  (SD 0.05, range 0.12)
+    f12_sm_v2_mlp    0.997 0.997 0.998  (SD 0.03, range 0.07)
+    f24_sm_v2_mlp    0.997 0.996 0.997  (SD 0.07, range 0.12)
+    f12_mm_e05_mlp   0.997 0.997 0.998  (SD 0.10, range 0.18)
+    f24_mm_e05_mlp   0.998 0.997 0.999  (SD 0.09, range 0.18)
+    f12_sm_e05_bc    0.999 0.999 0.999  (SD 0.01, range 0.02)
+    f12_sm_m1        0.999 0.996 0.997  (SD 0.11, range 0.22)
+    f12_sm_ontime    0.999 0.999 0.998  (SD 0.08, range 0.14)
+  primary, final agent minus (points, 95 % bootstrap over days):
+    slack         +0.53 [ +0.35,  +0.73]  better, practically equivalent; margin -1: met; served  +0.16 [ +0.07,  +0.26]
+    shipped - slack         +0.51 [ +0.33,  +0.71]
+  secondary, final agent minus:
+    random       +49.47 [+47.77, +51.13]  better; served +18.83 [+17.68, +19.98]
+    edf           +1.36 [ +0.88,  +1.89]  better; served  -0.02 [ -0.06,  +0.01]
+    fcfs          +3.71 [ +3.11,  +4.33]  better; served  +0.39 [ +0.23,  +0.57]
+    nearest       +1.70 [ +1.36,  +2.07]  better; served  +0.21 [ +0.10,  +0.34]
+    insertion     +0.78 [ +0.58,  +1.00]  better; served  +0.12 [ +0.03,  +0.23]
+    rollout       +0.11 [ +0.03,  +0.20]  better, practically equivalent; served  -0.00 [ -0.03,  +0.03]
+    scenario16    +0.23 [ +0.10,  +0.37]  better, practically equivalent; served  +0.08 [ +0.02,  +0.16]
+  development path and controls:
+    map effect, expiry -0.5                 +0.01 [ -0.03,  +0.06]  no direction, practically equivalent
+    map effect, v2                          +0.01 [ -0.04,  +0.06]  no direction, practically equivalent
+    reward effect, multi-map                +0.01 [ -0.02,  +0.05]  no direction, practically equivalent
+    reward effect, multi-map (expired)      -0.03 [ -0.05,  -0.01]  worse, practically equivalent
+    reward effect, single-map               +0.01 [ -0.03,  +0.04]  no direction, practically equivalent
+    reward effect, single-map (expired)     -0.03 [ -0.05,  -0.01]  worse, practically equivalent
+    set - MLP, 12 M each                    +0.12 [ +0.04,  +0.21]  better, practically equivalent  seeds +0.13 +0.12 +0.02
+    set 12 M - MLP 24 M                     +0.17 [ +0.09,  +0.26]  better, practically equivalent  seeds +0.13 +0.22 +0.07
+    final - MLP, multi-map 12 M each        +0.16 [ +0.08,  +0.25]  better, practically equivalent  seeds +0.18 +0.26 +0.04
+    final - MLP, multi-map 24 M             +0.09 [ +0.03,  +0.16]  better, practically equivalent  seeds +0.08 +0.21 -0.01
+    BC -> PPO - scratch                     -0.02 [ -0.07,  +0.04]  no direction, practically equivalent
+    BC -> PPO - its imitation start         +0.56 [ +0.36,  +0.78]  better, practically equivalent
+    v2 - M1 reward                          +0.13 [ +0.07,  +0.21]  better, practically equivalent  seeds +0.01 +0.20 +0.11
+    v2 - on-time-only reward                +0.02 [ -0.02,  +0.07]  no direction, practically equivalent  seeds -0.01 -0.06 +0.06
+  operations: mean lateness of late deliveries (min, pooled), energy (battery %), km, empty km, backlog (orders waiting) per day:
+    final        lateness   9.4  energy  364.1  km  96.0  empty km  41.9  backlog  0.41
+    slack        lateness  17.1  energy  374.7  km  99.1  empty km  43.1  backlog  0.49
+    insertion    lateness  12.5  energy  349.0  km  92.5  empty km  39.9  backlog  0.40
+    rollout      lateness  14.6  energy  314.5  km  81.6  empty km  28.5  backlog  0.44
+    scenario16   lateness  28.0  energy  295.3  km  73.9  empty km  19.2  backlog  1.12
+  pooled on-time by type (on time / released):
+    final        plasma 0.994  medicine 1.000  sample 1.000  supplies 1.000
+    slack        plasma 0.976  medicine 0.999  sample 0.995  supplies 0.996
+    insertion    plasma 0.960  medicine 1.000  sample 0.997  supplies 0.996
+    rollout      plasma 0.988  medicine 1.000  sample 1.000  supplies 1.000
+
+== map0, medium load, 300 days: mean daily rate (on-time / served / expired)
+  random                   0.253 / 0.514 / 0.486
+  edf                      0.385 / 0.879 / 0.121
+  fcfs                     0.489 / 0.847 / 0.153
+  nearest                  0.713 / 0.929 / 0.071
+  slack                    0.796 / 0.906 / 0.094
+  insertion                0.857 / 0.929 / 0.071
+  rollout                  0.890 / 0.945 / 0.055
+  scenario16               0.892 / 0.928 / 0.072
+  horizon                  0.922 / 0.965 / 0.035
+  slack100                 0.792 / 0.904 / 0.096
+  prepeak                  0.792 / 0.903 / 0.097
+  f12_mm_e05_s11           0.919 / 0.962 / 0.038
+  f12_mm_e05_s22           0.920 / 0.963 / 0.037
+  f12_mm_e05_s33           0.917 / 0.962 / 0.038
+  f12_mm_e05_s44           0.921 / 0.956 / 0.044
+  f12_mm_e05_s55           0.915 / 0.959 / 0.041
+  f12_mm_v2_s11            0.922 / 0.949 / 0.051
+  f12_mm_v2_s22            0.921 / 0.946 / 0.054
+  f12_mm_v2_s33            0.914 / 0.946 / 0.054
+  f12_mm_v2_s44            0.918 / 0.945 / 0.055
+  f12_mm_v2_s55            0.917 / 0.932 / 0.068
+  f12_sm_e05_s11           0.926 / 0.964 / 0.036
+  f12_sm_e05_s22           0.922 / 0.962 / 0.038
+  f12_sm_e05_s33           0.920 / 0.962 / 0.038
+  f12_sm_e05_s44           0.920 / 0.955 / 0.045
+  f12_sm_e05_s55           0.926 / 0.964 / 0.036
+  f12_sm_v2_s11            0.927 / 0.949 / 0.051
+  f12_sm_v2_s22            0.929 / 0.951 / 0.049
+  f12_sm_v2_s33            0.924 / 0.945 / 0.055
+  f12_sm_v2_s44            0.928 / 0.947 / 0.053
+  f12_sm_v2_s55            0.928 / 0.949 / 0.051
+  f12_sm_v2_mlp_s11        0.913 / 0.949 / 0.051
+  f12_sm_v2_mlp_s22        0.912 / 0.949 / 0.051
+  f12_sm_v2_mlp_s33        0.914 / 0.950 / 0.050
+  f24_sm_v2_mlp_s11        0.922 / 0.954 / 0.046
+  f24_sm_v2_mlp_s22        0.921 / 0.951 / 0.049
+  f24_sm_v2_mlp_s33        0.919 / 0.950 / 0.050
+  f12_mm_e05_mlp_s11       0.906 / 0.954 / 0.046
+  f12_mm_e05_mlp_s22       0.905 / 0.955 / 0.045
+  f12_mm_e05_mlp_s33       0.906 / 0.956 / 0.044
+  f24_mm_e05_mlp_s11       0.914 / 0.959 / 0.041
+  f24_mm_e05_mlp_s22       0.914 / 0.960 / 0.040
+  f24_mm_e05_mlp_s33       0.913 / 0.956 / 0.044
+  f12_sm_e05_bc_s11        0.928 / 0.962 / 0.038
+  f12_sm_e05_bc_s22        0.925 / 0.961 / 0.039
+  f12_sm_e05_bc_s33        0.929 / 0.960 / 0.040
+  f12_sm_m1_s11            0.891 / 0.971 / 0.029
+  f12_sm_m1_s22            0.886 / 0.979 / 0.021
+  f12_sm_m1_s33            0.897 / 0.977 / 0.023
+  f12_sm_ontime_s11        0.927 / 0.938 / 0.062
+  f12_sm_ontime_s22        0.927 / 0.936 / 0.064
+  f12_sm_ontime_s33        0.918 / 0.929 / 0.071
+  bc_set                   0.796 / 0.909 / 0.091
+  bc_mlp                   0.774 / 0.908 / 0.092
+  bc_rollout_set           0.842 / 0.937 / 0.063
+  bc_rollout_mlp           0.815 / 0.947 / 0.053
+  f12_mm_e05_s11/no100     0.907 / 0.956 / 0.044
+  f12_mm_e05_s22/no100     0.906 / 0.957 / 0.043
+  f12_mm_e05_s33/no100     0.901 / 0.956 / 0.044
+  f12_mm_e05_s44/no100     0.904 / 0.950 / 0.050
+  f12_mm_e05_s55/no100     0.901 / 0.952 / 0.048
+  final                    0.918 / 0.960 / 0.040
+  final3                   0.918 / 0.963 / 0.037
+  f12_mm_v2                0.919 / 0.944 / 0.056
+  f12_sm_e05               0.923 / 0.962 / 0.038
+  f12_sm_v2                0.927 / 0.948 / 0.052
+  f12_sm_v2_mlp            0.913 / 0.949 / 0.051
+  f24_sm_v2_mlp            0.921 / 0.952 / 0.048
+  f12_mm_e05_mlp           0.905 / 0.955 / 0.045
+  f24_mm_e05_mlp           0.914 / 0.959 / 0.041
+  f12_sm_e05_bc            0.927 / 0.961 / 0.039
+  f12_sm_m1                0.891 / 0.976 / 0.024
+  f12_sm_ontime            0.924 / 0.934 / 0.066
+  PPO groups, per-seed means (SD, range in points):
+    final            0.919 0.920 0.917 0.921 0.915  (SD 0.25, range 0.62)
+    final3           0.919 0.920 0.917  (SD 0.15, range 0.29)
+    f12_mm_v2        0.922 0.921 0.914 0.918 0.917  (SD 0.33, range 0.82)
+    f12_sm_e05       0.926 0.922 0.920 0.920 0.926  (SD 0.31, range 0.61)
+    f12_sm_v2        0.927 0.929 0.924 0.928 0.928  (SD 0.20, range 0.52)
+    f12_sm_v2_mlp    0.913 0.912 0.914  (SD 0.09, range 0.18)
+    f24_sm_v2_mlp    0.922 0.921 0.919  (SD 0.14, range 0.26)
+    f12_mm_e05_mlp   0.906 0.905 0.906  (SD 0.08, range 0.16)
+    f24_mm_e05_mlp   0.914 0.914 0.913  (SD 0.03, range 0.07)
+    f12_sm_e05_bc    0.928 0.925 0.929  (SD 0.22, range 0.42)
+    f12_sm_m1        0.891 0.886 0.897  (SD 0.52, range 1.03)
+    f12_sm_ontime    0.927 0.927 0.918  (SD 0.55, range 0.98)
+  primary, final agent minus (points, 95 % bootstrap over days):
+    slack        +12.23 [+11.56, +12.89]  better; target >= +3 with lower bound > 0: met; served  +5.42 [ +5.01,  +5.85]
+    shipped - slack        +12.31 [+11.62, +13.00]
+    horizon       -0.39 [ -0.69,  -0.08]  worse, practically equivalent; margin -2: met; served  -0.45 [ -0.65,  -0.25]
+    shipped - horizon       -0.32 [ -0.70,  +0.07]
+  secondary, final agent minus:
+    random       +66.57 [+65.78, +67.33]  better; served +44.68 [+43.88, +45.46]
+    edf          +53.30 [+51.46, +55.08]  better; served  +8.19 [ +7.42,  +8.98]
+    fcfs         +42.93 [+41.40, +44.44]  better; served +11.36 [+10.77, +11.97]
+    nearest      +20.49 [+19.45, +21.56]  better; served  +3.20 [ +2.82,  +3.57]
+    insertion     +6.15 [ +5.65,  +6.66]  better; served  +3.11 [ +2.78,  +3.45]
+    rollout       +2.78 [ +2.40,  +3.16]  better; served  +1.57 [ +1.31,  +1.83]
+    scenario16    +2.60 [ +2.26,  +2.92]  better; served  +3.26 [ +2.97,  +3.56]
+  development path and controls:
+    map effect, expiry -0.5                 -0.48 [ -0.66,  -0.30]  worse, practically equivalent
+    map effect, v2                          -0.87 [ -1.06,  -0.69]  worse
+    reward effect, multi-map                -0.05 [ -0.19,  +0.09]  no direction, practically equivalent
+    reward effect, multi-map (expired)      -1.69 [ -1.86,  -1.53]  worse
+    reward effect, single-map               -0.43 [ -0.57,  -0.30]  worse, practically equivalent
+    reward effect, single-map (expired)     -1.36 [ -1.50,  -1.22]  worse
+    set - MLP, 12 M each                    +1.46 [ +1.24,  +1.68]  better  seeds +1.43 +1.75 +1.05
+    set 12 M - MLP 24 M                     +0.68 [ +0.48,  +0.88]  better, practically equivalent  seeds +0.56 +0.82 +0.50
+    final - MLP, multi-map 12 M each        +1.30 [ +1.05,  +1.55]  better  seeds +1.34 +1.51 +1.05
+    final - MLP, multi-map 24 M             +0.47 [ +0.22,  +0.71]  better, practically equivalent  seeds +0.49 +0.58 +0.33
+    BC -> PPO - scratch                     +0.44 [ +0.26,  +0.62]  better, practically equivalent
+    BC -> PPO - its imitation start        +13.10 [+12.40, +13.78]  better
+    v2 - M1 reward                          +3.62 [ +3.27,  +3.97]  better  seeds +3.67 +4.29 +2.74
+    v2 - on-time-only reward                +0.34 [ +0.20,  +0.49]  better, practically equivalent  seeds +0.03 +0.19 +0.65
+  operations: mean lateness of late deliveries (min, pooled), energy (battery %), km, empty km, backlog (orders waiting) per day:
+    final        lateness  26.0  energy  544.7  km 136.8  empty km  37.6  backlog  3.03
+    slack        lateness  27.7  energy  604.2  km 152.7  empty km  49.9  backlog  4.21
+    insertion    lateness  27.8  energy  562.2  km 142.9  empty km  43.0  backlog  3.57
+    rollout      lateness  37.2  energy  533.1  km 130.9  empty km  28.3  backlog  3.55
+    scenario16   lateness  43.4  energy  550.8  km 133.3  empty km  24.2  backlog  3.94
+    horizon      lateness  42.8  energy  514.9  km 126.5  empty km  27.1  backlog  3.27
+  pooled on-time by type (on time / released):
+    final        plasma 0.854  medicine 0.942  sample 0.931  supplies 0.901
+    slack        plasma 0.738  medicine 0.847  sample 0.783  supplies 0.746
+    insertion    plasma 0.753  medicine 0.902  sample 0.859  supplies 0.850
+    rollout      plasma 0.778  medicine 0.940  sample 0.905  supplies 0.872
+    horizon      plasma 0.835  medicine 0.953  sample 0.940  supplies 0.908
+
+== map0, high load, 300 days: mean daily rate (on-time / served / expired)
+  random                   0.202 / 0.415 / 0.585
+  edf                      0.254 / 0.690 / 0.310
+  fcfs                     0.300 / 0.686 / 0.314
+  nearest                  0.501 / 0.819 / 0.181
+  slack                    0.633 / 0.792 / 0.208
+  insertion                0.691 / 0.799 / 0.201
+  rollout                  0.746 / 0.834 / 0.166
+  scenario16               0.765 / 0.817 / 0.183
+  horizon                  0.794 / 0.870 / 0.130
+  slack100                 0.636 / 0.787 / 0.213
+  prepeak                  0.634 / 0.786 / 0.214
+  f12_mm_e05_s11           0.809 / 0.871 / 0.129
+  f12_mm_e05_s22           0.807 / 0.872 / 0.128
+  f12_mm_e05_s33           0.808 / 0.873 / 0.127
+  f12_mm_e05_s44           0.810 / 0.864 / 0.136
+  f12_mm_e05_s55           0.804 / 0.865 / 0.135
+  f12_mm_v2_s11            0.815 / 0.850 / 0.150
+  f12_mm_v2_s22            0.815 / 0.846 / 0.154
+  f12_mm_v2_s33            0.805 / 0.847 / 0.153
+  f12_mm_v2_s44            0.809 / 0.849 / 0.151
+  f12_mm_v2_s55            0.813 / 0.829 / 0.171
+  f12_sm_e05_s11           0.814 / 0.880 / 0.120
+  f12_sm_e05_s22           0.814 / 0.874 / 0.126
+  f12_sm_e05_s33           0.814 / 0.877 / 0.123
+  f12_sm_e05_s44           0.816 / 0.867 / 0.133
+  f12_sm_e05_s55           0.819 / 0.877 / 0.123
+  f12_sm_v2_s11            0.826 / 0.855 / 0.145
+  f12_sm_v2_s22            0.823 / 0.857 / 0.143
+  f12_sm_v2_s33            0.823 / 0.851 / 0.149
+  f12_sm_v2_s44            0.824 / 0.853 / 0.147
+  f12_sm_v2_s55            0.826 / 0.854 / 0.146
+  f12_sm_v2_mlp_s11        0.794 / 0.845 / 0.155
+  f12_sm_v2_mlp_s22        0.795 / 0.851 / 0.149
+  f12_sm_v2_mlp_s33        0.796 / 0.845 / 0.155
+  f24_sm_v2_mlp_s11        0.809 / 0.855 / 0.145
+  f24_sm_v2_mlp_s22        0.811 / 0.857 / 0.143
+  f24_sm_v2_mlp_s33        0.806 / 0.853 / 0.147
+  f12_mm_e05_mlp_s11       0.783 / 0.848 / 0.152
+  f12_mm_e05_mlp_s22       0.782 / 0.855 / 0.145
+  f12_mm_e05_mlp_s33       0.783 / 0.851 / 0.149
+  f24_mm_e05_mlp_s11       0.790 / 0.856 / 0.144
+  f24_mm_e05_mlp_s22       0.788 / 0.858 / 0.142
+  f24_mm_e05_mlp_s33       0.792 / 0.856 / 0.144
+  f12_sm_e05_bc_s11        0.827 / 0.877 / 0.123
+  f12_sm_e05_bc_s22        0.818 / 0.872 / 0.128
+  f12_sm_e05_bc_s33        0.826 / 0.872 / 0.128
+  f12_sm_m1_s11            0.753 / 0.899 / 0.101
+  f12_sm_m1_s22            0.739 / 0.908 / 0.092
+  f12_sm_m1_s33            0.740 / 0.902 / 0.098
+  f12_sm_ontime_s11        0.823 / 0.837 / 0.163
+  f12_sm_ontime_s22        0.823 / 0.835 / 0.165
+  f12_sm_ontime_s33        0.815 / 0.829 / 0.171
+  bc_set                   0.634 / 0.790 / 0.210
+  bc_mlp                   0.605 / 0.786 / 0.214
+  bc_rollout_set           0.688 / 0.830 / 0.170
+  bc_rollout_mlp           0.639 / 0.834 / 0.166
+  f12_mm_e05_s11/no100     0.795 / 0.862 / 0.138
+  f12_mm_e05_s22/no100     0.792 / 0.862 / 0.138
+  f12_mm_e05_s33/no100     0.792 / 0.863 / 0.137
+  f12_mm_e05_s44/no100     0.791 / 0.853 / 0.147
+  f12_mm_e05_s55/no100     0.794 / 0.859 / 0.141
+  final                    0.808 / 0.869 / 0.131
+  final3                   0.808 / 0.872 / 0.128
+  f12_mm_v2                0.812 / 0.844 / 0.156
+  f12_sm_e05               0.815 / 0.875 / 0.125
+  f12_sm_v2                0.824 / 0.854 / 0.146
+  f12_sm_v2_mlp            0.795 / 0.847 / 0.153
+  f24_sm_v2_mlp            0.809 / 0.855 / 0.145
+  f12_mm_e05_mlp           0.783 / 0.851 / 0.149
+  f24_mm_e05_mlp           0.790 / 0.857 / 0.143
+  f12_sm_e05_bc            0.824 / 0.874 / 0.126
+  f12_sm_m1                0.744 / 0.903 / 0.097
+  f12_sm_ontime            0.820 / 0.833 / 0.167
+  PPO groups, per-seed means (SD, range in points):
+    final            0.809 0.807 0.808 0.810 0.804  (SD 0.23, range 0.58)
+    final3           0.809 0.807 0.808  (SD 0.12, range 0.24)
+    f12_mm_v2        0.815 0.815 0.805 0.809 0.813  (SD 0.43, range 1.00)
+    f12_sm_e05       0.814 0.814 0.814 0.816 0.819  (SD 0.22, range 0.53)
+    f12_sm_v2        0.826 0.823 0.823 0.824 0.826  (SD 0.14, range 0.31)
+    f12_sm_v2_mlp    0.794 0.795 0.796  (SD 0.13, range 0.26)
+    f24_sm_v2_mlp    0.809 0.811 0.806  (SD 0.26, range 0.51)
+    f12_mm_e05_mlp   0.783 0.782 0.783  (SD 0.08, range 0.16)
+    f24_mm_e05_mlp   0.790 0.788 0.792  (SD 0.21, range 0.41)
+    f12_sm_e05_bc    0.827 0.818 0.826  (SD 0.47, range 0.85)
+    f12_sm_m1        0.753 0.739 0.740  (SD 0.78, range 1.38)
+    f12_sm_ontime    0.823 0.823 0.815  (SD 0.48, range 0.83)
+  primary, final agent minus (points, 95 % bootstrap over days):
+    slack        +17.47 [+16.92, +18.02]  better; margin -2: met; served  +7.75 [ +7.40,  +8.12]
+    shipped - slack        +17.62 [+17.01, +18.24]
+    horizon       +1.35 [ +1.01,  +1.70]  better; margin -2: met; served  -0.08 [ -0.35,  +0.19]
+    shipped - horizon       +1.50 [ +1.06,  +1.96]
+  secondary, final agent minus:
+    random       +60.60 [+59.92, +61.29]  better; served +45.39 [+44.85, +45.95]
+    edf          +55.32 [+54.51, +56.16]  better; served +17.88 [+17.25, +18.51]
+    fcfs         +50.77 [+50.02, +51.49]  better; served +18.27 [+17.76, +18.76]
+    nearest      +30.64 [+29.84, +31.41]  better; served  +5.01 [ +4.56,  +5.47]
+    insertion    +11.63 [+11.06, +12.20]  better; served  +7.00 [ +6.61,  +7.39]
+    rollout       +6.17 [ +5.75,  +6.57]  better; served  +3.49 [ +3.19,  +3.80]
+    scenario16    +4.26 [ +3.90,  +4.63]  better; served  +5.25 [ +4.93,  +5.56]
+  development path and controls:
+    map effect, expiry -0.5                 -0.78 [ -0.95,  -0.60]  worse, practically equivalent
+    map effect, v2                          -1.27 [ -1.44,  -1.09]  worse
+    reward effect, multi-map                -0.39 [ -0.56,  -0.23]  worse, practically equivalent
+    reward effect, multi-map (expired)      -2.51 [ -2.67,  -2.35]  worse
+    reward effect, single-map               -0.88 [ -1.05,  -0.71]  worse
+    reward effect, single-map (expired)     -2.09 [ -2.23,  -1.95]  worse
+    set - MLP, 12 M each                    +2.91 [ +2.65,  +3.17]  better  seeds +3.18 +2.82 +2.61
+    set 12 M - MLP 24 M                     +1.57 [ +1.33,  +1.81]  better  seeds +1.71 +1.22 +1.66
+    final - MLP, multi-map 12 M each        +2.52 [ +2.22,  +2.83]  better  seeds +2.62 +2.49 +2.44
+    final - MLP, multi-map 24 M             +1.77 [ +1.49,  +2.06]  better  seeds +1.91 +1.85 +1.55
+    BC -> PPO - scratch                     +0.83 [ +0.64,  +1.01]  better
+    BC -> PPO - its imitation start        +18.99 [+18.44, +19.53]  better
+    v2 - M1 reward                          +8.03 [ +7.65,  +8.43]  better  seeds +7.28 +8.42 +8.29
+    v2 - on-time-only reward                +0.39 [ +0.23,  +0.54]  better, practically equivalent  seeds +0.26 +0.02 +0.77
+  operations: mean lateness of late deliveries (min, pooled), energy (battery %), km, empty km, backlog (orders waiting) per day:
+    final        lateness  30.9  energy  563.2  km 139.0  empty km  31.1  backlog  5.95
+    slack        lateness  27.1  energy  626.1  km 155.1  empty km  46.4  backlog  7.60
+    insertion    lateness  30.3  energy  620.5  km 155.8  empty km  41.8  backlog  7.37
+    rollout      lateness  42.4  energy  578.3  km 139.5  empty km  25.0  backlog  7.00
+    scenario16   lateness  45.5  energy  589.7  km 141.2  empty km  22.9  backlog  6.81
+    horizon      lateness  52.3  energy  562.9  km 135.7  empty km  23.2  backlog  6.64
+  pooled on-time by type (on time / released):
+    final        plasma 0.732  medicine 0.846  sample 0.833  supplies 0.760
+    slack        plasma 0.569  medicine 0.704  sample 0.618  supplies 0.574
+    insertion    plasma 0.604  medicine 0.725  sample 0.704  supplies 0.670
+    rollout      plasma 0.602  medicine 0.831  sample 0.756  supplies 0.710
+    horizon      plasma 0.681  medicine 0.848  sample 0.822  supplies 0.751
+
+== map0, decision times over all decisions, ms (throughput run, parallel workers; not a latency benchmark): mean / p95
+  random                   low     0.03 /     0.03   medium     0.03 /     0.03   high     0.03 /     0.03
+  edf                      low     0.01 /     0.01   medium     0.02 /     0.02   high     0.02 /     0.02
+  fcfs                     low     0.01 /     0.02   medium     0.02 /     0.02   high     0.02 /     0.02
+  nearest                  low     0.02 /     0.03   medium     0.03 /     0.05   high     0.03 /     0.06
+  slack                    low     0.02 /     0.03   medium     0.03 /     0.05   high     0.03 /     0.06
+  insertion                low     0.09 /     0.38   medium     3.92 /    21.84   high     9.26 /    40.91
+  rollout                  low    16.95 /    36.95   medium    55.91 /   149.02   high    90.99 /   210.55
+  scenario16               low    94.44 /   230.50   medium   311.61 /   794.47   high   505.45 /  1188.37
+  horizon                  medium  1143.53 /  5030.18   high  2722.21 / 10559.39
+  slack100                 low     0.02 /     0.03   medium     0.03 /     0.05   high     0.03 /     0.06
+  prepeak                  low     0.02 /     0.03   medium     0.03 /     0.05   high     0.03 /     0.06
+  f12_mm_e05_s11           low     1.96 /     1.26   medium     0.98 /     1.27   high     0.96 /     1.27
+  f12_mm_e05_s22           low     0.97 /     1.26   medium     0.98 /     1.27   high     0.99 /     1.28
+  f12_mm_e05_s33           low     0.98 /     1.27   medium     0.99 /     1.27   high     1.00 /     1.27
+  f12_mm_e05_s44           low     0.99 /     1.26   medium     0.98 /     1.26   high     0.97 /     1.26
+  f12_mm_e05_s55           low     0.96 /     1.25   medium     0.96 /     1.26   high     0.95 /     1.26
+  f12_mm_v2_s11            low     0.95 /     1.25   medium     0.95 /     1.26   high     0.96 /     1.26
+  f12_mm_v2_s22            low     0.95 /     1.25   medium     0.96 /     1.26   high     0.96 /     1.26
+  f12_mm_v2_s33            low     0.97 /     1.26   medium     0.98 /     1.26   high     0.97 /     1.26
+  f12_mm_v2_s44            low     0.95 /     1.25   medium     0.97 /     1.26   high     0.97 /     1.26
+  f12_mm_v2_s55            low     0.95 /     1.25   medium     0.96 /     1.25   high     0.96 /     1.25
+  f12_sm_e05_s11           low     0.95 /     1.25   medium     0.99 /     1.27   high     0.98 /     1.27
+  f12_sm_e05_s22           low     0.94 /     1.25   medium     0.94 /     1.25   high     0.96 /     1.26
+  f12_sm_e05_s33           low     0.95 /     1.25   medium     0.98 /     1.27   high     0.96 /     1.26
+  f12_sm_e05_s44           low     0.99 /     1.26   medium     0.97 /     1.27   high     0.96 /     1.26
+  f12_sm_e05_s55           low     0.96 /     1.26   medium     0.96 /     1.27   high     0.96 /     1.26
+  f12_sm_v2_s11            low     0.95 /     1.26   medium     0.96 /     1.26   high     0.98 /     1.27
+  f12_sm_v2_s22            low     0.97 /     1.26   medium     0.98 /     1.27   high     0.97 /     1.27
+  f12_sm_v2_s33            low     0.98 /     1.26   medium     0.97 /     1.27   high     0.97 /     1.27
+  f12_sm_v2_s44            low     0.97 /     1.26   medium     0.96 /     1.27   high     0.97 /     1.27
+  f12_sm_v2_s55            low     0.97 /     1.27   medium     0.97 /     1.27   high     0.97 /     1.27
+  f12_sm_v2_mlp_s11        low     0.30 /     0.41   medium     0.30 /     0.42   high     0.31 /     0.43
+  f12_sm_v2_mlp_s22        low     0.30 /     0.41   medium     0.30 /     0.43   high     0.31 /     0.45
+  f12_sm_v2_mlp_s33        low     0.30 /     0.41   medium     0.31 /     0.42   high     0.32 /     0.43
+  f24_sm_v2_mlp_s11        low     0.29 /     0.42   medium     0.31 /     0.42   high     0.31 /     0.45
+  f24_sm_v2_mlp_s22        low     0.30 /     0.43   medium     0.31 /     0.44   high     0.31 /     0.42
+  f24_sm_v2_mlp_s33        low     0.31 /     0.42   medium     0.30 /     0.43   high     0.32 /     0.44
+  f12_mm_e05_mlp_s11       low     0.29 /     0.42   medium     0.31 /     0.43   high     0.32 /     0.45
+  f12_mm_e05_mlp_s22       low     0.30 /     0.42   medium     0.31 /     0.44   high     0.31 /     0.43
+  f12_mm_e05_mlp_s33       low     0.30 /     0.41   medium     0.30 /     0.42   high     0.31 /     0.43
+  f24_mm_e05_mlp_s11       low     0.30 /     0.42   medium     0.31 /     0.43   high     0.31 /     0.44
+  f24_mm_e05_mlp_s22       low     0.30 /     0.40   medium     0.30 /     0.43   high     0.32 /     0.45
+  f24_mm_e05_mlp_s33       low     0.29 /     0.41   medium     0.32 /     0.45   high     0.31 /     0.43
+  f12_sm_e05_bc_s11        low     0.97 /     1.27   medium     0.97 /     1.27   high     0.97 /     1.27
+  f12_sm_e05_bc_s22        low     0.96 /     1.27   medium     0.97 /     1.27   high     0.97 /     1.28
+  f12_sm_e05_bc_s33        low     0.98 /     1.27   medium     0.97 /     1.27   high     0.98 /     1.28
+  f12_sm_m1_s11            low     0.98 /     1.27   medium     0.96 /     1.27   high     0.97 /     1.27
+  f12_sm_m1_s22            low     0.96 /     1.26   medium     0.97 /     1.27   high     0.96 /     1.27
+  f12_sm_m1_s33            low     0.97 /     1.26   medium     0.98 /     1.27   high     0.98 /     1.27
+  f12_sm_ontime_s11        low     0.97 /     1.27   medium     0.98 /     1.27   high     0.98 /     1.27
+  f12_sm_ontime_s22        low     0.97 /     1.26   medium     0.97 /     1.27   high     0.98 /     1.28
+  f12_sm_ontime_s33        low     0.98 /     1.27   medium     0.97 /     1.27   high     0.97 /     1.27
+  bc_set                   low     0.97 /     1.26   medium     0.99 /     1.27   high     0.98 /     1.27
+  bc_mlp                   low     0.29 /     0.41   medium     0.30 /     0.41   high     0.30 /     0.41
+  bc_rollout_set           low     0.96 /     1.26   medium     0.96 /     1.27   high     0.96 /     1.27
+  bc_rollout_mlp           low     0.29 /     0.41   medium     0.30 /     0.41   high     0.31 /     0.43
+  f12_mm_e05_s11/no100     low     0.98 /     1.27   medium     0.97 /     1.27   high     0.98 /     1.28
+  f12_mm_e05_s22/no100     low     0.99 /     1.28   medium     0.97 /     1.27   high     0.97 /     1.28
+  f12_mm_e05_s33/no100     low     0.97 /     1.27   medium     0.97 /     1.27   high     0.99 /     1.28
+  f12_mm_e05_s44/no100     low     0.98 /     1.27   medium     0.98 /     1.28   high     0.98 /     1.28
+  f12_mm_e05_s55/no100     low     0.97 /     1.26   medium     0.99 /     1.28   high     0.98 /     1.28
+
+== maps, low load, 30 maps: mean daily rate (on-time / served / expired)
+  random                   0.522 / 0.807 / 0.193
+  edf                      0.982 / 1.000 / 0.000
+  fcfs                     0.960 / 0.996 / 0.004
+  nearest                  0.979 / 0.998 / 0.002
+  slack                    0.993 / 0.998 / 0.002
+  insertion                0.992 / 0.999 / 0.001
+  rollout                  0.998 / 0.999 / 0.001
+  scenario16               0.997 / 0.999 / 0.001
+  slack100                 0.993 / 0.999 / 0.001
+  prepeak                  0.993 / 0.999 / 0.001
+  f12_mm_e05_s11           0.999 / 1.000 / 0.000
+  f12_mm_e05_s22           0.998 / 1.000 / 0.000
+  f12_mm_e05_s33           0.998 / 1.000 / 0.000
+  f12_mm_e05_s44           0.998 / 1.000 / 0.000
+  f12_mm_e05_s55           0.998 / 1.000 / 0.000
+  f12_mm_v2_s11            0.998 / 0.999 / 0.001
+  f12_mm_v2_s22            0.999 / 0.999 / 0.001
+  f12_mm_v2_s33            0.998 / 1.000 / 0.000
+  f12_mm_v2_s44            0.999 / 0.999 / 0.001
+  f12_mm_v2_s55            0.998 / 0.999 / 0.001
+  f12_sm_e05_s11           0.997 / 1.000 / 0.000
+  f12_sm_e05_s22           0.997 / 0.999 / 0.001
+  f12_sm_e05_s33           0.998 / 0.999 / 0.001
+  f12_sm_e05_s44           0.997 / 0.999 / 0.001
+  f12_sm_e05_s55           0.997 / 1.000 / 0.000
+  f12_sm_v2_s11            0.998 / 0.999 / 0.001
+  f12_sm_v2_s22            0.996 / 0.999 / 0.001
+  f12_sm_v2_s33            0.998 / 0.999 / 0.001
+  f12_sm_v2_s44            0.998 / 0.999 / 0.001
+  f12_sm_v2_s55            0.997 / 0.999 / 0.001
+  f12_sm_v2_mlp_s11        0.997 / 0.999 / 0.001
+  f12_sm_v2_mlp_s22        0.996 / 0.999 / 0.001
+  f12_sm_v2_mlp_s33        0.997 / 0.999 / 0.001
+  f24_sm_v2_mlp_s11        0.997 / 0.999 / 0.001
+  f24_sm_v2_mlp_s22        0.996 / 0.999 / 0.001
+  f24_sm_v2_mlp_s33        0.996 / 0.999 / 0.001
+  f12_mm_e05_mlp_s11       0.998 / 1.000 / 0.000
+  f12_mm_e05_mlp_s22       0.996 / 0.999 / 0.001
+  f12_mm_e05_mlp_s33       0.998 / 1.000 / 0.000
+  f24_mm_e05_mlp_s11       0.998 / 1.000 / 0.000
+  f24_mm_e05_mlp_s22       0.998 / 1.000 / 0.000
+  f24_mm_e05_mlp_s33       0.998 / 1.000 / 0.000
+  f12_sm_e05_bc_s11        0.998 / 0.999 / 0.001
+  f12_sm_e05_bc_s22        0.995 / 0.998 / 0.002
+  f12_sm_e05_bc_s33        0.998 / 0.999 / 0.001
+  f12_sm_m1_s11            0.996 / 1.000 / 0.000
+  f12_sm_m1_s22            0.995 / 1.000 / 0.000
+  f12_sm_m1_s33            0.997 / 1.000 / 0.000
+  f12_sm_ontime_s11        0.998 / 0.999 / 0.001
+  f12_sm_ontime_s22        0.997 / 0.998 / 0.002
+  f12_sm_ontime_s33        0.996 / 0.997 / 0.003
+  bc_set                   0.989 / 0.996 / 0.004
+  bc_mlp                   0.990 / 0.999 / 0.001
+  bc_rollout_set           0.991 / 0.999 / 0.001
+  bc_rollout_mlp           0.988 / 0.999 / 0.001
+  f12_mm_e05_s11/no100     0.998 / 0.999 / 0.001
+  f12_mm_e05_s22/no100     0.997 / 1.000 / 0.000
+  f12_mm_e05_s33/no100     0.997 / 1.000 / 0.000
+  f12_mm_e05_s44/no100     0.997 / 0.999 / 0.001
+  f12_mm_e05_s55/no100     0.997 / 0.999 / 0.001
+  final                    0.998 / 1.000 / 0.000
+  final3                   0.998 / 1.000 / 0.000
+  f12_mm_v2                0.998 / 0.999 / 0.001
+  f12_sm_e05               0.997 / 1.000 / 0.000
+  f12_sm_v2                0.997 / 0.999 / 0.001
+  f12_sm_v2_mlp            0.997 / 0.999 / 0.001
+  f24_sm_v2_mlp            0.996 / 0.999 / 0.001
+  f12_mm_e05_mlp           0.997 / 1.000 / 0.000
+  f24_mm_e05_mlp           0.998 / 1.000 / 0.000
+  f12_sm_e05_bc            0.997 / 0.999 / 0.001
+  f12_sm_m1                0.996 / 1.000 / 0.000
+  f12_sm_ontime            0.997 / 0.998 / 0.002
+  PPO groups, per-seed means (SD, range in points):
+    final            0.999 0.998 0.998 0.998 0.998  (SD 0.02, range 0.06)
+    final3           0.999 0.998 0.998  (SD 0.02, range 0.04)
+    f12_mm_v2        0.998 0.999 0.998 0.999 0.998  (SD 0.02, range 0.06)
+    f12_sm_e05       0.997 0.997 0.998 0.997 0.997  (SD 0.05, range 0.13)
+    f12_sm_v2        0.998 0.996 0.998 0.998 0.997  (SD 0.08, range 0.19)
+    f12_sm_v2_mlp    0.997 0.996 0.997  (SD 0.02, range 0.05)
+    f24_sm_v2_mlp    0.997 0.996 0.996  (SD 0.05, range 0.09)
+    f12_mm_e05_mlp   0.998 0.996 0.998  (SD 0.09, range 0.16)
+    f24_mm_e05_mlp   0.998 0.998 0.998  (SD 0.01, range 0.02)
+    f12_sm_e05_bc    0.998 0.995 0.998  (SD 0.18, range 0.32)
+    f12_sm_m1        0.996 0.995 0.997  (SD 0.07, range 0.14)
+    f12_sm_ontime    0.998 0.997 0.996  (SD 0.12, range 0.23)
+  primary, final agent minus (points, 95 % bootstrap over maps):
+    slack         +0.55 [ +0.35,  +0.79]  better, practically equivalent; margin -1: met; served  +0.17 [ +0.06,  +0.32]
+    shipped - slack         +0.59 [ +0.36,  +0.84]
+  secondary, final agent minus:
+    random       +47.63 [+45.08, +50.45]  better; served +19.31 [+17.43, +21.41]
+    edf           +1.62 [ +1.00,  +2.33]  better; served  +0.01 [ -0.01,  +0.05]
+    fcfs          +3.79 [ +2.98,  +4.68]  better; served  +0.35 [ +0.19,  +0.53]
+    nearest       +1.93 [ +1.50,  +2.40]  better; served  +0.20 [ +0.09,  +0.31]
+    insertion     +0.58 [ +0.37,  +0.81]  better, practically equivalent; served  +0.06 [ +0.02,  +0.11]
+    rollout       +0.03 [ -0.07,  +0.14]  no direction, practically equivalent; served  +0.04 [ -0.00,  +0.10]
+    scenario16    +0.17 [ +0.08,  +0.26]  better, practically equivalent; served  +0.05 [ -0.00,  +0.11]
+  development path and controls:
+    map effect, expiry -0.5                 +0.08 [ +0.00,  +0.16]  better, practically equivalent
+    map effect, v2                          +0.10 [ +0.04,  +0.16]  better, practically equivalent
+    reward effect, multi-map                -0.01 [ -0.05,  +0.03]  no direction, practically equivalent
+    reward effect, multi-map (expired)      -0.05 [ -0.09,  -0.02]  worse, practically equivalent
+    reward effect, single-map               +0.01 [ -0.04,  +0.05]  no direction, practically equivalent
+    reward effect, single-map (expired)     -0.04 [ -0.08,  -0.01]  worse, practically equivalent
+    set - MLP, 12 M each                    +0.08 [ -0.01,  +0.17]  no direction, practically equivalent  seeds +0.10 -0.04 +0.14
+    set 12 M - MLP 24 M                     +0.11 [ +0.00,  +0.22]  better, practically equivalent  seeds +0.09 +0.00 +0.18
+    final - MLP, multi-map 12 M each        +0.11 [ +0.02,  +0.23]  better, practically equivalent  seeds +0.08 +0.22 +0.03
+    final - MLP, multi-map 24 M             +0.03 [ -0.06,  +0.13]  no direction, practically equivalent  seeds +0.05 +0.04 -0.01
+    BC -> PPO - scratch                     -0.05 [ -0.19,  +0.05]  no direction, practically equivalent
+    BC -> PPO - its imitation start         +0.80 [ +0.47,  +1.14]  better
+    v2 - M1 reward                          +0.14 [ +0.04,  +0.25]  better, practically equivalent  seeds +0.18 +0.08 +0.13
+    v2 - on-time-only reward                +0.03 [ -0.02,  +0.07]  no direction, practically equivalent  seeds -0.06 -0.10 +0.19
+  operations: mean lateness of late deliveries (min, pooled), energy (battery %), km, empty km, backlog (orders waiting) per day:
+    final        lateness   7.9  energy  351.5  km  92.5  empty km  39.4  backlog  0.41
+    slack        lateness  22.2  energy  365.0  km  96.5  empty km  42.1  backlog  0.49
+    insertion    lateness  13.6  energy  342.3  km  90.8  empty km  40.2  backlog  0.41
+    rollout      lateness  16.4  energy  312.3  km  81.1  empty km  29.3  backlog  0.46
+    scenario16   lateness  25.6  energy  282.7  km  70.5  empty km  17.6  backlog  1.20
+  per map, final agent minus (points): min / median / max, maps won of 30:
+    slack         -0.08 /  +0.37 /  +2.46   won 20
+    insertion     -0.21 /  +0.43 /  +2.40   won 22
+    rollout       -0.48 /  +0.00 /  +0.95   won 9
+  pooled on-time by type (on time / released):
+    final        plasma 0.992  medicine 1.000  sample 0.999  supplies 0.999
+    slack        plasma 0.980  medicine 0.999  sample 0.994  supplies 0.985
+    insertion    plasma 0.967  medicine 1.000  sample 0.996  supplies 0.996
+    rollout      plasma 0.988  medicine 1.000  sample 1.000  supplies 0.999
+
+== maps, medium load, 30 maps: mean daily rate (on-time / served / expired)
+  random                   0.271 / 0.534 / 0.466
+  edf                      0.463 / 0.902 / 0.098
+  fcfs                     0.532 / 0.859 / 0.141
+  nearest                  0.740 / 0.936 / 0.064
+  slack                    0.826 / 0.920 / 0.080
+  insertion                0.878 / 0.941 / 0.059
+  rollout                  0.905 / 0.954 / 0.046
+  scenario16               0.904 / 0.939 / 0.061
+  horizon                  0.932 / 0.971 / 0.029
+  slack100                 0.820 / 0.921 / 0.079
+  prepeak                  0.819 / 0.920 / 0.080
+  f12_mm_e05_s11           0.930 / 0.966 / 0.034
+  f12_mm_e05_s22           0.928 / 0.968 / 0.032
+  f12_mm_e05_s33           0.927 / 0.968 / 0.032
+  f12_mm_e05_s44           0.925 / 0.963 / 0.037
+  f12_mm_e05_s55           0.923 / 0.963 / 0.037
+  f12_mm_v2_s11            0.927 / 0.952 / 0.048
+  f12_mm_v2_s22            0.928 / 0.950 / 0.050
+  f12_mm_v2_s33            0.922 / 0.952 / 0.048
+  f12_mm_v2_s44            0.923 / 0.948 / 0.052
+  f12_mm_v2_s55            0.926 / 0.940 / 0.060
+  f12_sm_e05_s11           0.913 / 0.961 / 0.039
+  f12_sm_e05_s22           0.909 / 0.956 / 0.044
+  f12_sm_e05_s33           0.914 / 0.958 / 0.042
+  f12_sm_e05_s44           0.914 / 0.954 / 0.046
+  f12_sm_e05_s55           0.914 / 0.959 / 0.041
+  f12_sm_v2_s11            0.917 / 0.944 / 0.056
+  f12_sm_v2_s22            0.912 / 0.944 / 0.056
+  f12_sm_v2_s33            0.914 / 0.939 / 0.061
+  f12_sm_v2_s44            0.915 / 0.944 / 0.056
+  f12_sm_v2_s55            0.919 / 0.943 / 0.057
+  f12_sm_v2_mlp_s11        0.899 / 0.942 / 0.058
+  f12_sm_v2_mlp_s22        0.900 / 0.945 / 0.055
+  f12_sm_v2_mlp_s33        0.898 / 0.940 / 0.060
+  f24_sm_v2_mlp_s11        0.909 / 0.947 / 0.053
+  f24_sm_v2_mlp_s22        0.909 / 0.948 / 0.052
+  f24_sm_v2_mlp_s33        0.904 / 0.945 / 0.055
+  f12_mm_e05_mlp_s11       0.913 / 0.958 / 0.042
+  f12_mm_e05_mlp_s22       0.912 / 0.960 / 0.040
+  f12_mm_e05_mlp_s33       0.913 / 0.961 / 0.039
+  f24_mm_e05_mlp_s11       0.923 / 0.962 / 0.038
+  f24_mm_e05_mlp_s22       0.918 / 0.963 / 0.037
+  f24_mm_e05_mlp_s33       0.919 / 0.960 / 0.040
+  f12_sm_e05_bc_s11        0.916 / 0.956 / 0.044
+  f12_sm_e05_bc_s22        0.906 / 0.951 / 0.049
+  f12_sm_e05_bc_s33        0.916 / 0.955 / 0.045
+  f12_sm_m1_s11            0.873 / 0.967 / 0.033
+  f12_sm_m1_s22            0.869 / 0.975 / 0.025
+  f12_sm_m1_s33            0.882 / 0.973 / 0.027
+  f12_sm_ontime_s11        0.918 / 0.930 / 0.070
+  f12_sm_ontime_s22        0.918 / 0.932 / 0.068
+  f12_sm_ontime_s33        0.906 / 0.919 / 0.081
+  bc_set                   0.807 / 0.908 / 0.092
+  bc_mlp                   0.805 / 0.921 / 0.079
+  bc_rollout_set           0.843 / 0.940 / 0.060
+  bc_rollout_mlp           0.819 / 0.945 / 0.055
+  f12_mm_e05_s11/no100     0.918 / 0.961 / 0.039
+  f12_mm_e05_s22/no100     0.919 / 0.963 / 0.037
+  f12_mm_e05_s33/no100     0.914 / 0.962 / 0.038
+  f12_mm_e05_s44/no100     0.912 / 0.958 / 0.042
+  f12_mm_e05_s55/no100     0.914 / 0.958 / 0.042
+  final                    0.927 / 0.966 / 0.034
+  final3                   0.928 / 0.967 / 0.033
+  f12_mm_v2                0.925 / 0.948 / 0.052
+  f12_sm_e05               0.913 / 0.958 / 0.042
+  f12_sm_v2                0.915 / 0.943 / 0.057
+  f12_sm_v2_mlp            0.899 / 0.942 / 0.058
+  f24_sm_v2_mlp            0.907 / 0.947 / 0.053
+  f12_mm_e05_mlp           0.912 / 0.959 / 0.041
+  f24_mm_e05_mlp           0.920 / 0.962 / 0.038
+  f12_sm_e05_bc            0.913 / 0.954 / 0.046
+  f12_sm_m1                0.875 / 0.972 / 0.028
+  f12_sm_ontime            0.914 / 0.927 / 0.073
+  PPO groups, per-seed means (SD, range in points):
+    final            0.930 0.928 0.927 0.925 0.923  (SD 0.26, range 0.66)
+    final3           0.930 0.928 0.927  (SD 0.16, range 0.31)
+    f12_mm_v2        0.927 0.928 0.922 0.923 0.926  (SD 0.25, range 0.55)
+    f12_sm_e05       0.913 0.909 0.914 0.914 0.914  (SD 0.19, range 0.44)
+    f12_sm_v2        0.917 0.912 0.914 0.915 0.919  (SD 0.27, range 0.67)
+    f12_sm_v2_mlp    0.899 0.900 0.898  (SD 0.08, range 0.16)
+    f24_sm_v2_mlp    0.909 0.909 0.904  (SD 0.30, range 0.54)
+    f12_mm_e05_mlp   0.913 0.912 0.913  (SD 0.02, range 0.04)
+    f24_mm_e05_mlp   0.923 0.918 0.919  (SD 0.26, range 0.47)
+    f12_sm_e05_bc    0.916 0.906 0.916  (SD 0.56, range 1.00)
+    f12_sm_m1        0.873 0.869 0.882  (SD 0.67, range 1.31)
+    f12_sm_ontime    0.918 0.918 0.906  (SD 0.68, range 1.19)
+  primary, final agent minus (points, 95 % bootstrap over maps):
+    slack        +10.02 [ +9.12, +11.00]  better; target >= +3 with lower bound > 0: met; served  +4.53 [ +3.93,  +5.17]
+    shipped - slack        +10.37 [ +9.48, +11.32]
+    horizon       -0.55 [ -0.81,  -0.30]  worse, practically equivalent; margin -2: met; served  -0.53 [ -0.77,  -0.30]
+    shipped - horizon       -0.21 [ -0.46,  +0.05]
+  secondary, final agent minus:
+    random       +65.56 [+64.55, +66.55]  better; served +43.20 [+41.91, +44.57]
+    edf          +46.37 [+43.65, +49.11]  better; served  +6.33 [ +5.29,  +7.43]
+    fcfs         +39.42 [+37.53, +41.30]  better; served +10.68 [ +9.89, +11.52]
+    nearest      +18.70 [+17.62, +19.78]  better; served  +2.94 [ +2.60,  +3.30]
+    insertion     +4.85 [ +4.37,  +5.35]  better; served  +2.51 [ +2.20,  +2.83]
+    rollout       +2.19 [ +1.78,  +2.64]  better; served  +1.20 [ +0.85,  +1.56]
+    scenario16    +2.27 [ +1.95,  +2.57]  better; served  +2.70 [ +2.43,  +2.98]
+  development path and controls:
+    map effect, expiry -0.5                 +1.39 [ +1.11,  +1.67]  better
+    map effect, v2                          +1.00 [ +0.70,  +1.29]  better
+    reward effect, multi-map                +0.13 [ -0.03,  +0.28]  no direction, practically equivalent
+    reward effect, multi-map (expired)      -1.73 [ -1.91,  -1.56]  worse
+    reward effect, single-map               -0.26 [ -0.43,  -0.09]  worse, practically equivalent
+    reward effect, single-map (expired)     -1.50 [ -1.63,  -1.36]  worse
+    set - MLP, 12 M each                    +1.61 [ +1.38,  +1.85]  better  seeds +1.82 +1.20 +1.52
+    set 12 M - MLP 24 M                     +0.79 [ +0.57,  +1.00]  better, practically equivalent  seeds +0.84 +0.26 +0.97
+    final - MLP, multi-map 12 M each        +1.58 [ +1.38,  +1.78]  better  seeds +1.73 +1.57 +1.43
+    final - MLP, multi-map 24 M             +0.85 [ +0.65,  +1.05]  better  seeds +0.72 +0.99 +0.83
+    BC -> PPO - scratch                     +0.02 [ -0.21,  +0.25]  no direction, practically equivalent
+    BC -> PPO - its imitation start        +10.56 [ +9.31, +11.87]  better
+    v2 - M1 reward                          +4.02 [ +3.69,  +4.35]  better  seeds +4.37 +4.27 +3.12
+    v2 - on-time-only reward                +0.15 [ -0.04,  +0.35]  no direction, practically equivalent  seeds -0.07 -0.55 +0.78
+  operations: mean lateness of late deliveries (min, pooled), energy (battery %), km, empty km, backlog (orders waiting) per day:
+    final        lateness  26.3  energy  533.9  km 134.3  empty km  37.5  backlog  2.92
+    slack        lateness  28.1  energy  588.9  km 149.3  empty km  49.9  backlog  3.92
+    insertion    lateness  29.0  energy  549.5  km 140.4  empty km  44.6  backlog  3.34
+    rollout      lateness  36.8  energy  519.4  km 128.1  empty km  29.6  backlog  3.36
+    scenario16   lateness  42.1  energy  529.4  km 128.0  empty km  22.8  backlog  3.81
+    horizon      lateness  42.8  energy  503.1  km 124.0  empty km  28.3  backlog  3.13
+  per map, final agent minus (points): min / median / max, maps won of 30:
+    slack         +5.80 / +10.10 / +16.95   won 30
+    horizon       -2.33 /  -0.59 /  +0.83   won 6
+    insertion     +2.30 /  +4.42 /  +8.32   won 30
+    rollout       +0.68 /  +1.90 /  +4.60   won 30
+  pooled on-time by type (on time / released):
+    final        plasma 0.892  medicine 0.953  sample 0.934  supplies 0.879
+    slack        plasma 0.784  medicine 0.884  sample 0.813  supplies 0.747
+    insertion    plasma 0.798  medicine 0.924  sample 0.882  supplies 0.833
+    rollout      plasma 0.825  medicine 0.945  sample 0.908  supplies 0.877
+    horizon      plasma 0.871  medicine 0.962  sample 0.935  supplies 0.909
+
+== maps, high load, 30 maps: mean daily rate (on-time / served / expired)
+  random                   0.220 / 0.433 / 0.567
+  edf                      0.271 / 0.713 / 0.287
+  fcfs                     0.320 / 0.699 / 0.301
+  nearest                  0.513 / 0.820 / 0.180
+  slack                    0.661 / 0.803 / 0.197
+  insertion                0.713 / 0.812 / 0.188
+  rollout                  0.761 / 0.845 / 0.155
+  scenario16               0.778 / 0.826 / 0.174
+  horizon                  0.806 / 0.879 / 0.121
+  slack100                 0.661 / 0.802 / 0.198
+  prepeak                  0.665 / 0.801 / 0.199
+  f12_mm_e05_s11           0.817 / 0.874 / 0.126
+  f12_mm_e05_s22           0.815 / 0.879 / 0.121
+  f12_mm_e05_s33           0.817 / 0.879 / 0.121
+  f12_mm_e05_s44           0.815 / 0.869 / 0.131
+  f12_mm_e05_s55           0.818 / 0.871 / 0.129
+  f12_mm_v2_s11            0.824 / 0.854 / 0.146
+  f12_mm_v2_s22            0.822 / 0.850 / 0.150
+  f12_mm_v2_s33            0.812 / 0.851 / 0.149
+  f12_mm_v2_s44            0.817 / 0.852 / 0.148
+  f12_mm_v2_s55            0.823 / 0.839 / 0.161
+  f12_sm_e05_s11           0.793 / 0.866 / 0.134
+  f12_sm_e05_s22           0.794 / 0.857 / 0.143
+  f12_sm_e05_s33           0.796 / 0.862 / 0.138
+  f12_sm_e05_s44           0.802 / 0.853 / 0.147
+  f12_sm_e05_s55           0.797 / 0.859 / 0.141
+  f12_sm_v2_s11            0.808 / 0.842 / 0.158
+  f12_sm_v2_s22            0.801 / 0.840 / 0.160
+  f12_sm_v2_s33            0.804 / 0.835 / 0.165
+  f12_sm_v2_s44            0.801 / 0.834 / 0.166
+  f12_sm_v2_s55            0.808 / 0.841 / 0.159
+  f12_sm_v2_mlp_s11        0.767 / 0.823 / 0.177
+  f12_sm_v2_mlp_s22        0.773 / 0.831 / 0.169
+  f12_sm_v2_mlp_s33        0.771 / 0.826 / 0.174
+  f24_sm_v2_mlp_s11        0.784 / 0.834 / 0.166
+  f24_sm_v2_mlp_s22        0.784 / 0.837 / 0.163
+  f24_sm_v2_mlp_s33        0.777 / 0.831 / 0.169
+  f12_mm_e05_mlp_s11       0.789 / 0.850 / 0.150
+  f12_mm_e05_mlp_s22       0.784 / 0.852 / 0.148
+  f12_mm_e05_mlp_s33       0.788 / 0.854 / 0.146
+  f24_mm_e05_mlp_s11       0.793 / 0.858 / 0.142
+  f24_mm_e05_mlp_s22       0.794 / 0.864 / 0.136
+  f24_mm_e05_mlp_s33       0.795 / 0.852 / 0.148
+  f12_sm_e05_bc_s11        0.804 / 0.862 / 0.138
+  f12_sm_e05_bc_s22        0.789 / 0.852 / 0.148
+  f12_sm_e05_bc_s33        0.800 / 0.854 / 0.146
+  f12_sm_m1_s11            0.723 / 0.882 / 0.118
+  f12_sm_m1_s22            0.717 / 0.892 / 0.108
+  f12_sm_m1_s33            0.724 / 0.887 / 0.113
+  f12_sm_ontime_s11        0.805 / 0.822 / 0.178
+  f12_sm_ontime_s22        0.803 / 0.822 / 0.178
+  f12_sm_ontime_s33        0.793 / 0.813 / 0.187
+  bc_set                   0.650 / 0.793 / 0.207
+  bc_mlp                   0.629 / 0.798 / 0.202
+  bc_rollout_set           0.693 / 0.832 / 0.168
+  bc_rollout_mlp           0.637 / 0.825 / 0.175
+  f12_mm_e05_s11/no100     0.807 / 0.867 / 0.133
+  f12_mm_e05_s22/no100     0.803 / 0.869 / 0.131
+  f12_mm_e05_s33/no100     0.805 / 0.871 / 0.129
+  f12_mm_e05_s44/no100     0.802 / 0.862 / 0.138
+  f12_mm_e05_s55/no100     0.806 / 0.865 / 0.135
+  final                    0.817 / 0.874 / 0.126
+  final3                   0.817 / 0.877 / 0.123
+  f12_mm_v2                0.820 / 0.849 / 0.151
+  f12_sm_e05               0.796 / 0.860 / 0.140
+  f12_sm_v2                0.804 / 0.839 / 0.161
+  f12_sm_v2_mlp            0.770 / 0.827 / 0.173
+  f24_sm_v2_mlp            0.782 / 0.834 / 0.166
+  f12_mm_e05_mlp           0.787 / 0.852 / 0.148
+  f24_mm_e05_mlp           0.794 / 0.858 / 0.142
+  f12_sm_e05_bc            0.797 / 0.856 / 0.144
+  f12_sm_m1                0.721 / 0.887 / 0.113
+  f12_sm_ontime            0.801 / 0.819 / 0.181
+  PPO groups, per-seed means (SD, range in points):
+    final            0.817 0.815 0.817 0.815 0.818  (SD 0.11, range 0.24)
+    final3           0.817 0.815 0.817  (SD 0.12, range 0.21)
+    f12_mm_v2        0.824 0.822 0.812 0.817 0.823  (SD 0.49, range 1.18)
+    f12_sm_e05       0.793 0.794 0.796 0.802 0.797  (SD 0.38, range 0.95)
+    f12_sm_v2        0.808 0.801 0.804 0.801 0.808  (SD 0.35, range 0.73)
+    f12_sm_v2_mlp    0.767 0.773 0.771  (SD 0.32, range 0.62)
+    f24_sm_v2_mlp    0.784 0.784 0.777  (SD 0.39, range 0.69)
+    f12_mm_e05_mlp   0.789 0.784 0.788  (SD 0.25, range 0.47)
+    f24_mm_e05_mlp   0.793 0.794 0.795  (SD 0.07, range 0.13)
+    f12_sm_e05_bc    0.804 0.789 0.800  (SD 0.79, range 1.51)
+    f12_sm_m1        0.723 0.717 0.724  (SD 0.39, range 0.73)
+    f12_sm_ontime    0.805 0.803 0.793  (SD 0.64, range 1.19)
+  primary, final agent minus (points, 95 % bootstrap over maps):
+    slack        +15.59 [+14.91, +16.26]  better; margin -2: met; served  +7.10 [ +6.70,  +7.52]
+    shipped - slack        +15.67 [+14.98, +16.35]
+    horizon       +1.02 [ +0.69,  +1.35]  better; margin -2: met; served  -0.46 [ -0.69,  -0.23]
+    shipped - horizon       +1.10 [ +0.66,  +1.55]
+  secondary, final agent minus:
+    random       +59.65 [+58.85, +60.49]  better; served +44.17 [+43.43, +44.99]
+    edf          +54.52 [+53.78, +55.29]  better; served +16.17 [+15.53, +16.84]
+    fcfs         +49.66 [+48.94, +50.38]  better; served +17.55 [+16.87, +18.25]
+    nearest      +30.38 [+29.56, +31.25]  better; served  +5.44 [ +4.92,  +5.98]
+    insertion    +10.32 [ +9.94, +10.70]  better; served  +6.29 [ +6.04,  +6.55]
+    rollout       +5.58 [ +5.16,  +6.00]  better; served  +2.95 [ +2.64,  +3.25]
+    scenario16    +3.89 [ +3.53,  +4.24]  better; served  +4.83 [ +4.53,  +5.13]
+  development path and controls:
+    map effect, expiry -0.5                 +2.02 [ +1.60,  +2.43]  better
+    map effect, v2                          +1.54 [ +1.07,  +1.97]  better
+    reward effect, multi-map                -0.31 [ -0.46,  -0.16]  worse, practically equivalent
+    reward effect, multi-map (expired)      -2.52 [ -2.70,  -2.34]  worse
+    reward effect, single-map               -0.80 [ -0.97,  -0.64]  worse, practically equivalent
+    reward effect, single-map (expired)     -2.10 [ -2.24,  -1.96]  worse
+    set - MLP, 12 M each                    +3.41 [ +3.20,  +3.64]  better  seeds +4.12 +2.82 +3.29
+    set 12 M - MLP 24 M                     +2.27 [ +2.04,  +2.50]  better  seeds +2.41 +1.71 +2.68
+    final - MLP, multi-map 12 M each        +2.99 [ +2.74,  +3.24]  better  seeds +2.88 +3.14 +2.95
+    final - MLP, multi-map 24 M             +2.25 [ +2.00,  +2.52]  better  seeds +2.40 +2.13 +2.23
+    BC -> PPO - scratch                     +0.11 [ -0.14,  +0.35]  no direction, practically equivalent
+    BC -> PPO - its imitation start        +14.71 [+13.77, +15.66]  better
+    v2 - M1 reward                          +8.30 [ +7.97,  +8.62]  better  seeds +8.50 +8.41 +7.97
+    v2 - on-time-only reward                +0.37 [ +0.20,  +0.53]  better, practically equivalent  seeds +0.26 -0.23 +1.06
+  operations: mean lateness of late deliveries (min, pooled), energy (battery %), km, empty km, backlog (orders waiting) per day:
+    final        lateness  31.5  energy  549.3  km 135.7  empty km  30.6  backlog  5.86
+    slack        lateness  27.1  energy  609.8  km 151.6  empty km  46.2  backlog  7.35
+    insertion    lateness  30.4  energy  602.8  km 151.8  empty km  42.6  backlog  7.15
+    rollout      lateness  41.9  energy  565.1  km 136.4  empty km  25.1  backlog  6.79
+    scenario16   lateness  44.0  energy  572.1  km 136.9  empty km  22.0  backlog  6.70
+    horizon      lateness  51.9  energy  548.5  km 132.6  empty km  23.9  backlog  6.51
+  per map, final agent minus (points): min / median / max, maps won of 30:
+    slack        +11.64 / +15.71 / +19.12   won 30
+    horizon       -1.24 /  +1.00 /  +2.68   won 25
+    insertion     +8.04 / +10.42 / +13.05   won 30
+    rollout       +3.30 /  +5.31 /  +8.12   won 30
+  pooled on-time by type (on time / released):
+    final        plasma 0.772  medicine 0.874  sample 0.835  supplies 0.713
+    slack        plasma 0.619  medicine 0.755  sample 0.644  supplies 0.541
+    insertion    plasma 0.646  medicine 0.768  sample 0.726  supplies 0.629
+    rollout      plasma 0.626  medicine 0.845  sample 0.774  supplies 0.702
+    horizon      plasma 0.724  medicine 0.863  sample 0.825  supplies 0.735
+
+== maps, decision times over all decisions, ms (throughput run, parallel workers; not a latency benchmark): mean / p95
+  random                   low     0.03 /     0.03   medium     0.03 /     0.03   high     0.03 /     0.03
+  edf                      low     0.01 /     0.02   medium     0.01 /     0.02   high     0.02 /     0.02
+  fcfs                     low     0.01 /     0.02   medium     0.02 /     0.02   high     0.02 /     0.02
+  nearest                  low     0.02 /     0.03   medium     0.03 /     0.04   high     0.03 /     0.06
+  slack                    low     0.02 /     0.03   medium     0.03 /     0.05   high     0.03 /     0.06
+  insertion                low     0.10 /     0.39   medium     3.78 /    20.50   high     9.44 /    42.77
+  rollout                  low    17.41 /    37.55   medium    54.84 /   146.48   high    90.63 /   213.54
+  scenario16               low   139.62 /   376.93   medium   469.29 /  1260.76   high   780.39 /  2009.85
+  horizon                  medium  2363.96 / 10675.98   high  5690.71 / 22228.92
+  slack100                 low     0.02 /     0.03   medium     0.03 /     0.05   high     0.03 /     0.06
+  prepeak                  low     0.02 /     0.03   medium     0.03 /     0.05   high     0.03 /     0.06
+  f12_mm_e05_s11           low     0.96 /     1.26   medium     0.93 /     1.26   high     0.97 /     1.27
+  f12_mm_e05_s22           low     0.94 /     1.26   medium     0.95 /     1.26   high     0.97 /     1.27
+  f12_mm_e05_s33           low     0.95 /     1.26   medium     0.96 /     1.26   high     0.98 /     1.27
+  f12_mm_e05_s44           low     0.93 /     1.25   medium     0.96 /     1.26   high     0.96 /     1.27
+  f12_mm_e05_s55           low     0.95 /     1.26   medium     0.94 /     1.26   high     0.97 /     1.27
+  f12_mm_v2_s11            low     0.92 /     1.25   medium     0.95 /     1.26   high     0.98 /     1.27
+  f12_mm_v2_s22            low     0.93 /     1.26   medium     0.94 /     1.26   high     0.99 /     1.28
+  f12_mm_v2_s33            low     0.94 /     1.26   medium     0.92 /     1.25   high     1.01 /     1.28
+  f12_mm_v2_s44            low     0.94 /     1.26   medium     0.93 /     1.26   high     0.99 /     1.27
+  f12_mm_v2_s55            low     0.96 /     1.26   medium     0.94 /     1.26   high     0.98 /     1.27
+  f12_sm_e05_s11           low     0.94 /     1.26   medium     0.96 /     1.26   high     0.97 /     1.27
+  f12_sm_e05_s22           low     0.94 /     1.25   medium     0.96 /     1.26   high     0.96 /     1.26
+  f12_sm_e05_s33           low     0.93 /     1.25   medium     0.95 /     1.26   high     0.99 /     1.27
+  f12_sm_e05_s44           low     0.94 /     1.26   medium     0.93 /     1.26   high     0.99 /     1.27
+  f12_sm_e05_s55           low     0.95 /     1.26   medium     0.92 /     1.25   high     1.00 /     1.27
+  f12_sm_v2_s11            low     0.92 /     1.25   medium     0.96 /     1.26   high     0.97 /     1.27
+  f12_sm_v2_s22            low     0.94 /     1.26   medium     0.95 /     1.26   high     0.98 /     1.27
+  f12_sm_v2_s33            low     0.96 /     1.26   medium     0.95 /     1.26   high     0.97 /     1.27
+  f12_sm_v2_s44            low     0.94 /     1.26   medium     0.94 /     1.26   high     0.98 /     1.27
+  f12_sm_v2_s55            low     0.97 /     1.26   medium     0.93 /     1.25   high     0.97 /     1.27
+  f12_sm_v2_mlp_s11        low     0.28 /     0.40   medium     0.30 /     0.42   high     0.30 /     0.42
+  f12_sm_v2_mlp_s22        low     0.28 /     0.39   medium     0.30 /     0.41   high     0.30 /     0.42
+  f12_sm_v2_mlp_s33        low     0.29 /     0.40   medium     0.30 /     0.41   high     0.30 /     0.41
+  f24_sm_v2_mlp_s11        low     0.29 /     0.40   medium     0.31 /     0.42   high     0.28 /     0.41
+  f24_sm_v2_mlp_s22        low     0.29 /     0.41   medium     0.30 /     0.42   high     0.30 /     0.42
+  f24_sm_v2_mlp_s33        low     0.29 /     0.40   medium     0.30 /     0.41   high     0.30 /     0.42
+  f12_mm_e05_mlp_s11       low     0.29 /     0.39   medium     0.29 /     0.41   high     0.30 /     0.41
+  f12_mm_e05_mlp_s22       low     0.28 /     0.41   medium     0.29 /     0.42   high     0.30 /     0.42
+  f12_mm_e05_mlp_s33       low     0.28 /     0.40   medium     0.30 /     0.41   high     0.29 /     0.41
+  f24_mm_e05_mlp_s11       low     0.29 /     0.40   medium     0.30 /     0.42   high     0.30 /     0.42
+  f24_mm_e05_mlp_s22       low     0.28 /     0.40   medium     0.30 /     0.41   high     0.30 /     0.41
+  f24_mm_e05_mlp_s33       low     0.28 /     0.40   medium     0.30 /     0.42   high     0.29 /     0.42
+  f12_sm_e05_bc_s11        low     0.95 /     1.26   medium     0.94 /     1.26   high     0.97 /     1.27
+  f12_sm_e05_bc_s22        low     0.96 /     1.26   medium     0.95 /     1.26   high     0.98 /     1.27
+  f12_sm_e05_bc_s33        low     0.94 /     1.25   medium     0.97 /     1.26   high     0.96 /     1.27
+  f12_sm_m1_s11            low     0.93 /     1.25   medium     0.97 /     1.26   high     0.97 /     1.27
+  f12_sm_m1_s22            low     0.95 /     1.26   medium     0.94 /     1.25   high     0.98 /     1.27
+  f12_sm_m1_s33            low     0.95 /     1.26   medium     0.92 /     1.25   high     1.01 /     1.27
+  f12_sm_ontime_s11        low     0.94 /     1.26   medium     0.94 /     1.26   high     0.98 /     1.27
+  f12_sm_ontime_s22        low     0.93 /     1.25   medium     0.95 /     1.26   high     0.98 /     1.27
+  f12_sm_ontime_s33        low     0.95 /     1.26   medium     0.94 /     1.26   high     0.98 /     1.27
+  bc_set                   low     0.92 /     1.25   medium     0.97 /     1.27   high     0.99 /     1.27
+  bc_mlp                   low     0.29 /     0.41   medium     0.30 /     0.41   high     0.29 /     0.41
+  bc_rollout_set           low     0.94 /     1.25   medium     0.96 /     1.26   high     0.96 /     1.26
+  bc_rollout_mlp           low     0.29 /     0.40   medium     0.30 /     0.41   high     0.30 /     0.41
+  f12_mm_e05_s11/no100     low     1.00 /     1.27   medium     0.95 /     1.27   high     0.95 /     1.27
+  f12_mm_e05_s22/no100     low     0.97 /     1.27   medium     0.94 /     1.27   high     0.99 /     1.28
+  f12_mm_e05_s33/no100     low     0.96 /     1.27   medium     0.97 /     1.27   high     0.98 /     1.27
+  f12_mm_e05_s44/no100     low     0.96 /     1.27   medium     0.94 /     1.26   high     0.99 /     1.28
+  f12_mm_e05_s55/no100     low     0.95 /     1.26   medium     0.94 /     1.26   high     0.98 /     1.28
+
+== transfer gap: unseen maps minus map 0, on-time points (different days: descriptive)
+  final            low -0.07  medium +0.84  high +0.90
+  final3           low -0.05  medium +0.98  high +0.87
+  f12_mm_v2        low -0.05  medium +0.66  high +0.81
+  f12_sm_e05       low -0.13  medium -1.04  high -1.91
+  f12_sm_v2        low -0.13  medium -1.21  high -1.99
+  f12_sm_v2_mlp    low -0.09  medium -1.36  high -2.50
+  f24_sm_v2_mlp    low -0.07  medium -1.32  high -2.69
+  f12_mm_e05_mlp   low -0.00  medium +0.71  high +0.39
+  f24_mm_e05_mlp   low +0.01  medium +0.60  high +0.38
+  f12_sm_e05_bc    low -0.17  medium -1.46  high -2.62
+  f12_sm_m1        low -0.14  medium -1.61  high -2.26
+  f12_sm_ontime    low -0.13  medium -1.02  high -1.97
+  random           low +1.77  medium +1.84  high +1.85
+  edf              low -0.33  medium +7.77  high +1.70
+  fcfs             low -0.15  medium +4.35  high +2.01
+  nearest          low -0.29  medium +2.62  high +1.15
+  slack            low -0.09  medium +3.04  high +2.77
+  insertion        low +0.14  medium +2.13  high +2.21
+  rollout          low +0.01  medium +1.42  high +1.48
+  scenario16       low -0.01  medium +1.17  high +1.27
+  horizon          medium +0.99  high +1.23
+  slack100         low +0.19  medium +2.79  high +2.51
+  prepeak          low +0.20  medium +2.72  high +3.09

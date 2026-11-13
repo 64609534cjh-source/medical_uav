@@ -1,0 +1,18 @@
+{
+ "env_version": "v2",
+ "git_revision": "2f961d2",
+ "python": "3.11.17",
+ "torch": "2.14.1+cpu",
+ "net": "set",
+ "seed": 11,
+ "decisions": 500000.0,
+ "eval_every": 100000.0,
+ "eval_days": 10,
+ "threads": 2,
+ "reward": "v2_expiry05",
+ "no_travel_table": false,
+ "init": null,
+ "maps": "train",
+ "warmup_rollouts": 40,
+ "out": "evidence/training/quick_s11"
+}

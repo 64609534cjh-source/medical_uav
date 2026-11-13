@@ -1,0 +1,25 @@
+{
+ "env_version": "v2",
+ "git_revision": "6a3464a",
+ "python": "3.11.17",
+ "torch": "2.14.1+cpu",
+ "net": "set",
+ "seed": 33,
+ "decisions": 12000000.0,
+ "eval_every": 500000.0,
+ "eval_days": 20,
+ "threads": 2,
+ "reward": "v2_expiry05",
+ "no_travel_table": false,
+ "init": "checkpoints/bc_set.pt",
+ "maps": null,
+ "warmup_rollouts": 40,
+ "out": "runs/f12_sm_e05_bc_s33",
+ "warmup": {
+  "value_error_before": 3.4803333282470703,
+  "value_error_after": 0.30829158425331116,
+  "explained_variance_before": -0.04460406303405762,
+  "explained_variance_after": 0.7873652279376984,
+  "decisions": 90112
+ }
+}

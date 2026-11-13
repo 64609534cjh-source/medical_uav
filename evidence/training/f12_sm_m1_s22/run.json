@@ -1,0 +1,18 @@
+{
+ "env_version": "v2",
+ "git_revision": "c1f8fe8",
+ "python": "3.11.17",
+ "torch": "2.14.1+cpu",
+ "net": "set",
+ "seed": 22,
+ "decisions": 12000000.0,
+ "eval_every": 500000.0,
+ "eval_days": 20,
+ "threads": 2,
+ "reward": "m1",
+ "no_travel_table": false,
+ "init": null,
+ "maps": null,
+ "warmup_rollouts": 40,
+ "out": "runs/f12_sm_m1_s22"
+}
