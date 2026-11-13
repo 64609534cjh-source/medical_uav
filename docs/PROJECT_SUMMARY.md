@@ -147,6 +147,7 @@ the peaks), `bc_set`, `bc_mlp`, `bc_rollout_set`, `bc_rollout_mlp` (M2 imitation
 | `training/<run>/evals.csv` | the learning curve: every 0.5 M decisions, the on-time rate on 20 validation days at medium and high load (`decisions`, `seconds`, `on_time_medium`, `on_time_high`) |
 | `training/<run>/updates.csv` | one row per PPO update: losses, entropy, KL, clipping fraction, on-time rate of the training days |
 | `training/<run>/run.json` | the training settings and command; `quick_s11` is the 5-minute run of the README |
+| `training/horizon_days.json` | the rolling horizon's on-time rate on the same 20 validation days as `evals.csv` (medium, high), the reference line of the M3 training-curve figure |
 | `selection/f12_select_*.json` | every checkpoint's validation results, its eligibility and the checkpoint kept for each run (`mm`: final agent and multi-map controls; `sm`, `ctrl`, `mmmlp`: the other variants) |
 | `final_test/map0.csv`, `maps.csv` | one row per policy and day: map 0 (300 days per load) and the 30 unseen maps (10 days each); columns include `method`, `map`, `load`, `seed`, `on_time_rate`, `served_rate`, `expiry_rate`, `mean_lateness`, `km_flown`, `empty_km`, `energy_used`, `mean_backlog`, per-type counts and charging statistics |
 | `final_test/report.txt` | all statistics of the final test as text: mean rates per policy, paired differences with 95 % intervals, controls, operations, decision times |
