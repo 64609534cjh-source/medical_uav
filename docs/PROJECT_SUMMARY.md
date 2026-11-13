@@ -1,29 +1,11 @@
-# Project summary for the individual final reports (Group 17)
+# Project summary (Group 17): experiments and results
 
-This file collects the facts of our project in one place, so that each member can write their own final report.
-It is reference material, not report text: **write every sentence of your report in your own words.** The
-course forbids copy-paste between members and from earlier reports, and anti-plagiarism software is used.
-Images from M1–M3 may be reused and shared.
+A summary of the whole project: the problem, what each milestone did, the final method, the baselines, the final
+test and its results, and where the code, the trained models and the result files are. The three submitted
+milestone reports are next to this file: `ME5418_Group17_M1_Report.pdf`, `ME5418_Group17_M2_Report.pdf`,
+`ME5418_Group17_M3_Report.pdf`.
 
-The three submitted milestone reports are next to this file:
-`ME5418_Group17_M1_Report.pdf`, `ME5418_Group17_M2_Report.pdf`, `ME5418_Group17_M3_Report.pdf`.
-
-## 1. What the final report must contain (official requirements, summarized)
-
-- One PDF per member, at most 10 pages; the group zip on Canvas holds the code, the video and all three reports.
-  Due 20 November, no extension.
-- Introduction: the problem, why it matters for real-world robotics, existing conventional and deep-learning
-  approaches with their pros and cons. Must be newly written (not paraphrased from the proposal or M1–M3).
-- Full method: RL formulation (state, actions, reward), agent, network, training. For parts unchanged since an
-  earlier report, say where they were described (e.g. "see the M1 report, Sec. 2") instead of repeating them.
-- Results, which test scenarios were used and why.
-- Bonus: comparison with at least one strong conventional alternative, advantages and downsides of each.
-- Advantages and limitations; challenges, lessons learned, future work.
-- Grader feedback to keep in mind: M1 (11/15) — visualization too hard to follow; M2 (10/15) — "does not explain
-  justifications for design choices ... what does slack-aware mean, why behaviour cloning is used". Define every
-  method and term where it first appears, and give a reason (and, if it exists, a measured result) for every choice.
-
-## 2. The problem
+## 1. The problem
 
 One drone serves a medical center M and five hospitals H1–H5 on a 4 km × 4 km grid with three no-fly zones and
 two chargers (C1 at M, C2 elsewhere). During an 8-hour day, orders arrive at random: plasma (M → hospital, must
@@ -34,7 +16,7 @@ Three demand levels ("loads"): about 23 / 52 / 70 orders a day (low / medium / h
 drone blood delivery in Rwanda (Zipline) cut delivery times and blood wastage (Nisingizwe et al., Lancet Global
 Health, 2022). The hard part is dispatching under unknown future orders, not flight control.
 
-## 3. What each milestone did
+## 2. What each milestone did
 
 | Milestone | Main content | Changes and reasons |
 |---|---|---|
@@ -43,7 +25,7 @@ Health, 2022). The hard part is dispatching under unknown future orders, not fli
 | M3 (Learning agent) | Own masked PPO from scratch; 500 random training maps; expiry penalty −0.5; insertion, scenario rollout and rolling-horizon baselines; a final test of 61 policies registered before it was run | Random maps for generalization; −0.5 because too many orders still expired; the rolling horizon restored as the strongest baseline |
 | Final | No new training. Analyses of the existing final test: comparison with the rolling horizon, per map, operations, charging behaviour; learning curves; a new side-by-side video | — |
 
-## 4. The final method
+## 3. The final method
 
 - **Observation (452 numbers):** 80 global features (time, load, battery, cargo, location, flight times, 7×7
   travel-time table), 12 waiting-order slots × 27 features, 3 cargo slots × 16. Orders that can still be on time
@@ -63,7 +45,7 @@ Health, 2022). The hard part is dispatching under unknown future orders, not fli
   type > 3 points below Slack-aware at medium/high load, on 20 validation days × 10 validation maps; the best
   medium/high mean is kept. The shipped agent is seed 11 (checkpoint at 10.5 M decisions).
 
-## 5. Baselines (all written by us)
+## 4. Baselines (all written by us)
 
 | Baseline | How it works | Why it is in the comparison |
 |---|---|---|
@@ -79,7 +61,7 @@ Health, 2022). The hard part is dispatching under unknown future orders, not fli
 
 They form a ladder: each step adds one kind of reasoning, and decision time grows from ~0.01 ms to ~1.4 s.
 
-## 6. Final test (registered 29 Oct, run once)
+## 5. Final test (registered 29 Oct, run once)
 
 - 61 frozen policies: 9 conventional, 41 PPO runs (final agent and variants), 4 M2 imitation networks, 7 charging
   variants. An earlier test (27 Oct) had informed later changes, so a new test with unused days and maps was run.
@@ -88,9 +70,9 @@ They form a ladder: each step adds one kind of reasoning, and decision time grow
 - Statistics: paired differences on identical days, 95 % bootstrap intervals (10,000 resamples). Within ±1 point
   = practically equivalent; non-inferiority margin −2 points against the rolling horizon.
 
-## 7. Key results
+## 6. Key results
 
-On-time rate, % (served rate in brackets), medium / high load:
+On-time rate (%), medium / high load:
 
 | Method | Map 0 | 30 unseen maps | Decision time (ms) |
 |---|---|---|---|
@@ -116,7 +98,7 @@ On-time rate, % (served rate in brackets), medium / high load:
   83–89 %. Forcing Slack-aware to charge fully or top up before peaks changed its on-time rate by ≤ 0.7 points;
   removing PPO's full-charge actions cost 1.1–1.5 points. A full battery alone does not explain PPO's lead.
 
-## 8. Limitations and possible lessons (facts to reflect on in your own words)
+## 7. Limitations and lessons
 
 - Simulated world with illustrative parameters; unseen maps come from the same generator; one drone; 12 visible
   orders; planners score days with the M2 reward, PPO trained with the final one; our rolling horizon is a
@@ -126,10 +108,29 @@ On-time rate, % (served rate in brackets), medium / high load:
   changes; testing on map 0 only would have favoured fixed-map training; imitation as a starting point gave
   almost nothing.
 
-## 9. Where to find things
+## 8. Where to find things
 
 - `README.md`: install, run the shipped agent, a 5-minute training demo, quick evaluation, full reproduction.
 - `scripts/demo.py` (one day, replay page and picture), `scripts/train_ppo.py`, `scripts/evaluate.py`,
   `scripts/locked_test.py` / `locked_report.py` (final test), `scripts/compare_video.py` (side-by-side video).
 - `evidence/final_test/` (all final-test results), `evidence/training/` (learning curves), `evidence/latency/`.
 - `assets/replay_ppo.html`, `assets/replay_slack.html`: offline replays of the same high-load day.
+
+## 9. Trained models (in `checkpoints/`, ready to run)
+
+| File | What it is |
+|---|---|
+| `ppo_set.pt` (+ `ppo_set.json`) | the shipped final agent: set network, PPO, 500 random maps, expiry −0.5, seed 11, checkpoint at 10.5 M decisions; the json records its hash, training command and selection |
+| `entrants/` (41 files + `manifest.json`) | every PPO policy of the final test: the five final runs (`f12_mm_e05_s11` … `s55`) and all variants (fixed map 0, expiry −0.1, M1 / on-time-only reward, imitation start, MLP 12 M / 24 M) |
+| `bc_set.pt`, `bc_mlp.pt` | M2 networks trained by imitating Slack-aware |
+| `bc_rollout_set.pt`, `bc_rollout_mlp.pt` | M2 networks trained by imitating the rollout planner |
+
+After the installation in `README.md`, for example:
+
+```bash
+python scripts/demo.py --policy ppo --load high --seed 100007                 # shipped agent, one day + replay page
+python scripts/demo.py --policy ppo --load high --seed 100007 --map 2000      # the same on an unseen map
+python scripts/demo.py --policy ppo --checkpoint checkpoints/entrants/f12_mm_e05_s22.pt --load medium --seed 100007
+python scripts/evaluate.py --methods slack,insertion,rollout --checkpoints checkpoints/ppo_set.pt --loads medium,high --days 5 --out outputs/quick_eval.csv
+python -m scripts.compare_video --out outputs/compare.mp4                      # side-by-side video, PPO vs Slack-aware
+```
