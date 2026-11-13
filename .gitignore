@@ -7,6 +7,7 @@ outputs/
 .vscode/
 .claude/
 runs/
-docs/
+docs/*
+!docs/PROJECT_SUMMARY.md
+!docs/ME5418_Group17_M?_Report.pdf
 *.zip
-evidence/
