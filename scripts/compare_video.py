@@ -179,9 +179,9 @@ def main():
                    {t for t, _ in holds})
     summary = (args.summary.read_text(encoding="utf-8").splitlines() if args.summary else
                final_test_summary())
-    lines = end_lines(left, right, summary)
-    endings = [renderer.card("The whole day, including a failure", lines[i:i + 12])
-               for i in range(0, len(lines), 12)]
+    endings = [renderer.card("The whole day, including a failure", end_lines(left, right, []))]
+    if summary:
+        endings.append(renderer.card("Final test: all methods", summary, kicker="RESULTS"))
     intro = [(renderer.card("Learning to dispatch a medical delivery drone", TITLE_LINES,
                             kicker="ME5418 FINAL PROJECT"), 10),
              (renderer.card("Same orders, two dispatchers",
