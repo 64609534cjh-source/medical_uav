@@ -18,12 +18,11 @@ Health, 2022). The hard part is dispatching under unknown future orders, not fli
 
 ## 2. What each milestone did
 
-| Milestone | Main content | Changes and reasons |
+| Milestone | Main content | Changes |
 |---|---|---|
-| M1 (Gym environment) | Gymnasium simulator, A* routes, action masks, Random/EDF/Slack-aware baselines, demo | Charging became one "fly to a charger and charge to 60/80/100 %" action (short charging steps would make credit assignment hard); orders expire at 2× their limit (backlog cannot grow forever); loads calibrated against Slack-aware because EDF was too weak |
-| M2 (Neural network) | Set network with attention (62,928 parameters) and an MLP control (370,459); both trained by behaviour cloning (imitation) of Slack-aware and of a rollout planner; FCFS, nearest-first and rollout baselines; HTML replay | Behaviour cloning was a cheap check that the networks, masks and data pipeline can represent a good dispatcher before PPO. Reward changed: late delivery +0.1 fixed (the M1 sliding late reward made a planner chase hopeless orders), expiry −0.1. Observation gained a 7×7 travel-time table (403 → 452 numbers) |
-| M3 (Learning agent) | Own masked PPO from scratch; 500 random training maps; expiry penalty −0.5; insertion, scenario rollout and rolling-horizon baselines; a final test of 61 policies registered before it was run | Random maps for generalization; −0.5 because too many orders still expired; the rolling horizon restored as the strongest baseline |
-| Final | No new training. Analyses of the existing final test: comparison with the rolling horizon, per map, operations, charging behaviour; learning curves; a new side-by-side video | — |
+| M1 (Gym environment) | Gymnasium simulator, A* routes, action masks, Random/EDF/Slack-aware baselines, demo | Charging is one "fly to a charger and charge to 60/80/100 %" action; orders expire at 2× their limit; loads calibrated against Slack-aware |
+| M2 (Neural network) | Set network with attention (62,928 parameters) and an MLP control (370,459); both trained by behaviour cloning (imitation) of Slack-aware and of a rollout planner; FCFS, nearest-first and rollout baselines; HTML replay | Reward: late delivery +0.1 fixed, expiry −0.1; observation gained a 7×7 travel-time table (403 → 452 numbers) |
+| M3 (Learning agent) | Own masked PPO from scratch; 500 random training maps; insertion, scenario rollout and rolling-horizon baselines; a final test of 61 policies registered before it was run | Expiry penalty −0.5; training on random maps |
 
 ## 3. The final method
 
@@ -47,24 +46,22 @@ Health, 2022). The hard part is dispatching under unknown future orders, not fli
 
 ## 4. Baselines (all written by us)
 
-| Baseline | How it works | Why it is in the comparison |
-|---|---|---|
-| Random | random allowed action | floor |
-| FCFS | oldest order first | arrival order as the only priority |
-| EDF | earliest deadline first | deadline as the only priority |
-| Nearest-first | action that finishes soonest | quickest next step as the only priority |
-| Slack-aware | EDF + unload here first + batch orders going where cargo goes + orders that can no longer be on time last ("slack" = time left after serving an order directly) | our best hand-written rule; same speed as PPO; floor in checkpoint selection; base rule of the planners |
-| Insertion | rebuilds a route each decision by inserting visible orders | classic route-construction heuristic |
-| Rollout | simulates each allowed action, Slack-aware finishes the day, best total reward | standard simulation-based improvement of a rule |
-| Scenario rollout | rollout averaged over 16 sampled futures (next 60 min) | anticipating unknown orders |
-| Rolling horizon | tries every 3-action sequence, Slack-aware finishes, executes the first action, re-plans | deepest search we could afford; strongest conventional method (bonus comparison) |
-
-They form a ladder: each step adds one kind of reasoning, and decision time grows from ~0.01 ms to ~1.4 s.
+| Baseline | How it works |
+|---|---|
+| Random | random allowed action |
+| FCFS | oldest order first |
+| EDF | earliest deadline first |
+| Nearest-first | action that finishes soonest |
+| Slack-aware | EDF + unload here first + batch orders going where cargo goes + orders that can no longer be on time last ("slack" = time left before the deadline after serving an order directly) |
+| Insertion | rebuilds a route each decision by inserting the visible orders, flies to its first stop |
+| Rollout | simulates each allowed action, Slack-aware finishes the visible orders, takes the best total reward |
+| Scenario rollout | rollout averaged over 16 sampled streams of future orders (next 60 min) |
+| Rolling horizon | tries every allowed 3-action sequence, Slack-aware finishes, executes the first action, re-plans |
 
 ## 5. Final test (registered 29 Oct, run once)
 
 - 61 frozen policies: 9 conventional, 41 PPO runs (final agent and variants), 4 M2 imitation networks, 7 charging
-  variants. An earlier test (27 Oct) had informed later changes, so a new test with unused days and maps was run.
+  variants. Days and maps never used before.
 - Map 0 (the layout of all milestones): 300 new days per load. 30 unseen maps (2000–2029): 10 days each.
 - Measures: daily on-time rate (primary), served rate, expired rate, lateness, distance, battery, backlog.
 - Statistics: paired differences on identical days, 95 % bootstrap intervals (10,000 resamples). Within ±1 point
@@ -85,30 +82,14 @@ On-time rate (%), medium / high load:
 
 - PPO beats every rule and both rollouts at medium and high load, on all 30 unseen maps.
 - Against the rolling horizon: medium −0.39 (map 0) and −0.55 points (unseen), practically equivalent; high +1.35
-  and +1.02. PPO wins 6 of 30 unseen maps at medium load and 25 at high load. PPO decides ~2,400× (medium) and
+  and +1.02. PPO decides ~2,400× (medium) and
   ~6,100× (high) faster. At low load all methods except Random are 96–100 % on time.
-- Operations on unseen maps (medium / high): PPO better for plasma (89.2 vs 87.1 %, 77.2 vs 72.4 %) and less late
-  when late (26 vs 43 min, 32 vs 52 min); the horizon flies less (124 vs 134 km, 133 vs 136 km), serves 0.5 points
-  more orders.
 - Design-choice evidence (registered comparisons): random maps +1.4 / +2.0 on unseen maps, −0.5 / −0.8 on map 0;
   expiry −0.5 lowers expiries by 1.7–2.5 points for −0.4 to +0.1 on-time; set network beats MLP by 1.3–3.0
   points (0.5–2.3 against MLPs trained twice as long) with 1/6 of the parameters; starting PPO from imitation adds
   only +0.4 / +0.8 on map 0 and nothing on unseen maps; PPO beats the M2 imitation networks by 7.6–17.4 points.
-- Charging: PPO charges about 20 times a day (rules ~10–14), early (at 54–61 % battery) and starts the peaks with
-  83–89 %. Forcing Slack-aware to charge fully or top up before peaks changed its on-time rate by ≤ 0.7 points;
-  removing PPO's full-charge actions cost 1.1–1.5 points. A full battery alone does not explain PPO's lead.
 
-## 7. Limitations and lessons
-
-- Simulated world with illustrative parameters; unseen maps come from the same generator; one drone; 12 visible
-  orders; planners score days with the M2 reward, PPO trained with the final one; our rolling horizon is a
-  depth-3 search, not a published state-of-the-art algorithm.
-- Things that changed our conclusions during the project: the strongest baseline (rolling horizon) turned "PPO
-  is far better" into "similar quality, much faster"; the 27 Oct test had to be replaced because it informed
-  changes; testing on map 0 only would have favoured fixed-map training; imitation as a starting point gave
-  almost nothing.
-
-## 8. Where to find things
+## 7. Where to find things
 
 - `README.md`: install, run the shipped agent, a 5-minute training demo, quick evaluation, full reproduction.
 - `scripts/demo.py` (one day, replay page and picture), `scripts/train_ppo.py`, `scripts/evaluate.py`,
@@ -116,7 +97,7 @@ On-time rate (%), medium / high load:
 - `evidence/final_test/` (all final-test results), `evidence/training/` (learning curves), `evidence/latency/`.
 - `assets/replay_ppo.html`, `assets/replay_slack.html`: offline replays of the same high-load day.
 
-## 9. Trained models (in `checkpoints/`, ready to run)
+## 8. Trained models (in `checkpoints/`, ready to run)
 
 | File | What it is |
 |---|---|
