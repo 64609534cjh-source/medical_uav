@@ -118,3 +118,38 @@ python scripts/demo.py --policy ppo --checkpoint checkpoints/entrants/f12_mm_e05
 python scripts/evaluate.py --methods slack,insertion,rollout --checkpoints checkpoints/ppo_set.pt --loads medium,high --days 5 --out outputs/quick_eval.csv
 python -m scripts.compare_video --out outputs/compare.mp4                      # side-by-side video, PPO vs Slack-aware
 ```
+
+## 9. Data guide (`evidence/`)
+
+**Run names** (training folders, checkpoints and the `method` column of the final-test tables), e.g.
+`f12_mm_e05_s11`:
+
+| Part | Meaning |
+|---|---|
+| `f12` / `f24` | trained for 12 / 24 million decisions |
+| `mm` / `sm` | many maps (500 random training maps) / single map (map 0 only) |
+| `e05` / `v2` | final reward (expiry −0.5) / M2 reward (expiry −0.1) |
+| `m1`, `ontime` | M1 reward (sliding late reward) / only on-time deliveries rewarded |
+| `bc` | PPO started from the M2 imitation network instead of from scratch |
+| `mlp` | the MLP network instead of the set network |
+| `s11` … `s55` | training seed |
+| `/no100` | the same policy with its charge-to-100 % actions removed at test time |
+
+The final agent is `f12_mm_e05` (five seeds); the shipped one is `f12_mm_e05_s11`. Baseline names in the tables:
+`random`, `fcfs`, `edf`, `nearest`, `slack` (Slack-aware), `insertion`, `rollout`, `scenario16` (scenario rollout),
+`horizon` (rolling horizon), `slack100` / `prepeak` (Slack-aware always charging to 100 % / also topping up before
+the peaks), `bc_set`, `bc_mlp`, `bc_rollout_set`, `bc_rollout_mlp` (M2 imitation networks).
+
+**Folders**
+
+| File | Contents |
+|---|---|
+| `training/<run>/evals.csv` | the learning curve: every 0.5 M decisions, the on-time rate on 20 validation days at medium and high load (`decisions`, `seconds`, `on_time_medium`, `on_time_high`) |
+| `training/<run>/updates.csv` | one row per PPO update: losses, entropy, KL, clipping fraction, on-time rate of the training days |
+| `training/<run>/run.json` | the training settings and command; `quick_s11` is the 5-minute run of the README |
+| `selection/f12_select_*.json` | every checkpoint's validation results, its eligibility and the checkpoint kept for each run (`mm`: final agent and multi-map controls; `sm`, `ctrl`, `mmmlp`: the other variants) |
+| `final_test/map0.csv`, `maps.csv` | one row per policy and day: map 0 (300 days per load) and the 30 unseen maps (10 days each); columns include `method`, `map`, `load`, `seed`, `on_time_rate`, `served_rate`, `expiry_rate`, `mean_lateness`, `km_flown`, `empty_km`, `energy_used`, `mean_backlog`, per-type counts and charging statistics |
+| `final_test/report.txt` | all statistics of the final test as text: mean rates per policy, paired differences with 95 % intervals, controls, operations, decision times |
+| `final_test/summary.json` | the same statistics in machine-readable form |
+| `latency/*.csv` | serial decision times (one CPU thread, ms per decision) per method and load |
+| `registration/` | the plan of the final test, written before it was run |
