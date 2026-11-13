@@ -1,6 +1,7 @@
 """Render shipped PPO and Slack-aware on the same arrivals and simulated clock."""
 import argparse
 import csv
+import json
 from itertools import repeat
 from pathlib import Path
 from textwrap import wrap
@@ -17,8 +18,11 @@ from medical_uav.env.video import ComparisonFrames, TYPE_LABELS, clock, compare_
 from scripts.demo import POLICY_NAMES, make_policy
 
 ROOT = Path(__file__).resolve().parents[1]
-LOCKED_TEST = ROOT / "runs/locked/map0.csv"
-SHIPPED_METHOD = "m3_set_s11"
+FINAL_SUMMARY = ROOT / "evidence/final_test/summary.json"
+SUMMARY_ROWS = [("final", "PPO (ours, mean of 5 runs)"), ("horizon", "Rolling horizon"),
+                ("scenario16", "Scenario rollout"), ("rollout", "Rollout"), ("insertion", "Insertion"),
+                ("slack", "Slack-aware")]
+TIMED = {"PPO": ("networks", "checkpoints/entrants/f12_mm_e05_s11.pt"), "horizon": ("horizon", "horizon")}
 
 
 def record_day(name, load, seed):
@@ -66,25 +70,32 @@ def pauses(left, right, start, end):
     return sorted(found.values())
 
 
-def locked_test_summary(path=None):
-    """Mean daily on-time rates for the shipped model and Slack-aware on the locked test."""
-    if path is None:
-        path = LOCKED_TEST
+def final_test_summary(path=FINAL_SUMMARY):
+    """Mean daily on-time rates on the final test's 30 unseen maps, medium / high load."""
     if not path.exists():
         return []
-    with path.open() as f:
-        rows = list(csv.DictReader(f))
-    lines = []
-    for load in ("high", "medium"):
-        rates = [[float(r["on_time_rate"]) for r in rows
-                  if r["load"] == load and r["method"] == method]
-                 for method in (SHIPPED_METHOD, "slack")]
-        if not all(rates):
-            continue
-        means = [np.mean(values) for values in rates]
-        lines.append(f"Locked test, {len(rates[0])} {load}-load days: "
-                     f"PPO {100 * means[0]:.1f}% vs Slack {100 * means[1]:.1f}% on time")
+    maps = json.loads(path.read_text())["maps"]
+    lines = ["Final test, 30 unseen maps x 10 days, on time at medium / high load:"]
+    for key, label in SUMMARY_ROWS:
+        rates = [100 * maps[load]["means"][key][0] for load in ("medium", "high")]
+        lines.append(f"{label}: {rates[0]:.1f}% / {rates[1]:.1f}%")
+    ms = {name: [serial_ms(file, method, load) for load in ("medium", "high")]
+          for name, (file, method) in TIMED.items()}
+    if all(all(v) for v in ms.values()):
+        lines += ["", "Mean time per decision on one CPU thread, medium / high load:",
+                  f"PPO {ms['PPO'][0]:.2f} / {ms['PPO'][1]:.2f} ms · "
+                  f"rolling horizon {ms['horizon'][0]:,.0f} / {ms['horizon'][1]:,.0f} ms"]
     return lines
+
+
+def serial_ms(file, method, load):
+    """Mean serial decision time from evidence/latency, or None if absent."""
+    path = ROOT / f"evidence/latency/{file}.csv"
+    if not path.exists():
+        return None
+    with path.open() as f:
+        values = [float(r["ms"]) for r in csv.DictReader(f) if r["method"] == method and r["load"] == load]
+    return float(np.mean(values)) if values else None
 
 
 def failure_lines(left, right):
@@ -117,17 +128,27 @@ def end_lines(left, right, summary):
     return lines + [part for line in summary for part in wrap(line, width=90)]
 
 
+TITLE_LINES = ["One drone serves a medical center (M) and five hospitals (H1-H5).",
+               "Orders for plasma, medicine, samples and supplies arrive all day, each with a deadline;",
+               "the drone carries at most 3 boxes and must recharge at C1 or C2.", "",
+               "Left: our PPO agent, a set network with attention trained by reinforcement learning.",
+               "Right: Slack-aware, our best hand-written rule (earliest deadline first, local",
+               "unloading and batching, hopeless orders last).", "",
+               "ME5418 Group 17 · Jihang Cai, Yu Liu, Yufeng Zhang"]
+
+
 def intro_lines(load, seed, start, end):
-    return [f"{load.capitalize()} load · demand seed {seed} · {clock(start)}–{clock(end)}",
+    return [f"{load.capitalize()} load · demand seed {seed} · map 0 · {clock(start)}–{clock(end)}",
             "One clock. Identical arrivals. Two independent dispatchers.",
-            "Watch routes, deadlines, cargo and battery; two decisions pause.", "",
-            "Default day: nearest the median PPO-minus-Slack on-time difference",
-            "on high-load screen days; lowest day ID breaks ties.",
+            "Watch routes, deadlines, cargo and battery; two decisions pause to show both choices.", "",
+            "The day was chosen in advance: among 40 development days, PPO's lead over",
+            "Slack-aware is closest to the median on this one.",
             "Flights: 1 simulated min/s; both grounded: 8 min/s."]
 
 
 def video_frames(renderer, times, holds, fps, intro, endings):
-    yield from repeat(intro, 4 * fps)
+    for card, seconds in intro:
+        yield from repeat(card, seconds * fps)
     notes = dict(holds)
     for i, t in enumerate(times):
         note = notes.get(t)
@@ -142,9 +163,9 @@ def video_frames(renderer, times, holds, fps, intro, endings):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--load", choices=["low", "medium", "high"], default="high")
-    parser.add_argument("--seed", type=int, default=100004)
-    parser.add_argument("--start", type=float, default=50)
-    parser.add_argument("--end", type=float, default=200)
+    parser.add_argument("--seed", type=int, default=100007)
+    parser.add_argument("--start", type=float, default=40)
+    parser.add_argument("--end", type=float, default=190)
     parser.add_argument("--fps", type=int, default=12)
     parser.add_argument("--summary", type=Path,
                         help="UTF-8 aggregate-result lines for the end card")
@@ -157,12 +178,14 @@ def main():
     times = sorted(set(compare_times(left, right, args.fps, args.start, args.end)) |
                    {t for t, _ in holds})
     summary = (args.summary.read_text(encoding="utf-8").splitlines() if args.summary else
-               locked_test_summary())
+               final_test_summary())
     lines = end_lines(left, right, summary)
     endings = [renderer.card("The whole day, including a failure", lines[i:i + 12])
                for i in range(0, len(lines), 12)]
-    intro = renderer.card("Same orders, two dispatchers",
-                          intro_lines(args.load, args.seed, args.start, args.end))
+    intro = [(renderer.card("Learning to dispatch a medical delivery drone", TITLE_LINES,
+                            kicker="ME5418 FINAL PROJECT"), 10),
+             (renderer.card("Same orders, two dispatchers",
+                            intro_lines(args.load, args.seed, args.start, args.end)), 7)]
     args.out.parent.mkdir(parents=True, exist_ok=True)
     peak = next(((max(args.start, a) + min(args.end, b)) / 2 for a, b in left["meta"]["peaks"]
                  if max(args.start, a) < min(args.end, b)), args.start)

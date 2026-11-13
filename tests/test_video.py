@@ -1,3 +1,4 @@
+import json
 import numpy as np
 import pytest
 
@@ -64,29 +65,17 @@ def test_compare_times_follow_either_flight_and_include_window_endpoints():
     assert compare_times(left, right, fps=10, start=3, end=3) == [3]
 
 
-def test_locked_test_summary_uses_shipped_model_and_daily_rates(tmp_path, monkeypatch):
+def test_final_test_summary_reads_unseen_map_rates(tmp_path):
     from scripts import compare_video
 
-    path = tmp_path / "map0.csv"
-    path.write_text("method,load,seed,on_time_rate\n"
-                    "m3_set_s11,high,1,0.8\nm3_set_s11,high,2,0.9\n"
-                    "slack,high,1,0.6\nslack,high,2,0.7\n"
-                    "m3_set_s11,medium,1,0.9\nm3_set_s11,medium,2,0.95\n"
-                    "slack,medium,1,0.7\nslack,medium,2,0.9\n"
-                    "m3_set_s11,low,1,1.0\nslack,low,1,1.0\n"
-                    "m3_set_s11/ckpt_06000640,high,1,0.1\n"
-                    "m3_set_s22,medium,1,0.1\nedf,high,1,0.1\n")
-    expected = ["Locked test, 2 high-load days: PPO 85.0% vs Slack 65.0% on time",
-                "Locked test, 2 medium-load days: PPO 92.5% vs Slack 80.0% on time"]
-    assert compare_video.locked_test_summary(path) == expected
-    monkeypatch.setattr(compare_video, "LOCKED_TEST", path)
-    assert compare_video.locked_test_summary() == expected
-
-
-def test_locked_test_summary_omits_results_when_file_is_absent(tmp_path, monkeypatch):
-    from scripts import compare_video
-
-    path = tmp_path / "absent.csv"
-    assert compare_video.locked_test_summary(path) == []
-    monkeypatch.setattr(compare_video, "LOCKED_TEST", path)
-    assert compare_video.locked_test_summary() == []
+    means = {k: [0.9, 0.95, 0.05] for k in ("slack", "insertion", "rollout", "scenario16")}
+    blocks = {load: {"means": {**means, "final": [0.927, 0.96, 0.03], "horizon": [0.932, 0.97, 0.02]}}
+              for load in ("medium", "high")}
+    blocks["high"]["means"]["final"] = [0.817, 0.87, 0.13]
+    path = tmp_path / "summary.json"
+    path.write_text(json.dumps({"maps": blocks}))
+    lines = compare_video.final_test_summary(path)
+    assert lines[0].startswith("Final test")
+    assert "PPO (ours, mean of 5 runs): 92.7% / 81.7%" in lines
+    assert "Rolling horizon: 93.2% / 93.2%" in lines
+    assert compare_video.final_test_summary(tmp_path / "absent.json") == []
