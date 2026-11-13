@@ -96,6 +96,9 @@ On-time rate (%), medium / high load:
   `scripts/locked_test.py` / `locked_report.py` (final test), `scripts/compare_video.py` (side-by-side video).
 - `evidence/final_test/` (all final-test results), `evidence/training/` (learning curves), `evidence/latency/`.
 - `assets/replay_ppo.html`, `assets/replay_slack.html`: offline replays of the same high-load day.
+- `docs/figures/`: the figures of the M1–M3 reports as image files — code structure and demo snapshot (M1), set
+  network and imitation-learning curves (M2), PPO training curves of the set network and the MLP with Slack-aware
+  and rolling-horizon reference lines (M3).
 
 ## 8. Trained models (in `checkpoints/`, ready to run)
 
