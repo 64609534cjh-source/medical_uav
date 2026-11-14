@@ -89,6 +89,28 @@ On-time rate (%), medium / high load:
   points (0.5–2.3 against MLPs trained twice as long) with 1/6 of the parameters; starting PPO from imitation adds
   only +0.4 / +0.8 on map 0 and nothing on unseen maps; PPO beats the M2 imitation networks by 7.6–17.4 points.
 
+## 6b. Charging study (registered in the final test)
+
+Three charging variants were fixed in advance and run on every test day (exploratory, not primary comparisons):
+`slack100` (Slack-aware always charging to 100 %), `prepeak` (Slack-aware charging to 100 % and also topping up
+before each demand peak), and `f12_mm_e05_s*/no100` (the five final PPO policies with their charge-to-100 % actions
+removed at test time).
+
+Charging behaviour on the 30 unseen maps (medium / high load, mean per day):
+
+| | Slack-aware | Rolling horizon | PPO |
+|---|---|---|---|
+| Charges per day | 11.0 / 10.3 | 11.7 / 13.9 | 21.0 / 20.4 |
+| Battery when a charge starts (%) | 30 / 25 | 31 / 33 | 61 / 54 |
+| Battery at the start of a demand peak (%) | 66 / 58 | 60 / 53 | 89 / 83 |
+
+Results of the variants (medium and high load, both test sets): the two Slack-aware variants raised the battery at
+the start of the peaks by 9 to 21 points and changed the on-time rate by at most 0.7 points; PPO without full charges
+lost 1.1 to 1.5 points and stayed above every rule. Columns used: `charges`, `battery_at_charge`, `battery_at_peak`,
+`peak_charge_minutes`, `on_time_peak` in `evidence/final_test/map0.csv` and `maps.csv`. The variants are implemented
+in `medical_uav/baselines/energy.py`; `scripts/analyze_behaviour.py` and `scripts/energy_contrasts.py` compute the
+behaviour statistics and contrasts.
+
 ## 7. Where to find things
 
 - `README.md`: install, run the shipped agent, a 5-minute training demo, quick evaluation, full reproduction.
