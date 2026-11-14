@@ -69,7 +69,8 @@ def test_final_test_summary_reads_unseen_map_rates(tmp_path):
     from scripts import compare_video
 
     means = {k: [0.9, 0.95, 0.05] for k in ("slack", "insertion", "rollout", "scenario16")}
-    blocks = {load: {"means": {**means, "final": [0.927, 0.96, 0.03], "horizon": [0.932, 0.97, 0.02]}}
+    blocks = {load: {"means": {**means, "final": [0.927, 0.96, 0.03],
+                               "horizon": [0.932, 0.97, 0.02]}}
               for load in ("medium", "high")}
     blocks["high"]["means"]["final"] = [0.817, 0.87, 0.13]
     path = tmp_path / "summary.json"
@@ -79,3 +80,12 @@ def test_final_test_summary_reads_unseen_map_rates(tmp_path):
     assert "PPO (ours, mean of 5 runs): 92.7% / 81.7%" in lines
     assert "Rolling horizon: 93.2% / 93.2%" in lines
     assert compare_video.final_test_summary(tmp_path / "absent.json") == []
+
+
+def test_record_day_keeps_the_network_top_choices_for_ppo_only():
+    from scripts import compare_video
+
+    ppo = compare_video.record_day("ppo", "low", 100000)
+    slack = compare_video.record_day("slack", "low", 100000)
+    assert all(d["top"] for d in ppo["decisions"])
+    assert not any(d["top"] for d in slack["decisions"])

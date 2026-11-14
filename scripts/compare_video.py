@@ -14,26 +14,31 @@ from medical_uav.env import MedicalUAVEnv
 from medical_uav.env.actions import decode
 from medical_uav.env.render import save_animation
 from medical_uav.env.replay import day_record, decision_record, state_at
-from medical_uav.env.video import ComparisonFrames, TYPE_LABELS, clock, compare_times
-from scripts.demo import POLICY_NAMES, make_policy
+from medical_uav.env.video import (ComparisonFrames, ReplayFrames, TYPE_LABELS, clock,
+                                   compare_times, explained_times)
+from scripts.demo import POLICY_NAMES, frames, make_policy
 
 ROOT = Path(__file__).resolve().parents[1]
 FINAL_SUMMARY = ROOT / "evidence/final_test/summary.json"
 SUMMARY_ROWS = [("final", "PPO (ours, mean of 5 runs)"), ("horizon", "Rolling horizon"),
-                ("scenario16", "Scenario rollout"), ("rollout", "Rollout"), ("insertion", "Insertion"),
+                ("scenario16", "Scenario rollout"), ("rollout", "Rollout"),
+                ("insertion", "Insertion"),
                 ("slack", "Slack-aware")]
-TIMED = {"PPO": ("networks", "checkpoints/entrants/f12_mm_e05_s11.pt"), "horizon": ("horizon", "horizon")}
+TIMED = {"PPO": ("networks", "checkpoints/entrants/f12_mm_e05_s11.pt"),
+         "horizon": ("horizon", "horizon")}
 
 
 def record_day(name, load, seed):
     """Keep the battery and visible slots alongside the ordinary decision facts."""
-    policy, _ = make_policy(name, seed)
+    policy, net = make_policy(name, seed)
     env = MedicalUAVEnv(load=load)
     obs, info = env.reset(options={"demand_seed": seed})
     decisions, done = [], False
     while not done:
         action = policy(env, obs, info["action_mask"])
-        d = decision_record(env, action)
+        # the network's probabilities give the replay its top choices
+        probs = net.probabilities(obs, info["action_mask"]) if net else None
+        d = decision_record(env, action, probs)
         d.update(battery=env.sim.battery, visible=[o.id for o in env.slots])
         decisions.append(d)
         obs, _, terminated, truncated, info = env.step(action)
@@ -75,7 +80,7 @@ def final_test_summary(path=FINAL_SUMMARY):
     if not path.exists():
         return []
     maps = json.loads(path.read_text())["maps"]
-    lines = ["Final test, 30 unseen maps x 10 days, on time at medium / high load:"]
+    lines = ["Final test, 30 held-out maps x 10 days, on time at medium / high load:"]
     for key, label in SUMMARY_ROWS:
         rates = [100 * maps[load]["means"][key][0] for load in ("medium", "high")]
         lines.append(f"{label}: {rates[0]:.1f}% / {rates[1]:.1f}%")
@@ -94,7 +99,8 @@ def serial_ms(file, method, load):
     if not path.exists():
         return None
     with path.open() as f:
-        values = [float(r["ms"]) for r in csv.DictReader(f) if r["method"] == method and r["load"] == load]
+        values = [float(r["ms"]) for r in csv.DictReader(f)
+                  if r["method"] == method and r["load"] == load]
     return float(np.mean(values)) if values else None
 
 
@@ -129,26 +135,46 @@ def end_lines(left, right, summary):
 
 
 TITLE_LINES = ["One drone serves a medical center (M) and five hospitals (H1-H5).",
-               "Orders for plasma, medicine, samples and supplies arrive all day, each with a deadline;",
-               "the drone carries at most 3 boxes and must recharge at C1 or C2.", "",
-               "Left: our PPO agent, a set network with attention trained by reinforcement learning.",
-               "Right: Slack-aware, our best hand-written rule (earliest deadline first, local",
-               "unloading and batching, hopeless orders last).", "",
+               "Orders for plasma, medicine, samples and supplies arrive all day,",
+               "each with a deadline; the drone carries at most 3 boxes and must",
+               "recharge at C1 or C2.", "",
+               "Left: our PPO agent, a set network with attention trained by",
+               "reinforcement learning.",
+               "Right: Slack-aware, our best hand-written rule (earliest deadline first,",
+               "local unloading and batching, hopeless orders last).", "",
                "ME5418 Group 17 · Jihang Cai, Yu Liu, Yufeng Zhang"]
 
 
+EXPLAIN_LINES = ["The next minute replays the PPO agent alone, as in the offline replay page.",
+                 "At each decision the screen pauses: left, the map and the drone's route;",
+                 "right, the chosen action, the network's three most probable actions,",
+                 "battery, cargo and the waiting orders, most urgent first.", "",
+                 "The pauses are for reading; the network decides in a quarter of a millisecond."]
+
+
+def explained_frames(record, load, seed, fps, count):
+    """The PPO day as in the replay page: `count` decisions from the first one in a demand peak."""
+    renderer = ReplayFrames(record, f"{load.capitalize()} load · demand seed {seed} · map 0")
+    peak = record["meta"]["peaks"][0][0]
+    first = next(i for i, d in enumerate(record["decisions"]) if d["t"] >= peak)
+    yield from frames(renderer, explained_times(record, first, count, fps),
+                      "the replay at 1× · pauses for reading, not decision time")
+
+
 def intro_lines(load, seed, start, end):
-    return [f"{load.capitalize()} load · demand seed {seed} · map 0 · {clock(start)}–{clock(end)}",
+    return [f"{load.capitalize()} load · demand seed {seed} · map 0 · "
+            f"{clock(start)}–{clock(end)}",
             "One clock. Identical arrivals. Two independent dispatchers.",
-            "Watch routes, deadlines, cargo and battery; two decisions pause to show both choices.", "",
+            "Watch routes, deadlines, cargo and battery;",
+            "two decisions pause to show both choices.", "",
             "The day was chosen in advance: among 40 development days, PPO's lead over",
             "Slack-aware is closest to the median on this one.",
             "Flights: 1 simulated min/s; both grounded: 8 min/s."]
 
 
 def video_frames(renderer, times, holds, fps, intro, endings):
-    for card, seconds in intro:
-        yield from repeat(card, seconds * fps)
+    for part in intro:  # (card, seconds) or a ready sequence of frames
+        yield from repeat(*part) if isinstance(part, tuple) else part
     notes = dict(holds)
     for i, t in enumerate(times):
         note = notes.get(t)
@@ -167,6 +193,9 @@ def main():
     parser.add_argument("--start", type=float, default=40)
     parser.add_argument("--end", type=float, default=190)
     parser.add_argument("--fps", type=int, default=12)
+    parser.add_argument("--explain", type=int, default=8,
+                        help="PPO decisions replayed with their top choices before the "
+                             "comparison (0: none)")
     parser.add_argument("--summary", type=Path,
                         help="UTF-8 aggregate-result lines for the end card")
     parser.add_argument("--out", type=Path, default=Path("outputs/compare.mp4"))
@@ -182,10 +211,17 @@ def main():
     endings = [renderer.card("The whole day, including a failure", end_lines(left, right, []))]
     if summary:
         endings.append(renderer.card("Final test: all methods", summary, kicker="RESULTS"))
-    intro = [(renderer.card("Learning to dispatch a medical delivery drone", TITLE_LINES,
-                            kicker="ME5418 FINAL PROJECT"), 10),
-             (renderer.card("Same orders, two dispatchers",
-                            intro_lines(args.load, args.seed, args.start, args.end)), 7)]
+    def card(title, lines, seconds, **kw):
+        return renderer.card(title, lines, **kw), seconds * args.fps
+
+    intro = [card("Learning to dispatch a medical delivery drone", TITLE_LINES, 10,
+                  kicker="ME5418 FINAL PROJECT")]
+    if args.explain:
+        intro += [card("How the PPO agent decides", EXPLAIN_LINES, 7, kicker="PART 1 · ONE AGENT"),
+                  explained_frames(left, args.load, args.seed, args.fps, args.explain)]
+    intro += [card("Same orders, two dispatchers",
+                   intro_lines(args.load, args.seed, args.start, args.end), 7,
+                   kicker="PART 2 · SIDE BY SIDE")]
     args.out.parent.mkdir(parents=True, exist_ok=True)
     peak = next(((max(args.start, a) + min(args.end, b)) / 2 for a, b in left["meta"]["peaks"]
                  if max(args.start, a) < min(args.end, b)), args.start)
