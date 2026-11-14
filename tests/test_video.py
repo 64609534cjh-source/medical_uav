@@ -41,31 +41,41 @@ def test_explained_times_show_the_steps_of_a_decision_then_play_its_action(low_d
     assert run[0] == d["t"] and run[-1] < d["end"] and run == sorted(run)
 
 
-@pytest.mark.parametrize("note", [None, ["Charging decision", "PPO charges to 100%",
-                                      "Slack delivers at H2", "Two orders waiting"]])
-def test_comparison_frames_are_720p_rgb(low_day, note):
-    from medical_uav.env.video import ComparisonFrames
+@pytest.mark.parametrize("caption", [None, ("Watch the backlog", ["One line"], False),
+                                     ("PAUSED · 10:27", ["The rule charges", "PPO flies"], True)])
+def test_duel_frames_are_1080p_rgb(low_day, caption):
+    from medical_uav.env.video import DuelFrames
 
-    renderer = ComparisonFrames(low_day, low_day)
-    frame = renderer.draw(65, note)
-    assert frame.shape == (720, 1280, 3) and frame.dtype == np.uint8
+    renderer = DuelFrames(low_day, low_day)
+    for t in (0.0, 65.0, low_day["meta"]["end"]):
+        frame = renderer.draw(t, caption)
+        assert frame.shape == (1080, 1920, 3) and frame.dtype == np.uint8
+    for step in range(len(renderer.GUIDE)):
+        assert renderer.guide(65.0, step).shape == (1080, 1920, 3)
 
 
-def test_compare_times_follow_either_flight_and_include_window_endpoints():
-    from medical_uav.env.video import FLY_RATE, GROUND_RATE, compare_times
+def test_duel_series_follow_the_replay_state(low_day):
+    from medical_uav.env.replay import state_at
+    from medical_uav.env.video import DuelFrames
 
-    left = {"segments": [["wait", 0, 2], ["fly", 2, 4], ["wait", 4, 10]]}
-    right = {"segments": [["wait", 0, 3], ["fly", 3, 6], ["wait", 6, 10]]}
-    times = compare_times(left, right, fps=10, start=1, end=9)
-    assert times[0] == 1 and times[-1] == 9
+    renderer = DuelFrames(low_day, low_day)
+    minutes, on_time, waiting = renderer.series[0]
+    for k in (0, len(minutes) // 2, len(minutes) - 1):
+        s = state_at(low_day, minutes[k])
+        assert on_time[k] == s["on_time"] and waiting[k] == len(s["waiting"])
+
+
+def test_duel_times_are_slower_in_peaks_and_cover_the_day():
+    from medical_uav.env.video import OFF_RATE, PEAK_RATE, duel_times
+
+    times = duel_times([[2, 4]], end=10, fps=10)
+    assert times[0] == 0 and times[-1] == 10 and times == sorted(times)
     for a, b in zip(times, times[1:]):
-        rate = FLY_RATE if 2 <= a < 6 else GROUND_RATE
-        assert 0 < b - a <= rate / 10 + 1e-9
-    assert any(b - a == pytest.approx(GROUND_RATE / 10) for a, b in zip(times, times[1:]))
-    assert compare_times(left, right, fps=10, start=3, end=3) == [3]
+        assert b - a <= (PEAK_RATE if 2 <= a < 4 else OFF_RATE) / 10 + 1e-9
+    assert {2, 4} <= set(times)
 
 
-def test_final_test_summary_reads_unseen_map_rates(tmp_path):
+def test_final_rows_read_unseen_map_rates(tmp_path):
     from scripts import compare_video
 
     means = {k: [0.9, 0.95, 0.05] for k in ("slack", "insertion", "rollout", "scenario16")}
@@ -75,11 +85,34 @@ def test_final_test_summary_reads_unseen_map_rates(tmp_path):
     blocks["high"]["means"]["final"] = [0.817, 0.87, 0.13]
     path = tmp_path / "summary.json"
     path.write_text(json.dumps({"maps": blocks}))
-    lines = compare_video.final_test_summary(path)
-    assert lines[0].startswith("Final test")
-    assert "PPO (ours, mean of 5 runs): 92.7% / 81.7%" in lines
-    assert "Rolling horizon: 93.2% / 93.2%" in lines
-    assert compare_video.final_test_summary(tmp_path / "absent.json") == []
+    rows = compare_video.final_rows(path)
+    assert [r[0] for r in rows][:2] == ["PPO (ours)", "Rolling horizon"]
+    assert rows[0][2:4] == pytest.approx((92.7, 81.7))
+
+
+def toy(orders, segments, end=100):
+    return {"meta": {"end": end, "peaks": [[20, 60]]}, "orders": orders, "segments": segments,
+            "map": {"nodes": [{"name": n} for n in ("M", "H1", "H2")]}}
+
+
+def order(i, status, end, pickup=None, deadline=50, kind=0):
+    return {"id": i, "type": kind, "from": 0, "to": 1, "release": 0, "limit": deadline,
+            "deadline": deadline, "pickup": pickup, "end": end, "status": status}
+
+
+def test_moments_name_real_events_from_both_days():
+    from scripts import compare_video
+
+    ppo = toy([order(1, "delivered", 40), order(2, "expired", 70)],
+              [["charge", 10, 15, 0, 0, 60, 100, None], ["fly", 15, 100, 0, 1, 100, 50, None]])
+    rule = toy([order(1, "expired", 80, pickup=30), order(2, "delivered", 45)],
+               [["fly", 0, 30, 0, 1, 100, 20, None], ["charge", 30, 42, 1, 0, 16, 80, None]])
+    win = compare_video.rule_failure(ppo, rule)
+    assert win[0] == 80 and "#1" in win[1] and "on time" in win[2][1]
+    loss = compare_video.ppo_failure(ppo, rule)
+    assert loss[0] == 70 and "#2" in loss[1]
+    charge = compare_video.rule_charge(ppo, rule, waiting=lambda r, t: 6)
+    assert charge[0] == 30 and "16%" in charge[2][0] and "12 min" in charge[2][0]
 
 
 def test_record_day_keeps_the_network_top_choices_for_ppo_only():

@@ -1,31 +1,36 @@
-"""Render shipped PPO and Slack-aware on the same arrivals and simulated clock."""
+"""Render shipped PPO and Slack-aware on the same arrivals and simulated clock, the whole day.
+
+The video: a title card, a four-step guide to the screen, the day side by side with running
+charts (slower in demand peaks), pauses at moments picked from the two days' records, and the
+final test's results as bars.
+"""
 import argparse
 import csv
 import json
 from itertools import repeat
 from pathlib import Path
-from textwrap import wrap
 
 import imageio.v2 as imageio
 import numpy as np
 import torch
 
 from medical_uav.env import MedicalUAVEnv
-from medical_uav.env.actions import decode
+from medical_uav.env.config import EPS
 from medical_uav.env.render import save_animation
 from medical_uav.env.replay import day_record, decision_record, state_at
-from medical_uav.env.video import (ComparisonFrames, ReplayFrames, TYPE_LABELS, clock,
-                                   compare_times, explained_times)
-from scripts.demo import POLICY_NAMES, frames, make_policy
+from medical_uav.env.video import TYPE_LABELS, DuelFrames, clock, duel_times
+from scripts.demo import POLICY_NAMES, make_policy
 
 ROOT = Path(__file__).resolve().parents[1]
 FINAL_SUMMARY = ROOT / "evidence/final_test/summary.json"
-SUMMARY_ROWS = [("final", "PPO (ours, mean of 5 runs)"), ("horizon", "Rolling horizon"),
-                ("scenario16", "Scenario rollout"), ("rollout", "Rollout"),
-                ("insertion", "Insertion"),
-                ("slack", "Slack-aware")]
-TIMED = {"PPO": ("networks", "checkpoints/entrants/f12_mm_e05_s11.pt"),
-         "horizon": ("horizon", "horizon")}
+# final-test key, label, report colour, latency file and method name
+METHODS = [("final", "PPO (ours)", "#e8590c", "networks", "checkpoints/entrants/f12_mm_e05_s11.pt"),
+           ("horizon", "Rolling horizon", "#1f1f1f", "horizon", "horizon"),
+           ("scenario16", "Scenario rollout", "#1c7ed6", "scenario16", "scenario16"),
+           ("rollout", "Rollout", "#1c7ed6", "rollout", "rollout"),
+           ("insertion", "Insertion", "#2b8a3e", "insertion", "insertion"),
+           ("slack", "Slack-aware", "#7048e8", "slack", "slack")]
+PAUSE_S = 8
 
 
 def record_day(name, load, seed):
@@ -46,194 +51,171 @@ def record_day(name, load, seed):
     return day_record(env, decisions, POLICY_NAMES[name])
 
 
-def decision_line(label, d):
-    return (f"{label} decision at {clock(d['t'])}: {d['short']} · "
-            f"battery {d['battery']:.0f}% · {d['facts'][-1]}")
+# ---------- moments to pause at, each (time, title, two lines) ----------
+def _outcome(o):
+    if o["status"] == "expired":
+        return "expired"
+    return "on time" if o["end"] - o["release"] <= o["limit"] + EPS else "late"
 
 
-def pauses(left, right, start, end):
-    """First charge and first distinct service action, selected without outcome filtering."""
-    found = {}
-    for d in left["decisions"]:
-        if not start <= d["t"] <= end:
-            continue
-        kind, _ = decode(d["action"])
-        s = state_at(right, d["t"])
-        other = right["decisions"][s["decision"]]
-        if kind == "charge" and "charge" not in found:
-            label = "Charging decision"
-        elif kind in ("pick", "deliver") and "service" not in found:
-            if d["text"] == other["text"]:
-                continue
-            label = "Service decision"
-        else:
-            continue
-        key = "charge" if kind == "charge" else "service"
-        note = [f"PAUSED · {label} · {clock(d['t'])}", decision_line("PPO", d),
-                decision_line("Slack", other), f"PPO: {d['facts'][0]}"]
-        found[key] = (d["t"], note)
-    return sorted(found.values())
+def _name(r, o):
+    nodes = r["map"]["nodes"]
+    return (f"{TYPE_LABELS[o['type']].lower()} #{o['id']} "
+            f"({nodes[o['from']]['name']} → {nodes[o['to']]['name']})")
 
 
-def final_test_summary(path=FINAL_SUMMARY):
-    """Mean daily on-time rates on the final test's 30 unseen maps, medium / high load."""
-    if not path.exists():
-        return []
-    maps = json.loads(path.read_text())["maps"]
-    lines = ["Final test, 30 held-out maps x 10 days, on time at medium / high load:"]
-    for key, label in SUMMARY_ROWS:
-        rates = [100 * maps[load]["means"][key][0] for load in ("medium", "high")]
-        lines.append(f"{label}: {rates[0]:.1f}% / {rates[1]:.1f}%")
-    ms = {name: [serial_ms(file, method, load) for load in ("medium", "high")]
-          for name, (file, method) in TIMED.items()}
-    if all(all(v) for v in ms.values()):
-        lines += ["", "Mean time per decision on one CPU thread, medium / high load:",
-                  f"PPO {ms['PPO'][0]:.2f} / {ms['PPO'][1]:.2f} ms · "
-                  f"rolling horizon {ms['horizon'][0]:,.0f} / {ms['horizon'][1]:,.0f} ms"]
-    return lines
+def _pairs(ppo, rule, mine, other):
+    """Orders whose outcome is `mine` under one side and `other` under the other, by time."""
+    return sorted(((a, b) for a, b in zip(ppo["orders"], rule["orders"])
+                   if _outcome(a) == mine and _outcome(b) == other),
+                  key=lambda ab: ab[1]["end"] if mine == "on time" else ab[0]["end"])
 
 
+def rule_failure(ppo, rule):
+    """The first order the rule lets expire that PPO delivers on time."""
+    a, b = _pairs(ppo, rule, "on time", "expired")[0]
+    where = ("it was never picked up" if b["pickup"] is None else
+             f"the rule picked it up at {clock(b['pickup'])} but did not deliver it in time")
+    return (b["end"], f"{clock(b['end'])} · The rule loses {_name(rule, b)}",
+            [f"It expires: {where}.",
+             f"PPO delivered the same order on time at {clock(a['end'])}."])
+
+
+def ppo_failure(ppo, rule):
+    """The first order PPO lets expire that the rule delivers on time: PPO is not perfect."""
+    a, b = sorted(((a, b) for a, b in zip(ppo["orders"], rule["orders"])
+                   if _outcome(a) == "expired" and _outcome(b) == "on time"),
+                  key=lambda ab: ab[0]["end"])[0]
+    where = "never picked up" if a["pickup"] is None else "picked up but not delivered in time"
+    return (a["end"], f"{clock(a['end'])} · PPO is not perfect: it loses {_name(ppo, a)}",
+            [f"The order expires, {where}.",
+             f"The rule delivered the same order on time at {clock(b['end'])}."])
+
+
+def _waiting(r, t):
+    return len(state_at(r, t)["waiting"])
+
+
+def rule_charge(ppo, rule, waiting=_waiting):
+    """The rule's first charge in a demand peak with at least five orders waiting."""
+    peaks = rule["meta"]["peaks"]
+    seg = next(s for s in rule["segments"] if s[0] == "charge" and waiting(rule, s[1]) >= 5
+               and any(a <= s[1] < b for a, b in peaks))
+    last = [s for s in ppo["segments"] if s[0] == "charge" and s[1] < seg[1]]
+    lines = [f"Its battery is down to {seg[5]:.0f}%: it charges for {seg[2] - seg[1]:.0f} min "
+             f"while {waiting(rule, seg[1])} orders wait."]
+    lines.append(f"PPO last charged at {clock(last[-1][1])}, to {last[-1][6]:.0f}%, "
+                 "and tops up in short stops through the day." if last else "")
+    return seg[1], f"{clock(seg[1])} · The rule has to stop and charge", lines
+
+
+def backlog_gap(ppo, rule):
+    """In the last demand peak, the minute the rule's backlog exceeds PPO's the most."""
+    a, b = ppo["meta"]["peaks"][-1]
+    t = max(np.arange(a, b, 1.0), key=lambda m: _waiting(rule, m) - _waiting(ppo, m))
+    sp, sr = state_at(ppo, t), state_at(rule, t)
+    return (float(t), f"{clock(t)} · Second peak: {len(sr['waiting'])} orders wait for the rule, "
+            f"{len(sp['waiting'])} for PPO",
+            ["A longer backlog means more orders running out of time before pickup.",
+             f"On time so far: PPO {sp['on_time']}, the rule {sr['on_time']}."])
+
+
+def day_end(ppo, rule):
+    p, r = ppo["meta"]["summary"], rule["meta"]["summary"]
+    t = max(ppo["meta"]["end"], rule["meta"]["end"])
+    line = lambda m: (f"{m['on_time']} on time, {m['delivered'] - m['on_time']} late, "
+                      f"{m['expired']} expired")
+    return (t, f"End of the day · the same {p['orders']} orders",
+            [f"PPO: {line(p)}.   The rule: {line(r)}.",
+             "One day is one example; the final test below averages 300 days."])
+
+
+def phase_caption(meta, t):
+    """The running caption: what to watch in this part of the day."""
+    peaks = meta["peaks"]
+    if t < peaks[0][0]:
+        return ("Morning: few orders, both dispatchers keep up",
+                ["Watch the map, the score above each side and the charts below.", ""], False)
+    if any(a <= t < b for a, b in peaks):
+        return ("Demand peak: orders arrive over three times as fast as outside the peaks",
+                ["Watch the waiting squares on the maps and the backlog chart; "
+                 "the video slows down here.", ""], False)
+    if t < peaks[-1][0]:
+        return ("Between the peaks: both work through the orders that are waiting", ["", ""],
+                False)
+    return "Afternoon: the remaining orders are cleared", ["", ""], False
+
+
+# ---------- final test ----------
 def serial_ms(file, method, load):
-    """Mean serial decision time from evidence/latency, or None if absent."""
-    path = ROOT / f"evidence/latency/{file}.csv"
-    if not path.exists():
-        return None
-    with path.open() as f:
-        values = [float(r["ms"]) for r in csv.DictReader(f)
-                  if r["method"] == method and r["load"] == load]
-    return float(np.mean(values)) if values else None
+    """Mean serial decision time from evidence/latency."""
+    with (ROOT / f"evidence/latency/{file}.csv").open() as f:
+        return float(np.mean([float(r["ms"]) for r in csv.DictReader(f)
+                              if r["method"] == method and r["load"] == load]))
 
 
-def failure_lines(left, right):
-    """Show the first PPO failure by resolution time, with order ID breaking ties."""
-    failures = [o for o in left["orders"] if o["status"] == "expired" or
-                (o["end"] is not None and o["end"] > o["deadline"])]
-    if not failures:
-        return ["No late or expired PPO orders on this day."]
-    o = min(failures, key=lambda o: (o["end"], o["id"]))
-    other = next(p for p in right["orders"] if p["id"] == o["id"])
-    nodes = left["map"]["nodes"]
-    route = f"{nodes[o['from']]['name']} → {nodes[o['to']]['name']}"
-    outcome = "expired without pickup" if o["pickup"] is None else (
-        "delivered late" if o["status"] == "delivered" else "expired on board")
-    other_outcome = other["status"]
-    if other_outcome == "delivered":
-        other_outcome += " on time" if other["end"] <= other["deadline"] else " late"
-    return [f"One PPO failure: #{o['id']} {TYPE_LABELS[o['type']]} · {route}",
-            f"Due {clock(o['deadline'])}; {outcome} at {clock(o['end'])}.",
-            f"Same order under Slack: {other_outcome} at {clock(other['end'])}."]
+def _ms(v):
+    return f"{v:.2f} ms" if v < 10 else f"{v / 1000:.1f} s" if v >= 1000 else f"{v:.0f} ms"
 
 
-def end_lines(left, right, summary):
-    lines = [f"Whole day · {left['meta']['summary']['orders']} identical arrivals", ""]
-    for label, record in (("PPO", left), ("Slack", right)):
-        m = record["meta"]["summary"]
-        lines.append(f"{label}: {m['on_time']} on time · {m['delivered'] - m['on_time']} late · "
-                     f"{m['expired']} expired · {m['km']:.1f} km")
-    lines += [""] + failure_lines(left, right) + [""]
-    return lines + [part for line in summary for part in wrap(line, width=90)]
+def final_rows(path=FINAL_SUMMARY, timed=True):
+    """(label, colour, medium %, high %, decision time at high load) on the 30 held-out maps."""
+    maps = json.loads(path.read_text())["maps"]
+    return [(label, color, *(100 * maps[load]["means"][key][0] for load in ("medium", "high")),
+             _ms(serial_ms(file, method, "high")) if timed else "")
+            for key, label, color, file, method in METHODS]
 
 
-TITLE_LINES = ["One drone serves a medical center (M) and five hospitals (H1-H5).",
-               "Orders for plasma, medicine, samples and supplies arrive all day,",
-               "each with a deadline; the drone carries at most 3 boxes and must",
-               "recharge at C1 or C2.", "",
-               "Left: our PPO agent, a set network with attention trained by",
-               "reinforcement learning.",
-               "Right: Slack-aware, our best hand-written rule (earliest deadline first,",
-               "local unloading and batching, hopeless orders last).", "",
-               "ME5418 Group 17 · Jihang Cai, Yu Liu, Yufeng Zhang"]
-
-
-EXPLAIN_LINES = ["The next minute replays the PPO agent alone, as in the offline replay page.",
-                 "At each decision the screen pauses: left, the map and the drone's route;",
-                 "right, the chosen action, the network's three most probable actions,",
-                 "battery, cargo and the waiting orders, most urgent first.", "",
-                 "The pauses are for reading; the network decides in a quarter of a millisecond."]
-
-
-def explained_frames(record, load, seed, fps, count):
-    """The PPO day as in the replay page: `count` decisions from the first one in a demand peak."""
-    renderer = ReplayFrames(record, f"{load.capitalize()} load · demand seed {seed} · map 0")
-    peak = record["meta"]["peaks"][0][0]
-    first = next(i for i, d in enumerate(record["decisions"]) if d["t"] >= peak)
-    yield from frames(renderer, explained_times(record, first, count, fps),
-                      "the replay at 1× · pauses for reading, not decision time")
-
-
-def intro_lines(load, seed, start, end):
-    return [f"{load.capitalize()} load · demand seed {seed} · map 0 · "
-            f"{clock(start)}–{clock(end)}",
-            "One clock. Identical arrivals. Two independent dispatchers.",
-            "Watch routes, deadlines, cargo and battery;",
-            "two decisions pause to show both choices.", "",
-            "The day was chosen in advance: among 40 development days, PPO's lead over",
-            "Slack-aware is closest to the median on this one.",
-            "Flights: 1 simulated min/s; both grounded: 8 min/s."]
-
-
-def video_frames(renderer, times, holds, fps, intro, endings):
-    for part in intro:  # (card, seconds) or a ready sequence of frames
-        yield from repeat(*part) if isinstance(part, tuple) else part
-    notes = dict(holds)
-    for i, t in enumerate(times):
-        note = notes.get(t)
-        frame = renderer.draw(t, note)
-        yield from repeat(frame, 7 * fps if note else 1)
-        if i % (fps * 20) == 0:
-            print(f"Rendering {clock(t)} ({i + 1}/{len(times)} frames)", flush=True)
-    for card in endings:
-        yield from repeat(card, 8 * fps)
+TITLE = ["One drone serves a medical center and five hospitals. Orders for plasma,",
+         "medicine, samples and supplies arrive all day, each with a deadline;",
+         "the drone carries at most 3 boxes and must recharge on the way.", "",
+         "Left: our PPO agent, a neural network trained by reinforcement learning.",
+         "Right: Slack-aware, our best hand-written rule.",
+         "Both get exactly the same orders on the same map.", "",
+         "ME5418 Group 17 · Jihang Cai, Yu Liu, Yufeng Zhang"]
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--load", choices=["low", "medium", "high"], default="high")
     parser.add_argument("--seed", type=int, default=100007)
-    parser.add_argument("--start", type=float, default=40)
-    parser.add_argument("--end", type=float, default=190)
     parser.add_argument("--fps", type=int, default=12)
-    parser.add_argument("--explain", type=int, default=8,
-                        help="PPO decisions replayed with their top choices before the "
-                             "comparison (0: none)")
-    parser.add_argument("--summary", type=Path,
-                        help="UTF-8 aggregate-result lines for the end card")
     parser.add_argument("--out", type=Path, default=Path("outputs/compare.mp4"))
     args = parser.parse_args()
     torch.set_num_threads(1)
-    left, right = [record_day(name, args.load, args.seed) for name in ("ppo", "slack")]
-    renderer = ComparisonFrames(left, right)
-    holds = pauses(left, right, args.start, args.end)
-    times = sorted(set(compare_times(left, right, args.fps, args.start, args.end)) |
-                   {t for t, _ in holds})
-    summary = (args.summary.read_text(encoding="utf-8").splitlines() if args.summary else
-               final_test_summary())
-    endings = [renderer.card("The whole day, including a failure", end_lines(left, right, []))]
-    if summary:
-        endings.append(renderer.card("Final test: all methods", summary, kicker="RESULTS"))
-    def card(title, lines, seconds, **kw):
-        return renderer.card(title, lines, **kw), seconds * args.fps
+    ppo, rule = [record_day(name, args.load, args.seed) for name in ("ppo", "slack")]
+    r = DuelFrames(ppo, rule)
+    fps = args.fps
+    pauses = {t: (title, lines, True) for t, title, lines in
+              (rule_charge(ppo, rule), rule_failure(ppo, rule), ppo_failure(ppo, rule),
+               backlog_gap(ppo, rule), day_end(ppo, rule))}
+    times = sorted(set(duel_times(ppo["meta"]["peaks"], r.end, fps)) | set(pauses))
+    results = r.results("Final test: 30 held-out maps × 10 days per load", final_rows(),
+                        "PPO: mean of five training runs. Time per decision: one CPU thread, "
+                        "high load.",
+                        "PPO is within about one point of the rolling-horizon planner at both loads"
+                        " and decides thousands of times faster.")
 
-    intro = [card("Learning to dispatch a medical delivery drone", TITLE_LINES, 10,
-                  kicker="ME5418 FINAL PROJECT")]
-    if args.explain:
-        intro += [card("How the PPO agent decides", EXPLAIN_LINES, 7, kicker="PART 1 · ONE AGENT"),
-                  explained_frames(left, args.load, args.seed, args.fps, args.explain)]
-    intro += [card("Same orders, two dispatchers",
-                   intro_lines(args.load, args.seed, args.start, args.end), 7,
-                   kicker="PART 2 · SIDE BY SIDE")]
+    def frames():
+        yield from repeat(r.card("Same orders, two dispatchers", TITLE,
+                                 "ME5418 FINAL PROJECT · MEDICAL DELIVERY DRONE"), 10 * fps)
+        start = ppo["meta"]["peaks"][0][0] + 30
+        for step in range(len(r.GUIDE)):
+            yield from repeat(r.guide(start, step), 5 * fps)
+        for i, t in enumerate(times):
+            caption = pauses.get(t) or phase_caption(ppo["meta"], t)
+            yield from repeat(r.draw(t, caption), PAUSE_S * fps if t in pauses else 1)
+            if i % (fps * 20) == 0:
+                print(f"Rendering {clock(t)} ({i + 1}/{len(times)})", flush=True)
+        yield from repeat(results, 14 * fps)
+
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    peak = next(((max(args.start, a) + min(args.end, b)) / 2 for a, b in left["meta"]["peaks"]
-                 if max(args.start, a) < min(args.end, b)), args.start)
-    stills = {"peak": renderer.draw(peak), "end": endings[0]}
-    if holds:
-        stills["paused"] = renderer.draw(*holds[0])
-    for name, frame in stills.items():
-        imageio.imwrite(args.out.with_name(f"{args.out.stem}_{name}.png"), frame)
-    frames = video_frames(renderer, times, holds, args.fps, intro, endings)
-    n = save_animation(frames, str(args.out), args.fps)
-    print(f"Saved {args.out}: {n} frames, {n / args.fps:.2f} seconds")
-    print(f"Pauses: {', '.join(clock(t) for t, _ in holds)}")
+    for k, (t, caption) in enumerate(sorted(pauses.items())):
+        imageio.imwrite(args.out.with_name(f"{args.out.stem}_pause{k + 1}.png"), r.draw(t, caption))
+    imageio.imwrite(args.out.with_name(f"{args.out.stem}_results.png"), results)
+    n = save_animation(frames(), str(args.out), fps)
+    print(f"Saved {args.out}: {n} frames, {n / fps:.1f} s")
+    print("Pauses: " + ", ".join(clock(t) for t in sorted(pauses)))
 
 
 if __name__ == "__main__":
