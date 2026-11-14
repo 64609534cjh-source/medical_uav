@@ -89,6 +89,30 @@ On-time rate (%), medium / high load:
   points (0.5–2.3 against MLPs trained twice as long) with 1/6 of the parameters; starting PPO from imitation adds
   only +0.4 / +0.8 on map 0 and nothing on unseen maps; PPO beats the M2 imitation networks by 7.6–17.4 points.
 
+## 6a. PPO against the rolling horizon in detail
+
+- Map by map (30 unseen maps): PPO is ahead of the rolling horizon on 6 maps at medium load and 25 at high load, and
+  never more than 2.4 points behind; it is ahead of Slack-aware, insertion, rollout and scenario rollout on all 30
+  maps at both loads (`summary.json` → `maps` → `per_map`).
+- Operations on the 30 unseen maps (medium / high load, mean per day):
+
+| | Slack-aware | Rolling horizon | PPO |
+|---|---|---|---|
+| On time (%) | 82.6 / 66.1 | 93.2 / 80.6 | 92.7 / 81.7 |
+| Served (%) | 92.0 / 80.3 | 97.1 / 87.9 | 96.6 / 87.4 |
+| Expired (%) | 8.0 / 19.7 | 2.9 / 12.1 | 3.4 / 12.6 |
+| Plasma on time (%) | 78.4 / 61.9 | 87.1 / 72.4 | 89.2 / 77.2 |
+| Medicine on time (%) | 88.4 / 75.5 | 96.2 / 86.3 | 95.3 / 87.4 |
+| Sample on time (%) | 81.3 / 64.4 | 93.5 / 82.5 | 93.4 / 83.5 |
+| Supplies on time (%) | 74.7 / 54.1 | 90.9 / 73.5 | 87.9 / 71.3 |
+| Lateness of late deliveries (min) | 28.1 / 27.1 | 42.8 / 51.9 | 26.3 / 31.5 |
+| Flight (km/day), of which empty | 149, 50 / 152, 46 | 124, 28 / 133, 24 | 134, 37 / 136, 31 |
+| Battery used (percentage points/day) | 589 / 610 | 503 / 549 | 534 / 549 |
+| Orders waiting, time average | 3.9 / 7.3 | 3.1 / 6.5 | 2.9 / 5.9 |
+
+- Decision time on one CPU thread (medium / high load): rolling horizon 564 / 1,373 ms (5 % of decisions above 2.4 /
+  5.6 s); PPO 0.24 / 0.23 ms. One PPO training run takes about 3.1 hours on two CPU threads.
+
 ## 6b. Charging study (registered in the final test)
 
 Three charging variants were fixed in advance and run on every test day (exploratory, not primary comparisons):
@@ -121,6 +145,10 @@ behaviour statistics and contrasts.
 - `docs/figures/`: the figures of the M1–M3 reports as image files — code structure and demo snapshot (M1), set
   network and imitation-learning curves (M2), PPO training curves of the set network and the MLP with Slack-aware
   and rolling-horizon reference lines (M3).
+- `docs/figures/final_*.png`: figures of the final results — example layouts from the map generator (`layouts`), PPO
+  minus each strong baseline on every unseen map (`maps`), on-time rate against decision time (`tradeoff`), learning
+  curves of the set network and the MLPs (`curves`), battery over one high-load day for PPO, the rolling horizon and
+  Slack-aware (`day`).
 
 ## 8. Trained models (in `checkpoints/`, ready to run)
 
