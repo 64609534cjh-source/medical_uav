@@ -459,110 +459,145 @@ class DuelFrames:
         return self._rgb()
 
     def _side(self, ax, view, s, t, k, phase=None):
+        """One dispatcher: name and score, map, decision, battery and cargo, all waiting orders."""
         x, color = 32 + 944 * k, self.colors[k]
-        self._text(ax, x, 112, self.titles[k], 30, color, "bold")
+        self._text(ax, x, 100, self.titles[k], 28, color, "bold")
         chips = (("on time", s["on_time"], ONTIME), ("late", s["late"], LATE),
                  ("expired", s["expired"], EXPIRED), ("waiting", len(s["waiting"]), MUTED))
-        cx = x + 330
+        cx = x + 328
         for label, n, shade in chips:
-            ax.add_patch(rounded(cx, 112, 136, 40, 20, fc=PANEL, ec=LINE, lw=1))
-            ax.add_patch(Circle((cx + 20, 132), 8, color=shade))
-            self._text(ax, cx + 36, 117, str(n), 22, INK, "bold")
-            self._text(ax, cx + 42 + 15 * len(str(n)), 122, label, 15, MUTED)
+            ax.add_patch(rounded(cx, 100, 138, 38, 19, fc=PANEL, ec=LINE, lw=1))
+            ax.add_patch(Circle((cx + 19, 119), 7, color=shade))
+            self._text(ax, cx + 34, 105, str(n), 20, INK, "bold")
+            self._text(ax, cx + 40 + 14 * len(str(n)), 109, label, 14, MUTED)
             cx += 146
-        frame = self._box(x, 166, 440, 440)
+        frame = self._box(x, 150, 400, 400)
         size = view.r["map"]["size"]
         frame.set(xlim=(-0.15, size + 0.15), ylim=(size + 0.15, -0.15))
         frame.axis("off")
         view._draw_map(frame, s, t)
-        self._card(ax, view, s, t, x + 456, color, phase)
+        self._decision(ax, view, s, t, x + 416, color, phase)
+        self._onboard(ax, view, s, t, x + 416)
+        self._pool(ax, view, s, t, x)
 
-    def _card(self, ax, view, s, t, x, color, phase=None):
-        y, w, h = 166, 456, 440
+    def _decision(self, ax, view, s, t, x, color, phase=None):
+        y, w, h = 150, 496, 252
         self._panel(ax, x, y, w, h, **({"edgecolor": "#e9bf55", "lw": 3} if phase else {}))
-        r, nodes = view.r, view.r["map"]["nodes"]
+        r = view.r
         i = s["decision"]
         d = r["decisions"][i] if i >= 0 else None
         done = t >= r["meta"]["end"] - 1e-6
-        head = "DAY COMPLETE" if done else (
-            f"NOW · DECISION {i + 1} AT {view._clock(d['t'])}" if d else "START OF THE DAY")
-        if phase:
-            head = f"{phase.upper()} · DECISION {i + 1} AT {view._clock(d['t'])}"
-        self._text(ax, x + 18, y + 16, head, 13, "#6f4600" if phase else MUTED, "bold")
-        action = "All orders resolved" if done else (d["text"] if d else "Waiting for orders")
-        if phase == "Deciding":
-            self._text(ax, x + 18, y + 38, "Choosing the next action …", 22, FAINT, "bold")
-        else:
-            for j, line in enumerate(wrap(action, 34)[:2]):
-                self._text(ax, x + 18, y + 38 + 28 * j, line, 22, INK, "bold",
-                           **({"bbox": dict(boxstyle="round,pad=0.25", fc=DECIDING[0], ec="none")}
-                              if phase == "Picked" else {}))
-        yy = y + 102
-        if d and d["top"] and not done:
-            self._text(ax, x + 18, yy, "THE NETWORK'S TOP CHOICES", 13, MUTED, "bold")
+        if done:
+            self._text(ax, x + 18, y + 14, "DAY COMPLETE", 13, MUTED, "bold")
+            self._text(ax, x + 18, y + 34, "All orders resolved", 20, INK, "bold")
+            return
+        if d is None:
+            self._text(ax, x + 18, y + 14, "START OF THE DAY", 13, MUTED, "bold")
+            return
+        head = f"{(phase or 'decision').upper()} {i + 1} OF {len(r['decisions'])} · " \
+               f"{view._clock(d['t'])}"
+        self._text(ax, x + 18, y + 14, head, 13, "#6f4600" if phase else MUTED, "bold")
+        lines = ["Choosing the next action …"] if phase == "Deciding" else wrap(d["text"], 40)[:2]
+        for j, line in enumerate(lines):
+            self._text(ax, x + 18, y + 34 + 26 * j, line, 20,
+                       FAINT if phase == "Deciding" else INK, "bold")
+        fy = y + 72 + 26 * (len(lines) - 1)
+        for j, fact in enumerate(d["facts"][:3]):
+            ax.add_patch(Circle((x + 23, fy + 9 + 20 * j), 2.5, color=FAINT))
+            self._text(ax, x + 32, fy + 20 * j, fact, 14)
+        yy = y + 160
+        if d["top"]:
+            self._text(ax, x + 18, yy, "THE NETWORK'S TOP CHOICES", 12, MUTED, "bold")
             for j, (label, prob) in enumerate(d["top"]):
-                ry = yy + 22 + 26 * j
+                ry = yy + 20 + 22 * j
                 if j == 0 and phase == "Picked":
-                    ax.add_patch(Rectangle((x + 10, ry - 3), w - 20, 28, fc=DECIDING[0],
+                    ax.add_patch(Rectangle((x + 10, ry - 3), w - 20, 24, fc=DECIDING[0],
                                            ec="none"))
-                self._text(ax, x + 18, ry, label, 15, INK, "bold" if j == 0 else "normal")
-                self._text(ax, x + w - 18, ry, f"{100 * prob:.1f}%", 15, INK, ha="right")
-                ax.add_patch(Rectangle((x + 18, ry + 20), w - 36, 3, fc=WASH, ec="none"))
-                ax.add_patch(Rectangle((x + 18, ry + 20), (w - 36) * prob, 3,
+                self._text(ax, x + 18, ry, label, 14, INK, "bold" if j == 0 else "normal")
+                self._text(ax, x + w - 18, ry, f"{100 * prob:.1f}%", 14, INK, ha="right")
+                ax.add_patch(Rectangle((x + 18, ry + 17), w - 36, 3, fc=WASH, ec="none"))
+                ax.add_patch(Rectangle((x + 18, ry + 17), (w - 36) * prob, 3,
                                        fc=color if j == 0 else FAINT, ec="none"))
-        elif not any(dd["top"] for dd in r["decisions"]):
-            self._text(ax, x + 18, yy, "HAND-WRITTEN RULE", 13, MUTED, "bold")
-            for j, line in enumerate(wrap(self.RULE, 46)):
-                self._text(ax, x + 18, yy + 22 + 22 * j, line, 15, INK)
-        yy = y + 210
+        else:
+            self._text(ax, x + 18, yy, "HAND-WRITTEN RULE", 12, MUTED, "bold")
+            for j, line in enumerate(wrap(self.RULE, 56)):
+                self._text(ax, x + 18, yy + 20 + 20 * j, line, 14, INK)
+
+    def _onboard(self, ax, view, s, t, x):
+        y, w, h = 412, 496, 138
+        self._panel(ax, x, y, w, h)
+        r = view.r
         b = s["battery"]
-        self._text(ax, x + 18, yy, "BATTERY", 13, MUTED, "bold")
+        self._text(ax, x + 18, y + 12, "BATTERY", 12, MUTED, "bold")
         note = f"{b:.0f}%"
         if s["active"] is not None and r["segments"][s["active"]][0] == "charge":
             note = f"charging to {r['segments'][s['active']][6]:.0f}% · " + note
-        self._text(ax, x + w - 18, yy - 3, note, 17, INK, "bold", ha="right")
-        ax.add_patch(rounded(x + 18, yy + 24, w - 36, 12, 6, fc=WASH, ec="none"))
-        ax.add_patch(rounded(x + 18, yy + 24, (w - 36) * b / 100, 12, 6,
+        self._text(ax, x + w - 18, y + 9, note, 15, INK, "bold", ha="right")
+        bx, bw = x + 100, w - 100 - (230 if "charging" in note else 70)
+        ax.add_patch(rounded(bx, y + 15, bw, 10, 5, fc=WASH, ec="none"))
+        ax.add_patch(rounded(bx, y + 15, bw * b / 100, 10, 5,
                              fc=EXPIRED if b < r["meta"]["reserve"] + 10 else ONTIME, ec="none"))
-        yy = y + 262
         cargo = sorted((view.orders[o] for o in s["cargo"]), key=lambda o: o["pickup"])
-        self._text(ax, x + 18, yy, f"CARGO · {len(cargo)}/{r['meta']['max_boxes']} BOXES", 13,
-                   MUTED, "bold")
-        for j, o in enumerate(cargo):
-            self._order(ax, view, o, t, x + 18, yy + 22 + 24 * j, w - 36)
-        if not cargo:
-            self._text(ax, x + 18, yy + 22, "Empty", 15, FAINT)
-        yy = y + 360
+        self._text(ax, x + 18, y + 44, f"CARGO · {len(cargo)}/{r['meta']['max_boxes']} BOXES · "
+                   f"{sum(o['kg'] for o in cargo):.2f}/{r['meta']['max_kg']:.2f} KG", 12, MUTED,
+                   "bold")
+        for j in range(r["meta"]["max_boxes"]):
+            yy = y + 64 + 23 * j
+            if j < len(cargo):
+                self._order(ax, view, cargo[j], t, x + 18, yy, w - 36)
+            else:
+                self._text(ax, x + 38, yy, "empty slot", 14, FAINT)
+
+    def _pool(self, ax, view, s, t, x):
+        """Every waiting order, most urgent first, in three columns."""
+        y, w, h, rows = 562, 912, 200, 6
+        self._panel(ax, x, y, w, h)
         waiting = sorted((view.orders[o] for o in s["waiting"]),
                          key=lambda o: (o["deadline"], o["id"]))
-        self._text(ax, x + 18, yy, f"WAITING · {len(waiting)} · MOST URGENT FIRST", 13, MUTED,
-                   "bold")
-        for j, o in enumerate(waiting[:2]):
-            self._order(ax, view, o, t, x + 18, yy + 22 + 24 * j, w - 36)
-        if len(waiting) > 2:
-            self._text(ax, x + w - 18, yy, f"+{len(waiting) - 2} more", 13, MUTED, ha="right")
+        self._text(ax, x + 18, y + 12, f"WAITING ORDERS · {len(waiting)} · MOST URGENT FIRST", 12,
+                   MUTED, "bold")
+        if not waiting:
+            self._text(ax, x + 18, y + 40, "None", 14, FAINT)
+        cw = (w - 36 - 32) / 3
+        shown = waiting if len(waiting) <= 3 * rows else waiting[:3 * rows - 1]
+        for j, o in enumerate(shown):
+            cx, ry = x + 18 + (j // rows) * (cw + 16), y + 38 + 26 * (j % rows)
+            ax.add_patch(rounded(cx - 6, ry - 3, cw + 12, 23, 5, fc=PAPER, ec="none"))
+            self._order(ax, view, o, t, cx, ry, cw)
+        if len(shown) < len(waiting):
+            self._text(ax, x + 18 + 2 * (cw + 16), y + 38 + 26 * (rows - 1),
+                       f"+{len(waiting) - len(shown)} more", 14, MUTED, "bold")
 
     def _order(self, ax, view, o, t, x, y, w):
         nodes = view.r["map"]["nodes"]
-        ax.add_patch(Rectangle((x, y + 4), 12, 12, fc=TYPE_COLORS[o["type"]]))
-        self._text(ax, x + 20, y, f"#{o['id']} {TYPE_LABELS[o['type']]} "
-                   f"{nodes[o['from']]['name']} → {nodes[o['to']]['name']}", 15)
-        due, shade = view._due(o, t)
-        self._text(ax, x + w, y, due, 15, shade, ha="right")
+        ax.add_patch(Rectangle((x, y + 3), 11, 11, fc=TYPE_COLORS[o["type"]]))
+        self._text(ax, x + 18, y, f"#{o['id']} {TYPE_LABELS[o['type']]} "
+                   f"{nodes[o['from']]['name']}→{nodes[o['to']]['name']}", 14)
+        left = o["deadline"] - t
+        due, shade = ((f"{left:.0f} min left", LATE if left < 10 else MUTED) if left >= 0 else
+                      (f"late {-left:.0f} min", LATE))
+        self._text(ax, x + w, y, due, 14, shade, ha="right")
 
     def _caption(self, ax, caption):
-        x, y, w, h = 32, 622, self.W - 64, 92
+        x, y, w, h = 32, 772, self.W - 64, 64
         if caption is None:
             return
         title, lines, paused = caption
         self._panel(ax, x, y, w, h, facecolor="#fff0c2" if paused else PANEL,
                     edgecolor="#e9bf55" if paused else LINE, lw=2 if paused else 1)
-        self._text(ax, x + 24, y + 12, title, 22, "#6f4600" if paused else INK, "bold")
-        for j, line in enumerate(lines[:2]):
-            self._text(ax, x + 24, y + 44 + 24 * j, line, 18, INK)
+        self._text(ax, x + 20, y + 8, title, 19, "#6f4600" if paused else INK, "bold")
+        self._text(ax, x + 20, y + 36, "   ".join(line for line in lines if line), 16, INK)
+        lx = x + w - 20  # colour key of the order squares, right-aligned
+        for label, shade in reversed(list(zip(TYPE_LABELS, TYPE_COLORS))):
+            lx -= 9 * len(label) + 6
+            self._text(ax, lx, y + 12, label, 15, INK)
+            lx -= 22
+            ax.add_patch(Rectangle((lx, y + 15), 13, 13, fc=shade))
+            lx -= 18
+        self._text(ax, lx, y + 12, "ORDER TYPES", 12, MUTED, "bold", ha="right")
 
     def _charts(self, t):
-        y, h = 730, 322
+        y, h = 846, 222
         peaks = self.r["meta"]["peaks"]
         ax = self.fig.axes[0]
         boxes = [(32, 600), (656, 600), (1280, 608)]
@@ -571,11 +606,11 @@ class DuelFrames:
                   ("Outcomes so far", "same orders, both dispatchers")]
         for (x, w), (title, sub) in zip(boxes, titles):
             self._panel(ax, x, y, w, h)
-            self._text(ax, x + 20, y + 14, title, 19, INK, "bold")
-            self._text(ax, x + w - 20, y + 18, sub, 14, MUTED, ha="right")
+            self._text(ax, x + 18, y + 10, title, 16, INK, "bold")
+            self._text(ax, x + w - 18, y + 13, sub, 13, MUTED, ha="right")
         hours = np.arange(0, self.end + 1, 120)
         for (x, w), col in zip(boxes[:2], (1, 2)):
-            c = self._box(x + 56, y + 56, w - 80, h - 96)
+            c = self._box(x + 50, y + 40, w - 74, h - 70)
             top = max(max(s[col]) for s in self.series) * 1.12 + 1
             for a, b in peaks:
                 c.axvspan(a, b, color=WASH, lw=0)
@@ -600,7 +635,7 @@ class DuelFrames:
             c.grid(axis="y", color=WASH, lw=1)
             c.set_facecolor(PANEL)
         x, w = boxes[2]
-        b = self._box(x + 40, y + 56, w - 60, h - 96)
+        b = self._box(x + 30, y + 40, w - 50, h - 70)
         states = [state_at(v.r, min(t, v.r["meta"]["end"])) for v in self.views]
         groups = ("on time", "late", "expired")
         top = max(v.r["meta"]["summary"]["orders"] for v in self.views)
@@ -622,15 +657,17 @@ class DuelFrames:
         b.legend(loc="upper right", frameon=False, fontsize=pt(15))
 
     # what each step of the screen guide lights up: pixel boxes and the caption
-    GUIDE = [([(40, 174, 424, 424), (984, 174, 424, 424)], "The map",
+    GUIDE = [([(40, 158, 388, 388), (984, 158, 388, 388)], "The map",
               ["Drone, medical center M, hospitals H1-H5, chargers; hatched: no-fly zones.",
                "Small squares beside a place are orders waiting there."]),
-             ([(486, 164, 460, 444), (1430, 164, 460, 444)], "What each dispatcher does now",
-              ["PPO shows its network's three most likely actions and takes the top one;",
-               "the rule follows the same fixed priorities every time. Below: battery and cargo."]),
-             ([(356, 104, 590, 56), (1300, 104, 590, 56)], "The score so far",
+             ([(442, 144, 508, 412), (1386, 144, 508, 412)], "What each dispatcher does now",
+              ["The current action and the situation it was chosen in; PPO also shows its",
+               "network's most likely actions. Below: battery and the boxes on board."]),
+             ([(26, 556, 924, 212), (970, 556, 924, 212)], "Every order still waiting",
+              ["Most urgent first, with the minutes left before each deadline.", ""]),
+             ([(352, 94, 592, 50), (1296, 94, 592, 50)], "The score so far",
               ["Orders delivered on time, delivered late, expired, and still waiting.", ""]),
-             ([(26, 724, 1868, 334)], "Running totals for both",
+             ([(26, 840, 1868, 234)], "Running totals for both",
               ["On-time deliveries, orders waiting (the backlog) and all outcomes,",
                "updated as the day plays."])]
 
@@ -644,7 +681,7 @@ class DuelFrames:
         over.axis("off")
         outer = [(0, 0), (self.W, 0), (self.W, self.H), (0, self.H), (0, 0)]
         verts, codes = list(outer), [Path.MOVETO] + [Path.LINETO] * 3 + [Path.CLOSEPOLY]
-        for x, y, w, h in boxes + [(28, 618, self.W - 56, 100)]:  # holes, opposite winding
+        for x, y, w, h in boxes + [(28, 768, self.W - 56, 72)]:  # holes, opposite winding
             verts += [(x, y), (x, y + h), (x + w, y + h), (x + w, y), (x, y)]
             codes += [Path.MOVETO] + [Path.LINETO] * 3 + [Path.CLOSEPOLY]
         over.add_patch(PathPatch(Path(verts, codes), fc=PAPER, alpha=0.82, ec="none"))
