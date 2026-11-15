@@ -54,6 +54,30 @@ def test_duel_frames_are_1080p_rgb(low_day, caption):
         assert renderer.guide(65.0, step).shape == (1080, 1920, 3)
 
 
+def test_duel_frames_show_the_steps_of_a_decision(low_day):
+    from medical_uav.env.video import DuelFrames
+
+    renderer = DuelFrames(low_day, low_day)
+    t = low_day["decisions"][5]["t"]
+    frames = [renderer.draw(t, None, (p, None)) for p in ("Deciding", "Picked", None)]
+    assert all(f.shape == (1080, 1920, 3) for f in frames)
+    assert (frames[0] != frames[1]).any() and (frames[1] != frames[2]).any()
+
+
+def test_slow_times_stop_the_clock_at_each_decision_of_either_side():
+    from medical_uav.env.video import SLOW_RATE, slow_times
+
+    left = {"decisions": [{"t": 2.0}, {"t": 5.0}]}
+    right = {"decisions": [{"t": 3.0}, {"t": 5.0}]}
+    out = slow_times([left, right], start=1.0, end=6.0, fps=10, decide_s=0.5, pick_s=0.3)
+    times = [t for t, _ in out]
+    assert times[0] == 1.0 and times[-1] == 6.0 and times == sorted(times)
+    assert all(b - a <= SLOW_RATE / 10 + 1e-9 for a, b in zip(times, times[1:]))
+    steps = [(t, p) for t, p in out if p != (None, None)]
+    assert steps.count((2.0, ("Deciding", None))) == 5 and steps.count((2.0, ("Picked", None))) == 3
+    assert (3.0, (None, "Picked")) in steps and (5.0, ("Deciding", "Deciding")) in steps
+
+
 def test_duel_series_follow_the_replay_state(low_day):
     from medical_uav.env.replay import state_at
     from medical_uav.env.video import DuelFrames

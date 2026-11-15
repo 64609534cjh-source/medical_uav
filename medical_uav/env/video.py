@@ -29,7 +29,8 @@ DECIDING, PROGRESS = ("#fff0c2", "#6f4600"), ("#dfe9fd", "#1c49b8")
 # steps of a new decision in seconds: the finished action leaves, choices, the pick, its move up
 RATES = {"fly": 1.0, "load": 1.5, "unload": 1.5, "dispose": 1.5}
 LEAVE_S, DECIDE_S, PICK_S, MOVE_S = 0.35, 0.7, 0.4, 0.6
-PEAK_RATE, OFF_RATE = 3.0, 10.0  # the comparison video: simulated min/s in and outside peaks
+PEAK_RATE, OFF_RATE, SLOW_RATE = 3.0, 10.0, 1.0  # comparison video: simulated min/s in and
+# outside peaks, and in slow motion before a pause
 
 
 def pt(px: float) -> float:
@@ -432,8 +433,9 @@ class DuelFrames:
         return self.fig.add_axes((x / self.W, 1 - (y + h) / self.H, w / self.W, h / self.H))
 
     # ---------- frame ----------
-    def draw(self, t: float, caption=None) -> np.ndarray:
-        """The frame at time t; caption = (title, lines, paused)."""
+    def draw(self, t: float, caption=None, phases=(None, None), speed=None) -> np.ndarray:
+        """The frame at time t; caption = (title, lines, paused); phases: per side None or a step
+        of a new decision, "Deciding" (the choices shown) then "Picked" (the top one taken)."""
         ax = self._canvas()
         meta = self.r["meta"]
         self._text(ax, 32, 22, "Same orders, two dispatchers", 34, INK, "bold")
@@ -442,18 +444,21 @@ class DuelFrames:
         self._text(ax, self.W - 32, 14, clock(t, meta["day_start_hour"]), 52, INK, "bold",
                    ha="right")
         peak = any(a <= t < b for a, b in meta["peaks"])
-        speed = f"{PEAK_RATE:g} simulated min/s" if peak else f"{OFF_RATE:g} simulated min/s"
+        if speed is None:
+            speed = (f"{PEAK_RATE:g} simulated min/s" if peak else
+                     f"▶▶ fast-forward · {OFF_RATE:g} simulated min/s")
         self._text(ax, self.W - 32, 76, speed, 15, MUTED, ha="right")
         if peak:
             ax.add_patch(rounded(1450, 30, 200, 40, 20, fc="#fff0c2", ec="#e9bf55"))
             self._text(ax, 1550, 39, "DEMAND PEAK", 17, "#6f4600", "bold", ha="center")
         for k, view in enumerate(self.views):
-            self._side(ax, view, state_at(view.r, min(t, view.r["meta"]["end"])), t, k)
+            self._side(ax, view, state_at(view.r, min(t, view.r["meta"]["end"])), t, k,
+                       phases[k])
         self._caption(ax, caption)
         self._charts(t)
         return self._rgb()
 
-    def _side(self, ax, view, s, t, k):
+    def _side(self, ax, view, s, t, k, phase=None):
         x, color = 32 + 944 * k, self.colors[k]
         self._text(ax, x, 112, self.titles[k], 30, color, "bold")
         chips = (("on time", s["on_time"], ONTIME), ("late", s["late"], LATE),
@@ -470,27 +475,36 @@ class DuelFrames:
         frame.set(xlim=(-0.15, size + 0.15), ylim=(size + 0.15, -0.15))
         frame.axis("off")
         view._draw_map(frame, s, t)
-        self._card(ax, view, s, t, x + 456, color)
+        self._card(ax, view, s, t, x + 456, color, phase)
 
-    def _card(self, ax, view, s, t, x, color):
+    def _card(self, ax, view, s, t, x, color, phase=None):
         y, w, h = 166, 456, 440
-        self._panel(ax, x, y, w, h)
+        self._panel(ax, x, y, w, h, **({"edgecolor": "#e9bf55", "lw": 3} if phase else {}))
         r, nodes = view.r, view.r["map"]["nodes"]
         i = s["decision"]
         d = r["decisions"][i] if i >= 0 else None
         done = t >= r["meta"]["end"] - 1e-6
         head = "DAY COMPLETE" if done else (
             f"NOW · DECISION {i + 1} AT {view._clock(d['t'])}" if d else "START OF THE DAY")
-        self._text(ax, x + 18, y + 16, head, 13, MUTED, "bold")
+        if phase:
+            head = f"{phase.upper()} · DECISION {i + 1} AT {view._clock(d['t'])}"
+        self._text(ax, x + 18, y + 16, head, 13, "#6f4600" if phase else MUTED, "bold")
         action = "All orders resolved" if done else (d["text"] if d else "Waiting for orders")
-        lines = wrap(action, 34)
-        for j, line in enumerate(lines[:2]):
-            self._text(ax, x + 18, y + 38 + 28 * j, line, 22, INK, "bold")
+        if phase == "Deciding":
+            self._text(ax, x + 18, y + 38, "Choosing the next action …", 22, FAINT, "bold")
+        else:
+            for j, line in enumerate(wrap(action, 34)[:2]):
+                self._text(ax, x + 18, y + 38 + 28 * j, line, 22, INK, "bold",
+                           **({"bbox": dict(boxstyle="round,pad=0.25", fc=DECIDING[0], ec="none")}
+                              if phase == "Picked" else {}))
         yy = y + 102
         if d and d["top"] and not done:
             self._text(ax, x + 18, yy, "THE NETWORK'S TOP CHOICES", 13, MUTED, "bold")
             for j, (label, prob) in enumerate(d["top"]):
                 ry = yy + 22 + 26 * j
+                if j == 0 and phase == "Picked":
+                    ax.add_patch(Rectangle((x + 10, ry - 3), w - 20, 28, fc=DECIDING[0],
+                                           ec="none"))
                 self._text(ax, x + 18, ry, label, 15, INK, "bold" if j == 0 else "normal")
                 self._text(ax, x + w - 18, ry, f"{100 * prob:.1f}%", 15, INK, ha="right")
                 ax.add_patch(Rectangle((x + 18, ry + 20), w - 36, 3, fc=WASH, ec="none"))
@@ -566,13 +580,15 @@ class DuelFrames:
             for a, b in peaks:
                 c.axvspan(a, b, color=WASH, lw=0)
             for k, (m, *vals) in enumerate(self.series):
-                keep = m <= t
-                c.plot(m[keep], vals[col - 1][keep], color=self.colors[k], lw=2.6)
-                if keep.any():
-                    c.plot(m[keep][-1], vals[col - 1][keep][-1], "o", color=self.colors[k], ms=7)
-                    c.annotate(f"{vals[col - 1][keep][-1]}", (m[keep][-1], vals[col - 1][keep][-1]),
-                               xytext=(8, 4 if k == 0 else -14), textcoords="offset points",
-                               fontsize=pt(16), color=self.colors[k], weight="bold")
+                v = self.views[k]
+                now = state_at(v.r, min(t, v.r["meta"]["end"]))
+                now = now["on_time"] if col == 1 else len(now["waiting"])
+                xs, ys = np.r_[m[m < t], t], np.r_[vals[col - 1][m < t], now]  # ends at t exactly
+                c.plot(xs, ys, color=self.colors[k], lw=2.6, drawstyle="steps-post")
+                c.plot(t, now, "o", color=self.colors[k], ms=7)
+                c.annotate(f"{now}", (t, now), xytext=(8, 4 if k == 0 else -14),
+                           textcoords="offset points", fontsize=pt(16), color=self.colors[k],
+                           weight="bold")
             c.axvline(t, color=INK, lw=1.2, alpha=0.5)
             c.set(xlim=(0, self.end), ylim=(0, top))
             c.set_xticks(hours, [clock(v) for v in hours])
@@ -678,6 +694,23 @@ class DuelFrames:
         for j, line in enumerate(lines):
             self._text(ax, 150, 300 + 50 * j, line, 28)
         return self._rgb()
+
+
+def slow_times(records, start, end, fps, decide_s=1.2, pick_s=1.2) -> list:
+    """(time, phases) from start to end at SLOW_RATE simulated min/s; at each decision of either
+    side in the window the clock stops: its choices are shown, then the pick."""
+    stops = sorted({d["t"] for r in records for d in r["decisions"] if start < d["t"] <= end})
+    out, t = [], start
+    for stop in stops + [end]:
+        while t < stop - EPS:
+            out.append((t, (None, None)))
+            t = min(stop, t + SLOW_RATE / fps)
+        t = stop
+        if stop in stops:
+            sides = tuple(any(abs(d["t"] - stop) < EPS for d in r["decisions"]) for r in records)
+            for name, sec in (("Deciding", decide_s), ("Picked", pick_s)):
+                out += [(stop, tuple(name if k else None for k in sides))] * round(sec * fps)
+    return out + [(end, (None, None))]
 
 
 def duel_times(peaks, end, fps, start=0.0) -> list[float]:

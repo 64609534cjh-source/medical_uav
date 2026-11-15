@@ -18,7 +18,7 @@ from medical_uav.env import MedicalUAVEnv
 from medical_uav.env.config import EPS
 from medical_uav.env.render import save_animation
 from medical_uav.env.replay import day_record, decision_record, state_at
-from medical_uav.env.video import TYPE_LABELS, DuelFrames, clock, duel_times
+from medical_uav.env.video import SLOW_RATE, TYPE_LABELS, DuelFrames, clock, duel_times, slow_times
 from scripts.demo import POLICY_NAMES, make_policy
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,6 +31,8 @@ METHODS = [("final", "PPO (ours)", "#e8590c", "networks", "checkpoints/entrants/
            ("insertion", "Insertion", "#2b8a3e", "insertion", "insertion"),
            ("slack", "Slack-aware", "#7048e8", "slack", "slack")]
 PAUSE_S = 8
+SLOW_CAPTION = ("Slow motion: the decisions just before the next pause",
+                ["The clock stops at each decision: first the choices, then the pick.", ""], False)
 
 
 def record_day(name, load, seed):
@@ -175,11 +177,36 @@ TITLE = ["One drone serves a medical center and five hospitals. Orders for plasm
          "ME5418 Group 17 · Jihang Cai, Yu Liu, Yufeng Zhang"]
 
 
+def slow_start(records, t, count=2, longest=12.0):
+    """Start of the slow motion before t: the earlier of each side's last `count` decisions."""
+    firsts = [ds[-count] if len(ds) >= count else ds[0] for ds in
+              ([d["t"] for d in r["decisions"] if d["t"] < t] for r in records) if ds]
+    return max(min(firsts, default=t), t - longest)
+
+
+def timeline(records, pauses, fps, slowmo=True):
+    """(time, phases, speed label) for the whole day; slow motion before each pause but the
+    last (the end of the day)."""
+    end = max(r["meta"]["end"] for r in records)
+    windows = [(slow_start(records, t), t) for t in sorted(pauses)[:-1]] if slowmo else []
+    out = []
+    for t in sorted(set(duel_times(records[0]["meta"]["peaks"], end, fps)) | set(pauses)):
+        w = next((w for w in windows if w[0] <= t < w[1]), None)
+        if w is None:
+            out.append((t, (None, None), None))
+        elif not out or out[-1][0] < w[0]:
+            out += [(u, ph, f"slow motion · {SLOW_RATE:g} simulated min/s")
+                    for u, ph in slow_times(records, w[0], w[1], fps)[:-1]]
+    return out
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--load", choices=["low", "medium", "high"], default="high")
     parser.add_argument("--seed", type=int, default=100007)
     parser.add_argument("--fps", type=int, default=12)
+    parser.add_argument("--slowmo", action=argparse.BooleanOptionalAction, default=True,
+                        help="slow motion with the steps of each decision before a pause")
     parser.add_argument("--out", type=Path, default=Path("outputs/compare.mp4"))
     args = parser.parse_args()
     torch.set_num_threads(1)
@@ -189,7 +216,7 @@ def main():
     pauses = {t: (title, lines, True) for t, title, lines in
               (rule_charge(ppo, rule), rule_failure(ppo, rule), ppo_failure(ppo, rule),
                backlog_gap(ppo, rule), day_end(ppo, rule))}
-    times = sorted(set(duel_times(ppo["meta"]["peaks"], r.end, fps)) | set(pauses))
+    times = timeline((ppo, rule), pauses, fps, args.slowmo)
     results = r.results("Final test: 30 held-out maps × 10 days per load", final_rows(),
                         "PPO: mean of five training runs. Time per decision: one CPU thread, "
                         "high load.",
@@ -201,10 +228,13 @@ def main():
                                  "ME5418 FINAL PROJECT · MEDICAL DELIVERY DRONE"), 10 * fps)
         start = ppo["meta"]["peaks"][0][0] + 30
         for step in range(len(r.GUIDE)):
-            yield from repeat(r.guide(start, step), 5 * fps)
-        for i, t in enumerate(times):
-            caption = pauses.get(t) or phase_caption(ppo["meta"], t)
-            yield from repeat(r.draw(t, caption), PAUSE_S * fps if t in pauses else 1)
+            yield from repeat(r.guide(start, step), 3 * fps)
+        last = None
+        for i, (t, phases, speed) in enumerate(times):
+            caption = pauses.get(t) or (SLOW_CAPTION if speed else phase_caption(ppo["meta"], t))
+            if (t, phases, speed) != last:  # a stopped clock repeats one frame
+                frame, last = r.draw(t, caption, phases, speed), (t, phases, speed)
+            yield from repeat(frame, PAUSE_S * fps if t in pauses else 1)
             if i % (fps * 20) == 0:
                 print(f"Rendering {clock(t)} ({i + 1}/{len(times)})", flush=True)
         yield from repeat(results, 14 * fps)
