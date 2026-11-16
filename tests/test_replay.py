@@ -126,3 +126,12 @@ def test_opening_decision_matches_the_player_rule():
     for d in decs:
         d["top"] = []
     assert opening_decision(record) == 1  # a rule: the first decision in the first peak
+
+
+def test_unload_slack_counts_each_box_at_its_own_unload_time():
+    from medical_uav.env.replay import unload_slack
+
+    # boxes unloaded earliest deadline first, 2 min each, after arriving at t = 10
+    assert unload_slack([30, 13], 10, 2) == 1  # 13 - 12; the later box has 30 - 14 = 16
+    assert unload_slack([13, 14], 10, 2) == 0  # 14 - 14
+    assert unload_slack([11], 10, 2) == -1

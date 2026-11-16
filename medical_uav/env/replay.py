@@ -53,6 +53,12 @@ def short_text(env, a: int) -> str:
     return "Return to M" if kind == "return" else "Wait"
 
 
+def unload_slack(deadlines, arrive: float, handling: float) -> float:
+    """Smallest margin to a deadline when boxes are unloaded one by one, earliest deadline first
+    (as the simulator does), each taking `handling` minutes after arriving at `arrive`."""
+    return min(d - (arrive + handling * (k + 1)) for k, d in enumerate(sorted(deadlines)))
+
+
 def decision_context(env, a: int) -> list[str]:
     """A few facts about the state the action was chosen in (what it serves, how urgent, the
     battery); they describe the situation, not the network's reasons."""
@@ -68,8 +74,8 @@ def decision_context(env, a: int) -> list[str]:
     elif kind == "deliver":
         boxes = [o for o in sim.onboard if o.dest == arg and o.status == "onboard"]
         if boxes:
-            done = sim.t + sim.travel_time(sim.location, arg) + cfg.handling_min * len(boxes)
-            slack = min(o.deadline for o in boxes) - done
+            arrive = sim.t + sim.travel_time(sim.location, arg)
+            slack = unload_slack([o.deadline for o in boxes], arrive, cfg.handling_min)
             facts.append(f"Tightest box on time with {slack:.0f} min to spare" if slack >= 0 else
                          f"Tightest box will be {-slack:.0f} min late")
         facts.append(f"Frees {len(boxes)} of {len(sim.onboard)} cargo slots")

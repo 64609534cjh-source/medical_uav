@@ -86,15 +86,12 @@ def test_day_times_follow_the_slower_side_and_cover_the_day(low_day):
     assert np.isclose(steps, DAY_RATES["fly"] / 10).any()
 
 
-def test_slides_are_1080p_rgb(low_day, tmp_path):
-    import imageio.v2 as imageio
+def test_slides_are_1080p_rgb(low_day):
     from medical_uav.env.video import DuelFrames
 
     renderer = DuelFrames(low_day, low_day)
-    image = tmp_path / "net.png"
-    imageio.imwrite(image, np.zeros((40, 120, 3), np.uint8))
     slides = [renderer.outline(["A", "B"]), renderer.outline(["A", "B"], 1, "note"),
-              renderer.image_slide("Net", image, ["line"]),
+              renderer.method("Net", [("A", "a"), ("B", "b")], ["line"]),
               renderer.bullets("Summary", ["one", "two"], "SUMMARY")]
     slides += [renderer.task(k, 65.0) for k in range(len(renderer.TASK))]
     assert all(f.shape == (1080, 1920, 3) for f in slides)
@@ -144,7 +141,7 @@ def test_moments_name_real_events_from_both_days():
     loss = compare_video.ppo_failure(ppo, rule)
     assert loss[0] == 70 and "#2" in loss[1]
     charge = compare_video.rule_charge(ppo, rule, waiting=lambda r, t: 6)
-    assert charge[0] == 30 and "16%" in charge[2][0] and "12 min" in charge[2][0]
+    assert charge[0] == 30 and "16%" in charge[2][0] and "12-minute" in charge[1]
 
 
 def test_record_day_keeps_the_network_top_choices_for_ppo_only():
