@@ -950,11 +950,11 @@ class DuelFrames:
             ax.add_patch(Circle((176, y + 22), 22, fc=self.colors[0]))
             ax.text(176, y + 22, str(j + 1), ha="center", va="center", fontsize=pt(20),
                     color="white", weight="bold")
-            for k, part in enumerate(wrap(line, 74)):
+            for k, part in enumerate(wrap(line, 92)):
                 self._text(ax, 224, y + 2 + 42 * k, part, 29, INK)
-            y += 42 * len(wrap(line, 74)) + 36
+            y += 42 * len(wrap(line, 92)) + 36
         if highlight:
-            parts = wrap(highlight, 76)
+            parts = wrap(highlight, 90)
             ax.add_patch(rounded(150, y + 4, self.W - 300, 40 * len(parts) + 40, 14,
                                  fc="#fff4e6", ec="#e8590c", lw=3))
             for k, part in enumerate(parts):

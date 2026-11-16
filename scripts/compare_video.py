@@ -341,16 +341,14 @@ def final_rows(path=FINAL_SUMMARY, timed=True):
 TITLE = ["One drone, a medical center and five hospitals: which order next, and when to",
          "charge? We trained a neural network with reinforcement learning (PPO) to decide.", "",
          "ME5418 Group 17 · Jihang Cai, Yu Liu, Yufeng Zhang"]
-SLACK = ["What it is: the classic earliest-deadline-first rule (EDF), plus three fixes we added: "
-         "unload where the drone is, take waiting orders going the same way, and leave orders "
-         "that can no longer be on time to last.",
-         "Why not the strongest method? The strongest, the rolling-horizon planner, is about as "
-         "punctual as PPO, so side by side the two look almost the same. Its drawback, 1.4 s per "
-         "decision, does not show in a replay; it is compared in the final test at the end.",
-         "Why Slack-aware: of all methods that decide as fast as PPO (under a millisecond), it is "
-         "the strongest, so the replay compares two equally fast dispatchers.",
-         "The day was fixed in advance: of 40 development days, the one with the median PPO lead "
-         "over Slack-aware."]
+SLACK = ["What it is: serve the earliest deadline first, with three fixes: unload where the drone"
+         " is, take orders going the same way, and leave orders already too late to last (slack ="
+         " time to spare before a deadline).",
+         "Why not the strongest method: the rolling horizon is about as punctual as PPO but needs "
+         "1.4\u00a0s per decision. A replay cannot show that, so it is compared in the final test.",
+         "Why Slack-aware: of the methods as fast as PPO (under 1 ms), it is the strongest.",
+         "The day was chosen in advance: of 40 development days, the one with the median PPO "
+         "lead."]
 
 
 def speedup(load="high"):
@@ -463,11 +461,11 @@ def main():
             yield from stretch_frames(view, steps, until, fps, say)
         view.focus, view.banner = {"nodes": (), "orders": ()}, ""
         yield from section(2, "The same day, side by side with the Slack-aware rule.")
-        say("The comparison: the Slack-aware rule, and why",
-            "Both dispatchers get the same 66 orders on the same map, on one shared clock. "
-            "The strongest method is compared in the final test.")
-        yield from repeat(r.bullets("The comparison: the Slack-aware rule, and why", SLACK,
-                                    "3  ONE WHOLE DAY"), 16 * fps)
+        say("Why compare with Slack-aware?",
+            "A fast deadline rule, as fast as PPO. The strongest method is compared in the final "
+            "test. Both get the same 66 orders on the same map.")
+        yield from repeat(r.bullets("Why compare with Slack-aware?", SLACK, "3  ONE WHOLE DAY"),
+                          14 * fps)
         steps = (0, 2, 4)  # map, waiting orders, running totals; shown at 10:30
         for n, step in enumerate(steps):
             boxes, title, lines = r.GUIDE[step]
