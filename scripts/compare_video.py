@@ -37,6 +37,7 @@ METHODS = [("final", "PPO (ours)", "#e8590c", "networks", "checkpoints/entrants/
 OUTLINE = ["The task", "How our PPO agent decides", "One whole day: PPO vs a hand-written rule",
            "Results on 30 new maps"]
 PAUSE_S, ANIM = 7, 4  # pause length (s); frames per step of the decision-card animation
+FADE, FADE_S = "fade", 0.4  # marker in a frame stream for a dissolve, and its length (s)
 
 
 def record_day(name, load, seed):
@@ -282,6 +283,7 @@ def stretch_frames(view, steps, until, fps, say):
             yield view.draw(d["t"], "Deciding", SLOW, ([CHOICES], (k + 1) / fade))
         yield from repeat(view.draw(d["t"], "Deciding", SLOW, ([CHOICES], 1.0)),
                           round(1.5 * fps))
+        yield FADE
         yield from repeat(view.draw(d["t"], "Picked", SLOW, ([ACTION, CHOICES], 1.0)), fps)
         m = round(0.6 * fps)
         for k in range(m):
@@ -383,11 +385,12 @@ def main():
                   "when to charge. The goal: as many orders on time as possible.")]
     sub = Subtitles(*(font_manager.findfont(font_manager.FontProperties(
         family="DejaVu Sans", weight=w)) for w in ("bold", "normal")))
-    cue, cues, count = ["", "", False], [], [0]
+    cue, cues, count, dissolve = ["", "", False], [], [0], [False]
 
     def say(title, body="", paused=False):
         cue[:] = [title, body, paused]
         cues.append((count[0] / fps, title, body, paused))
+        dissolve[0] = True  # a new line of subtitles starts with a dissolve
 
     section = lambda k, line: (say(f"{k + 1}  {OUTLINE[k]}", line),
                                repeat(r.outline(OUTLINE, k), 3 * fps))[1]
@@ -473,9 +476,24 @@ def main():
                           12 * fps)
 
     def with_subtitles(frames):
+        """Subtitles above each frame; each new subtitle line, and each FADE marker, dissolves
+        from the last frame shown into the next ones over FADE_S, like a slide transition."""
+        last, left = None, 0
         for frame in frames:
+            if isinstance(frame, str):  # FADE
+                dissolve[0] = True
+                continue
             count[0] += 1
-            yield np.vstack([frame, sub.band(*cue)])
+            out = np.vstack([sub.band(*cue), frame])
+            if dissolve[0] and last is not None:
+                start, left, dissolve[0] = last, round(FADE_S * fps), False
+            if left:
+                a = 1 - left / (round(FADE_S * fps) + 1)
+                out = (start * (1 - a) + out * a).astype(np.uint8)
+                left -= 1
+            dissolve[0] = False
+            last = out
+            yield out
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     n = save_animation(with_subtitles(frames()), str(args.out), fps)
