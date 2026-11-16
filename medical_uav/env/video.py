@@ -103,6 +103,9 @@ def zoom(frame: np.ndarray, box, a: float, badge=None) -> np.ndarray:
     return np.asarray(img)
 
 
+PHASE_LABEL = {"Deciding": "SCORING ACTIONS · DECISION", "Picked": "ACTION CHOSEN · DECISION"}
+
+
 def pct(p: float, digits: int = 1) -> str:
     """A probability in percent; tiny ones as <0.1%."""
     return "<0.1%" if p < 0.0005 else f"{100 * p:.{digits}f}%"
@@ -115,7 +118,7 @@ def more_text(d: dict) -> str:
         return ""
     rest = max(0.0, 1 - sum(p for _, p in d["top"]))
     share = "below 0.1%" if rest < 0.001 else f"{100 * rest:.1f}%"
-    return f"… and {n} more allowed action{'s' if n > 1 else ''} ({share} together)"
+    return f"… and {n} more allowed action{'s' if n > 1 else ''}, {share} in total"
 
 
 def spotlight(fig, size, boxes, alpha, keep=()):
@@ -164,7 +167,7 @@ class ReplayFrames:
         left = o["deadline"] - t
         if left >= 0:
             return f"due in {left:.0f} min", LATE if left < 10 else INK
-        return f"late {-left:.0f} min", LATE
+        return f"{-left:.0f} min overdue", LATE
 
     def _panel(self, ax, x, y, w, h):
         ax.add_patch(rounded(x, y, w, h, 10, facecolor=PANEL, edgecolor=LINE, lw=1))
@@ -366,7 +369,7 @@ class ReplayFrames:
         elif name == "Leaving" and i > 0:  # the finished action fades out upwards
             self._text(ax, x + 16, y + 32 - 12 * p, decs[i - 1]["text"], 19, INK, "bold",
                        alpha=1 - p)
-        label = "Deciding" if deciding else f"In progress · done at {self._clock(d['end'])}"
+        label = "Scoring actions" if deciding else f"In progress · done at {self._clock(d['end'])}"
         bg, fg = DECIDING if deciding else PROGRESS
         bw = 7.4 * len(label) + 20
         ax.add_patch(FancyBboxPatch((x + 16, y + 62), bw, 22,
@@ -385,7 +388,7 @@ class ReplayFrames:
             cx = x + 360
             shown = [round(100 * prob, 1) for _, prob in d["top"] if prob >= 0.0005]
             digits = 2 if len(set(shown)) < len(shown) else 1  # a near tie needs more digits
-            self._text(ax, cx, y + 94, "THE NETWORK'S TOP CHOICES", 11, MUTED, "bold")
+            self._text(ax, cx, y + 94, "THE NETWORK'S HIGHEST-PROBABILITY ACTIONS", 11, MUTED, "bold")
             for k, (label, prob) in enumerate(d["top"]):
                 yy = y + 112 + 30 * k
                 if k == 0 and name in ("Picked", "Moving", "Chosen"):
@@ -397,7 +400,7 @@ class ReplayFrames:
                 ax.add_patch(Rectangle((cx, yy + 18), (x + w - 16 - cx) * prob, 5,
                                        fc=INK if k == 0 else FAINT, ec="none"))
             self._text(ax, cx, y + h - 32, more_text(d), 12, MUTED)
-            self._text(ax, cx, y + h - 15, "Policy probabilities; the drone takes the top one.", 11,
+            self._text(ax, cx, y + h - 15, "Action probabilities, not chances of success.", 11,
                        MUTED)
             if name == "Moving":  # the chosen action moves up into the action line
                 e = p * p * (3 - 2 * p)
@@ -438,13 +441,13 @@ class ReplayFrames:
                 due, color = self._due(o, t)
                 self._text(ax, x + w - 28, yy + 9, due, 12, color, ha="right")
             else:
-                self._text(ax, x + 46, yy + 8, "Empty slot", 13, FAINT)
+                self._text(ax, x + 46, yy + 8, "Free space", 13, FAINT)
         # waiting orders
         x2, w2 = 910, 346
         self._panel(ax, x2, y, w2, h)
         waiting = sorted((self.orders[i] for i in s["waiting"]),
                          key=lambda o: (o["deadline"], o["id"]))
-        self._text(ax, x2 + 16, y + 14, "WAITING ORDERS", 11, MUTED, "bold")
+        self._text(ax, x2 + 16, y + 14, "ORDERS AWAITING PICKUP", 11, MUTED, "bold")
         self._text(ax, x2 + w2 - 16, y + 14, f"{len(waiting)} waiting · most urgent first", 12,
                    MUTED, ha="right")
         nodes = r["map"]["nodes"]
@@ -503,8 +506,8 @@ class DuelFrames:
 
     W, H = 1920, 1080
     colors = ("#e8590c", "#7048e8")  # the report's PPO and Slack-aware colours
-    RULE = "Earliest deadline first · unload where it is · batch the same route · " \
-           "hopeless orders last"
+    RULE = "Unload here first · take boxes going where cargo goes · charge if needed · " \
+           "else earliest deadline first, too-late orders last"
 
     def __init__(self, left, right, titles=("PPO agent", "Slack-aware rule")):
         self.views = (ReplayFrames(left), ReplayFrames(right))
@@ -549,8 +552,8 @@ class DuelFrames:
         ax = self._canvas()
         meta = self.r["meta"]
         self._text(ax, 32, 22, "Same orders, two dispatchers", 34, INK, "bold")
-        self._text(ax, 32, 70, f"{meta['load'].capitalize()} load · demand seed {meta['seed']} · "
-                   "map 0 · identical order arrivals for both", 17, MUTED)
+        self._text(ax, 32, 70, f"{meta['load'].capitalize()} demand · "
+                   "same map and same order arrivals for both", 17, MUTED)
         self._text(ax, self.W - 32, 14, clock(t, meta["day_start_hour"]), 52, INK, "bold",
                    ha="right")
         peak = any(a <= t < b for a, b in meta["peaks"])
@@ -599,15 +602,15 @@ class DuelFrames:
         d = r["decisions"][i] if i >= 0 else None
         if t >= r["meta"]["end"] - 1e-6:
             self._text(ax, x + 18, y + 14, "DAY COMPLETE", 14, MUTED, "bold")
-            self._text(ax, x + 18, y + 36, "All orders resolved", 23, INK, "bold")
+            self._text(ax, x + 18, y + 36, "Every order delivered or expired", 23, INK, "bold")
             return
         if d is None:
             self._text(ax, x + 18, y + 14, "START OF THE DAY", 14, MUTED, "bold")
             return
-        head = f"{(phase or 'decision').upper()} {i + 1} OF {len(r['decisions'])} · " \
+        head = f"{PHASE_LABEL.get(phase, 'DECISION')} {i + 1} OF {len(r['decisions'])} · " \
                f"{view._clock(d['t'])}"
         self._text(ax, x + 18, y + 14, head, 14, "#6f4600" if phase else MUTED, "bold")
-        lines = ["Choosing the next action …"] if phase == "Deciding" else wrap(d["text"], 38)[:2]
+        lines = ["Scoring the allowed actions …"] if phase == "Deciding" else wrap(d["text"], 38)[:2]
         for j, line in enumerate(lines):
             self._text(ax, x + 18, y + 36 + 29 * j, line, 23,
                        FAINT if phase == "Deciding" else INK, "bold")
@@ -617,7 +620,7 @@ class DuelFrames:
             self._text(ax, x + 32, fy + 22 * j, fact, 15)
         yy = fy + 74
         if d["top"]:
-            self._text(ax, x + 18, yy, "THE NETWORK'S TOP CHOICES", 13, MUTED, "bold")
+            self._text(ax, x + 18, yy, "THE NETWORK'S HIGHEST-PROBABILITY ACTIONS", 13, MUTED, "bold")
             for j, (label, prob) in enumerate(d["top"]):
                 ry = yy + 20 + 24 * j
                 if j == 0 and phase == "Picked":
@@ -649,7 +652,7 @@ class DuelFrames:
         ax.add_patch(rounded(bx, y + 15, bw * b / 100, 10, 5,
                              fc=EXPIRED if b < r["meta"]["reserve"] + 10 else ONTIME, ec="none"))
         cargo = sorted((view.orders[o] for o in s["cargo"]), key=lambda o: o["pickup"])
-        self._text(ax, x + 18, y + 40, f"CARGO · {len(cargo)}/{r['meta']['max_boxes']} BOXES · "
+        self._text(ax, x + 18, y + 40, f"ON BOARD · {len(cargo)} OF {r['meta']['max_boxes']} BOXES · "
                    f"{sum(o['kg'] for o in cargo):.2f}/{r['meta']['max_kg']:.2f} KG", 13, MUTED,
                    "bold")
         for j in range(r["meta"]["max_boxes"]):
@@ -657,7 +660,7 @@ class DuelFrames:
             if j < len(cargo):
                 self._order(ax, view, cargo[j], t, x + 18, yy, w - 36)
             else:
-                self._text(ax, x + 38, yy, "empty slot", 14, FAINT)
+                self._text(ax, x + 38, yy, "free space", 14, FAINT)
 
     def _pool(self, ax, view, s, t, x):
         """Every waiting order, most urgent first, in three columns."""
@@ -665,7 +668,7 @@ class DuelFrames:
         self._panel(ax, x, y, w, h)
         waiting = sorted((view.orders[o] for o in s["waiting"]),
                          key=lambda o: (o["deadline"], o["id"]))
-        self._text(ax, x + 18, y + 10, f"WAITING ORDERS · {len(waiting)} · MOST URGENT FIRST", 13,
+        self._text(ax, x + 18, y + 10, f"ORDERS AWAITING PICKUP · {len(waiting)} · EARLIEST DEADLINE FIRST", 13,
                    MUTED, "bold")
         if not waiting:
             self._text(ax, x + 18, y + 34, "None", 14, FAINT)
@@ -685,8 +688,8 @@ class DuelFrames:
         self._text(ax, x + size + 4, y, f"#{o['id']} {TYPE_LABELS[o['type']]} "
                    f"{nodes[o['from']]['name']}→{nodes[o['to']]['name']}", size)
         left = o["deadline"] - t
-        due, shade = ((f"{left:.0f} min left", LATE if left < 10 else MUTED) if left >= 0 else
-                      (f"late {-left:.0f} min", LATE))
+        due, shade = ((f"due in {left:.0f} min", LATE if left < 10 else MUTED) if left >= 0 else
+                      (f"{-left:.0f} min overdue", LATE))
         self._text(ax, x + w, y, due, size, shade, ha="right")
 
     def _legend(self, ax, x, y):
@@ -762,18 +765,20 @@ class DuelFrames:
 
     # what each step of the screen guide lights up: pixel boxes, then its subtitle
     GUIDE = [([(26, 150, 392, 392), (970, 150, 392, 392)], "The map",
-              ["Drone, medical center M, hospitals H1-H5, chargers; hatched: no-fly zones.",
-               "Small squares beside a place are orders waiting there."]),
+              ["M: medical center; H1–H5: hospitals; C1, C2: chargers; hatched: no-fly zones.",
+               "Coloured squares: orders awaiting pickup there. (Paused at 10:30; the day then "
+               "starts at 08:00.)"]),
              ([(418, 144, 532, 452), (1362, 144, 532, 452)], "What each dispatcher does now",
               ["The current action and the situation it was chosen in; PPO also shows its",
                "network's most likely actions. Below: battery and the boxes on board."]),
-             ([(26, 594, 924, 174), (970, 594, 924, 174)], "Every order still waiting",
-              ["Most urgent first, with the minutes left before each deadline.", ""]),
+             ([(26, 594, 924, 174), (970, 594, 924, 174)], "Orders awaiting pickup",
+              ["Orders that have arrived but are not picked up yet, earliest deadline first,",
+               "with the minutes until each deadline."]),
              ([(352, 94, 592, 50), (1296, 94, 592, 50)], "The score so far",
               ["Orders delivered on time, delivered late, expired, and still waiting.", ""]),
              ([(26, 770, 1868, 304)], "Running totals for both",
-              ["On-time deliveries, orders waiting (the backlog) and all outcomes,",
-               "updated as the day plays."])]
+              ["On-time deliveries so far, orders awaiting pickup (the backlog), and the counts",
+               "of on-time, late and expired orders, for both dispatchers."])]
 
     def guide(self, t: float, step: int = 0) -> np.ndarray:
         """The frame at t, dimmed except the boxes of one guide step (GUIDE: boxes, title, text
@@ -788,8 +793,9 @@ class DuelFrames:
         self._panel(ax, 64, 56, self.W - 128, self.H - 112)
         self._text(ax, 110, 90, "RESULTS", 16, MUTED, "bold")
         self._text(ax, 110, 120, title, 38, INK, "bold")
-        self._text(ax, 110, 180, note, 22, MUTED)
-        for j, load in enumerate(("Medium load", "High load")):
+        for k, part in enumerate(wrap(note, 130)):
+            self._text(ax, 110, 172 + 28 * k, part, 20, MUTED)
+        for j, load in enumerate(("Medium demand", "High demand")):
             c = self._box(420 + 560 * j, 270, 500, 620)
             vals = [row[2 + j] for row in rows]
             ys = np.arange(len(rows))[::-1]
@@ -809,14 +815,17 @@ class DuelFrames:
         step = 620 / len(rows)
         for i, row in enumerate(rows):
             yy = 270 + step * (i + 0.5) - 16
-            self._text(ax, 110, yy, row[0], 23, INK, "bold" if i == 0 else "normal")
+            self._text(ax, 110, yy - 10, row[0], 22, INK, "bold" if i == 0 else "normal")
+            if len(row) > 5:
+                self._text(ax, 110, yy + 17, row[5], 16, MUTED)
             hot = i < 2  # PPO and the rolling horizon: the comparison that matters
             ax.add_patch(rounded(1560, yy - 8, 180, 46, 23, fc=row[1] if hot else WASH,
                                  ec="none"))
             self._text(ax, 1650, yy, row[4], 23, "white" if hot else INK, "bold" if hot else
                        "normal", ha="center")
         self._text(ax, 1650, 236, "TIME PER DECISION", 17, INK, "bold", ha="center")
-        self._text(ax, 110, 935, takeaway, 28, INK, "bold")
+        for k, part in enumerate(wrap(takeaway, 100)):
+            self._text(ax, 110, 925 + 36 * k, part, 26, INK, "bold")
         return self._rgb()
 
     def outline(self, items, current=None, note="") -> np.ndarray:
@@ -838,11 +847,11 @@ class DuelFrames:
         return self._rgb()
 
     # the task, one element per step: the map's four elements, then orders, the drone, the decision
-    TASK = [("Medical center M", "Plasma and medicine start here; charger C1 is here too."),
-            ("Five hospitals H1-H5", "They receive boxes, send samples to M, supplies to each other."),
-            ("A second charger C2", "Charging takes time: where and when matters."),
-            ("Three no-fly zones", "Routes must go around them."),
-            ("Orders arrive all day, each with a deadline", ""),
+    TASK = [("Medical center M", "Plasma and medicine are collected here; charger C1 too."),
+            ("Five hospitals H1–H5", "Receive plasma and medicine; send samples and supplies."),
+            ("A second charger C2", "Flying to a charger and charging both take time."),
+            ("Three no-fly zones", "The drone must fly around the hatched areas."),
+            ("Orders: one box each, with a time limit", ""),
             ("One drone", ""),
             ("The decision, again and again", "")]
 
@@ -888,8 +897,8 @@ class DuelFrames:
                 ax.add_patch(Rectangle((cx, 570), 26, 26, fc=shade))
                 self._text(ax, cx + 36, 564, label, 26, INK, "bold")
                 self._text(ax, cx + 36, 600, f"{limits[label.lower()]:.0f} min", 26, INK)
-            self._text(ax, x + 6, 650, "Late still counts, for less; after twice its limit an "
-                       "order expires.", 25, INK)
+            self._text(ax, x + 6, 650, "Late still counts, for less; expires at twice its limit.",
+                       25, INK)
         if step >= 5:  # the drone's limits
             card(710, 160, step == 5)
             self._text(ax, x + 6, 722, self.TASK[5][0], 32, INK, "bold")
@@ -902,7 +911,8 @@ class DuelFrames:
             ax.add_patch(rounded(x + 6, 830, 300 * 0.62, 18, 9, fc=ONTIME, ec="none"))
             rx = x + 6 + 300 * meta["reserve"] / 100
             ax.plot([rx, rx], [824, 854], color=INK, lw=2)
-            self._text(ax, x + 330, 822, f"battery must stay above {meta['reserve']:g}%", 26, INK)
+            self._text(ax, x + 330, 822, f"always able to reach a charger with {meta['reserve']:g}%"
+                       " left", 24, INK)
         if step >= 6:  # what the dispatcher decides at every step
             card(884, 186, True, accent=True)
             self._text(ax, x + 6, 894, self.TASK[6][0], 32, "#b34700", "bold")
@@ -939,7 +949,7 @@ class DuelFrames:
             y += 40
         return self._rgb()
 
-    def bullets(self, title, lines, kicker, highlight="") -> np.ndarray:
+    def bullets(self, title, lines, kicker, highlight="", size=29) -> np.ndarray:
         """A heading with numbered points, and optionally a highlighted box under them."""
         ax = self._canvas()
         self._panel(ax, 96, 96, self.W - 192, self.H - 192)
@@ -950,9 +960,10 @@ class DuelFrames:
             ax.add_patch(Circle((176, y + 22), 22, fc=self.colors[0]))
             ax.text(176, y + 22, str(j + 1), ha="center", va="center", fontsize=pt(20),
                     color="white", weight="bold")
-            for k, part in enumerate(wrap(line, 92)):
-                self._text(ax, 224, y + 2 + 42 * k, part, 29, INK)
-            y += 42 * len(wrap(line, 92)) + 36
+            width, step = int(92 * 29 / size), round(42 * size / 29)
+            for k, part in enumerate(wrap(line, width)):
+                self._text(ax, 224, y + 2 + step * k, part, size, INK)
+            y += step * len(wrap(line, width)) + round(36 * size / 29)
         if highlight:
             parts = wrap(highlight, 90)
             ax.add_patch(rounded(150, y + 4, self.W - 300, 40 * len(parts) + 40, 14,

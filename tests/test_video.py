@@ -169,11 +169,11 @@ def test_stretches_follow_consecutive_decisions_on_the_shipped_day():
     day = compare_video.record_day("ppo", "high", 100007)
     first, second = compare_video.stretches(day)
     for title, intro, steps, focus, until, plan, trait in (first, second):
-        assert plan and trait.startswith("What PPO learned")
+        assert plan and trait.startswith("What this example shows")
         idx = [i for i, _, _ in steps]
         assert idx == list(range(idx[0], idx[-1] + 1)) and until >= day["decisions"][idx[-1]]["t"]
     assert "Box 3 of 3" in " ".join(line for _, _, line in first[2])
-    assert "most urgent" in second[2][0][2] and "on time" in second[2][-1][2]
+    assert "deadline" in second[2][0][2] and "before their deadlines" in second[2][-1][2]
 
 
 def test_zoom_moves_smoothly_from_the_whole_frame_into_the_box():

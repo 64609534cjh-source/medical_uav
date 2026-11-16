@@ -76,9 +76,9 @@ def decision_context(env, a: int) -> list[str]:
         if boxes:
             arrive = sim.t + sim.travel_time(sim.location, arg)
             slack = unload_slack([o.deadline for o in boxes], arrive, cfg.handling_min)
-            facts.append(f"Tightest box on time with {slack:.0f} min to spare" if slack >= 0 else
-                         f"Tightest box will be {-slack:.0f} min late")
-        facts.append(f"Frees {len(boxes)} of {len(sim.onboard)} cargo slots")
+            facts.append(f"Box closest to its deadline: {slack:.0f} min to spare" if slack >= 0
+                         else f"Box closest to its deadline: {-slack:.0f} min late")
+        facts.append(f"Unloads {len(boxes)} of the {len(sim.onboard)} boxes on board")
     elif kind == "charge":
         station, target = arg
         arrival = sim.battery - sim.energy(sim.location, station, sim.load_kg())
