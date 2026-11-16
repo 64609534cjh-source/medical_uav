@@ -64,20 +64,6 @@ def test_duel_frames_show_the_steps_of_a_decision(low_day):
     assert (frames[0] != frames[1]).any() and (frames[1] != frames[2]).any()
 
 
-def test_slow_times_stop_the_clock_at_each_decision_of_either_side():
-    from medical_uav.env.video import SLOW_RATE, slow_times
-
-    left = {"decisions": [{"t": 2.0}, {"t": 5.0}]}
-    right = {"decisions": [{"t": 3.0}, {"t": 5.0}]}
-    out = slow_times([left, right], start=1.0, end=6.0, fps=10, decide_s=0.5, pick_s=0.3)
-    times = [t for t, _ in out]
-    assert times[0] == 1.0 and times[-1] == 6.0 and times == sorted(times)
-    assert all(b - a <= SLOW_RATE / 10 + 1e-9 for a, b in zip(times, times[1:]))
-    steps = [(t, p) for t, p in out if p != (None, None)]
-    assert steps.count((2.0, ("Deciding", None))) == 5 and steps.count((2.0, ("Picked", None))) == 3
-    assert (3.0, (None, "Picked")) in steps and (5.0, ("Deciding", "Deciding")) in steps
-
-
 def test_duel_series_follow_the_replay_state(low_day):
     from medical_uav.env.replay import state_at
     from medical_uav.env.video import DuelFrames
@@ -89,14 +75,38 @@ def test_duel_series_follow_the_replay_state(low_day):
         assert on_time[k] == s["on_time"] and waiting[k] == len(s["waiting"])
 
 
-def test_duel_times_are_slower_in_peaks_and_cover_the_day():
-    from medical_uav.env.video import OFF_RATE, PEAK_RATE, duel_times
+def test_day_times_follow_the_slower_side_and_cover_the_day(low_day):
+    from medical_uav.env.video import DAY_GROUND, DAY_RATES, day_times
 
-    times = duel_times([[2, 4]], end=10, fps=10)
-    assert times[0] == 0 and times[-1] == 10 and times == sorted(times)
-    for a, b in zip(times, times[1:]):
-        assert b - a <= (PEAK_RATE if 2 <= a < 4 else OFF_RATE) / 10 + 1e-9
-    assert {2, 4} <= set(times)
+    end = low_day["meta"]["end"]
+    times = day_times([low_day, low_day], fps=10, end=end)
+    assert times[0] == 0 and times[-1] == end and times == sorted(times)
+    steps = np.diff(times)
+    assert steps.max() <= DAY_GROUND / 10 + 1e-9
+    assert np.isclose(steps, DAY_RATES["fly"] / 10).any()
+
+
+def test_slides_are_1080p_rgb(low_day, tmp_path):
+    import imageio.v2 as imageio
+    from medical_uav.env.video import DuelFrames
+
+    renderer = DuelFrames(low_day, low_day)
+    image = tmp_path / "net.png"
+    imageio.imwrite(image, np.zeros((40, 120, 3), np.uint8))
+    slides = [renderer.outline(["A", "B"]), renderer.outline(["A", "B"], 1, "note"),
+              renderer.image_slide("Net", image, ["line"]),
+              renderer.bullets("Summary", ["one", "two"], "SUMMARY")]
+    slides += [renderer.task(k, 65.0) for k in range(len(renderer.TASK))]
+    assert all(f.shape == (1080, 1920, 3) for f in slides)
+
+
+def test_replay_frames_scale_and_caption(low_day):
+    from medical_uav.env.video import ReplayFrames
+
+    renderer = ReplayFrames(low_day, "Low load", scale=1.5)
+    renderer.focus = {"nodes": (1,), "orders": tuple(o["id"] for o in low_day["orders"][:2])}
+    frame = renderer.draw(65.0, "Deciding", "", ("Title", "One line"))
+    assert frame.shape == (1080, 1920, 3)
 
 
 def test_final_rows_read_unseen_map_rates(tmp_path):
@@ -131,8 +141,6 @@ def test_moments_name_real_events_from_both_days():
               [["charge", 10, 15, 0, 0, 60, 100, None], ["fly", 15, 100, 0, 1, 100, 50, None]])
     rule = toy([order(1, "expired", 80, pickup=30), order(2, "delivered", 45)],
                [["fly", 0, 30, 0, 1, 100, 20, None], ["charge", 30, 42, 1, 0, 16, 80, None]])
-    win = compare_video.rule_failure(ppo, rule)
-    assert win[0] == 80 and "#1" in win[1] and "on time" in win[2][1]
     loss = compare_video.ppo_failure(ppo, rule)
     assert loss[0] == 70 and "#2" in loss[1]
     charge = compare_video.rule_charge(ppo, rule, waiting=lambda r, t: 6)

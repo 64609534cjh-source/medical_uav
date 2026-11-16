@@ -7,6 +7,7 @@ read.
 """
 from textwrap import wrap
 
+import imageio.v2 as imageio
 import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
@@ -29,8 +30,8 @@ DECIDING, PROGRESS = ("#fff0c2", "#6f4600"), ("#dfe9fd", "#1c49b8")
 # steps of a new decision in seconds: the finished action leaves, choices, the pick, its move up
 RATES = {"fly": 1.0, "load": 1.5, "unload": 1.5, "dispose": 1.5}
 LEAVE_S, DECIDE_S, PICK_S, MOVE_S = 0.35, 0.7, 0.4, 0.6
-PEAK_RATE, OFF_RATE, SLOW_RATE = 3.0, 10.0, 1.0  # comparison video: simulated min/s in and
-# outside peaks, and in slow motion before a pause
+# the whole-day comparison: simulated min/s by activity (the slower side sets the pace)
+DAY_RATES, DAY_GROUND = {"fly": 3.0, "load": 4.0, "unload": 4.0, "dispose": 4.0}, 8.0
 
 
 def pt(px: float) -> float:
@@ -51,10 +52,11 @@ def clock(t: float, start_hour: int = 8) -> str:
 class ReplayFrames:
     """Draws any minute of a recorded day."""
 
-    def __init__(self, record: dict, subtitle: str = ""):
+    def __init__(self, record: dict, subtitle: str = "", scale: float = 1.0):
         self.r, self.subtitle = record, subtitle
         self.orders = {o["id"]: o for o in record["orders"]}
-        self.fig = Figure(figsize=(W / DPI, H / DPI), dpi=DPI, facecolor=PAPER)
+        self.focus = {"nodes": (), "orders": ()}  # places and orders to highlight
+        self.fig = Figure(figsize=(W / DPI, H / DPI), dpi=DPI * scale, facecolor=PAPER)
         self.canvas = FigureCanvasAgg(self.fig)
 
     # ---------- helpers ----------
@@ -79,8 +81,9 @@ class ReplayFrames:
         return ax.text(x, y, s, fontsize=pt(size), color=color, weight=weight, va="top", **kw)
 
     # ---------- frame ----------
-    def draw(self, t: float, phase: str | None = None, speed: str = "") -> np.ndarray:
-        """The frame at time t; `phase` overrides the decision card's phase line."""
+    def draw(self, t: float, phase: str | None = None, speed: str = "", caption=None) -> np.ndarray:
+        """The frame at time t; `phase` overrides the decision card's phase line; a caption
+        (title, line) replaces the timeline."""
         r, s = self.r, state_at(self.r, t)
         self.fig.clear()
         ax = self.fig.add_axes((0, 0, 1, 1))
@@ -91,7 +94,12 @@ class ReplayFrames:
         self._map(s, t)
         self._decision(ax, s, t, phase)
         self._state(ax, s, t)
-        self._timeline(ax, t, speed)
+        if not caption:
+            self._timeline(ax, t, speed)
+        else:
+            ax.add_patch(rounded(24, 630, W - 48, 78, 10, fc=DECIDING[0], ec="#e9bf55", lw=2))
+            self._text(ax, 44, 641, caption[0], 18, DECIDING[1], "bold")
+            self._text(ax, 44, 671, caption[1], 15, INK)
         self.canvas.draw()
         return np.asarray(self.canvas.buffer_rgba())[:, :, :3].copy()
 
@@ -166,6 +174,9 @@ class ReplayFrames:
             up = n["y"] > 0.45
             frame.text(n["x"], n["y"] - 0.27 if up else n["y"] + 0.37, label, ha="center",
                        va="baseline", fontsize=pt(14), weight="bold", color=INK)
+        for k in self.focus["nodes"]:
+            n = nodes[k]
+            frame.add_patch(Circle((n["x"], n["y"]), 0.3, fill=False, ec="#e9bf55", lw=4, zorder=5))
         by_node = {}
         for oid in s["waiting"]:
             o = self.orders[oid]
@@ -320,7 +331,9 @@ class ReplayFrames:
         for k in range(r["meta"]["max_boxes"]):
             yy = y + 82 + 40 * k
             o = cargo[k] if k < len(cargo) else None
-            ax.add_patch(rounded(x + 16, yy, w - 32, 32, 6, fc=PANEL, ec=LINE, lw=1,
+            hot = o is not None and o["id"] in self.focus["orders"]
+            ax.add_patch(rounded(x + 16, yy, w - 32, 32, 6, fc=DECIDING[0] if hot else PANEL,
+                                 ec="#e9bf55" if hot else LINE, lw=2 if hot else 1,
                                  ls="-" if o else "--"))
             if o:
                 ax.add_patch(Rectangle((x + 28, yy + 11), 10, 10, fc=TYPE_COLORS[o["type"]]))
@@ -342,7 +355,9 @@ class ReplayFrames:
         nodes = r["map"]["nodes"]
         for k, o in enumerate(waiting[:6]):
             yy = y + 40 + 36 * k
-            ax.add_patch(rounded(x2 + 16, yy, w2 - 32, 30, 6, fc=PAPER, ec="none"))
+            hot = o["id"] in self.focus["orders"]
+            ax.add_patch(rounded(x2 + 16, yy, w2 - 32, 30, 6, fc=DECIDING[0] if hot else PAPER,
+                                 ec="#e9bf55" if hot else "none", lw=2))
             ax.add_patch(Rectangle((x2 + 28, yy + 10), 10, 10, fc=TYPE_COLORS[o["type"]]))
             route = f"{nodes[o['from']]['name']} → {nodes[o['to']]['name']}"
             self._text(ax, x2 + 46, yy + 7, f"{TYPE_LABELS[o['type']]} {route}", 13)
@@ -444,10 +459,8 @@ class DuelFrames:
         self._text(ax, self.W - 32, 14, clock(t, meta["day_start_hour"]), 52, INK, "bold",
                    ha="right")
         peak = any(a <= t < b for a, b in meta["peaks"])
-        if speed is None:
-            speed = (f"{PEAK_RATE:g} simulated min/s" if peak else
-                     f"▶▶ fast-forward · {OFF_RATE:g} simulated min/s")
-        self._text(ax, self.W - 32, 76, speed, 15, MUTED, ha="right")
+        if speed:
+            self._text(ax, self.W - 32, 76, speed, 15, MUTED, ha="right")
         if peak:
             ax.add_patch(rounded(1450, 30, 200, 40, 20, fc="#fff0c2", ec="#e9bf55"))
             self._text(ax, 1550, 39, "DEMAND PEAK", 17, "#6f4600", "bold", ha="center")
@@ -722,6 +735,93 @@ class DuelFrames:
         self._text(ax, 110, 945, takeaway, 24, INK, "bold")
         return self._rgb()
 
+    def outline(self, items, current=None, note="") -> np.ndarray:
+        """The outline slide, or a section slide with the current item lit."""
+        ax = self._canvas()
+        self._panel(ax, 96, 96, self.W - 192, self.H - 192)
+        self._text(ax, 150, 150, "ME5418 GROUP 17 · MEDICAL DELIVERY DRONE", 18, MUTED, "bold")
+        self._text(ax, 150, 192, "Outline" if current is None else items[current], 46, INK, "bold")
+        if note:
+            self._text(ax, 150, 266, note, 26, MUTED)
+        for j, item in enumerate(items):
+            y, lit = 380 + 84 * j, current is None or j == current
+            ax.add_patch(Circle((176, y + 24), 24, fc=self.colors[0] if j == current else
+                                (INK if lit else WASH)))
+            ax.text(176, y + 24, str(j + 1), ha="center", va="center", fontsize=pt(22),
+                    color="white" if lit else MUTED, weight="bold")
+            self._text(ax, 224, y + 6, item, 30, INK if lit else FAINT,
+                       "bold" if j == current else "normal")
+        return self._rgb()
+
+    # the task, one element per step: (heading, line)
+    TASK = [("Medical center M", "Plasma and medicine start here; charger C1 is here too."),
+            ("Five hospitals H1-H5", "They receive deliveries, send samples to M and supplies to "
+                                     "each other."),
+            ("A second charger C2", "Recharging takes time: where and when to charge matters."),
+            ("Three no-fly zones", "Routes must go around them."),
+            ("Orders arrive all day, each with a deadline",
+             "Plasma 30 min · samples 60 · supplies 75 · medicine 90. Squares: waiting orders."),
+            ("One drone", "At most 3 boxes and 2 kg, and a 15 % battery reserve.")]
+
+    def task(self, step: int, t: float) -> np.ndarray:
+        """The map built up element by element; from step 4 the real state of the day at t."""
+        ax = self._canvas()
+        self._text(ax, 96, 56, "1  The task", 40, INK, "bold")
+        v = self.views[0]
+        size, nodes = v.r["map"]["size"], v.r["map"]["nodes"]
+        f = self._box(96, 140, 860, 860)
+        f.set(xlim=(-0.15, size + 0.15), ylim=(size + 0.15, -0.15))
+        f.axis("off")
+        if step >= 4:
+            s = state_at(v.r, t)
+            v._draw_map(f, s, t)
+            if step == 5:
+                f.add_patch(Circle(s["xy"], 0.32, fill=False, ec="#e9bf55", lw=5, zorder=6))
+        else:
+            roles = {"center"} | ({"hospital"} if step >= 1 else set()) | (
+                {"charger"} if step >= 2 else set())
+            part = {**v.r, "segments": [], "orders": [],
+                    "map": {**v.r["map"], "nodes": [n for n in nodes if n["role"] in roles],
+                            "zones": v.r["map"]["zones"] if step >= 3 else []}}
+            ReplayFrames(part)._draw_map(f, {"active": None, "waiting": [], "cargo": [],
+                                             "xy": (-9, -9)}, -10)
+        for j, (head, line) in enumerate(self.TASK[:step + 1]):
+            y, now = 170 + 130 * j, j == step
+            self._text(ax, 1010, y, head, 28 if now else 24, INK if now else MUTED, "bold")
+            for k, part in enumerate(wrap(line, 52)):
+                self._text(ax, 1010, y + 42 + 30 * k, part, 21 if now else 19,
+                           INK if now else FAINT)
+        return self._rgb()
+
+    def image_slide(self, title, image, lines) -> np.ndarray:
+        """A heading, an image across the slide and a few lines under it."""
+        ax = self._canvas()
+        self._text(ax, 96, 56, title, 40, INK, "bold")
+        img = imageio.imread(image)
+        h = 1728 * img.shape[0] / img.shape[1]
+        box = self._box(96, 150, 1728, h)
+        box.imshow(img)
+        box.axis("off")
+        for j, line in enumerate(lines):
+            self._text(ax, 96, 190 + h + 52 * j, line, 26, INK)
+        return self._rgb()
+
+    def bullets(self, title, lines, kicker) -> np.ndarray:
+        """A heading with numbered points."""
+        ax = self._canvas()
+        self._panel(ax, 96, 96, self.W - 192, self.H - 192)
+        self._text(ax, 150, 150, kicker, 18, MUTED, "bold")
+        self._text(ax, 150, 192, title, 46, INK, "bold")
+        y = 320
+        for j, line in enumerate(lines):
+            ax.add_patch(Circle((176, y + 22), 22, fc=self.colors[0]))
+            ax.text(176, y + 22, str(j + 1), ha="center", va="center", fontsize=pt(20),
+                    color="white", weight="bold")
+            for k, part in enumerate(wrap(line, 70)):
+                self._text(ax, 224, y + 2 + 44 * k, part, 30, INK)
+            y += 44 * len(wrap(line, 70)) + 50
+        return self._rgb()
+
     def card(self, title, lines, kicker) -> np.ndarray:
         """A full-screen text card."""
         ax = self._canvas()
@@ -733,31 +833,17 @@ class DuelFrames:
         return self._rgb()
 
 
-def slow_times(records, start, end, fps, decide_s=1.2, pick_s=1.2) -> list:
-    """(time, phases) from start to end at SLOW_RATE simulated min/s; at each decision of either
-    side in the window the clock stops: its choices are shown, then the pick."""
-    stops = sorted({d["t"] for r in records for d in r["decisions"] if start < d["t"] <= end})
-    out, t = [], start
-    for stop in stops + [end]:
-        while t < stop - EPS:
-            out.append((t, (None, None)))
-            t = min(stop, t + SLOW_RATE / fps)
-        t = stop
-        if stop in stops:
-            sides = tuple(any(abs(d["t"] - stop) < EPS for d in r["decisions"]) for r in records)
-            for name, sec in (("Deciding", decide_s), ("Picked", pick_s)):
-                out += [(stop, tuple(name if k else None for k in sides))] * round(sec * fps)
-    return out + [(end, (None, None))]
-
-
-def duel_times(peaks, end, fps, start=0.0) -> list[float]:
-    """Frame times from start to end: PEAK_RATE simulated min/s in demand peaks, else OFF_RATE."""
-    marks = sorted({start, end} | {v for w in peaks for v in w if start < v < end})
-    times = [start]
-    for a, b in zip(marks, marks[1:]):
-        step = (PEAK_RATE if any(p <= a < q for p, q in peaks) else OFF_RATE) / fps
-        n = int(np.ceil((b - a) / step - EPS))
-        times += [a + (b - a) * k / n for k in range(1, n + 1)]
+def day_times(records, fps, end) -> list[float]:
+    """Frame times for the whole day on one clock: each frame advances by the slower of the two
+    sides' rates (DAY_RATES by activity, else DAY_GROUND simulated min/s)."""
+    def rate(r, t):
+        a = state_at(r, min(t, r["meta"]["end"]))["active"]
+        kind = r["segments"][a][0] if a is not None else "wait"
+        return DAY_RATES.get(kind, DAY_GROUND)
+    times, t = [0.0], 0.0
+    while t < end - EPS:
+        t = min(end, t + min(rate(r, t) for r in records) / fps)
+        times.append(t)
     return times
 
 

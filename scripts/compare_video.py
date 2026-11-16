@@ -1,8 +1,9 @@
-"""Render shipped PPO and Slack-aware on the same arrivals and simulated clock, the whole day.
+"""The group video: PPO and Slack-aware on the same high-load day, as a slide-style talk.
 
-The video: a title card, a four-step guide to the screen, the day side by side with running
-charts (slower in demand peaks), pauses at moments picked from the two days' records, and the
-final test's results as bars.
+Title and outline; 1 the task, its map built up element by element; 2 how the PPO agent decides:
+the network, then three of its decisions step by step in the replay's layout; 3 the whole day
+side by side with the rule, with running charts and short pauses at moments picked from the
+two records; 4 the final test's results; a summary.
 """
 import argparse
 import csv
@@ -15,14 +16,16 @@ import numpy as np
 import torch
 
 from medical_uav.env import MedicalUAVEnv
+from medical_uav.env.actions import decode
 from medical_uav.env.config import EPS
 from medical_uav.env.render import save_animation
 from medical_uav.env.replay import day_record, decision_record, state_at
-from medical_uav.env.video import SLOW_RATE, TYPE_LABELS, DuelFrames, clock, duel_times, slow_times
+from medical_uav.env.video import (TYPE_LABELS, DuelFrames, ReplayFrames, clock, day_times)
 from scripts.demo import POLICY_NAMES, make_policy
 
 ROOT = Path(__file__).resolve().parents[1]
 FINAL_SUMMARY = ROOT / "evidence/final_test/summary.json"
+NETWORK_FIG = ROOT / "docs/figures/M2_fig1_set_network.png"
 # final-test key, label, report colour, latency file and method name
 METHODS = [("final", "PPO (ours)", "#e8590c", "networks", "checkpoints/entrants/f12_mm_e05_s11.pt"),
            ("horizon", "Rolling horizon", "#1f1f1f", "horizon", "horizon"),
@@ -30,9 +33,9 @@ METHODS = [("final", "PPO (ours)", "#e8590c", "networks", "checkpoints/entrants/
            ("rollout", "Rollout", "#1c7ed6", "rollout", "rollout"),
            ("insertion", "Insertion", "#2b8a3e", "insertion", "insertion"),
            ("slack", "Slack-aware", "#7048e8", "slack", "slack")]
-PAUSE_S = 8
-SLOW_CAPTION = ("Slow motion: the decisions just before the next pause",
-                ["The clock stops at each decision: first the choices, then the pick.", ""], False)
+OUTLINE = ["The task", "How our PPO agent decides", "One whole day: PPO vs a hand-written rule",
+           "Results on 30 held-out maps"]
+PAUSE_S, ANIM = 5, 4  # pause length (s); frames per step of the decision-card animation
 
 
 def record_day(name, load, seed):
@@ -64,23 +67,6 @@ def _name(r, o):
     nodes = r["map"]["nodes"]
     return (f"{TYPE_LABELS[o['type']].lower()} #{o['id']} "
             f"({nodes[o['from']]['name']} → {nodes[o['to']]['name']})")
-
-
-def _pairs(ppo, rule, mine, other):
-    """Orders whose outcome is `mine` under one side and `other` under the other, by time."""
-    return sorted(((a, b) for a, b in zip(ppo["orders"], rule["orders"])
-                   if _outcome(a) == mine and _outcome(b) == other),
-                  key=lambda ab: ab[1]["end"] if mine == "on time" else ab[0]["end"])
-
-
-def rule_failure(ppo, rule):
-    """The first order the rule lets expire that PPO delivers on time."""
-    a, b = _pairs(ppo, rule, "on time", "expired")[0]
-    where = ("it was never picked up" if b["pickup"] is None else
-             f"the rule picked it up at {clock(b['pickup'])} but did not deliver it in time")
-    return (b["end"], f"{clock(b['end'])} · The rule loses {_name(rule, b)}",
-            [f"It expires: {where}.",
-             f"PPO delivered the same order on time at {clock(a['end'])}."])
 
 
 def ppo_failure(ppo, rule):
@@ -133,19 +119,108 @@ def day_end(ppo, rule):
 
 
 def phase_caption(meta, t):
-    """The running caption: what to watch in this part of the day."""
+    """The running caption: what is happening in this part of the day."""
     peaks = meta["peaks"]
     if t < peaks[0][0]:
-        return ("Morning: few orders, both dispatchers keep up",
-                ["Watch the map, the score above each side and the charts below.", ""], False)
+        return "Morning: few orders, both keep up", [""], False
     if any(a <= t < b for a, b in peaks):
-        return ("Demand peak: orders arrive over three times as fast as outside the peaks",
-                ["Watch the waiting squares on the maps and the backlog chart; "
-                 "the video slows down here.", ""], False)
+        return ("Demand peak: orders arrive more than three times as often",
+                ["Watch the waiting lists grow and the backlog chart."], False)
     if t < peaks[-1][0]:
-        return ("Between the peaks: both work through the orders that are waiting", ["", ""],
-                False)
-    return "Afternoon: the remaining orders are cleared", ["", ""], False
+        return "Between the peaks: both work through the waiting orders", [""], False
+    return "Afternoon: the last orders are cleared", [""], False
+
+
+# ---------- part 2: three PPO decisions ----------
+def _picked(d):
+    kind, arg = decode(d["action"])
+    return d["visible"][arg] if kind == "pick" else None
+
+
+def _top(d):
+    return ("The network scores every allowed action",
+            f"Its top choice: {d['top'][0][0]}, {100 * d['top'][0][1]:.1f}%.")
+
+
+def closeups(r):
+    """Three decisions in the first demand peak, each (index, captions, focus, run until):
+    a full batch unloaded at one stop, the most urgent pick among many waiting orders, and the
+    charge that follows it (the network sure of both). Captions: situation, choices, the pick, the consequence."""
+    a, b = r["meta"]["peaks"][0]
+    ds, orders, nodes = r["decisions"], {o["id"]: o for o in r["orders"]}, r["map"]["nodes"]
+    peak = [i for i, d in enumerate(ds) if a <= d["t"] < b]
+    out = []
+
+    i = next(i for i in peak if ds[i]["facts"][1].startswith("Frees 3 of 3"))
+    d, s = ds[i], state_at(r, ds[i]["t"])
+    box = [orders[k] for k in s["cargo"]]
+    dest = nodes[box[0]["to"]]["name"]
+    ok = all(_outcome(o) == "on time" for o in box)
+    out.append((i, [(f"{clock(d['t'])} · Three boxes on board, all for {dest}",
+                     f"{len(s['waiting'])} more orders are waiting; "
+                     f"{d['facts'][0][0].lower() + d['facts'][0][1:]}."),
+                    _top(d),
+                    ("It takes the most likely action", f"One stop at {dest} delivers all three."),
+                    ("The consequence", "All three arrive on time." if ok else
+                     "Not all three arrive on time.")],
+                {"nodes": (box[0]["to"],), "orders": tuple(s["cargo"])}, d["end"]))
+
+    def urgent(i):
+        s = state_at(r, ds[i]["t"])
+        k = _picked(ds[i])
+        return (k is not None and orders[k]["type"] == 0 and len(s["waiting"]) >= 10
+                and k == min(s["waiting"], key=lambda j: orders[j]["deadline"])
+                and ds[i]["top"][0][1] >= 0.95 and ds[i + 1]["text"].startswith("Charge"))
+    i = next(i for i in peak if urgent(i))
+    d, s = ds[i], state_at(r, ds[i]["t"])
+    o = orders[_picked(d)]
+    dest = nodes[o["to"]]["name"]
+    mates = [orders[k] for k in s["cargo"] if orders[k]["to"] == o["to"]]
+    also = f" Plasma #{mates[0]['id']} on board also goes to {dest}." if mates else ""
+    out.append((i, [(f"{clock(d['t'])} · {len(s['waiting'])} orders are waiting",
+                     f"Plasma #{o['id']} for {dest} is the most urgent: due in "
+                     f"{o['deadline'] - d['t']:.0f} min.{also}"),
+                    _top(d),
+                    ("It takes the most likely action",
+                     "The most urgent order, on the same trip as the box on board." if mates else
+                     "The most urgent order.")],
+                {"nodes": (o["to"],), "orders": (o["id"], *(m["id"] for m in mates))}, d["end"]))
+
+    i += 1
+    d, s = ds[i], state_at(r, ds[i]["t"])
+    box = [orders[k] for k in s["cargo"]]
+    kinds = " and ".join(sorted({TYPE_LABELS[o["type"]].lower() for o in box}))
+    target = d["text"].rsplit(" ", 1)[1]
+    done = max(o["end"] for o in box)
+    ok = all(_outcome(o) == "on time" for o in box)
+    out.append((i, [(f"{clock(d['t'])} · Battery {d['battery']:.0f}%, {len(box)} {kinds} "
+                     f"box{'es' if len(box) > 1 else ''} on board", f"They are due in {min(o['deadline'] for o in box) - d['t']:.0f}"
+                     " min at the earliest."),
+                    _top(d),
+                    ("It takes the most likely action",
+                     f"It charges only to {target} ({d['facts'][1]}), not to 100%, then flies."),
+                    ("The consequence", ("All boxes arrive on time: " if ok else "Arrivals: ") +
+                     ", ".join(f"#{o['id']} at {clock(o['end'])}" for o in box) + ".")],
+                {"nodes": (), "orders": tuple(s["cargo"])}, done))
+    return out
+
+
+def closeup_frames(view, i, captions, until, fps):
+    """One decision step by step in the replay's layout, then its action at 2 simulated min/s."""
+    d = view.r["decisions"][i]
+    hold = lambda phase, cap, sec: repeat(view.draw(d["t"], phase, "", cap), round(sec * fps))
+    yield from hold("Deciding", captions[0], 5)
+    yield from hold("Deciding", captions[1], 4)
+    yield from hold("Picked", captions[2], 3)
+    m = round(0.7 * fps)
+    for k in range(m):
+        yield view.draw(d["t"], ("Moving", k / m), "", captions[2])
+    last = captions[3] if len(captions) > 3 else captions[2]
+    t = d["t"]
+    while t < until - EPS:
+        t = min(until, t + 2 / fps)
+        yield view.draw(t, None, "", last)
+    yield from repeat(view.draw(until, None, "", last), round(2 * fps))
 
 
 # ---------- final test ----------
@@ -168,36 +243,24 @@ def final_rows(path=FINAL_SUMMARY, timed=True):
             for key, label, color, file, method in METHODS]
 
 
-TITLE = ["One drone serves a medical center and five hospitals. Orders for plasma,",
-         "medicine, samples and supplies arrive all day, each with a deadline;",
-         "the drone carries at most 3 boxes and must recharge on the way.", "",
-         "Left: our PPO agent, a neural network trained by reinforcement learning.",
-         "Right: Slack-aware, our best hand-written rule.",
-         "Both get exactly the same orders on the same map.", "",
+TITLE = ["One drone, a medical center and five hospitals: which order next, and when to",
+         "charge? We trained a neural network with reinforcement learning (PPO) to decide.", "",
          "ME5418 Group 17 · Jihang Cai, Yu Liu, Yufeng Zhang"]
+SLACK = ["Slack-aware is our best hand-written rule: earliest deadline first, unload where it is,"
+         " carry orders going the same way together, hopeless orders last.",
+         "We compare with it because it is the strongest rule we could write by hand; the "
+         "planners appear in the results.",
+         "Same map, same 66 orders, one shared clock. PPO on the left, the rule on the right."]
 
 
-def slow_start(records, t, count=2, longest=12.0):
-    """Start of the slow motion before t: the earlier of each side's last `count` decisions."""
-    firsts = [ds[-count] if len(ds) >= count else ds[0] for ds in
-              ([d["t"] for d in r["decisions"] if d["t"] < t] for r in records) if ds]
-    return max(min(firsts, default=t), t - longest)
-
-
-def timeline(records, pauses, fps, slowmo=True):
-    """(time, phases, speed label) for the whole day; slow motion before each pause but the
-    last (the end of the day)."""
-    end = max(r["meta"]["end"] for r in records)
-    windows = [(slow_start(records, t), t) for t in sorted(pauses)[:-1]] if slowmo else []
-    out = []
-    for t in sorted(set(duel_times(records[0]["meta"]["peaks"], end, fps)) | set(pauses)):
-        w = next((w for w in windows if w[0] <= t < w[1]), None)
-        if w is None:
-            out.append((t, (None, None), None))
-        elif not out or out[-1][0] < w[0]:
-            out += [(u, ph, f"slow motion · {SLOW_RATE:g} simulated min/s")
-                    for u, ph in slow_times(records, w[0], w[1], fps)[:-1]]
-    return out
+def summary_lines(rows):
+    ppo, horizon, slack = rows[0], rows[1], rows[-1]
+    return [f"PPO matches the strongest planner (rolling horizon) within about one point, and "
+            f"decides in {ppo[4]} instead of {horizon[4]}.",
+            f"At high load it delivers {ppo[3] - slack[3]:.1f} points more orders on time than "
+            "our best hand-written rule.",
+            "It still makes mistakes: on this day it let one sample expire that the rule "
+            "delivered."]
 
 
 def main():
@@ -205,47 +268,69 @@ def main():
     parser.add_argument("--load", choices=["low", "medium", "high"], default="high")
     parser.add_argument("--seed", type=int, default=100007)
     parser.add_argument("--fps", type=int, default=12)
-    parser.add_argument("--slowmo", action=argparse.BooleanOptionalAction, default=True,
-                        help="slow motion with the steps of each decision before a pause")
-    parser.add_argument("--out", type=Path, default=Path("outputs/compare.mp4"))
+    parser.add_argument("--out", type=Path, default=Path("outputs/video.mp4"))
     args = parser.parse_args()
     torch.set_num_threads(1)
+    fps = args.fps
     ppo, rule = [record_day(name, args.load, args.seed) for name in ("ppo", "slack")]
     r = DuelFrames(ppo, rule)
-    fps = args.fps
+    view = ReplayFrames(ppo, f"{args.load.capitalize()} load · demand seed {args.seed} · map 0",
+                        scale=1.5)
     pauses = {t: (title, lines, True) for t, title, lines in
-              (rule_charge(ppo, rule), rule_failure(ppo, rule), ppo_failure(ppo, rule),
-               backlog_gap(ppo, rule), day_end(ppo, rule))}
-    times = timeline((ppo, rule), pauses, fps, args.slowmo)
-    results = r.results("Final test: 30 held-out maps × 10 days per load", final_rows(),
-                        "PPO: mean of five training runs. Time per decision: one CPU thread, "
-                        "high load.",
-                        "PPO is within about one point of the rolling-horizon planner at both loads"
-                        " and decides thousands of times faster.")
+              (rule_charge(ppo, rule), ppo_failure(ppo, rule), backlog_gap(ppo, rule))}
+    end_t, end_title, end_lines = day_end(ppo, rule)
+    pauses[end_t] = (end_title, end_lines, True)
+    rows = final_rows()
+    first = closeups(ppo)[0][0]
+    section = lambda k, note: repeat(r.outline(OUTLINE, k, note), 3 * fps)
 
     def frames():
-        yield from repeat(r.card("Same orders, two dispatchers", TITLE,
-                                 "ME5418 FINAL PROJECT · MEDICAL DELIVERY DRONE"), 10 * fps)
-        start = ppo["meta"]["peaks"][0][0] + 30
-        for step in range(len(r.GUIDE)):
-            yield from repeat(r.guide(start, step), 3 * fps)
-        last = None
-        for i, (t, phases, speed) in enumerate(times):
-            caption = pauses.get(t) or (SLOW_CAPTION if speed else phase_caption(ppo["meta"], t))
-            if (t, phases, speed) != last:  # a stopped clock repeats one frame
-                frame, last = r.draw(t, caption, phases, speed), (t, phases, speed)
-            yield from repeat(frame, PAUSE_S * fps if t in pauses else 1)
-            if i % (fps * 20) == 0:
-                print(f"Rendering {clock(t)} ({i + 1}/{len(times)})", flush=True)
-        yield from repeat(results, 14 * fps)
+        yield from repeat(r.card("Learning to dispatch a medical delivery drone", TITLE,
+                                 "ME5418 FINAL PROJECT · GROUP 17"), 6 * fps)
+        yield from repeat(r.outline(OUTLINE), 5 * fps)
+        yield from section(0, "The world our dispatcher works in.")
+        for k in range(len(r.TASK)):
+            yield from repeat(r.task(k, ppo["decisions"][first]["t"]), round(3.5 * fps))
+        yield from section(1, "What the network sees and how it picks an action.")
+        yield from repeat(r.image_slide("2  How our PPO agent decides", NETWORK_FIG, [
+            "It sees the drone (battery, place, cargo) and up to 12 waiting orders, one row each.",
+            "Attention compares them; every allowed action gets a probability; it takes the top.",
+            "Trained by PPO on 500 random maps for 12 million decisions."]), 8 * fps)
+        for i, captions, focus, until in closeups(ppo):
+            view.focus = focus
+            yield from closeup_frames(view, i, captions, until, fps)
+        view.focus = {"nodes": (), "orders": ()}
+        yield from section(2, "The same day, side by side with our best hand-written rule.")
+        yield from repeat(r.bullets("Our comparison: Slack-aware", SLACK, "3  ONE WHOLE DAY"),
+                          7 * fps)
+        for step in (0, 2, 4):  # map, waiting orders, running totals
+            yield from repeat(r.guide(0.0, step), 3 * fps)
+        times = sorted(set(day_times((ppo, rule), fps, r.end)) | set(pauses))
+        seen, since = [None, None], [ANIM * 2, ANIM * 2]
+        for n, t in enumerate(times):
+            for k, rec in enumerate((ppo, rule)):
+                i = state_at(rec, min(t, rec["meta"]["end"]))["decision"]
+                since[k] = 0 if i != seen[k] else since[k] + 1
+                seen[k] = i
+            phases = tuple("Deciding" if c < ANIM else "Picked" if c < 2 * ANIM else None
+                           for c in since)
+            caption = pauses.get(t) or phase_caption(ppo["meta"], t)
+            frame = r.draw(t, caption, phases, "time-lapse · 3-8 simulated min per second")
+            yield from repeat(frame, (PAUSE_S + 2 * (t == end_t)) * fps if t in pauses else 1)
+            if n % (fps * 20) == 0:
+                print(f"Rendering {clock(t)} ({n + 1}/{len(times)})", flush=True)
+        yield from section(3, "Six methods on 30 held-out maps, ten days each, two loads.")
+        yield from repeat(r.results("Final test: 30 held-out maps × 10 days per load", rows,
+                                    "PPO: mean of five training runs. Time per decision: one CPU "
+                                    "thread, high load.",
+                                    "PPO is within about one point of the rolling-horizon planner"
+                                    " at both loads and decides thousands of times faster."),
+                          12 * fps)
+        yield from repeat(r.bullets("Summary", summary_lines(rows), "ME5418 GROUP 17"), 10 * fps)
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    for k, (t, caption) in enumerate(sorted(pauses.items())):
-        imageio.imwrite(args.out.with_name(f"{args.out.stem}_pause{k + 1}.png"), r.draw(t, caption))
-    imageio.imwrite(args.out.with_name(f"{args.out.stem}_results.png"), results)
     n = save_animation(frames(), str(args.out), fps)
     print(f"Saved {args.out}: {n} frames, {n / fps:.1f} s")
-    print("Pauses: " + ", ".join(clock(t) for t in sorted(pauses)))
 
 
 if __name__ == "__main__":
