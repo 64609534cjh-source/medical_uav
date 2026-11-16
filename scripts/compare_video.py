@@ -317,8 +317,8 @@ def stretches(r):
 
 # replay-layout boxes (1280 x 720) a step points at
 CHOICES, ACTION = (906, 170, 358, 158), (562, 116, 700, 54)
-ACT_RATE = 3.0  # simulated min per second while an example's action plays
-SLOW = "decisions held for reading · during actions, 1 s of video = 3 simulated minutes"
+ACT_RATE = 5.0  # simulated min per second while an example's action plays
+SLOW = "decisions held for reading · during actions, 1 s of video = 5 simulated minutes"
 
 
 def stretch_frames(view, steps, until, fps, say):
@@ -331,7 +331,7 @@ def stretch_frames(view, steps, until, fps, say):
         for k in range(fade):
             yield view.draw(d["t"], "Deciding", SLOW, ([CHOICES], (k + 1) / fade))
         # hold until the subtitle can be read (about 190 words a minute)
-        hold = min(4.5, max(1.8, len(f"{title} {line}".split()) / 3.2 - 1.5))
+        hold = min(4.0, max(1.5, len(f"{title} {line}".split()) / 3.3 - 1.6))
         yield from repeat(view.draw(d["t"], "Deciding", SLOW, ([CHOICES], 1.0)),
                           round(hold * fps))
         yield FADE
@@ -438,10 +438,10 @@ def main():
     fast = f"about {round(speedup(), -3):,.0f}× faster"
     task_t = 151.0  # the task's map shows the day at 10:31
     # task steps: subtitle heading, subtitle line (only what the slide does not say), seconds
-    narration = [("Medical center M", "", 10), ("Five hospitals H1–H5", "", 6),
+    narration = [("Medical center M", "", 7), ("Five hospitals H1–H5", "", 5),
                  ("A second charger C2", "", 4), ("Three no-fly zones", "", 4),
-                 ("Orders and deadlines", "Time limits start when the order arrives.", 12),
-                 ("One drone", "", 9), ("The decision, again and again", "", 7)]
+                 ("Orders and deadlines", "Time limits start when the order arrives.", 10),
+                 ("One drone", "", 7), ("The decision, again and again", "", 6)]
     sub = Subtitles(*(font_manager.findfont(font_manager.FontProperties(
         family="DejaVu Sans", weight=w)) for w in ("bold", "normal")))
     cue, cues, count, dissolve = ["", "", False], [], [0], [False]
@@ -457,7 +457,7 @@ def main():
     def frames():
         say("Learning to dispatch a medical delivery drone", "ME5418 Group 17 final project")
         yield from repeat(r.card("Learning to dispatch a medical delivery drone", TITLE,
-                                 "ME5418 FINAL PROJECT · GROUP 17"), 10 * fps)
+                                 "ME5418 FINAL PROJECT · GROUP 17"), 9 * fps)
         say("Outline")
         yield from repeat(r.outline(OUTLINE), 6 * fps)
         yield from section(0, "Follow the map as its features appear.")
@@ -479,7 +479,7 @@ def main():
             "PPO (Proximal Policy Optimization): five networks, 12 million decisions each. Reward:"
             " +1 per on-time delivery, +0.1 per late one, \u22120.5 per expired order, and a "
             "small energy penalty.",
-            "In the examples below, each decision is slowed down for viewing."]), 22 * fps)
+            "In the examples below, each decision is slowed down for viewing."]), 18 * fps)
         scenes = stretches(ppo)
         for n, (title, intro, steps, focus, until, plan, shows) in enumerate(scenes):
             head = f"Example {n + 1} of {len(scenes)}: {title}"
@@ -496,13 +496,13 @@ def main():
                               "map.")
         say("Why compare with Slack-aware?", "Both get the same 66 orders and one shared clock.")
         yield from repeat(r.bullets("Why compare with Slack-aware?", SLACK, "3  ONE WHOLE DAY",
-                                    size=28), 22 * fps)
+                                    size=28), 18 * fps)
         guide = [(0, "Coloured squares mark orders awaiting pickup. This preview is paused at "
-                     "10:30; the replay then starts at 08:00.", 7),
+                     "10:30; the replay then starts at 08:00.", 6),
                  (2, "Orders awaiting pickup, sorted by deadline; each shows the minutes "
-                     "remaining.", 5),
+                     "remaining.", 4),
                  (4, "Left: on-time deliveries. Middle: orders awaiting pickup (backlog). Right: "
-                     "on-time, late and expired counts.", 6)]
+                     "on-time, late and expired counts.", 5)]
         for n, (step, line, sec) in enumerate(guide):
             say(f"How to read the screen · {n + 1}/{len(guide)} · {r.GUIDE[step][1]}", line)
             yield from repeat(r.guide(150.0, step), sec * fps)
@@ -536,7 +536,7 @@ def main():
             if title != said:
                 say(title, " ".join(lines))
                 said = title
-            frame = r.draw(t, False, phases, "playback: 4–12 simulated minutes per second")
+            frame = r.draw(t, False, phases, "playback: 8–20 simulated minutes per second")
             yield frame
             if n % (fps * 20) == 0:
                 print(f"Rendering {clock(t)} ({n + 1}/{len(times)})", flush=True)
@@ -550,10 +550,10 @@ def main():
                             "PPO: mean of five trained networks. Time per decision: separate "
                             "test, one CPU thread, high demand (1 ms = 0.001 s).",
                             f"At high demand, PPO decides {fast} than the rolling horizon.")
-        yield from repeat(results, 22 * fps)
+        yield from repeat(results, 17 * fps)
         say("Final test: mean on-time rate over 300 days per demand level",
             "Now compare the decision times in the right-hand column.")
-        yield from repeat(results, 16 * fps)
+        yield from repeat(results, 12 * fps)
         say("Summary")
         yield from repeat(r.bullets("Summary", summary_lines(rows, ppo, rule), "ME5418 GROUP 17"),
                           14 * fps)

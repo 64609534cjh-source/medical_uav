@@ -30,7 +30,7 @@ DECIDING, PROGRESS = ("#fff0c2", "#6f4600"), ("#dfe9fd", "#1c49b8")
 RATES = {"fly": 1.0, "load": 1.5, "unload": 1.5, "dispose": 1.5}
 LEAVE_S, DECIDE_S, PICK_S, MOVE_S = 0.35, 0.7, 0.4, 0.6
 # the whole-day comparison: simulated min/s by activity (the slower side sets the pace)
-DAY_RATES, DAY_GROUND = {"fly": 4.0, "load": 5.0, "unload": 5.0, "dispose": 5.0}, 12.0
+DAY_RATES, DAY_GROUND = {"fly": 8.0, "load": 9.0, "unload": 9.0, "dispose": 9.0}, 20.0
 
 
 def pt(px: float) -> float:
