@@ -46,9 +46,9 @@ def rounded(x, y, w, h, radius, **style) -> FancyBboxPatch:
 class Subtitles:
     """A band under each frame with a heading and up to two lines, in place of narration."""
 
-    H = 168
+    H = 200
 
-    def __init__(self, bold: str, regular: str, width: int = 1920, sizes=(38, 32)):
+    def __init__(self, bold: str, regular: str, width: int = 1920, sizes=(46, 36)):
         from PIL import ImageFont
         self.bold, self.reg = (ImageFont.truetype(bold, sizes[0]),
                                ImageFont.truetype(regular, sizes[1]))
@@ -70,12 +70,37 @@ class Subtitles:
             from PIL import Image, ImageDraw
             img = Image.new("RGB", (self.width, self.H), (20, 28, 46))
             d = ImageDraw.Draw(img)
-            d.text((48, 16), title, font=self.bold, fill=(255, 196, 92) if paused else
+            d.rectangle((0, 0, 14, self.H), fill=(232, 89, 12))  # accent bar
+            d.text((48, 14), title, font=self.bold, fill=(255, 196, 92) if paused else
                    (255, 255, 255))
             for j, line in enumerate(self._wrap(body)[:2]):
-                d.text((48, 72 + 44 * j), line, font=self.reg, fill=(214, 222, 235))
+                d.text((48, 84 + 50 * j), line, font=self.reg, fill=(226, 232, 242))
             self.cache[key] = np.asarray(img)
         return self.cache[key]
+
+
+def zoom(frame: np.ndarray, box, a: float, badge=None) -> np.ndarray:
+    """The frame zoomed a (0..1) of the way from the whole frame into box (x, y, w, h; widened
+    to the frame's shape), smoothly; with badge = (text, font) a pill at the bottom centre."""
+    from PIL import Image, ImageDraw
+    H_, W_ = frame.shape[:2]
+    x, y, w, h = box
+    if w / h < W_ / H_:
+        x, w = x - (h * W_ / H_ - w) / 2, h * W_ / H_
+    else:
+        y, h = y - (w * H_ / W_ - h) / 2, w * H_ / W_
+    x, y = min(max(x, 0), W_ - w), min(max(y, 0), H_ - h)
+    e = a * a * (3 - 2 * a)
+    crop = (e * x, e * y, e * x + (1 - e) * W_ + e * w, e * y + (1 - e) * H_ + e * h)
+    img = Image.fromarray(frame).resize((W_, H_), Image.LANCZOS, box=crop)
+    if badge:
+        d = ImageDraw.Draw(img)
+        text, font = badge
+        tw = d.textlength(text, font=font)
+        x0, y0 = (W_ - tw - 48) / 2, H_ - 88  # bottom centre
+        d.rounded_rectangle((x0, y0, x0 + tw + 48, y0 + 64), 32, fill=(232, 89, 12))
+        d.text((x0 + 24, y0 + 6), text, font=font, fill="white")
+    return np.asarray(img)
 
 
 def pct(p: float, digits: int = 1) -> str:
@@ -122,6 +147,7 @@ class ReplayFrames:
         self.r, self.subtitle = record, subtitle
         self.orders = {o["id"]: o for o in record["orders"]}
         self.focus = {"nodes": (), "orders": ()}  # places and orders to highlight
+        self.banner = ""  # a label over the replay, e.g. the scenario shown
         self.fig = Figure(figsize=(W / DPI, H / DPI), dpi=DPI * scale, facecolor=PAPER)
         self.canvas = FigureCanvasAgg(self.fig)
 
@@ -171,7 +197,12 @@ class ReplayFrames:
         meta = self._text(ax, 24, 16, "MEDICAL UAV · ONE SIMULATED DAY", 11, MUTED, "bold")
         meta.set_fontstretch("expanded")
         self._text(ax, 24, 32, self.r["meta"]["policy"], 22, INK, "bold")
-        self._text(ax, 24, 62, self.subtitle, 13, MUTED)
+        if self.banner:  # the scenario being shown, in place of the subtitle
+            ax.add_patch(rounded(24, 58, 8.2 * len(self.banner) + 28, 26, 13, fc="#e8590c",
+                                 ec="none"))
+            self._text(ax, 38, 62, self.banner, 14, "white", "bold")
+        else:
+            self._text(ax, 24, 62, self.subtitle, 13, MUTED)
         self._text(ax, W - 24, 14, self._clock(t), 38, INK, "bold", ha="right")
         self._text(ax, W - 24, 58, "simulated time", 12, MUTED, ha="right")
         chips = [("on time", s["on_time"], ONTIME), ("late", s["late"], LATE),

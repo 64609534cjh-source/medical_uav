@@ -169,8 +169,19 @@ def test_stretches_follow_consecutive_decisions_on_the_shipped_day():
 
     day = compare_video.record_day("ppo", "high", 100007)
     first, second = compare_video.stretches(day)
-    for title, intro, steps, focus, until in (first, second):
+    for title, intro, steps, focus, until, plan in (first, second):
+        assert len(plan) == 3
         idx = [i for i, _, _ in steps]
         assert idx == list(range(idx[0], idx[-1] + 1)) and until >= day["decisions"][idx[-1]]["t"]
     assert "Box 3 of 3" in " ".join(line for _, _, line in first[2])
     assert "most urgent" in second[2][0][2] and "on time" in second[2][-1][2]
+
+
+def test_zoom_moves_smoothly_from_the_whole_frame_into_the_box():
+    from medical_uav.env.video import zoom
+
+    frame = np.zeros((90, 160, 3), np.uint8)
+    frame[:45, :80] = 255  # the top-left quarter is white
+    assert np.abs(zoom(frame, (0, 0, 80, 45), 0.0).astype(int) - frame).mean() < 2
+    inside = zoom(frame, (0, 0, 80, 45), 1.0)
+    assert inside.shape == frame.shape and inside[5:-5, 5:-5].min() > 240

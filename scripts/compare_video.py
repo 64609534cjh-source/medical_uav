@@ -22,7 +22,7 @@ from medical_uav.env.config import EPS
 from medical_uav.env.render import save_animation
 from medical_uav.env.replay import day_record, decision_record, short_text, state_at
 from medical_uav.env.video import (TYPE_LABELS, DuelFrames, ReplayFrames, Subtitles, clock,
-                                   day_times)
+                                   day_times, zoom)
 from scripts.demo import POLICY_NAMES, make_policy
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -221,7 +221,13 @@ def stretches(r):
     out.append((f"No empty trips, and boxes for {name(target)} collected on the way",
                 f"Watch the boxes for {name(target)} (highlighted): picked up at three places, "
                 "delivered together.", steps,
-                {"nodes": (target,), "orders": tuple(o["id"] for o in boxes)}, ds[end]["end"]))
+                {"nodes": (target,), "orders": tuple(o["id"] for o in boxes)}, ds[end]["end"],
+                [f"When: {clock(ds[start]['t'])} to {clock(ds[end]['end'])}, in the first demand "
+                 "peak.",
+                 "What happens: after a delivery the drone does not fly back empty, and it "
+                 f"collects three boxes for {name(target)} at three different places.",
+                 f"Watch: the highlighted boxes for {name(target)}, and the order in which the "
+                 "boxes are picked up."]))
 
     i = next(i for i in peak if i > end and _picked(ds[i]) is not None
              and _urgent(r, ds[i], orders) != _picked(ds[i])
@@ -263,7 +269,13 @@ def stretches(r):
                 f"At {clock(ds[i]['t'])} plasma #{u['id']} is the most urgent order. Watch what "
                 "PPO does first, and whether the plasma still arrives on time.", steps,
                 {"nodes": (u["to"],), "orders": (u["id"],)},
-                max(o["end"] for o in _delivered(r, ds[last]))))
+                max(o["end"] for o in _delivered(r, ds[last])),
+                [f"When: {clock(ds[i]['t'])} to "
+                 f"{clock(max(o['end'] for o in _delivered(r, ds[last])))}.",
+                 f"What happens: the most urgent order is plasma #{u['id']} at "
+                 f"{name(u['from'])}, but the drone first takes a box waiting where it already is.",
+                 "Watch: whether the plasma still arrives on time, and how long the drone "
+                 "charges on the way."]))
     return out
 
 
@@ -363,10 +375,15 @@ def main():
     r = DuelFrames(ppo, rule)
     view = ReplayFrames(ppo, f"Example day: {args.load} load on map 0, our milestone layout, "
                         "never used in training", scale=1.5)
-    pauses = {t: (title, " ".join(lines)) for t, title, lines in
-              (rule_charge(ppo, rule), ppo_failure(ppo, rule), backlog_gap(ppo, rule))}
-    end_t, end_title, end_lines = day_end(ppo, rule)
-    pauses[end_t] = (end_title, " ".join(end_lines))
+    # each pause zooms into the part it explains (DuelFrames pixel boxes)
+    pauses = {t: (title, " ".join(lines), box) for (t, title, lines), box in
+              ((rule_charge(ppo, rule), (960, 90, 940, 529)),  # the rule's map and battery
+               (ppo_failure(ppo, rule), (20, 90, 940, 529)),  # PPO's map: the expired sample
+               (backlog_gap(ppo, rule), (656, 776, 600, 292)),  # the backlog chart
+               (day_end(ppo, rule), (1280, 776, 608, 292)))}  # the outcome bars
+    end_t = max(pauses)
+    lost = next(a for a, b in zip(ppo["orders"], rule["orders"])
+                if a["end"] == ppo_failure(ppo, rule)[0] and _outcome(a) == "expired")
     rows = final_rows()
     fast = f"about {round(speedup(), -3):,.0f}× faster"
     task_t = 151.0  # the task's map shows the day at 10:31
@@ -422,13 +439,16 @@ def main():
             "each on-time delivery, less for a late one, a penalty when an order expires.",
             f"In the next scenes each decision is slowed down for viewing; the network itself "
             f"needs {rows[0][4]}."]), 12 * fps)
-        for title, intro, steps, focus, until in stretches(ppo):
-            view.focus = focus
-            say(title, intro)
+        scenes = stretches(ppo)
+        for n, (title, intro, steps, focus, until, plan) in enumerate(scenes):
+            say(f"Scenario {n + 1} of {len(scenes)}: {title}", intro)
+            yield from repeat(r.bullets(title, plan, f"2  HOW OUR PPO AGENT DECIDES · SCENARIO "
+                                        f"{n + 1} OF {len(scenes)}"), 7 * fps)
+            view.focus, view.banner = focus, f"Scenario {n + 1} of {len(scenes)} · {title}"
             first = ppo["decisions"][steps[0][0]]
-            yield from repeat(view.draw(first["t"], None, SLOW), 4 * fps)
+            yield from repeat(view.draw(first["t"], None, SLOW), 3 * fps)
             yield from stretch_frames(view, steps, until, fps, say)
-        view.focus = {"nodes": (), "orders": ()}
+        view.focus, view.banner = {"nodes": (), "orders": ()}, ""
         yield from section(2, "The same day, side by side with a hand-written rule.")
         say("The comparison: the Slack-aware rule",
             "Both dispatchers get the same 66 orders on the same map, on one shared clock.")
@@ -450,15 +470,28 @@ def main():
             phases = tuple("Deciding" if c < ANIM else "Picked" if c < 2 * ANIM else None
                            for c in since)
             if t in pauses:
-                say(*pauses[t], True)
+                title, body, box = pauses[t]
+                if t == lost["end"]:  # ring the place of the order PPO lost
+                    r.views[0].focus = {"nodes": (lost["from"],), "orders": ()}
+                frame = r.draw(t, True, phases, "")
+                r.views[0].focus = {"nodes": (), "orders": ()}
+                say(title, body, True)
                 said = None
-            else:
-                title, lines, _ = phase_caption(ppo["meta"], t)
-                if title != said:
-                    say(title, " ".join(lines))
-                    said = title
-            frame = r.draw(t, t in pauses, phases, "time-lapse · 4-12 simulated min per second")
-            yield from repeat(frame, (PAUSE_S + 2 * (t == end_t)) * fps if t in pauses else 1)
+                badge = ("❚❚  PAUSED", sub.bold)
+                m = round(0.8 * fps)
+                for k in range(m + 1):  # zoom in, hold, zoom out
+                    yield zoom(frame, box, k / m, badge)
+                yield from repeat(zoom(frame, box, 1.0, badge),
+                                  (PAUSE_S + 2 * (t == end_t)) * fps)
+                for k in range(m, -1, -1):
+                    yield zoom(frame, box, k / m, badge if k else None)
+                continue
+            title, lines, _ = phase_caption(ppo["meta"], t)
+            if title != said:
+                say(title, " ".join(lines))
+                said = title
+            frame = r.draw(t, False, phases, "time-lapse · 4-12 simulated min per second")
+            yield frame
             if n % (fps * 20) == 0:
                 print(f"Rendering {clock(t)} ({n + 1}/{len(times)})", flush=True)
         yield from section(3, "Six methods, 30 new maps never used in training, ten days each.")
