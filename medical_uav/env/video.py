@@ -721,7 +721,8 @@ class DuelFrames:
                 now = state_at(v.r, min(t, v.r["meta"]["end"]))
                 now = now["on_time"] if col == 1 else len(now["waiting"])
                 xs, ys = np.r_[m[m < t], t], np.r_[vals[col - 1][m < t], now]  # ends at t exactly
-                c.plot(xs, ys, color=self.colors[k], lw=2.6, drawstyle="steps-post")
+                c.plot(xs, ys, color=self.colors[k], lw=2.6, drawstyle="steps-post",
+                       label=self.titles[k])
                 c.plot(t, now, "o", color=self.colors[k], ms=7)
                 c.annotate(f"{now}", (t, now), xytext=(8, 4 if k == 0 else -14),
                            textcoords="offset points", fontsize=pt(16), color=self.colors[k],
@@ -736,6 +737,7 @@ class DuelFrames:
                 c.spines[side].set_color(LINE)
             c.grid(axis="y", color=WASH, lw=1)
             c.set_facecolor(PANEL)
+            c.legend(loc="upper left", frameon=False, fontsize=pt(14))
         x, w = boxes[2]
         b = self._box(x + 30, y + 40, w - 50, h - 70)
         states = [state_at(v.r, min(t, v.r["meta"]["end"])) for v in self.views]

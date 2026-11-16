@@ -38,7 +38,7 @@ METHODS = [("final", "PPO (ours)", "#e8590c", "networks", "checkpoints/entrants/
            ("edf", "EDF", "#868e96", "rules", "edf"),
            ("fcfs", "FCFS", "#868e96", "rules", "fcfs"),
            ("random", "Random", "#868e96", "rules", "random")]
-OUTLINE = ["The task", "How our PPO agent decides", "One whole day: PPO vs the best simple rule",
+OUTLINE = ["The task", "How our PPO agent decides", "One whole day: PPO vs the Slack-aware rule",
            "Results on 30 new maps"]
 PAUSE_S, ANIM = 7, 4  # pause length (s); frames per step of the decision-card animation
 FADE, FADE_S = "fade", 0.4  # marker in a frame stream for a dissolve, and its length (s)
@@ -344,9 +344,11 @@ TITLE = ["One drone, a medical center and five hospitals: which order next, and 
 SLACK = ["What it is: the classic earliest-deadline-first rule (EDF), plus three fixes we added: "
          "unload where the drone is, take waiting orders going the same way, and leave orders "
          "that can no longer be on time to last.",
-         "Why this one: it is the strongest of the simple rules, and like PPO it decides in under "
-         "a millisecond, so both dispatchers work at the same speed.",
-         "Planners that search ahead are slower; they are compared in the final test at the end.",
+         "Why not the strongest method? The strongest, the rolling-horizon planner, is about as "
+         "punctual as PPO, so side by side the two look almost the same. Its drawback, 1.4 s per "
+         "decision, does not show in a replay; it is compared in the final test at the end.",
+         "Why Slack-aware: of all methods that decide as fast as PPO (under a millisecond), it is "
+         "the strongest, so the replay compares two equally fast dispatchers.",
          "The day was fixed in advance: of 40 development days, the one with the median PPO lead "
          "over Slack-aware."]
 
@@ -367,8 +369,8 @@ def summary_lines(rows, ppo, rule):
     return [f"On-time rates similar to the strongest planner (rolling horizon: {h[2]:.1f}% vs "
             f"PPO {p[2]:.1f}% at medium, {h[3]:.1f}% vs {p[3]:.1f}% at high load), with "
             f"decisions about {round(speedup(), -3):,.0f}× faster ({p[4]} vs {h[4]}).",
-            f"At high load, PPO's on-time rate is {p[3] - slack[3]:.1f} points above the best "
-            "simple rule (Slack-aware).",
+            f"At high load, PPO's on-time rate is {p[3] - slack[3]:.1f} points above the "
+            "Slack-aware rule, which decides as fast.",
             f"It is not perfect: on this day it {lost} {TYPE_LABELS[o['type']].lower()} "
             f"#{o['id']}, which expired; the rule delivered it on time."]
 
@@ -428,8 +430,8 @@ def main():
             "dispatches one delivery drone.")
         yield from repeat(r.card("Learning to dispatch a medical delivery drone", TITLE,
                                  "ME5418 FINAL PROJECT · GROUP 17"), 6 * fps)
-        say("Outline", "The task, how our agent decides, one whole day against the best "
-                       "simple rule, and the final test.")
+        say("Outline", "The task, how our agent decides, one whole day against the Slack-aware "
+                       "rule, and the final test against all methods.")
         yield from repeat(r.outline(OUTLINE), 5 * fps)
         yield from section(0, "First, the world the dispatcher works in.")
         for k, (head, line) in enumerate(narration):
@@ -460,11 +462,12 @@ def main():
             yield from repeat(view.draw(first["t"], None, SLOW), 3 * fps)
             yield from stretch_frames(view, steps, until, fps, say)
         view.focus, view.banner = {"nodes": (), "orders": ()}, ""
-        yield from section(2, "The same day, side by side with the best simple rule.")
-        say("The comparison: the Slack-aware rule",
-            "Both dispatchers get the same 66 orders on the same map, on one shared clock.")
-        yield from repeat(r.bullets("The comparison: the Slack-aware rule", SLACK,
-                                    "3  ONE WHOLE DAY"), 12 * fps)
+        yield from section(2, "The same day, side by side with the Slack-aware rule.")
+        say("The comparison: the Slack-aware rule, and why",
+            "Both dispatchers get the same 66 orders on the same map, on one shared clock. "
+            "The strongest method is compared in the final test.")
+        yield from repeat(r.bullets("The comparison: the Slack-aware rule, and why", SLACK,
+                                    "3  ONE WHOLE DAY"), 16 * fps)
         steps = (0, 2, 4)  # map, waiting orders, running totals; shown at 10:30
         for n, step in enumerate(steps):
             boxes, title, lines = r.GUIDE[step]
