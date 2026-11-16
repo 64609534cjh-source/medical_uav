@@ -156,7 +156,8 @@ def phase_caption(meta, t):
         return ("Demand peak: orders arrive about 3.3 times as often as outside the peaks",
                 ["Watch the lists of orders awaiting pickup and the backlog chart."], False)
     if t < peaks[-1][0]:
-        return "Between the peaks: both work through the orders awaiting pickup", [""], False
+        return ("Between the peaks: both work through the orders awaiting pickup",
+                ["Fewer new orders arrive; watch which side clears its list faster."], False)
     return (f"After the second peak: orders keep arriving until {clock(meta['release_window'])}",
             ["Both keep working until every order is delivered or has expired."], False)
 
@@ -438,10 +439,20 @@ def main():
     fast = f"about {round(speedup(), -3):,.0f}× faster"
     task_t = 151.0  # the task's map shows the day at 10:31
     # task steps: subtitle heading, subtitle line (only what the slide does not say), seconds
-    narration = [("Medical center M", "", 7), ("Five hospitals H1–H5", "", 5),
-                 ("A second charger C2", "", 4), ("Three no-fly zones", "", 4),
-                 ("Orders and deadlines", "Time limits start when the order arrives.", 10),
-                 ("One drone", "", 7), ("The decision, again and again", "", 6)]
+    narration = [("Medical center M", "Most trips start here: plasma and medicine are picked up "
+                  "at M, and the drone can charge at C1.", 7),
+                 ("Five hospitals H1–H5", "Boxes also travel between hospitals and back to M, so "
+                  "the drone criss-crosses the map.", 6),
+                 ("A second charger C2", "Charging stops cost time; choosing where and when to "
+                  "charge is part of the job.", 5),
+                 ("Three no-fly zones", "Routes bend around them, so some trips are longer than "
+                  "the straight-line distance.", 5),
+                 ("Orders and deadlines", "Time limits start when the order arrives; plasma is "
+                  "the most urgent.", 10),
+                 ("One drone", "With only 3 boxes on board, it must choose which orders to carry "
+                  "together.", 7),
+                 ("The decision, again and again", "This choice is made about 120 times a day; "
+                  "our network learns to make it.", 7)]
     sub = Subtitles(*(font_manager.findfont(font_manager.FontProperties(
         family="DejaVu Sans", weight=w)) for w in ("bold", "normal")))
     cue, cues, count, dissolve = ["", "", False], [], [0], [False]
@@ -458,7 +469,7 @@ def main():
         say("Learning to dispatch a medical delivery drone", "ME5418 Group 17 final project")
         yield from repeat(r.card("Learning to dispatch a medical delivery drone", TITLE,
                                  "ME5418 FINAL PROJECT · GROUP 17"), 9 * fps)
-        say("Outline")
+        say("Outline", "Four parts: the task, how PPO decides, one full day against a rule, and the final test.")
         yield from repeat(r.outline(OUTLINE), 6 * fps)
         yield from section(0, "Follow the map as its features appear.")
         for k, (head, line, sec) in enumerate(narration):
@@ -554,7 +565,7 @@ def main():
         say("Final test: mean on-time rate over 300 days per demand level",
             "Now compare the decision times in the right-hand column.")
         yield from repeat(results, 12 * fps)
-        say("Summary")
+        say("Summary", "PPO matches the strongest planner's punctuality, decides thousands of times faster, and still has failures.")
         yield from repeat(r.bullets("Summary", summary_lines(rows, ppo, rule), "ME5418 GROUP 17"),
                           14 * fps)
         say("Thank you for watching", "ME5418 Group 17 · Jihang Cai, Yu Liu, Yufeng Zhang")
