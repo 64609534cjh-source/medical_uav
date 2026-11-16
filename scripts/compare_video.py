@@ -150,14 +150,16 @@ def phase_caption(meta, t):
     peaks = meta["peaks"]
     if t < peaks[0][0]:
         return ("Morning: few orders, both keep up",
-                ["Watch the gap in on-time deliveries and in orders awaiting pickup. We pause at "
-                 "three moments."], False)
+                ["Few orders arrive and both drones keep up. The replay pauses at three moments "
+                 "to explain what happens."], False)
     if any(a <= t < b for a, b in peaks):
         return ("Demand peak: orders arrive about 3.3 times as often as outside the peaks",
-                ["Watch the lists of orders awaiting pickup and the backlog chart."], False)
+                ["The lists of orders awaiting pickup grow on both sides, and so does the "
+                 "backlog chart."], False)
     if t < peaks[-1][0]:
         return ("Between the peaks: both work through the orders awaiting pickup",
-                ["Fewer new orders arrive; watch which side clears its list faster."], False)
+                ["Fewer new orders arrive, and both drones work through their waiting lists."],
+                False)
     return (f"After the second peak: orders keep arriving until {clock(meta['release_window'])}",
             ["Both keep working until every order is delivered or has expired."], False)
 
@@ -225,8 +227,18 @@ def stretches(r):
         k = _picked(d)
         if k is not None:
             o, u = orders[k], _urgent(r, d, orders)
+            mates = [c for c in state_at(r, d["t"])["cargo"] if orders[c]["to"] == o["to"]]
             line = (f"{TYPE_LABELS[o['type']]} #{k} at {name(o['from'])} for {name(o['to'])}, "
                     f"deadline {clock(o['deadline'])}.")
+            if mates:
+                line = (f"{TYPE_LABELS[o['type']]} #{k} goes to {name(o['to'])} like "
+                        f"{_label(orders[mates[0]], nodes).split(' for ')[0]} on board, so both "
+                        "travel together.")
+            held = [c for c in state_at(r, d["t"])["cargo"] if orders[c]["to"] == target]
+            if u == k and held and not mates and i != start:
+                line = (f"{TYPE_LABELS[o['type']]} #{k} for {name(o['to'])} is now the most urgent "
+                        f"waiting order (deadline {clock(o['deadline'])}); it is delivered before "
+                        f"the {name(target)} boxes.")
             if i == start:
                 line = (f"After delivering at {name(o['from'])}, it collects {_label(o, nodes)} "
                         "there instead of leaving empty.")
@@ -253,8 +265,8 @@ def stretches(r):
                  f"What happens: after a delivery at {here} the drone takes a sample from there "
                  f"instead of flying on empty, and it collects three boxes for {name(target)} at "
                  f"{places}.",
-                 f"Watch: the highlighted boxes for {name(target)}: where each one is picked up, "
-                 "and which boxes stay on board between stops."],
+                 f"Key detail: the boxes for {name(target)} are picked up at different stops and "
+                 "stay on board while other boxes are delivered."],
                 "What this example shows: PPO plans whole trips, not single orders. Boxes for the "
                 "same place are collected along the way and delivered together."))
 
@@ -281,6 +293,9 @@ def stretches(r):
             mates = [c for c in state_at(r, d["t"])["cargo"] if orders[c]["to"] == o["to"]]
             line = (f"{TYPE_LABELS[o['type']]} #{k} at {name(o['from'])} for {name(o['to'])}, "
                     f"deadline {clock(o['deadline'])}.")
+            if k == u["id"]:
+                line = (f"Now it heads for plasma #{k}; {u['deadline'] - d['t']:.0f} minutes remain "
+                        "before its deadline.")
             if mates:
                 line += (f" Plasma #{mates[0]} for {name(o['to'])} is already on board, so one "
                          "trip serves both.")
@@ -302,7 +317,7 @@ def stretches(r):
     done = max(o["end"] for o in _delivered(r, ds[last]))
     out.append((f"Nearby work before an urgent plasma",
                 f"At {clock(ds[i]['t'])}, plasma #{u['id']} has the earliest deadline of all "
-                "orders awaiting pickup. Watch what PPO does first.", steps,
+                f"orders awaiting pickup, but it still has {left:.0f} minutes.", steps,
                 {"nodes": (u["to"],), "orders": (u["id"],)}, done,
                 [f"When: simulated time {clock(ds[i]['t'])}–{clock(done)}.",
                  "The question here is different: not how to group boxes, but when to serve an "
@@ -310,7 +325,7 @@ def stretches(r):
                  f"What happens: plasma #{u['id']} at {name(u['from'])} has the earliest deadline "
                  f"({clock(u['deadline'])}, {left:.0f} min away). The drone first takes a box "
                  f"waiting at {name(o0['from'])} to {name(o0['to'])}, then collects the plasma.",
-                 "Watch: whether the plasma still arrives before its deadline."],
+                 "Key detail: the plasma still arrives before its deadline."],
                 "What this example shows: PPO uses an urgent order's spare time for a short "
                 "nearby job, and still delivers it on time."))
     return out
@@ -440,19 +455,20 @@ def main():
     task_t = 151.0  # the task's map shows the day at 10:31
     # task steps: subtitle heading, subtitle line (only what the slide does not say), seconds
     narration = [("Medical center M", "Most trips start here: plasma and medicine are picked up "
-                  "at M, and the drone can charge at C1.", 7),
+                  "at M, and the drone can charge at C1.", 6),
                  ("Five hospitals H1–H5", "Boxes also travel between hospitals and back to M, so "
-                  "the drone criss-crosses the map.", 6),
+                  "the drone criss-crosses the map.", 5),
                  ("A second charger C2", "Charging stops cost time; choosing where and when to "
-                  "charge is part of the job.", 5),
+                  "charge is part of the job.", 4),
                  ("Three no-fly zones", "Routes bend around them, so some trips are longer than "
-                  "the straight-line distance.", 5),
-                 ("Orders and deadlines", "Time limits start when the order arrives; plasma is "
-                  "the most urgent.", 10),
-                 ("One drone", "With only 3 boxes on board, it must choose which orders to carry "
-                  "together.", 7),
+                  "the straight-line distance.", 4),
+                 ("Orders and deadlines", "Each order is one box. Its time limit starts when it is "
+                  "placed; a late delivery earns less, and an order not delivered within twice its "
+                  "limit expires.", 10),
+                 ("One drone", "With room for only 3 boxes it must choose which orders to carry "
+                  "together, and it must always keep enough battery to reach a charger.", 7),
                  ("The decision, again and again", "This choice is made about 120 times a day; "
-                  "our network learns to make it.", 7)]
+                  "our network learns to make it.", 6)]
     sub = Subtitles(*(font_manager.findfont(font_manager.FontProperties(
         family="DejaVu Sans", weight=w)) for w in ("bold", "normal")))
     cue, cues, count, dissolve = ["", "", False], [], [0], [False]
@@ -466,18 +482,23 @@ def main():
                                repeat(r.outline(OUTLINE, k), 4 * fps))[1]
 
     def frames():
-        say("Learning to dispatch a medical delivery drone", "ME5418 Group 17 final project")
+        say("Learning to dispatch a medical delivery drone",
+            "How a neural network trained with reinforcement learning runs one delivery drone, "
+            "and how it compares with other methods.")
         yield from repeat(r.card("Learning to dispatch a medical delivery drone", TITLE,
                                  "ME5418 FINAL PROJECT · GROUP 17"), 9 * fps)
         say("Outline", "Four parts: the task, how PPO decides, one full day against a rule, and the final test.")
         yield from repeat(r.outline(OUTLINE), 6 * fps)
-        yield from section(0, "Follow the map as its features appear.")
+        yield from section(0, "The task is set on a map that our code generates at random; this "
+                              "is map 0.")
         for k, (head, line, sec) in enumerate(narration):
             say(head, line)
             yield from repeat(r.task(k, task_t), sec * fps)
-        yield from section(1, "From what the network sees to the action it takes.")
+        yield from section(1, "This part explains what the network sees and how it picks an "
+                              "action.")
         say("From what it sees to an action",
-            "Follow the arrows; the bold line says where the network was trained.")
+            "The network reads the state, gives every allowed action a probability, and the "
+            "drone takes the most probable one. It was trained on 500 random maps, not this one.")
         yield from repeat(r.method("2  How our PPO agent decides", [
             ("What it sees", "Time, battery, place, boxes on board, travel times, and up to 12 "
                              "waiting orders"),
@@ -494,7 +515,8 @@ def main():
         scenes = stretches(ppo)
         for n, (title, intro, steps, focus, until, plan, shows) in enumerate(scenes):
             head = f"Example {n + 1} of {len(scenes)}: {title}"
-            say(head, shows)
+            say(head, ("The first example follows one trip, decision by decision." if n == 0 else
+                       "The second example is about timing: when to serve an urgent order."))
             yield from repeat(r.bullets(title, plan, f"2  HOW OUR PPO AGENT DECIDES · EXAMPLE "
                                         f"{n + 1} OF {len(scenes)}", shows), 12 * fps)
             say(head, intro)
@@ -554,7 +576,8 @@ def main():
         yield from section(3, "Ten methods, each tested on 30 new maps never used in training, "
                               "10 days per map: 300 days per demand level.")
         say("Final test: mean on-time rate over 300 days per demand level",
-            "Start with PPO and the rolling horizon: compare the orange and black bars.")
+            "PPO (orange) and the rolling horizon (black), the strongest planner, reach almost "
+            "the same on-time rates at both demand levels.")
         results = r.results("Final test: 30 new maps × 10 days = 300 days per demand "
                                     "level", [(*row, DESCRIBE[row[0]]) for row in rows],
                             "On-time rate: share of all orders delivered by their deadline. "
@@ -563,7 +586,8 @@ def main():
                             f"At high demand, PPO decides {fast} than the rolling horizon.")
         yield from repeat(results, 17 * fps)
         say("Final test: mean on-time rate over 300 days per demand level",
-            "Now compare the decision times in the right-hand column.")
+            f"The difference is decision time: PPO needs {rows[0][4]} per decision, the "
+            f"rolling horizon {rows[1][4]}.")
         yield from repeat(results, 12 * fps)
         say("Summary", "PPO matches the strongest planner's punctuality, decides thousands of times faster, and still has failures.")
         yield from repeat(r.bullets("Summary", summary_lines(rows, ppo, rule), "ME5418 GROUP 17"),
