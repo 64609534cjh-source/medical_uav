@@ -173,7 +173,7 @@ def test_stretches_follow_consecutive_decisions_on_the_shipped_day():
         idx = [i for i, _, _ in steps]
         assert idx == list(range(idx[0], idx[-1] + 1)) and until >= day["decisions"][idx[-1]]["t"]
     assert "Box 3 of 3" in " ".join(line for _, _, line in first[2])
-    assert "deadline" in second[2][0][2] and "before their deadlines" in second[2][-1][2]
+    assert "is due at" in second[2][0][2] and "before their deadlines" in second[2][-1][2]
 
 
 def test_zoom_moves_smoothly_from_the_whole_frame_into_the_box():

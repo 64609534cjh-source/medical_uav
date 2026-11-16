@@ -855,10 +855,14 @@ class DuelFrames:
             ("One drone", ""),
             ("The decision, again and again", "")]
 
+    map_note = ("Our code generates maps at random from fixed rules; this is map 0, the one used "
+                "in our earlier milestones.")
+
     def task(self, step: int, t: float) -> np.ndarray:
         """The task built up element by element; from step 4 the map shows the day's state at t."""
         ax = self._canvas()
         self._text(ax, 72, 40, "1  The task", 44, INK, "bold")
+        self._text(ax, 72, 104, self.map_note, 22, MUTED)
         v = self.views[0]
         size, nodes = v.r["map"]["size"], v.r["map"]["nodes"]
         f = self._box(56, 150, 760, 760)
@@ -881,7 +885,7 @@ class DuelFrames:
             text.set_fontsize(text.get_fontsize() * 1.5)
         x, w = 870, 990
         for j, (head, line) in enumerate(self.TASK[:min(step, 3) + 1]):  # the map's elements
-            y, now = 140 + 88 * j, j == step
+            y, now = 156 + 84 * j, j == step
             self._text(ax, x, y, head, 32, INK if now else MUTED, "bold")
             self._text(ax, x, y + 44, line, 26, INK if now else MUTED)
 
@@ -942,11 +946,13 @@ class DuelFrames:
                 ax.annotate("", (x + w + gap - 8, 380), (x + w + 8, 380),
                             arrowprops=dict(arrowstyle="-|>", color=INK, lw=3, mutation_scale=34))
         y = 650
-        for line in lines:
-            for part in wrap(line, 88):
-                self._text(ax, 96, y, part, 30, INK)
+        for line in lines:  # a line given as (text, True) is bold
+            text, bold = line if isinstance(line, tuple) else (line, False)
+            for part in wrap(text, 84 if bold else 88):
+                self._text(ax, 96, y, part, 30, "#b34700" if bold else INK,
+                           "bold" if bold else "normal")
                 y += 46
-            y += 40
+            y += 30
         return self._rgb()
 
     def bullets(self, title, lines, kicker, highlight="", size=29) -> np.ndarray:
