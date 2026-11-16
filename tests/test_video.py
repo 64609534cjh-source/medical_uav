@@ -41,17 +41,28 @@ def test_explained_times_show_the_steps_of_a_decision_then_play_its_action(low_d
     assert run[0] == d["t"] and run[-1] < d["end"] and run == sorted(run)
 
 
-@pytest.mark.parametrize("caption", [None, ("Watch the backlog", ["One line"], False),
-                                     ("PAUSED · 10:27", ["The rule charges", "PPO flies"], True)])
-def test_duel_frames_are_1080p_rgb(low_day, caption):
+@pytest.mark.parametrize("paused", [False, True])
+def test_duel_frames_are_1080p_rgb(low_day, paused):
     from medical_uav.env.video import DuelFrames
 
     renderer = DuelFrames(low_day, low_day)
     for t in (0.0, 65.0, low_day["meta"]["end"]):
-        frame = renderer.draw(t, caption)
+        frame = renderer.draw(t, paused)
         assert frame.shape == (1080, 1920, 3) and frame.dtype == np.uint8
     for step in range(len(renderer.GUIDE)):
         assert renderer.guide(65.0, step).shape == (1080, 1920, 3)
+
+
+def test_subtitle_band_has_the_frame_width_and_caches():
+    from matplotlib import font_manager
+    from medical_uav.env.video import Subtitles
+
+    fonts = [font_manager.findfont(font_manager.FontProperties(family="DejaVu Sans", weight=w))
+             for w in ("bold", "normal")]
+    sub = Subtitles(*fonts)
+    band = sub.band("Title", "A line long enough to wrap " * 8, True)
+    assert band.shape == (Subtitles.H, 1920, 3) and sub.band("Title", "A line long enough to "
+                                                             "wrap " * 8, True) is band
 
 
 def test_duel_frames_show_the_steps_of_a_decision(low_day):
@@ -97,12 +108,12 @@ def test_slides_are_1080p_rgb(low_day):
     assert all(f.shape == (1080, 1920, 3) for f in slides)
 
 
-def test_replay_frames_scale_and_caption(low_day):
+def test_replay_frames_scale_and_spotlight(low_day):
     from medical_uav.env.video import ReplayFrames
 
     renderer = ReplayFrames(low_day, "Low load", scale=1.5)
     renderer.focus = {"nodes": (1,), "orders": tuple(o["id"] for o in low_day["orders"][:2])}
-    frame = renderer.draw(65.0, "Deciding", "", ("Title", "One line"))
+    frame = renderer.draw(65.0, "Deciding", "", ([(10, 10, 100, 100)], 0.5))
     assert frame.shape == (1080, 1920, 3)
 
 
@@ -151,3 +162,15 @@ def test_record_day_keeps_the_network_top_choices_for_ppo_only():
     slack = compare_video.record_day("slack", "low", 100000)
     assert all(d["top"] for d in ppo["decisions"])
     assert not any(d["top"] for d in slack["decisions"])
+
+
+def test_stretches_follow_consecutive_decisions_on_the_shipped_day():
+    from scripts import compare_video
+
+    day = compare_video.record_day("ppo", "high", 100007)
+    first, second = compare_video.stretches(day)
+    for title, intro, steps, focus, until in (first, second):
+        idx = [i for i, _, _ in steps]
+        assert idx == list(range(idx[0], idx[-1] + 1)) and until >= day["decisions"][idx[-1]]["t"]
+    assert "Box 3 of 3" in " ".join(line for _, _, line in first[2])
+    assert "most urgent" in second[2][0][2] and "on time" in second[2][-1][2]
