@@ -630,7 +630,7 @@ class DuelFrames:
                                        fc=color if j == 0 else FAINT, ec="none"))
             self._text(ax, x + 18, yy + 22 + 24 * len(d["top"]), more_text(d), 13, MUTED)
         else:
-            self._text(ax, x + 18, yy, "HAND-WRITTEN RULE", 13, MUTED, "bold")
+            self._text(ax, x + 18, yy, "SLACK-AWARE RULE", 13, MUTED, "bold")
             for j, line in enumerate(wrap(self.RULE, 52)):
                 self._text(ax, x + 18, yy + 20 + 22 * j, line, 15, INK)
 
@@ -937,20 +937,26 @@ class DuelFrames:
             y += 40
         return self._rgb()
 
-    def bullets(self, title, lines, kicker) -> np.ndarray:
-        """A heading with numbered points."""
+    def bullets(self, title, lines, kicker, highlight="") -> np.ndarray:
+        """A heading with numbered points, and optionally a highlighted box under them."""
         ax = self._canvas()
         self._panel(ax, 96, 96, self.W - 192, self.H - 192)
         self._text(ax, 150, 150, kicker, 18, MUTED, "bold")
         self._text(ax, 150, 192, title, 46, INK, "bold")
-        y = 320
+        y = 310
         for j, line in enumerate(lines):
             ax.add_patch(Circle((176, y + 22), 22, fc=self.colors[0]))
             ax.text(176, y + 22, str(j + 1), ha="center", va="center", fontsize=pt(20),
                     color="white", weight="bold")
-            for k, part in enumerate(wrap(line, 70)):
-                self._text(ax, 224, y + 2 + 44 * k, part, 30, INK)
-            y += 44 * len(wrap(line, 70)) + 50
+            for k, part in enumerate(wrap(line, 74)):
+                self._text(ax, 224, y + 2 + 42 * k, part, 29, INK)
+            y += 42 * len(wrap(line, 74)) + 36
+        if highlight:
+            parts = wrap(highlight, 76)
+            ax.add_patch(rounded(150, y + 4, self.W - 300, 40 * len(parts) + 40, 14,
+                                 fc="#fff4e6", ec="#e8590c", lw=3))
+            for k, part in enumerate(parts):
+                self._text(ax, 180, y + 24 + 40 * k, part, 29, "#b34700", "bold")
         return self._rgb()
 
     def card(self, title, lines, kicker) -> np.ndarray:

@@ -120,7 +120,8 @@ def test_replay_frames_scale_and_spotlight(low_day):
 def test_final_rows_read_unseen_map_rates(tmp_path):
     from scripts import compare_video
 
-    means = {k: [0.9, 0.95, 0.05] for k in ("slack", "insertion", "rollout", "scenario16")}
+    means = {k: [0.9, 0.95, 0.05] for k in ("slack", "insertion", "rollout", "scenario16",
+                                            "nearest", "edf", "fcfs", "random")}
     blocks = {load: {"means": {**means, "final": [0.927, 0.96, 0.03],
                                "horizon": [0.932, 0.97, 0.02]}}
               for load in ("medium", "high")}
@@ -147,12 +148,10 @@ def test_moments_name_real_events_from_both_days():
 
     ppo = toy([order(1, "delivered", 40), order(2, "expired", 70)],
               [["charge", 10, 15, 0, 0, 60, 100, None], ["fly", 15, 100, 0, 1, 100, 50, None]])
-    rule = toy([order(1, "expired", 80, pickup=30), order(2, "delivered", 45)],
+    rule = toy([order(1, "expired", 80, pickup=30), order(2, "delivered", 45, pickup=35)],
                [["fly", 0, 30, 0, 1, 100, 20, None], ["charge", 30, 42, 1, 0, 16, 80, None]])
     loss = compare_video.ppo_failure(ppo, rule)
     assert loss[0] == 70 and "#2" in loss[1]
-    charge = compare_video.rule_charge(ppo, rule, waiting=lambda r, t: 6)
-    assert charge[0] == 30 and "16%" in charge[2][0] and "12-minute" in charge[1]
 
 
 def test_record_day_keeps_the_network_top_choices_for_ppo_only():
@@ -169,8 +168,8 @@ def test_stretches_follow_consecutive_decisions_on_the_shipped_day():
 
     day = compare_video.record_day("ppo", "high", 100007)
     first, second = compare_video.stretches(day)
-    for title, intro, steps, focus, until, plan in (first, second):
-        assert len(plan) == 3
+    for title, intro, steps, focus, until, plan, trait in (first, second):
+        assert plan and trait.startswith("What PPO learned")
         idx = [i for i, _, _ in steps]
         assert idx == list(range(idx[0], idx[-1] + 1)) and until >= day["decisions"][idx[-1]]["t"]
     assert "Box 3 of 3" in " ".join(line for _, _, line in first[2])

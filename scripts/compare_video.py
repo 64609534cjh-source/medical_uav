@@ -33,8 +33,12 @@ METHODS = [("final", "PPO (ours)", "#e8590c", "networks", "checkpoints/entrants/
            ("scenario16", "Scenario rollout", "#1c7ed6", "scenario16", "scenario16"),
            ("rollout", "Rollout", "#1c7ed6", "rollout", "rollout"),
            ("insertion", "Insertion", "#2b8a3e", "insertion", "insertion"),
-           ("slack", "Slack-aware", "#7048e8", "slack", "slack")]
-OUTLINE = ["The task", "How our PPO agent decides", "One whole day: PPO vs a hand-written rule",
+           ("slack", "Slack-aware", "#7048e8", "slack", "slack"),
+           ("nearest", "Nearest-first", "#868e96", "rules", "nearest"),
+           ("edf", "EDF", "#868e96", "rules", "edf"),
+           ("fcfs", "FCFS", "#868e96", "rules", "fcfs"),
+           ("random", "Random", "#868e96", "rules", "random")]
+OUTLINE = ["The task", "How our PPO agent decides", "One whole day: PPO vs the best simple rule",
            "Results on 30 new maps"]
 PAUSE_S, ANIM = 7, 4  # pause length (s); frames per step of the decision-card animation
 FADE, FADE_S = "fade", 0.4  # marker in a frame stream for a dissolve, and its length (s)
@@ -76,44 +80,41 @@ def _name(r, o):
 
 
 def ppo_failure(ppo, rule):
-    """The first order PPO lets expire that the rule delivers on time: PPO is not perfect."""
+    """The first order PPO lets expire that the rule delivers on time, and why: PPO never went
+    there in time, the rule (serving by deadline) did."""
     a, b = sorted(((a, b) for a, b in zip(ppo["orders"], rule["orders"])
                    if _outcome(a) == "expired" and _outcome(b) == "on time"),
                   key=lambda ab: ab[0]["end"])[0]
-    where = "never picked up" if a["pickup"] is None else "picked up but not delivered in time"
+    place = ppo["map"]["nodes"][a["from"]]["name"]
+    where = (f"PPO kept serving orders elsewhere and never flew to {place} in time"
+             if a["pickup"] is None else "PPO picked it up but did not deliver it in time")
     return (a["end"], f"{clock(a['end'])} · PPO is not perfect: it loses {_name(ppo, a)}",
-            [f"The order expires, {where}.",
-             f"The rule delivered the same order on time at {clock(b['end'])}."])
+            [f"Why: {where}. The rule, which serves strictly by deadline, picked it up at "
+             f"{clock(b['pickup'])} and delivered it on time."])
 
 
 def _waiting(r, t):
     return len(state_at(r, t)["waiting"])
 
 
-def rule_charge(ppo, rule, waiting=_waiting):
-    """The rule's first charge in a demand peak with at least five orders waiting."""
-    peaks = rule["meta"]["peaks"]
-    seg = next(s for s in rule["segments"] if s[0] == "charge" and waiting(rule, s[1]) >= 5
-               and any(a <= s[1] < b for a, b in peaks))
-    last = [s for s in ppo["segments"] if s[0] == "charge" and s[1] < seg[1]]
-    stops = lambda r: [s[2] - s[1] for s in r["segments"] if s[0] == "charge"]
-    lines = [f"Its battery is down to {seg[5]:.0f}% and {waiting(rule, seg[1])} orders wait.",
-             f"Over the whole day PPO makes {len(stops(ppo))} charging stops of "
-             f"{np.mean(stops(ppo)):.1f} min on average, the rule {len(stops(rule))} of "
-             f"{np.mean(stops(rule)):.1f} min."]
-    return (seg[1], f"{clock(seg[1])} · The rule starts a {seg[2] - seg[1]:.0f}-minute charge",
-            lines)
+def _per_stop(r):
+    """Boxes delivered per delivery stop over the day."""
+    stops = [d for d in r["decisions"] if decode(d["action"])[0] == "deliver"]
+    return sum(1 for o in r["orders"] if o["status"] == "delivered") / len(stops)
 
 
 def backlog_gap(ppo, rule):
-    """In the last demand peak, the minute the rule's backlog exceeds PPO's the most."""
+    """In the last demand peak, the minute the rule's backlog exceeds PPO's the most, and the
+    day's flying distance and boxes per stop behind it."""
     a, b = ppo["meta"]["peaks"][-1]
     t = max(np.arange(a, b, 1.0), key=lambda m: _waiting(rule, m) - _waiting(ppo, m))
     sp, sr = state_at(ppo, t), state_at(rule, t)
+    km = lambda r: r["meta"]["summary"]["km"]
     return (float(t), f"{clock(t)} · Second peak: {len(sr['waiting'])} orders wait for the rule, "
             f"{len(sp['waiting'])} for PPO",
-            ["A longer backlog means more orders running out of time before pickup.",
-             f"On time so far: PPO {sp['on_time']}, the rule {sr['on_time']}."])
+            [f"Why: PPO groups nearby work. Over the day it delivers {_per_stop(ppo):.1f} boxes "
+             f"per stop against {_per_stop(rule):.1f}, and flies {km(ppo):.0f} km against "
+             f"{km(rule):.0f} km, which leaves more time for waiting orders."])
 
 
 def day_end(ppo, rule):
@@ -227,7 +228,9 @@ def stretches(r):
                  "What happens: after a delivery the drone does not fly back empty, and it "
                  f"collects three boxes for {name(target)} at three different places.",
                  f"Watch: the highlighted boxes for {name(target)}, and the order in which the "
-                 "boxes are picked up."]))
+                 "boxes are picked up."],
+                "What PPO learned: plan trips, not single orders. No empty flights, and boxes "
+                "for the same place collected along the way."))
 
     i = next(i for i in peak if i > end and _picked(ds[i]) is not None
              and _urgent(r, ds[i], orders) != _picked(ds[i])
@@ -242,9 +245,11 @@ def stretches(r):
         kind = decode(d["action"])[0]
         if j == i:
             o = orders[k]
+            back = next(dd["t"] for dd in ds[i + 1:] if _picked(dd) == u["id"])
             line = (f"The most urgent order is plasma #{u['id']} at {name(u['from'])}, due "
-                    f"{clock(u['deadline'])}. First it takes {_label(o, nodes)}, waiting right "
-                    f"here at {name(o['from'])}.")
+                    f"{clock(u['deadline'])}, {u['deadline'] - d['t']:.0f} min away. First it "
+                    f"takes {_label(o, nodes)}, waiting right here; the errand takes "
+                    f"{back - d['t']:.0f} min.")
         elif k is not None:
             o = orders[k]
             mates = [c for c in state_at(r, d["t"])["cargo"] if orders[c]["to"] == o["to"]]
@@ -272,10 +277,14 @@ def stretches(r):
                 max(o["end"] for o in _delivered(r, ds[last])),
                 [f"When: {clock(ds[i]['t'])} to "
                  f"{clock(max(o['end'] for o in _delivered(r, ds[last])))}.",
-                 f"What happens: the most urgent order is plasma #{u['id']} at "
-                 f"{name(u['from'])}, but the drone first takes a box waiting where it already is.",
-                 "Watch: whether the plasma still arrives on time, and how long the drone "
-                 "charges on the way."]))
+                 "Different from scenario 1: the question is not how to group boxes, but when "
+                 "to serve an urgent order.",
+                 f"What happens: plasma #{u['id']} is the most urgent order, yet it still has "
+                 f"{u['deadline'] - ds[i]['t']:.0f} minutes; the drone first does a short job "
+                 "where it already is, then fetches the plasma.",
+                 "Watch: whether the plasma still arrives on time."],
+                "What PPO learned: use the spare time of an urgent order for nearby work, and "
+                "still deliver it on time."))
     return out
 
 
@@ -332,13 +341,14 @@ def final_rows(path=FINAL_SUMMARY, timed=True):
 TITLE = ["One drone, a medical center and five hospitals: which order next, and when to",
          "charge? We trained a neural network with reinforcement learning (PPO) to decide.", "",
          "ME5418 Group 17 · Jihang Cai, Yu Liu, Yufeng Zhang"]
-SLACK = ["How the rule works: earliest deadline first; unload where the drone is; carry orders "
-         "for the same place together; orders that can no longer be on time go last.",
-         "Planning methods that look ahead (rollout, rolling horizon) are compared in the final "
-         "test.",
+SLACK = ["What it is: the classic earliest-deadline-first rule (EDF), plus three fixes we added: "
+         "unload where the drone is, take waiting orders going the same way, and leave orders "
+         "that can no longer be on time to last.",
+         "Why this one: it is the strongest of the simple rules, and like PPO it decides in under "
+         "a millisecond, so both dispatchers work at the same speed.",
+         "Planners that search ahead are slower; they are compared in the final test at the end.",
          "The day was fixed in advance: of 40 development days, the one with the median PPO lead "
-         "over the rule.",
-         "Same map, same 66 orders, one shared clock. Left: PPO. Right: the rule."]
+         "over Slack-aware."]
 
 
 def speedup(load="high"):
@@ -347,7 +357,8 @@ def speedup(load="high"):
 
 
 def summary_lines(rows, ppo, rule):
-    p, h, slack = rows[0], rows[1], rows[-1]
+    p, h = rows[0], rows[1]
+    slack = next(row for row in rows if row[0] == "Slack-aware")
     o = sorted((a for a, b in zip(ppo["orders"], rule["orders"])
                 if _outcome(a) == "expired" and _outcome(b) == "on time"), key=lambda o: o["end"])[0]
     nodes = ppo["map"]["nodes"]
@@ -356,8 +367,8 @@ def summary_lines(rows, ppo, rule):
     return [f"On-time rates similar to the strongest planner (rolling horizon: {h[2]:.1f}% vs "
             f"PPO {p[2]:.1f}% at medium, {h[3]:.1f}% vs {p[3]:.1f}% at high load), with "
             f"decisions about {round(speedup(), -3):,.0f}× faster ({p[4]} vs {h[4]}).",
-            f"At high load, PPO's on-time rate is {p[3] - slack[3]:.1f} points above our best "
-            "hand-written rule (Slack-aware).",
+            f"At high load, PPO's on-time rate is {p[3] - slack[3]:.1f} points above the best "
+            "simple rule (Slack-aware).",
             f"It is not perfect: on this day it {lost} {TYPE_LABELS[o['type']].lower()} "
             f"#{o['id']}, which expired; the rule delivered it on time."]
 
@@ -377,8 +388,7 @@ def main():
                         "never used in training", scale=1.5)
     # each pause zooms into the part it explains (DuelFrames pixel boxes)
     pauses = {t: (title, " ".join(lines), box) for (t, title, lines), box in
-              ((rule_charge(ppo, rule), (960, 90, 940, 529)),  # the rule's map and battery
-               (ppo_failure(ppo, rule), (20, 90, 940, 529)),  # PPO's map: the expired sample
+              ((ppo_failure(ppo, rule), (20, 90, 940, 529)),  # PPO's map: the expired sample
                (backlog_gap(ppo, rule), (656, 776, 600, 292)),  # the backlog chart
                (day_end(ppo, rule), (1280, 776, 608, 292)))}  # the outcome bars
     end_t = max(pauses)
@@ -418,8 +428,8 @@ def main():
             "dispatches one delivery drone.")
         yield from repeat(r.card("Learning to dispatch a medical delivery drone", TITLE,
                                  "ME5418 FINAL PROJECT · GROUP 17"), 6 * fps)
-        say("Outline", "The task, how our agent decides, one whole day against a hand-written "
-                       "rule, and the final test.")
+        say("Outline", "The task, how our agent decides, one whole day against the best "
+                       "simple rule, and the final test.")
         yield from repeat(r.outline(OUTLINE), 5 * fps)
         yield from section(0, "First, the world the dispatcher works in.")
         for k, (head, line) in enumerate(narration):
@@ -440,16 +450,17 @@ def main():
             f"In the next scenes each decision is slowed down for viewing; the network itself "
             f"needs {rows[0][4]}."]), 12 * fps)
         scenes = stretches(ppo)
-        for n, (title, intro, steps, focus, until, plan) in enumerate(scenes):
-            say(f"Scenario {n + 1} of {len(scenes)}: {title}", intro)
+        for n, (title, intro, steps, focus, until, plan, trait) in enumerate(scenes):
+            say(f"Scenario {n + 1} of {len(scenes)}: {title}", trait)
             yield from repeat(r.bullets(title, plan, f"2  HOW OUR PPO AGENT DECIDES · SCENARIO "
-                                        f"{n + 1} OF {len(scenes)}"), 7 * fps)
+                                        f"{n + 1} OF {len(scenes)}", trait), 9 * fps)
+            say(f"Scenario {n + 1} of {len(scenes)}: {title}", intro)
             view.focus, view.banner = focus, f"Scenario {n + 1} of {len(scenes)} · {title}"
             first = ppo["decisions"][steps[0][0]]
             yield from repeat(view.draw(first["t"], None, SLOW), 3 * fps)
             yield from stretch_frames(view, steps, until, fps, say)
         view.focus, view.banner = {"nodes": (), "orders": ()}, ""
-        yield from section(2, "The same day, side by side with a hand-written rule.")
+        yield from section(2, "The same day, side by side with the best simple rule.")
         say("The comparison: the Slack-aware rule",
             "Both dispatchers get the same 66 orders on the same map, on one shared clock.")
         yield from repeat(r.bullets("The comparison: the Slack-aware rule", SLACK,
