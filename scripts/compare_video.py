@@ -645,7 +645,7 @@ def main():
                 head, line = paused_label, tr(PAUSE_LINE)
             else:
                 head, line = tr(title), tr(body)
-            yield np.vstack([band.draw(head, line, paused, appear, flash), picture])
+            yield np.vstack([band.draw(head, line, paused, appear, flash), Band.shade(picture)])
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     n = save_animation(with_captions(frames()), str(args.out), fps)

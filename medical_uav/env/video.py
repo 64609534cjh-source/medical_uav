@@ -49,7 +49,15 @@ class Band:
     while the strip brightens."""
 
     H = 200
-    BG, LIT = (28, 40, 66), (58, 80, 124)
+    BG, END, LIT = (28, 40, 66), (70, 88, 118), (58, 80, 124)
+    SHADE = 1 - 0.25 * np.linspace(1, 0, 28)[:, None, None] ** 2
+
+    @classmethod
+    def shade(cls, picture):
+        """picture with the band's soft shadow on its top rows."""
+        out = picture.copy()
+        out[:28] = (out[:28] * cls.SHADE).astype(np.uint8)
+        return out
 
     def __init__(self, bold: str, regular_bold: str, width: int = 1920, index: int = 0):
         from PIL import ImageFont
@@ -62,16 +70,20 @@ class Band:
         key = (title, body, paused, round(e, 2), round(flash, 2))
         if key not in self.cache:
             from PIL import Image, ImageDraw
-            bg = tuple(round(a + (b - a) * flash) for a, b in zip(self.BG, self.LIT))
-            img = Image.new("RGB", (self.width, self.H), bg)
+            lit = lambda c: np.array([a + (b - a) * flash for a, b in zip(c, self.LIT)])
+            t = np.linspace(0, 1, self.width)[None, :, None]
+            c0, c1 = lit(self.BG), lit(self.END)
+            img = Image.fromarray(np.broadcast_to(c0 + (c1 - c0) * t, (self.H, self.width, 3))
+                                  .astype(np.uint8).copy())
             d = ImageDraw.Draw(img)
-            d.rectangle((0, 0, 16, self.H), fill=(232, 89, 12))
-            d.rectangle((0, self.H - 4, self.width, self.H), fill=(232, 89, 12))
             shift = round((1 - e) * 60)
+            bg = tuple(round(c) for c in c0)
             mix = lambda col: tuple(round(c + (b - c) * (1 - e)) for c, b in zip(col, bg))
             d.text((52 - shift, 16), title, font=self.head, fill=mix((255, 196, 92)))
+            if title:
+                d.rectangle((52 - shift, 72, 172 - shift, 76), fill=mix((255, 196, 92)))
             for j, text in enumerate(Captions.wrap(body, self.line, self.width - 100)[:2]):
-                d.text((52 - shift, 88 + 52 * j), text, font=self.line, fill=mix((255, 255, 255)))
+                d.text((52 - shift, 90 + 50 * j), text, font=self.line, fill=mix((255, 255, 255)))
             self.cache[key] = np.asarray(img)
         return self.cache[key]
 
@@ -116,14 +128,11 @@ class Captions:
             h = 14 + head + step * len(lines) + 12
             img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
             d = ImageDraw.Draw(img)
-            # a white callout with an orange frame: unlike the navy band, it reads as a note
-            # pinned on the zoomed picture
-            d.rounded_rectangle((0, 0, w - 1, h - 1), 16, fill=(255, 255, 255, 248),
-                                outline=(232, 89, 12, 255), width=4)
-            d.rounded_rectangle((0, 0, 14, h - 1), 6, fill=(232, 89, 12, 255))
-            d.text((34, 10), title, font=bold, fill=(200, 72, 6))
+            # solid navy card: the band's colour without its gradient
+            d.rounded_rectangle((0, 0, w - 1, h - 1), 18, fill=(28, 40, 66, 245))
+            d.text((34, 10), title, font=bold, fill=(255, 196, 92))
             for j, line in enumerate(lines):
-                d.text((34, 14 + head + step * j), line, font=reg, fill=(19, 33, 60))
+                d.text((34, 14 + head + step * j), line, font=reg, fill=(255, 255, 255))
             self.cache[key] = np.asarray(img).astype(np.float32) / 255
         return self.cache[key]
 
@@ -157,7 +166,7 @@ class Captions:
             if bottom == y + h:
                 ring[-5:] = 1
             ring *= part[..., 3:] * flash * e  # the ring appears with the box
-            region[:] = region * (1 - ring) + np.array([232, 89, 12], np.float32) * ring
+            region[:] = region * (1 - ring) + np.array([255, 196, 92], np.float32) * ring
         return out.astype(np.uint8)
 
 
