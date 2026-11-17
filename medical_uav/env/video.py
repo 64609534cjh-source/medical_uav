@@ -13,7 +13,7 @@ from matplotlib.figure import Figure
 from matplotlib.patches import Circle, FancyBboxPatch, PathPatch, Polygon, Rectangle
 from matplotlib.path import Path
 
-from medical_uav.env.config import EPS
+from medical_uav.env.config import EPS, ORDER_TYPES
 from medical_uav.env.replay import state_at
 
 W, H, DPI = 1280, 720, 80
@@ -104,6 +104,20 @@ def zoom(frame: np.ndarray, box, a: float, badge=None) -> np.ndarray:
 
 
 PHASE_LABEL = {"Deciding": "SCORING ACTIONS · DECISION", "Picked": "ACTION CHOSEN · DECISION"}
+
+
+WEIGHTS = {t.name: t.weight_range for t in ORDER_TYPES}  # kg per box, drawn at random
+
+
+def flown(r: dict, t: float) -> float:
+    """Kilometres the drone has flown by time t."""
+    km = 0.0
+    for s in r["segments"]:
+        if s[0] == "fly" and s[3] != s[4] and s[1] < t:
+            path = np.asarray(r["map"]["routes"][f"{s[3]}-{s[4]}"])
+            km += np.linalg.norm(np.diff(path, axis=0), axis=1).sum() * min(
+                1.0, (t - s[1]) / max(s[2] - s[1], EPS))
+    return km
 
 
 def pct(p: float, digits: int = 1) -> str:
@@ -516,10 +530,10 @@ class DuelFrames:
         self.canvas = FigureCanvasAgg(self.fig)
         self.end = max(v.r["meta"]["end"] for v in self.views)
         minutes = np.arange(0, self.end + 0.5, 0.5)
-        self.series = []  # per side: minutes, on time so far, orders waiting
+        self.series = []  # per side: minutes, km flown so far, orders waiting
         for v in self.views:
             states = [state_at(v.r, m) for m in minutes]
-            self.series.append((minutes, np.array([s["on_time"] for s in states]),
+            self.series.append((minutes, np.array([flown(v.r, m) for m in minutes]),
                                 np.array([len(s["waiting"]) for s in states])))
 
     # ---------- helpers ----------
@@ -706,7 +720,7 @@ class DuelFrames:
         peaks = self.r["meta"]["peaks"]
         ax = self.fig.axes[0]
         boxes = [(32, 600), (656, 600), (1280, 608)]
-        titles = [("On-time deliveries so far", "higher is better"),
+        titles = [("Distance flown so far (km)", "same orders: less is better"),
                   ("Orders waiting (backlog)", "lower is better"),
                   ("Outcomes so far", "same orders, both dispatchers")]
         for (x, w), (title, sub) in zip(boxes, titles):
@@ -719,15 +733,16 @@ class DuelFrames:
             top = max(max(s[col]) for s in self.series) * 1.12 + 1
             for a, b in peaks:
                 c.axvspan(a, b, color=WASH, lw=0)
+            nows = [flown(v.r, t) if col == 1 else
+                    len(state_at(v.r, min(t, v.r["meta"]["end"]))["waiting"]) for v in self.views]
             for k, (m, *vals) in enumerate(self.series):
-                v = self.views[k]
-                now = state_at(v.r, min(t, v.r["meta"]["end"]))
-                now = now["on_time"] if col == 1 else len(now["waiting"])
+                now = nows[k]
                 xs, ys = np.r_[m[m < t], t], np.r_[vals[col - 1][m < t], now]  # ends at t exactly
                 c.plot(xs, ys, color=self.colors[k], lw=2.6, drawstyle="steps-post",
                        label=self.titles[k])
                 c.plot(t, now, "o", color=self.colors[k], ms=7)
-                c.annotate(f"{now}", (t, now), xytext=(8, 4 if k == 0 else -14),
+                above = now > nows[1 - k] or (now == nows[1 - k] and k == 0)
+                c.annotate(f"{now:.0f}", (t, now), xytext=(8, 4 if above else -18),
                            textcoords="offset points", fontsize=pt(16), color=self.colors[k],
                            weight="bold")
             c.axvline(t, color=INK, lw=1.2, alpha=0.5)
@@ -900,7 +915,9 @@ class DuelFrames:
                 cx = x + 6 + 238 * k
                 ax.add_patch(Rectangle((cx, 570), 26, 26, fc=shade))
                 self._text(ax, cx + 36, 564, label, 26, INK, "bold")
-                self._text(ax, cx + 36, 600, f"{limits[label.lower()]:.0f} min", 26, INK)
+                lo, hi = WEIGHTS[label.lower()]
+                self._text(ax, cx + 36, 600, f"{limits[label.lower()]:.0f} min · {lo:g}–{hi:g} kg",
+                           21, INK)
             self._text(ax, x + 6, 650, "Late still counts, for less; expires at twice its limit.",
                        25, INK)
         if step >= 5:  # the drone's limits
@@ -976,6 +993,18 @@ class DuelFrames:
                                  fc="#fff4e6", ec="#e8590c", lw=3))
             for k, part in enumerate(parts):
                 self._text(ax, 180, y + 24 + 40 * k, part, 29, "#b34700", "bold")
+        return self._rgb()
+
+    def closing(self, title, lines) -> np.ndarray:
+        """The last slide: a large centred title and a few lines."""
+        ax = self._canvas()
+        self._panel(ax, 96, 96, self.W - 192, self.H - 192)
+        ax.add_patch(Rectangle((96, 96), self.W - 192, 14, fc=self.colors[0], ec="none"))
+        ax.text(self.W / 2, 430, title, ha="center", va="center", fontsize=pt(92), color=INK,
+                weight="bold")
+        for j, line in enumerate(lines):
+            ax.text(self.W / 2, 580 + 70 * j, line, ha="center", va="center", fontsize=pt(38),
+                    color=MUTED if j else INK)
         return self._rgb()
 
     def card(self, title, lines, kicker) -> np.ndarray:
