@@ -120,7 +120,7 @@ class Captions:
                 ring[:5] = 1
             if bottom == y + h:
                 ring[-5:] = 1
-            ring *= part[..., 3:] * flash
+            ring *= part[..., 3:] * flash * e  # the ring appears with the box
             region[:] = region * (1 - ring) + np.array([232, 89, 12], np.float32) * ring
         return out.astype(np.uint8)
 
