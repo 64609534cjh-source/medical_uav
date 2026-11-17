@@ -615,32 +615,33 @@ def main():
             "ME5418 Group 17 · Jihang Cai, Yu Liu, Yufeng Zhang"]), 4 * fps)
 
     def with_captions(frames):
-        """Each frame with the current caption drawn in. A new caption slides in and flashes;
-        each new caption and each FADE marker dissolve from the last frame shown into the next
-        ones over FADE_S, like a slide transition."""
+        """Each frame with the current caption drawn in. Each new caption and each FADE marker
+        dissolve the picture from the last frame shown into the next ones over FADE_S, like a
+        slide transition; the caption itself is drawn on top, sliding in and flashing, so old
+        and new captions never overlap."""
         last, left = None, 0
         for frame in frames:
             if isinstance(frame, str):  # FADE
                 dissolve[0] = True
                 continue
             count[0] += 1
+            picture = frame
+            if dissolve[0] and last is not None:
+                start, left, dissolve[0] = last, round(FADE_S * fps), False
+            if left:
+                a = 1 - left / (round(FADE_S * fps) + 1)
+                picture = (start * (1 - a) + frame * a).astype(np.uint8)
+                left -= 1
+            dissolve[0] = False
+            last = picture
             title, body, paused, place = cue
             title = (f"{paused_label} · {tr(title[9:])}" if title.startswith("PAUSED · ") else
                      tr(title))
             k = since[0]
             since[0] += 1
-            out = captions.draw(frame, title, tr(body), paused, place,
+            yield captions.draw(picture, title, tr(body), paused, place,
                                 min(1.0, k / (APPEAR_S * fps)),
                                 max(0.0, 1 - k / (FLASH_S * fps)) ** 2)
-            if dissolve[0] and last is not None:
-                start, left, dissolve[0] = last, round(FADE_S * fps), False
-            if left:
-                a = 1 - left / (round(FADE_S * fps) + 1)
-                out = (start * (1 - a) + out * a).astype(np.uint8)
-                left -= 1
-            dissolve[0] = False
-            last = out
-            yield out
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     n = save_animation(with_captions(frames()), str(args.out), fps)
