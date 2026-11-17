@@ -21,7 +21,7 @@ from medical_uav.env.actions import decode
 from medical_uav.env.config import EPS
 from medical_uav.env.render import save_animation
 from medical_uav.env.replay import day_record, decision_record, short_text, state_at
-from medical_uav.env.video import (TYPE_LABELS, DuelFrames, ReplayFrames, Subtitles, clock,
+from medical_uav.env.video import (TYPE_LABELS, Captions, DuelFrames, ReplayFrames, clock,
                                    day_times, flown, zoom)
 from scripts.demo import POLICY_NAMES, make_policy
 
@@ -42,7 +42,7 @@ OUTLINE = ["The delivery task", "How PPO chooses actions", "One full day: PPO vs
            "Ten methods on 30 new maps"]
 ANIM_S = 0.33  # seconds per step of the decision-card animation
 FADE, FADE_S = "fade", 0.4  # marker in a frame stream for a dissolve, and its length (s)
-FLASH_S = 0.7  # the subtitle band flashes orange for this long when its text changes
+FLASH_S, APPEAR_S = 0.8, 0.35  # a new caption flashes orange this long, and slides in
 
 
 def record_day(name, load, seed):
@@ -428,6 +428,13 @@ def main():
     parser.add_argument("--seed", type=int, default=100007)
     parser.add_argument("--fps", type=int, default=60)
     parser.add_argument("--out", type=Path, default=Path("outputs/video.mp4"))
+    parser.add_argument("--translate", type=Path,
+                        help="JSON mapping each English caption to another language (a review "
+                             "copy); captions not in it stay English")
+    parser.add_argument("--fonts", nargs=3, metavar=("BOLD", "REGULAR", "INDEX"),
+                        default=["/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
+                                 "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc", "2"],
+                        help="caption fonts for --translate (default: Noto Sans CJK SC)")
     args = parser.parse_args()
     torch.set_num_threads(1)
     fps = args.fps
@@ -435,19 +442,19 @@ def main():
     r = DuelFrames(ppo, rule)
     view = ReplayFrames(ppo, f"Example day: {args.load} demand on map 0, the map of our earlier "
                         "milestones; this map was not used in training", scale=1.5)
-    # each pause zooms into the part it explains (DuelFrames pixel boxes)
-    # each pause: stages (subtitle title, line, box to zoom into, seconds held); the view moves
-    # from stage to stage, then back out
+    view.timeline = False  # its place at the bottom holds the captions
+    # each pause: stages (caption title, line, box to zoom into, caption place, seconds held);
+    # the view moves from stage to stage, then back out
     t1, title1, lines1 = ppo_failure(ppo, rule)
     t2, title2, lines2 = backlog_gap(ppo, rule)
     t3, title3, lines3 = day_end(ppo, rule)
     w2 = [len(state_at(rec, t2)["waiting"]) for rec in (rule, ppo)]
-    pauses = {t1: [(title1, lines1[0], (20, 90, 940, 529), 9)],  # PPO's map: the expired sample
+    pauses = {t1: [(title1, lines1[0], (20, 122, 940, 529), "zoom_bottom", 9)],  # PPO's side
               t2: [(title2, f"Slack-aware has {w2[0] - w2[1]} more orders waiting than PPO.",
-                    (656, 776, 600, 292), 5),  # the backlog chart
+                    (656, 806, 600, 262), "zoom_top", 5),  # the backlog chart
                    (f"{clock(t2)} · Distance flown so far", lines2[0],
-                    (32, 776, 600, 292), 8)],  # then the distance chart
-              t3: [(title3, lines3[0], (1280, 776, 608, 292), 8)]}  # the outcome bars
+                    (32, 806, 600, 262), "zoom_top", 8)],  # then the distance chart
+              t3: [(title3, lines3[0], (1280, 806, 608, 262), "zoom_top", 8)]}  # outcome bars
     end_t = max(pauses)
     lost = _lost(ppo, rule)[0]
     rows = final_rows()
@@ -470,15 +477,23 @@ def main():
                   7),
                  ("The decision, again and again", f"PPO makes {len(ppo['decisions'])} decisions "
                   "on this example day: picking up, delivering, charging or waiting.", 7)]
-    sub = Subtitles(*(font_manager.findfont(font_manager.FontProperties(
-        family="DejaVu Sans", weight=w)) for w in ("bold", "normal")))
-    cue, cues, count, dissolve, flash = ["", "", False], [], [0], [False], [0]
+    if args.translate:
+        words = json.loads(args.translate.read_text(encoding="utf-8"))
+        captions = Captions(args.fonts[0], args.fonts[1], int(args.fonts[2]))
+    else:
+        words = {}
+        captions = Captions(*(font_manager.findfont(font_manager.FontProperties(
+            family="DejaVu Sans", weight=w)) for w in ("bold", "normal")))
+    paused_label = words.get("PAUSED", "PAUSED")
+    tr = lambda text: words.get(text, text)
+    cue, cues, count, dissolve, since = ["", "", False, "slide"], [], [0], [False], [0]
+    where = ["slide"]  # the caption place of the scene being rendered
 
-    def say(title, body="", paused=False):
-        cue[:] = [title, body, paused]
-        cues.append((count[0] / fps, title, body, paused))
-        dissolve[0] = True  # a new line of subtitles starts with a dissolve
-        flash[0] = round(FLASH_S * fps)  # and a short orange flash of the band
+    def say(title, body="", paused=False, place=None):
+        cue[:] = [title, body, paused, place or where[0]]
+        cues.append((count[0] / fps, title, body, paused, cue[3]))
+        dissolve[0] = True  # a new caption starts with a dissolve, slides in and flashes
+        since[0] = 0
 
     section = lambda k, line: (say(f"{k + 1}  {OUTLINE[k]}", line),
                                repeat(r.outline(OUTLINE, k), 4 * fps))[1]
@@ -515,11 +530,13 @@ def main():
                        "The second example is about timing: when to serve an urgent order."))
             yield from repeat(r.bullets(title, plan, f"2  HOW OUR PPO AGENT DECIDES · EXAMPLE "
                                         f"{n + 1} OF {len(scenes)}", shows), 10 * fps)
-            say(head, intro)
             view.focus, view.banner = focus, f"Example {n + 1} of {len(scenes)} · {title}"
             first = ppo["decisions"][steps[0][0]]
+            where[0] = "replay"
+            say(head, intro)
             yield from repeat(view.draw(first["t"], None, SLOW), 4 * fps)
             yield from stretch_frames(view, steps, until, fps, say)
+            where[0] = "slide"
         view.focus, view.banner = {"nodes": (), "orders": ()}, ""
         yield from section(2, "PPO and the Slack-aware rule receive the same orders on the same "
                               "map.")
@@ -533,6 +550,7 @@ def main():
                      "remaining.", 4),
                  (4, "Left: distance flown. Middle: orders awaiting pickup (backlog). Right: "
                      "on-time, late and expired counts.", 5)]
+        where[0] = "duel"
         for n, (step, line, sec) in enumerate(guide):
             say(f"How to read the screen · {n + 1}/{len(guide)} · {r.GUIDE[step][1]}", line)
             yield from repeat(r.guide(150.0, step), sec * fps)
@@ -552,16 +570,16 @@ def main():
                 frame = r.draw(t, True, phases, "")
                 r.views[0].focus = {"nodes": (), "orders": ()}
                 said, prev = None, None
-                badge = ("❚❚  PAUSED", sub.bold)
                 m = round(0.8 * fps)
-                for title, body, box, hold in pauses[t]:  # zoom or pan to each part, hold
-                    say(title, body, True)
+                for title, body, box, place, hold in pauses[t]:  # zoom or pan to each part
+                    say(f"PAUSED · {title}", body, True, place)
                     for k in range(m + 1):
-                        yield zoom(frame, box, k / m, badge, prev)
-                    yield from repeat(zoom(frame, box, 1.0, badge), round(hold * fps))
+                        yield zoom(frame, box, k / m, None, prev)
+                    yield from repeat(zoom(frame, box, 1.0), round(hold * fps))
                     prev = box
+                say("")
                 for k in range(m, -1, -1):  # back out
-                    yield zoom(frame, prev, k / m, badge if k else None)
+                    yield zoom(frame, prev, k / m)
                 continue
             title, lines, _ = phase_caption(ppo["meta"], t)
             if title != said:
@@ -571,6 +589,7 @@ def main():
             yield frame
             if n % (fps * 20) == 0:
                 print(f"Rendering {clock(t)} ({n + 1}/{len(times)})", flush=True)
+        where[0] = "slide"
         yield from section(3, "Ten methods, each tested on 30 new maps never used in training, "
                               "10 days per map: 300 days per demand level.")
         say("Final test: mean on-time rate over 300 days per demand level",
@@ -580,8 +599,7 @@ def main():
                                     "level", [(*row, DESCRIBE[row[0]]) for row in rows],
                             "On-time rate: share of orders delivered by their deadline. PPO: mean "
                             "of five trained networks. Decision time: one CPU thread, high demand "
-                            "(1 ms = 0.001 s).",
-                            f"At high demand, PPO decides {fast} than the rolling horizon.")
+                            "(1 ms = 0.001 s).")
         yield from repeat(results, 13 * fps)
         say("Final test: mean on-time rate over 300 days per demand level",
             f"The difference is decision time: PPO needs {rows[0][4]} per decision, the "
@@ -591,23 +609,29 @@ def main():
                        "much less computation, while still missing some orders.")
         yield from repeat(r.bullets("Summary", summary_lines(rows, ppo, rule), "ME5418 GROUP 17"),
                           10 * fps)
-        say("Thank you for watching", "ME5418 Group 17 · Jihang Cai, Yu Liu, Yufeng Zhang")
+        say("")  # the closing slide speaks for itself
         yield from repeat(r.closing("Thank you for watching", [
             "Learning to dispatch a medical delivery drone",
             "ME5418 Group 17 · Jihang Cai, Yu Liu, Yufeng Zhang"]), 4 * fps)
 
-    def with_subtitles(frames):
-        """Subtitles above each frame; each new subtitle line, and each FADE marker, dissolves
-        from the last frame shown into the next ones over FADE_S, like a slide transition."""
+    def with_captions(frames):
+        """Each frame with the current caption drawn in. A new caption slides in and flashes;
+        each new caption and each FADE marker dissolve from the last frame shown into the next
+        ones over FADE_S, like a slide transition."""
         last, left = None, 0
         for frame in frames:
             if isinstance(frame, str):  # FADE
                 dissolve[0] = True
                 continue
             count[0] += 1
-            f = flash[0] / max(1, round(FLASH_S * fps))
-            flash[0] = max(0, flash[0] - 1)
-            out = np.vstack([sub.band(*cue, flash=f * f), frame])
+            title, body, paused, place = cue
+            title = (f"{paused_label} · {tr(title[9:])}" if title.startswith("PAUSED · ") else
+                     tr(title))
+            k = since[0]
+            since[0] += 1
+            out = captions.draw(frame, title, tr(body), paused, place,
+                                min(1.0, k / (APPEAR_S * fps)),
+                                max(0.0, 1 - k / (FLASH_S * fps)) ** 2)
             if dissolve[0] and last is not None:
                 start, left, dissolve[0] = last, round(FADE_S * fps), False
             if left:
@@ -619,7 +643,7 @@ def main():
             yield out
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    n = save_animation(with_subtitles(frames()), str(args.out), fps)
+    n = save_animation(with_captions(frames()), str(args.out), fps)
     args.out.with_suffix(".json").write_text(json.dumps(cues, indent=0))  # for translated copies
     print(f"Saved {args.out}: {n} frames, {n / fps:.1f} s")
 

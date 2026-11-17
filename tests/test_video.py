@@ -53,16 +53,21 @@ def test_duel_frames_are_1080p_rgb(low_day, paused):
         assert renderer.guide(65.0, step).shape == (1080, 1920, 3)
 
 
-def test_subtitle_band_has_the_frame_width_and_caches():
+def test_captions_are_drawn_in_the_frame_and_wrap_english_and_chinese():
     from matplotlib import font_manager
-    from medical_uav.env.video import Subtitles
+    from medical_uav.env.video import Captions
 
     fonts = [font_manager.findfont(font_manager.FontProperties(family="DejaVu Sans", weight=w))
              for w in ("bold", "normal")]
-    sub = Subtitles(*fonts)
-    band = sub.band("Title", "A line long enough to wrap " * 8, True)
-    assert band.shape == (Subtitles.H, 1920, 3) and sub.band("Title", "A line long enough to "
-                                                             "wrap " * 8, True) is band
+    captions = Captions(*fonts)
+    frame = np.full((1080, 1920, 3), 240, np.uint8)
+    for place in Captions.PLACES:
+        out = captions.draw(frame, "Title", "A line long enough to wrap " * 8, False, place)
+        assert out.shape == frame.shape and (out != frame).any()
+    assert captions.draw(frame, "") is frame  # no caption
+    font = captions.font(fonts[1], 28)
+    assert len(Captions.wrap("word " * 60, font, 400)) > 2
+    assert len(Captions.wrap("中文没有空格也要折行" * 10, font, 400)) > 2
 
 
 def test_duel_frames_show_the_steps_of_a_decision(low_day):
