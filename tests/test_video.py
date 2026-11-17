@@ -80,10 +80,11 @@ def test_duel_series_follow_the_replay_state(low_day):
     from medical_uav.env.video import DuelFrames
 
     renderer = DuelFrames(low_day, low_day)
-    minutes, on_time, waiting = renderer.series[0]
+    minutes, km, waiting = renderer.series[0]
     for k in (0, len(minutes) // 2, len(minutes) - 1):
-        s = state_at(low_day, minutes[k])
-        assert on_time[k] == s["on_time"] and waiting[k] == len(s["waiting"])
+        assert waiting[k] == len(state_at(low_day, minutes[k])["waiting"])
+    assert km[0] == 0 and np.all(np.diff(km) >= 0)
+    assert km[-1] == pytest.approx(low_day["meta"]["summary"]["km"])
 
 
 def test_day_times_follow_the_slower_side_and_cover_the_day(low_day):
