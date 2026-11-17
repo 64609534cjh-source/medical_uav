@@ -116,11 +116,14 @@ class Captions:
             h = 14 + head + step * len(lines) + 12
             img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
             d = ImageDraw.Draw(img)
-            d.rounded_rectangle((0, 0, w - 1, h - 1), 16, fill=(28, 40, 66, 242))
-            d.rounded_rectangle((0, 0, 12, h - 1), 6, fill=(232, 89, 12, 255))
-            d.text((32, 10), title, font=bold, fill=(255, 196, 92))
+            # a white callout with an orange frame: unlike the navy band, it reads as a note
+            # pinned on the zoomed picture
+            d.rounded_rectangle((0, 0, w - 1, h - 1), 16, fill=(255, 255, 255, 248),
+                                outline=(232, 89, 12, 255), width=4)
+            d.rounded_rectangle((0, 0, 14, h - 1), 6, fill=(232, 89, 12, 255))
+            d.text((34, 10), title, font=bold, fill=(200, 72, 6))
             for j, line in enumerate(lines):
-                d.text((32, 14 + head + step * j), line, font=reg, fill=(255, 255, 255))
+                d.text((34, 14 + head + step * j), line, font=reg, fill=(19, 33, 60))
             self.cache[key] = np.asarray(img).astype(np.float32) / 255
         return self.cache[key]
 
