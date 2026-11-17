@@ -129,9 +129,10 @@ def backlog_gap(ppo, rule):
     sp, sr = state_at(ppo, t), state_at(rule, t)
     return (float(t), f"{clock(t)} · Orders awaiting pickup: {len(sr['waiting'])} for "
             f"Slack-aware, {len(sp['waiting'])} for PPO",
-            [f"Part of the reason is on the left: by now PPO has flown {flown(ppo, t):.0f} km and "
-             f"Slack-aware {flown(rule, t):.0f} km, although PPO delivered more. Over the day PPO carries "
-             f"{_per_stop(ppo):.1f} boxes per delivery stop, Slack-aware {_per_stop(rule):.1f}."])
+            [f"By now PPO has delivered {sp['on_time'] + sp['late']} boxes over "
+             f"{flown(ppo, t):.0f} km, Slack-aware {sr['on_time'] + sr['late']} over "
+             f"{flown(rule, t):.0f} km. Over the day they deliver {_per_stop(ppo):.1f} and "
+             f"{_per_stop(rule):.1f} boxes per delivery stop."])
 
 
 def day_end(ppo, rule):
@@ -152,9 +153,8 @@ def phase_caption(meta, t):
                 ["Few orders arrive and both drones keep up. The replay pauses at three moments "
                  "to explain what happens."], False)
     if any(a <= t < b for a, b in peaks):
-        return ("Demand peak: orders arrive about 3.3 times as often as outside the peaks",
-                ["The lists of orders awaiting pickup grow on both sides, and so does the "
-                 "backlog chart."], False)
+        return ("Demand peak · orders arrive about 3.3× as often",
+                ["More orders arrive at once, putting both dispatchers under pressure."], False)
     if t < peaks[-1][0]:
         return ("Between the peaks: both work through the orders awaiting pickup",
                 ["Fewer new orders arrive, and both drones work through their waiting lists."],
@@ -259,14 +259,12 @@ def stretches(r):
                 f"The highlighted boxes all go to {name(target)}: PPO collects them at {places}, "
                 "then delivers them in one visit.", steps,
                 {"nodes": (target,), "orders": tuple(o["id"] for o in boxes)}, ds[end]["end"],
-                [f"When: simulated time {clock(ds[start]['t'])}–{clock(ds[end]['end'])}, during "
-                 "the first demand peak (a period with more orders).",
-                 f"What happens: after a delivery at {here} the drone takes a sample from there "
-                 f"instead of flying on empty, and it collects three boxes for {name(target)} at "
-                 f"{places}.",
- ],
-                "What this example shows: PPO plans whole trips, not single orders. Boxes for the "
-                "same place are collected along the way and delivered together."))
+                [f"{clock(ds[start]['t'])}–{clock(ds[end]['end'])} · first demand peak (more "
+                 "orders)",
+                 f"After delivering at {here}, PPO collects a sample there instead of flying on "
+                 f"empty, then gathers three {name(target)} boxes at {places}."],
+                f"What it shows: boxes for one place collected along the way and delivered "
+                f"together at {name(target)}, all on time."))
 
     i = next(i for i in peak if i > end and _picked(ds[i]) is not None
              and _urgent(r, ds[i], orders) != _picked(ds[i])
@@ -317,15 +315,12 @@ def stretches(r):
                 f"At {clock(ds[i]['t'])}, plasma #{u['id']} has the earliest deadline of all "
                 f"orders awaiting pickup, but it still has {left:.0f} minutes.", steps,
                 {"nodes": (u["to"],), "orders": (u["id"],)}, done,
-                [f"When: simulated time {clock(ds[i]['t'])}–{clock(done)}.",
-                 "The question here is different: not how to group boxes, but when to serve an "
-                 "urgent order.",
-                 f"What happens: plasma #{u['id']} at {name(u['from'])} has the earliest deadline "
-                 f"({clock(u['deadline'])}, {left:.0f} min away). The drone first takes a box "
-                 f"waiting at {name(o0['from'])} to {name(o0['to'])}, then collects the plasma.",
- ],
-                "What this example shows: PPO uses an urgent order's spare time for a short "
-                "nearby job, and still delivers it on time."))
+                [f"{clock(ds[i]['t'])}–{clock(done)} · plasma #{u['id']} has the earliest waiting "
+                 f"deadline: {clock(u['deadline'])}",
+                 f"PPO first takes a box from {name(o0['from'])} to {name(o0['to'])}, then "
+                 "collects the plasma."],
+                "What it shows: a short nearby job first, two plasma boxes carried together and a "
+                "short charge; both plasma boxes still arrive on time."))
     return out
 
 
@@ -382,19 +377,19 @@ def final_rows(path=FINAL_SUMMARY, timed=True):
 
 
 
-TITLE = ["One drone delivers medical boxes between a medical center and five hospitals.",
-         "Which order should it serve next, and when should it recharge?",
-         "We trained a neural network to decide, with Proximal Policy Optimization (PPO),",
+TITLE = ["One drone · one medical center · five hospitals",
+         "Which order next? When to recharge?",
+         "A neural network trained with Proximal Policy Optimization (PPO),",
          "a reinforcement learning algorithm.", "",
          "ME5418 Group 17 · Jihang Cai, Yu Liu, Yufeng Zhang"]
-SLACK = ["The rule: unload here; take boxes going where the cargo goes; charge if needed; "
-         "otherwise earliest deadline first, with negative-slack orders last.",
-         "Slack = time to the deadline minus the time to serve the order now; negative slack "
-         "means it would be late anyway.",
-         "Not the strongest method: the rolling horizon is about as punctual as PPO but needs "
-         "1.4\u00a0s per decision; it is compared at the end.",
-         "Why this rule: the best fixed rule under 1\u00a0ms at high demand, like PPO.",
-         "The day: of 40 development days, the one with the median PPO lead."]
+SLACK = ["The rule: unload here; collect boxes here for a destination already on board; "
+         "charge if needed; otherwise earliest deadline first, negative slack last.",
+         "Slack = time left before the deadline minus the time needed to deliver now.",
+         "Why this rule: the best fixed rule at high demand; it and PPO both decide in under "
+         "1\u00a0ms.",
+         "Not the strongest method: the rolling horizon needs 1.4\u00a0s per decision; it is "
+         "compared at the end.",
+         "The day: closest to the median PPO lead across 40 development days."]
 # one line under each method's name on the results slide
 DESCRIBE = {"PPO (ours)": "our learned neural network",
             "Rolling horizon": "plans a few steps ahead",
@@ -402,7 +397,7 @@ DESCRIBE = {"PPO (ours)": "our learned neural network",
             "Rollout": "simulates each next action",
             "Insertion": "builds a route by inserting orders",
             "Slack-aware": "EDF with three fixes",
-            "Nearest-first": "the job that finishes soonest",
+            "Nearest-first": "shortest flight plus handling time",
             "EDF": "earliest deadline first",
             "FCFS": "first come, first served",
             "Random": "a random allowed action"}
@@ -417,12 +412,11 @@ def summary_lines(rows, ppo, rule):
     p, h = rows[0], rows[1]
     slack = next(row for row in rows if row[0] == "Slack-aware")
     a, b = _lost(ppo, rule)
-    return [f"About as punctual as the strongest planner, the rolling horizon ({p[2]:.1f}% vs "
-            f"{h[2]:.1f}% at medium demand, {p[3]:.1f}% vs {h[3]:.1f}% at high demand).",
-            f"About {round(speedup(), -3):,.0f}× faster decisions at high demand ({p[4]} vs "
-            f"{h[4]}), and {p[3] - slack[3]:.1f} percentage points above the Slack-aware rule.",
-            f"Still not perfect: on the example day it let {TYPE_LABELS[a['type']].lower()} "
-            f"#{a['id']} expire."]
+    return ["Similar on-time rates to the rolling horizon at medium and high demand.",
+            f"About {round(speedup(), -3):,.0f}× faster decisions, and "
+            f"{p[3] - slack[3]:.1f} percentage points above Slack-aware at high demand.",
+            f"Failures remain: {TYPE_LABELS[a['type']].lower()} #{a['id']} expires on the example "
+            "day."]
 
 
 def main():
@@ -450,8 +444,8 @@ def main():
     fast = f"about {round(speedup(), -3):,.0f}× faster"
     task_t = 151.0  # the task's map shows the day at 10:31
     # task steps: subtitle heading, subtitle line (only what the slide does not say), seconds
-    narration = [("Medical center M", "Most trips start here: plasma and medicine are picked up "
-                  "at M, and the drone can charge at C1.", 6),
+    narration = [("Medical center M", "Plasma and medicine travel from M to the hospitals; "
+                  "samples return here. C1 provides charging at M.", 6),
                  ("Five hospitals H1–H5", "Boxes also travel between hospitals and back to M, so "
                   "the drone criss-crosses the map.", 5),
                  ("A second charger C2", "Charging stops cost time; choosing where and when to "
@@ -463,8 +457,8 @@ def main():
                   "limit expires.", 10),
                  ("One drone", "With room for only 3 boxes it must choose which orders to carry "
                   "together, and it must always keep enough battery to reach a charger.", 7),
-                 ("The decision, again and again", "The drone makes about 120 such decisions in a "
-                  "day; each one starts a pickup, a delivery or a charge.", 7)]
+                 ("The decision, again and again", f"PPO makes {len(ppo['decisions'])} decisions "
+                  "on this example day: picking up, delivering, charging or waiting.", 7)]
     sub = Subtitles(*(font_manager.findfont(font_manager.FontProperties(
         family="DejaVu Sans", weight=w)) for w in ("bold", "normal")))
     cue, cues, count, dissolve = ["", "", False], [], [0], [False]
@@ -493,10 +487,10 @@ def main():
         yield from section(1, "This part explains what the network sees and how it picks an "
                               "action.")
         say("From what it sees to an action",
-            "One decision in four steps. The network learned this on 500 random maps, not on the "
-            "map in this video.")
+            "PPO scores the allowed actions and takes the most probable one. The probabilities "
+            "rank actions; they are not chances of success.")
         yield from repeat(r.method("2  How our PPO agent decides", [
-            ("What it sees", "Battery, place, boxes on board and up to 12 waiting orders"),
+            ("What it sees", "Time, battery, travel times, cargo and up to 12 waiting orders"),
             ("A neural network", "Attention weighs each order and each box by the drone's state"),
             ("A probability for each action", "Actions that break the rules are not allowed"),
             ("It takes the most probable one", "and decides again when that action is done")], [
@@ -517,7 +511,8 @@ def main():
         view.focus, view.banner = {"nodes": (), "orders": ()}, ""
         yield from section(2, "PPO and the Slack-aware rule receive the same orders on the same "
                               "map.")
-        say("Why compare with Slack-aware?", "Both get the same 66 orders and one shared clock.")
+        say("Why compare with Slack-aware?", "A fast rule that decides at PPO's speed. The "
+            "stronger but slower rolling horizon appears in the final test.")
         yield from repeat(r.bullets("Why compare with Slack-aware?", SLACK, "3  ONE WHOLE DAY",
                                     size=28), 15 * fps)
         guide = [(0, "Coloured squares mark orders awaiting pickup. This preview is paused at "
@@ -579,7 +574,8 @@ def main():
             f"The difference is decision time: PPO needs {rows[0][4]} per decision, the "
             f"rolling horizon {rows[1][4]}.")
         yield from repeat(results, 9 * fps)
-        say("Summary", "PPO matches the strongest planner's punctuality, decides thousands of times faster, and still has failures.")
+        say("Summary", "Across new maps, PPO is about as punctual as the rolling horizon with "
+                       "much less computation, while still missing some orders.")
         yield from repeat(r.bullets("Summary", summary_lines(rows, ppo, rule), "ME5418 GROUP 17"),
                           10 * fps)
         say("Thank you for watching", "ME5418 Group 17 · Jihang Cai, Yu Liu, Yufeng Zhang")

@@ -792,8 +792,8 @@ class DuelFrames:
              ([(352, 94, 592, 50), (1296, 94, 592, 50)], "The score so far",
               ["Orders delivered on time, delivered late, expired, and still waiting.", ""]),
              ([(26, 770, 1868, 304)], "Running totals for both",
-              ["On-time deliveries so far, orders awaiting pickup (the backlog), and the counts",
-               "of on-time, late and expired orders, for both dispatchers."])]
+              ["Left: distance flown. Middle: orders awaiting pickup (backlog).",
+               "Right: on-time, late and expired orders."])]
 
     def guide(self, t: float, step: int = 0) -> np.ndarray:
         """The frame at t, dimmed except the boxes of one guide step (GUIDE: boxes, title, text
