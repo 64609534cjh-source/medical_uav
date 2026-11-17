@@ -42,6 +42,7 @@ OUTLINE = ["The delivery task", "How PPO chooses actions", "One full day: PPO vs
            "Ten methods on 30 new maps"]
 ANIM_S = 0.33  # seconds per step of the decision-card animation
 FADE, FADE_S = "fade", 0.4  # marker in a frame stream for a dissolve, and its length (s)
+FLASH_S = 0.7  # the subtitle band flashes orange for this long when its text changes
 
 
 def record_day(name, load, seed):
@@ -326,8 +327,8 @@ def stretches(r):
 
 # replay-layout boxes (1280 x 720) a step points at
 CHOICES, ACTION = (906, 170, 358, 158), (562, 116, 700, 54)
-ACT_RATE = 5.0  # simulated min per second while an example's action plays
-SLOW = "decisions held for reading · during actions, 1 s of video = 5 simulated minutes"
+ACT_RATE, DIM = 2.0, 0.55  # simulated min per second while an example's action plays; dimming
+SLOW = "decisions held for reading · during actions, 1 s of video = 2 simulated minutes"
 
 
 def stretch_frames(view, steps, until, fps, say):
@@ -337,14 +338,14 @@ def stretch_frames(view, steps, until, fps, say):
     for n, (i, title, line) in enumerate(steps):
         d = view.r["decisions"][i]
         say(title, line)
-        for k in range(fade):
-            yield view.draw(d["t"], "Deciding", SLOW, ([CHOICES], (k + 1) / fade))
+        for k in range(fade):  # light dimming: the map and cargo stay readable
+            yield view.draw(d["t"], "Deciding", SLOW, ([CHOICES], DIM * (k + 1) / fade))
         # hold until the subtitle can be read (about 190 words a minute)
         hold = min(4.0, max(1.5, len(f"{title} {line}".split()) / 3.3 - 1.6))
-        yield from repeat(view.draw(d["t"], "Deciding", SLOW, ([CHOICES], 1.0)),
+        yield from repeat(view.draw(d["t"], "Deciding", SLOW, ([CHOICES], DIM)),
                           round(hold * fps))
         yield FADE
-        yield from repeat(view.draw(d["t"], "Picked", SLOW, ([ACTION, CHOICES], 1.0)), fps)
+        yield from repeat(view.draw(d["t"], "Picked", SLOW, ([ACTION, CHOICES], DIM)), fps)
         m = max(1, round(0.3 * fps))
         for k in range(m):
             yield view.draw(d["t"], ("Moving", k / m), SLOW)
@@ -353,6 +354,8 @@ def stretch_frames(view, steps, until, fps, say):
         while t < stop - EPS:
             t = min(stop, t + ACT_RATE / fps)
             yield view.draw(t, None, SLOW)
+        if n < len(steps) - 1:  # a moment on the result before the next decision
+            yield from repeat(view.draw(t, None, SLOW), round(0.8 * fps))
     yield from repeat(view.draw(until, None, SLOW), round(2.5 * fps))
 
 
@@ -433,11 +436,18 @@ def main():
     view = ReplayFrames(ppo, f"Example day: {args.load} demand on map 0, the map of our earlier "
                         "milestones; this map was not used in training", scale=1.5)
     # each pause zooms into the part it explains (DuelFrames pixel boxes)
-    # (seconds held, zoom excluded: long enough to read the subtitle)
-    pauses = {t: (title, " ".join(lines), box, hold) for (t, title, lines), box, hold in
-              ((ppo_failure(ppo, rule), (20, 90, 940, 529), 9),  # PPO's map: the expired sample
-               (backlog_gap(ppo, rule), (32, 776, 1224, 292), 10),  # distance and backlog charts
-               (day_end(ppo, rule), (1280, 776, 608, 292), 8))}  # the outcome bars
+    # each pause: stages (subtitle title, line, box to zoom into, seconds held); the view moves
+    # from stage to stage, then back out
+    t1, title1, lines1 = ppo_failure(ppo, rule)
+    t2, title2, lines2 = backlog_gap(ppo, rule)
+    t3, title3, lines3 = day_end(ppo, rule)
+    w2 = [len(state_at(rec, t2)["waiting"]) for rec in (rule, ppo)]
+    pauses = {t1: [(title1, lines1[0], (20, 90, 940, 529), 9)],  # PPO's map: the expired sample
+              t2: [(title2, f"Slack-aware has {w2[0] - w2[1]} more orders waiting than PPO.",
+                    (656, 776, 600, 292), 5),  # the backlog chart
+                   (f"{clock(t2)} · Distance flown so far", lines2[0],
+                    (32, 776, 600, 292), 8)],  # then the distance chart
+              t3: [(title3, lines3[0], (1280, 776, 608, 292), 8)]}  # the outcome bars
     end_t = max(pauses)
     lost = _lost(ppo, rule)[0]
     rows = final_rows()
@@ -455,18 +465,20 @@ def main():
                  ("Orders and deadlines", "Each order is one box. Its time limit starts when it is "
                   "placed; a late delivery earns less, and an order not delivered within twice its "
                   "limit expires.", 10),
-                 ("One drone", "With room for only 3 boxes it must choose which orders to carry "
-                  "together, and it must always keep enough battery to reach a charger.", 7),
+                 ("One drone", "With room for only 3 boxes and 2 kg it must choose which orders "
+                  "to carry together, and it must always keep enough battery to reach a charger.",
+                  7),
                  ("The decision, again and again", f"PPO makes {len(ppo['decisions'])} decisions "
                   "on this example day: picking up, delivering, charging or waiting.", 7)]
     sub = Subtitles(*(font_manager.findfont(font_manager.FontProperties(
         family="DejaVu Sans", weight=w)) for w in ("bold", "normal")))
-    cue, cues, count, dissolve = ["", "", False], [], [0], [False]
+    cue, cues, count, dissolve, flash = ["", "", False], [], [0], [False], [0]
 
     def say(title, body="", paused=False):
         cue[:] = [title, body, paused]
         cues.append((count[0] / fps, title, body, paused))
         dissolve[0] = True  # a new line of subtitles starts with a dissolve
+        flash[0] = round(FLASH_S * fps)  # and a short orange flash of the band
 
     section = lambda k, line: (say(f"{k + 1}  {OUTLINE[k]}", line),
                                repeat(r.outline(OUTLINE, k), 4 * fps))[1]
@@ -535,26 +547,27 @@ def main():
             phases = tuple("Deciding" if c < anim else "Picked" if c < 2 * anim else None
                            for c in since)
             if t in pauses:
-                title, body, box, hold = pauses[t]
                 if t == lost["end"]:  # ring the place of the order PPO lost
                     r.views[0].focus = {"nodes": (lost["from"],), "orders": ()}
                 frame = r.draw(t, True, phases, "")
                 r.views[0].focus = {"nodes": (), "orders": ()}
-                say(title, body, True)
-                said = None
+                said, prev = None, None
                 badge = ("❚❚  PAUSED", sub.bold)
                 m = round(0.8 * fps)
-                for k in range(m + 1):  # zoom in, hold, zoom out
-                    yield zoom(frame, box, k / m, badge)
-                yield from repeat(zoom(frame, box, 1.0, badge), round(hold * fps))
-                for k in range(m, -1, -1):
-                    yield zoom(frame, box, k / m, badge if k else None)
+                for title, body, box, hold in pauses[t]:  # zoom or pan to each part, hold
+                    say(title, body, True)
+                    for k in range(m + 1):
+                        yield zoom(frame, box, k / m, badge, prev)
+                    yield from repeat(zoom(frame, box, 1.0, badge), round(hold * fps))
+                    prev = box
+                for k in range(m, -1, -1):  # back out
+                    yield zoom(frame, prev, k / m, badge if k else None)
                 continue
             title, lines, _ = phase_caption(ppo["meta"], t)
             if title != said:
                 say(title, " ".join(lines))
                 said = title
-            frame = r.draw(t, False, phases, "playback: 8–20 simulated minutes per second")
+            frame = r.draw(t, False, phases, "playback: 7–18 simulated minutes per second")
             yield frame
             if n % (fps * 20) == 0:
                 print(f"Rendering {clock(t)} ({n + 1}/{len(times)})", flush=True)
@@ -592,7 +605,9 @@ def main():
                 dissolve[0] = True
                 continue
             count[0] += 1
-            out = np.vstack([sub.band(*cue), frame])
+            f = flash[0] / max(1, round(FLASH_S * fps))
+            flash[0] = max(0, flash[0] - 1)
+            out = np.vstack([sub.band(*cue, flash=f * f), frame])
             if dissolve[0] and last is not None:
                 start, left, dissolve[0] = last, round(FADE_S * fps), False
             if left:

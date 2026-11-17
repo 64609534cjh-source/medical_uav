@@ -17,7 +17,7 @@ from medical_uav.env.config import EPS, ORDER_TYPES
 from medical_uav.env.replay import state_at
 
 W, H, DPI = 1280, 720, 80
-PAPER, PANEL, INK, MUTED, FAINT = "#f3f6f9", "#ffffff", "#13213c", "#5b6b82", "#93a1b5"
+PAPER, PANEL, INK, MUTED, FAINT = "#f3f6f9", "#ffffff", "#13213c", "#44526a", "#7f8da3"
 LINE, WASH = "#d9e0e8", "#e9eef5"
 ONTIME, LATE, EXPIRED = "#11806a", "#9a6500", "#c8402a"
 TYPE_COLORS = ("#c0267a", "#2f6fdb", "#7a4fd0", "#9a6b2f")  # plasma, medicine, sample, supplies
@@ -30,7 +30,7 @@ DECIDING, PROGRESS = ("#fff0c2", "#6f4600"), ("#dfe9fd", "#1c49b8")
 RATES = {"fly": 1.0, "load": 1.5, "unload": 1.5, "dispose": 1.5}
 LEAVE_S, DECIDE_S, PICK_S, MOVE_S = 0.35, 0.7, 0.4, 0.6
 # the whole-day comparison: simulated min/s by activity (the slower side sets the pace)
-DAY_RATES, DAY_GROUND = {"fly": 8.0, "load": 9.0, "unload": 9.0, "dispose": 9.0}, 20.0
+DAY_RATES, DAY_GROUND = {"fly": 7.0, "load": 8.0, "unload": 8.0, "dispose": 8.0}, 18.0
 
 
 def pt(px: float) -> float:
@@ -48,7 +48,7 @@ class Subtitles:
 
     H = 200
 
-    def __init__(self, bold: str, regular: str, width: int = 1920, sizes=(46, 36)):
+    def __init__(self, bold: str, regular: str, width: int = 1920, sizes=(48, 38)):
         from PIL import ImageFont
         self.bold, self.reg = (ImageFont.truetype(bold, sizes[0]),
                                ImageFont.truetype(regular, sizes[1]))
@@ -64,34 +64,45 @@ class Subtitles:
                 cur = f"{cur} {word}".strip()
         return lines + [cur] if cur else lines
 
-    def band(self, title: str, body: str = "", paused: bool = False) -> np.ndarray:
-        key = (title, body, paused)
+    def band(self, title: str, body: str = "", paused: bool = False, flash: float = 0.0
+             ) -> np.ndarray:
+        """flash (0..1) tints the band orange: a new subtitle line starts at 1 and fades out."""
+        flash = round(flash, 2)
+        key = (title, body, paused, flash)
         if key not in self.cache:
             from PIL import Image, ImageDraw
-            img = Image.new("RGB", (self.width, self.H), (20, 28, 46))
+            bg = tuple(round(c0 + (c1 - c0) * flash) for c0, c1 in zip((20, 28, 46), (200, 78, 14)))
+            img = Image.new("RGB", (self.width, self.H), bg)
             d = ImageDraw.Draw(img)
             d.rectangle((0, 0, 14, self.H), fill=(232, 89, 12))  # accent bar
             d.text((48, 14), title, font=self.bold, fill=(255, 196, 92) if paused else
                    (255, 255, 255))
             for j, line in enumerate(self._wrap(body)[:2]):
-                d.text((48, 84 + 50 * j), line, font=self.reg, fill=(226, 232, 242))
+                d.text((48, 84 + 52 * j), line, font=self.reg, fill=(255, 255, 255))
             self.cache[key] = np.asarray(img)
         return self.cache[key]
 
 
-def zoom(frame: np.ndarray, box, a: float, badge=None) -> np.ndarray:
-    """The frame zoomed a (0..1) of the way from the whole frame into box (x, y, w, h; widened
-    to the frame's shape), smoothly; with badge = (text, font) a pill at the bottom centre."""
-    from PIL import Image, ImageDraw
-    H_, W_ = frame.shape[:2]
+def _view(box, W_, H_):
+    """box (x, y, w, h) widened to the frame's shape and kept inside it, as a crop rectangle."""
+    if box is None:
+        return 0, 0, W_, H_
     x, y, w, h = box
     if w / h < W_ / H_:
         x, w = x - (h * W_ / H_ - w) / 2, h * W_ / H_
     else:
         y, h = y - (w * H_ / W_ - h) / 2, w * H_ / W_
     x, y = min(max(x, 0), W_ - w), min(max(y, 0), H_ - h)
+    return x, y, x + w, y + h
+
+
+def zoom(frame: np.ndarray, box, a: float, badge=None, start=None) -> np.ndarray:
+    """The view moved a (0..1) of the way, smoothly, from `start` (a box, or the whole frame)
+    into box (x, y, w, h); with badge = (text, font) a pill at the bottom centre."""
+    from PIL import Image, ImageDraw
+    H_, W_ = frame.shape[:2]
     e = a * a * (3 - 2 * a)
-    crop = (e * x, e * y, e * x + (1 - e) * W_ + e * w, e * y + (1 - e) * H_ + e * h)
+    crop = tuple(p + (q - p) * e for p, q in zip(_view(start, W_, H_), _view(box, W_, H_)))
     img = Image.fromarray(frame).resize((W_, H_), Image.LANCZOS, box=crop)
     if badge:
         d = ImageDraw.Draw(img)
