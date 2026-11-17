@@ -545,7 +545,7 @@ def main():
         say("Why compare with Slack-aware?", "A fast rule that decides at PPO's speed. The "
             "stronger but slower rolling horizon appears in the final test.")
         yield from repeat(r.bullets("Why compare with Slack-aware?", SLACK, "3  ONE WHOLE DAY",
-                                    size=28), 15 * fps)
+                                    size=33), 15 * fps)
         guide = [(0, "Coloured squares mark orders awaiting pickup. This preview is paused at "
                      "10:30; the replay then starts at 08:00.", 6),
                  (2, "Orders awaiting pickup, sorted by deadline; each shows the minutes "
@@ -611,10 +611,9 @@ def main():
                        "much less computation, while still missing some orders.")
         yield from repeat(r.bullets("Summary", summary_lines(rows, ppo, rule), "ME5418 GROUP 17"),
                           10 * fps)
-        say("")  # the closing slide speaks for itself
+        say("ME5418 Group 17", "Jihang Cai, Yu Liu, Yufeng Zhang")
         yield from repeat(r.closing("Thank you for watching", [
-            "Learning to dispatch a medical delivery drone",
-            "ME5418 Group 17 · Jihang Cai, Yu Liu, Yufeng Zhang"]), 4 * fps)
+            "Learning to dispatch a medical delivery drone"]), 4 * fps)
 
     def with_captions(frames):
         """Each frame with the current caption drawn in. Each new caption and each FADE marker

@@ -44,11 +44,12 @@ def rounded(x, y, w, h, radius, **style) -> FancyBboxPatch:
 
 
 class Band:
-    """The caption band above each frame: a light apricot strip with an orange heading and a
-    dark, bold line. A new caption slides in from the left while the strip brightens."""
+    """The caption band above each frame: a dark navy strip (the colour of the video's text)
+    with a warm yellow heading and a white, bold line. A new caption slides in from the left
+    while the strip brightens."""
 
     H = 200
-    BG, LIT = (255, 236, 214), (255, 214, 168)
+    BG, LIT = (28, 40, 66), (58, 80, 124)
 
     def __init__(self, bold: str, regular_bold: str, width: int = 1920, index: int = 0):
         from PIL import ImageFont
@@ -68,10 +69,9 @@ class Band:
             d.rectangle((0, self.H - 4, self.width, self.H), fill=(232, 89, 12))
             shift = round((1 - e) * 60)
             mix = lambda col: tuple(round(c + (b - c) * (1 - e)) for c, b in zip(col, bg))
-            d.text((52 - shift, 16), title, font=self.head,
-                   fill=mix((200, 60, 0) if paused else (190, 70, 0)))
+            d.text((52 - shift, 16), title, font=self.head, fill=mix((255, 196, 92)))
             for j, text in enumerate(Captions.wrap(body, self.line, self.width - 100)[:2]):
-                d.text((52 - shift, 88 + 52 * j), text, font=self.line, fill=mix((19, 33, 60)))
+                d.text((52 - shift, 88 + 52 * j), text, font=self.line, fill=mix((255, 255, 255)))
             self.cache[key] = np.asarray(img)
         return self.cache[key]
 
@@ -116,9 +116,9 @@ class Captions:
             h = 14 + head + step * len(lines) + 12
             img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
             d = ImageDraw.Draw(img)
-            d.rounded_rectangle((0, 0, w - 1, h - 1), 16, fill=(19, 33, 60, 240))
+            d.rounded_rectangle((0, 0, w - 1, h - 1), 16, fill=(28, 40, 66, 242))
             d.rounded_rectangle((0, 0, 12, h - 1), 6, fill=(232, 89, 12, 255))
-            d.text((32, 10), title, font=bold, fill=(255, 190, 80) if paused else (255, 255, 255))
+            d.text((32, 10), title, font=bold, fill=(255, 196, 92))
             for j, line in enumerate(lines):
                 d.text((32, 14 + head + step * j), line, font=reg, fill=(255, 255, 255))
             self.cache[key] = np.asarray(img).astype(np.float32) / 255
@@ -638,6 +638,11 @@ class DuelFrames:
         ax.add_patch(rounded(x, y, w, h, 12, **{"facecolor": PANEL, "edgecolor": LINE, "lw": 1,
                                                 **style}))
 
+    def _page(self, ax):
+        """A slide: the whole frame white, with a thin orange line at the top left."""
+        ax.add_patch(Rectangle((0, 0), self.W, self.H, fc=PANEL, ec="none"))
+        ax.add_patch(Rectangle((96, 60), 140, 8, fc=self.colors[0], ec="none"))
+
     def _canvas(self):
         self.fig.clear()
         ax = self.fig.add_axes((0, 0, 1, 1))
@@ -897,61 +902,62 @@ class DuelFrames:
         return self._rgb()
 
     def results(self, title, rows, note, takeaway="") -> np.ndarray:
-        """A bar chart card; rows = (label, colour, medium %, high %, ms per decision)."""
+        """A bar chart slide; rows = (label, colour, medium %, high %, ms per decision[, line])."""
         ax = self._canvas()
-        self._panel(ax, 64, 40, self.W - 128, SLIDE_BOTTOM - 40)
-        self._text(ax, 110, 90, "RESULTS", 16, MUTED, "bold")
-        self._text(ax, 110, 120, title, 38, INK, "bold")
-        for k, part in enumerate(wrap(note, 130)):
-            self._text(ax, 110, 172 + 28 * k, part, 20, MUTED)
+        self._page(ax)
+        self._text(ax, 120, 90, title, 44, INK, "bold")
+        for k, part in enumerate(wrap(note, 112)):
+            self._text(ax, 120, 152 + 32 * k, part, 24, MUTED)
+        top, tall = 280, 700
         for j, load in enumerate(("Medium demand", "High demand")):
-            c = self._box(420 + 560 * j, 262, 500, 590)
+            c = self._box(470 + 560 * j, top, 510, tall)
             vals = [row[2 + j] for row in rows]
             ys = np.arange(len(rows))[::-1]
-            c.barh(ys, vals, color=[row[1] for row in rows], height=0.62)
+            c.barh(ys, vals, color=[row[1] for row in rows], height=0.64)
             for yy, v in zip(ys, vals):
-                c.text(v - 1, yy, f"{v:.1f}%", ha="right", va="center", fontsize=pt(18),
+                c.text(v - 1, yy, f"{v:.1f}%", ha="right", va="center", fontsize=pt(21),
                        color="white", weight="bold")
             c.set(xlim=(0, 100), ylim=(-0.6, len(rows) - 0.4))
             c.set_yticks([])
             c.set_xticks([0, 50, 100], ["0", "50", "100 %"])
-            c.tick_params(labelsize=pt(14), colors=MUTED, length=0)
+            c.tick_params(labelsize=pt(17), colors=MUTED, length=0)
             for side in ("top", "right", "left"):
                 c.spines[side].set_visible(False)
             c.spines["bottom"].set_color(LINE)
-            c.set_title(f"{load} · on time", fontsize=pt(22), color=INK, weight="bold",
+            c.set_title(f"{load} · on time", fontsize=pt(26), color=INK, weight="bold",
                         loc="left", pad=16)
-        step = 590 / len(rows)
+        step = tall / len(rows)
         for i, row in enumerate(rows):
-            yy = 262 + step * (i + 0.5) - 16
-            self._text(ax, 110, yy - 10, row[0], 22, INK, "bold" if i == 0 else "normal")
+            yy = top + step * (i + 0.5) - 18
+            self._text(ax, 120, yy - 12, row[0], 26, INK, "bold" if i == 0 else "normal")
             if len(row) > 5:
-                self._text(ax, 110, yy + 17, row[5], 16, MUTED)
+                self._text(ax, 120, yy + 20, row[5], 19, MUTED)
             hot = i < 2  # PPO and the rolling horizon: the comparison that matters
-            ax.add_patch(rounded(1560, yy - 8, 180, 46, 23, fc=row[1] if hot else WASH,
+            ax.add_patch(rounded(1600, yy - 10, 200, 52, 26, fc=row[1] if hot else WASH,
                                  ec="none"))
-            self._text(ax, 1650, yy, row[4], 23, "white" if hot else INK, "bold" if hot else
-                       "normal", ha="center")
-        self._text(ax, 1650, 236, "TIME PER DECISION", 17, INK, "bold", ha="center")
-        for k, part in enumerate(wrap(takeaway, 100)):
-            self._text(ax, 110, 925 + 36 * k, part, 26, INK, "bold")
+            self._text(ax, 1700, yy - 2, row[4], 26, "white" if hot else INK,
+                       "bold" if hot else "normal", ha="center")
+        self._text(ax, 1700, 244, "TIME PER DECISION", 20, INK, "bold", ha="center")
+        for k, part in enumerate(wrap(takeaway, 90)):
+            self._text(ax, 120, 1000 + 38 * k, part, 28, INK, "bold")
         return self._rgb()
 
     def outline(self, items, current=None, note="") -> np.ndarray:
         """The outline slide, or a section slide with the current item lit."""
         ax = self._canvas()
-        self._panel(ax, 96, 96, self.W - 192, SLIDE_BOTTOM - 96)
-        self._text(ax, 150, 150, "ME5418 GROUP 17 · MEDICAL DELIVERY DRONE", 18, MUTED, "bold")
-        self._text(ax, 150, 192, "Outline" if current is None else items[current], 46, INK, "bold")
+        self._page(ax)
+        self._text(ax, 120, 110, "ME5418 GROUP 17 · MEDICAL DELIVERY DRONE", 22, MUTED, "bold")
+        self._text(ax, 120, 152, "Outline" if current is None else items[current], 62, INK,
+                   "bold")
         if note:
-            self._text(ax, 150, 266, note, 26, MUTED)
+            self._text(ax, 120, 250, note, 30, MUTED)
         for j, item in enumerate(items):
-            y, lit = 380 + 84 * j, current is None or j == current
-            ax.add_patch(Circle((176, y + 24), 24, fc=self.colors[0] if j == current else
+            y, lit = 380 + 120 * j, current is None or j == current
+            ax.add_patch(Circle((156, y + 30), 32, fc=self.colors[0] if j == current else
                                 (INK if lit else WASH)))
-            ax.text(176, y + 24, str(j + 1), ha="center", va="center", fontsize=pt(22),
+            ax.text(156, y + 30, str(j + 1), ha="center", va="center", fontsize=pt(30),
                     color="white" if lit else MUTED, weight="bold")
-            self._text(ax, 224, y + 6, item, 30, INK if lit else FAINT,
+            self._text(ax, 222, y + 6, item, 42, INK if lit else FAINT,
                        "bold" if j == current else "normal")
         return self._rgb()
 
@@ -970,11 +976,12 @@ class DuelFrames:
     def task(self, step: int, t: float) -> np.ndarray:
         """The task built up element by element; from step 4 the map shows the day's state at t."""
         ax = self._canvas()
-        self._text(ax, 72, 40, "1  The task", 44, INK, "bold")
-        self._text(ax, 72, 104, self.map_note, 22, MUTED)
+        self._page(ax)
+        self._text(ax, 96, 84, "1  The task", 50, INK, "bold")
+        self._text(ax, 96, 148, self.map_note, 26, MUTED)
         v = self.views[0]
         size, nodes = v.r["map"]["size"], v.r["map"]["nodes"]
-        f = self._box(56, 146, 750, 750)
+        f = self._box(56, 200, 860, 860)
         f.set(xlim=(-0.15, size + 0.15), ylim=(size + 0.15, -0.15))
         f.axis("off")
         if step >= 4:
@@ -991,124 +998,125 @@ class DuelFrames:
             ReplayFrames(part)._draw_map(f, {"active": None, "waiting": [], "cargo": [],
                                              "xy": (-9, -9)}, -10)
         for text in f.texts:  # the map is drawn larger than in the replay
-            text.set_fontsize(text.get_fontsize() * 1.5)
-        x, w = 860, 1000  # everything ends above SLIDE_BOTTOM
+            text.set_fontsize(text.get_fontsize() * 1.6)
+        x, w = 950, 920
         for j, (head, line) in enumerate(self.TASK[:min(step, 3) + 1]):  # the map's elements
-            y, now = 146 + 72 * j, j == step
-            self._text(ax, x, y, head, 30, INK if now else MUTED, "bold")
-            self._text(ax, x, y + 40, line, 24, INK if now else MUTED)
+            y, now = 206 + 84 * j, j == step
+            self._text(ax, x, y, head, 34, INK if now else MUTED, "bold")
+            self._text(ax, x, y + 44, line, 27, INK if now else MUTED)
 
         def card(y, h, now, accent=False):
-            self._panel(ax, x - 18, y, w, h, facecolor="#fff4e6" if accent else PANEL,
+            self._panel(ax, x - 18, y, w, h, facecolor="#fff4e6" if accent else WASH,
                         edgecolor="#e8590c" if now or accent else LINE, lw=3 if now else 1)
         if step >= 4:  # orders and their deadlines, colour-coded like the squares on the map
-            card(442, 168, step == 4)
-            self._text(ax, x + 6, 452, self.TASK[4][0], 30, INK, "bold")
+            card(548, 184, step == 4)
+            self._text(ax, x + 6, 558, self.TASK[4][0], 32, INK, "bold")
             limits = {tp["name"]: tp["limit"] for tp in v.r["types"]}
             for k, (label, shade) in enumerate(zip(TYPE_LABELS, TYPE_COLORS)):
-                cx = x + 6 + 242 * k
-                ax.add_patch(Rectangle((cx, 503), 24, 24, fc=shade))
-                self._text(ax, cx + 34, 498, label, 24, INK, "bold")
+                cx = x + 6 + 226 * k
+                ax.add_patch(Rectangle((cx, 613), 26, 26, fc=shade))
+                self._text(ax, cx + 36, 608, label, 26, INK, "bold")
                 lo, hi = WEIGHTS[label.lower()]
-                self._text(ax, cx + 34, 532, f"{limits[label.lower()]:.0f} min · {lo:g}–{hi:g} kg",
+                self._text(ax, cx + 36, 644, f"{limits[label.lower()]:.0f} min · {lo:g}–{hi:g} kg",
                            20, INK)
-            self._text(ax, x + 6, 570, "Late still counts, for less; expires at twice its limit.",
-                       22, INK)
+            self._text(ax, x + 6, 686, "Late still counts, for less; expires at twice its limit.",
+                       25, INK)
         if step >= 5:  # the drone's limits
-            card(622, 128, step == 5)
-            self._text(ax, x + 6, 632, self.TASK[5][0], 30, INK, "bold")
+            card(744, 142, step == 5)
+            self._text(ax, x + 6, 754, self.TASK[5][0], 32, INK, "bold")
             meta = v.r["meta"]
             for k in range(meta["max_boxes"]):
-                ax.add_patch(rounded(x + 6 + 36 * k, 680, 28, 28, 4, fc=TYPE_COLORS[1], ec="none"))
-            self._text(ax, x + 130, 676, f"at most {meta['max_boxes']} boxes", 24, INK)
-            self._text(ax, x + 420, 676, f"at most {meta['max_kg']:g} kg", 24, INK)
-            ax.add_patch(rounded(x + 6, 722, 300, 16, 8, fc=WASH, ec="none"))
-            ax.add_patch(rounded(x + 6, 722, 300 * 0.62, 16, 8, fc=ONTIME, ec="none"))
-            rx = x + 6 + 300 * meta["reserve"] / 100
-            ax.plot([rx, rx], [716, 744], color=INK, lw=2)
-            self._text(ax, x + 330, 714, f"always able to reach a charger with {meta['reserve']:g}%"
-                       " left", 22, INK)
+                ax.add_patch(rounded(x + 6 + 38 * k, 804, 30, 30, 4, fc=TYPE_COLORS[1], ec="none"))
+            self._text(ax, x + 136, 800, f"at most {meta['max_boxes']} boxes", 27, INK)
+            self._text(ax, x + 450, 800, f"at most {meta['max_kg']:g} kg", 27, INK)
+            ax.add_patch(rounded(x + 6, 850, 280, 18, 9, fc=LINE, ec="none"))
+            ax.add_patch(rounded(x + 6, 850, 280 * 0.62, 18, 9, fc=ONTIME, ec="none"))
+            rx = x + 6 + 280 * meta["reserve"] / 100
+            ax.plot([rx, rx], [844, 874], color=INK, lw=2)
+            self._text(ax, x + 306, 842, f"able to reach a charger with {meta['reserve']:g}% left",
+                       25, INK)
         if step >= 6:  # what the dispatcher decides at every step
-            card(762, 150, True, accent=True)
-            self._text(ax, x + 6, 772, self.TASK[6][0], 30, "#b34700", "bold")
-            self._text(ax, x + 6, 812, "Which order to pick up or deliver next?", 24, INK)
-            self._text(ax, x + 6, 844, "When to charge, and to 60, 80 or 100%?", 24, INK)
-            self._text(ax, x + 6, 878, "Goal: as many orders on time as possible.", 26, INK,
+            card(898, 168, True, accent=True)
+            self._text(ax, x + 6, 906, self.TASK[6][0], 32, "#b34700", "bold")
+            self._text(ax, x + 6, 948, "Which order to pick up or deliver next?", 26, INK)
+            self._text(ax, x + 6, 982, "When to charge, and to 60, 80 or 100%?", 26, INK)
+            self._text(ax, x + 6, 1020, "Goal: as many orders on time as possible.", 28, INK,
                        "bold")
         return self._rgb()
 
     def method(self, title, boxes, lines) -> np.ndarray:
         """A left-to-right flow of boxes (heading, line) with arrows, and lines under it."""
         ax = self._canvas()
-        self._text(ax, 96, 50, title, 44, INK, "bold")
+        self._page(ax)
+        self._text(ax, 96, 90, title, 56, INK, "bold")
         n, gap = len(boxes), 76
         w = (1728 - gap * (n - 1)) / n
         for k, (head, line) in enumerate(boxes):
             x = 96 + k * (w + gap)
             last = k == n - 1
-            self._panel(ax, x, 180, w, 400, facecolor="#fff4e6" if last else PANEL,
+            self._panel(ax, x, 210, w, 440, facecolor="#fff4e6" if last else WASH,
                         edgecolor="#e8590c" if last else LINE, lw=3 if last else 1.5)
-            heads = wrap(head, int(w / 19))
+            heads = wrap(head, int(w / 22))
             for j, part in enumerate(heads):
-                self._text(ax, x + 26, 206 + 44 * j, part, 31, "#b34700" if last else INK, "bold")
-            for j, part in enumerate(wrap(line, int(w / 15))):
-                self._text(ax, x + 26, 230 + 44 * len(heads) + 40 * j, part, 26, INK)
+                self._text(ax, x + 26, 236 + 50 * j, part, 38, "#b34700" if last else INK, "bold")
+            for j, part in enumerate(wrap(line, int(w / 17.5))):
+                self._text(ax, x + 26, 262 + 50 * len(heads) + 46 * j, part, 32, INK)
             if not last:
-                ax.annotate("", (x + w + gap - 8, 380), (x + w + 8, 380),
-                            arrowprops=dict(arrowstyle="-|>", color=INK, lw=3, mutation_scale=34))
-        y = 650
+                ax.annotate("", (x + w + gap - 8, 430), (x + w + 8, 430),
+                            arrowprops=dict(arrowstyle="-|>", color=INK, lw=3, mutation_scale=38))
+        y = 720
         for line in lines:  # a line given as (text, True) is bold
             text, bold = line if isinstance(line, tuple) else (line, False)
-            for part in wrap(text, 84 if bold else 88):
-                self._text(ax, 96, y, part, 30, "#b34700" if bold else INK,
+            for part in wrap(text, 72 if bold else 76):
+                self._text(ax, 96, y, part, 38, "#b34700" if bold else INK,
                            "bold" if bold else "normal")
-                y += 46
+                y += 56
             y += 30
         return self._rgb()
 
-    def bullets(self, title, lines, kicker, highlight="", size=29) -> np.ndarray:
+    def bullets(self, title, lines, kicker, highlight="", size=36) -> np.ndarray:
         """A heading with numbered points, and optionally a highlighted box under them."""
         ax = self._canvas()
-        self._panel(ax, 96, 96, self.W - 192, SLIDE_BOTTOM - 96)
-        self._text(ax, 150, 150, kicker, 18, MUTED, "bold")
-        self._text(ax, 150, 192, title, 46, INK, "bold")
-        y = 310
+        self._page(ax)
+        self._text(ax, 120, 110, kicker, 22, MUTED, "bold")
+        self._text(ax, 120, 150, title, 58, INK, "bold")
+        width, step = int(1560 / (size * 0.54)), round(size * 1.42)
+        y = 290
         for j, line in enumerate(lines):
-            ax.add_patch(Circle((176, y + 22), 22, fc=self.colors[0]))
-            ax.text(176, y + 22, str(j + 1), ha="center", va="center", fontsize=pt(20),
-                    color="white", weight="bold")
-            width, step = int(92 * 29 / size), round(42 * size / 29)
-            for k, part in enumerate(wrap(line, width)):
-                self._text(ax, 224, y + 2 + step * k, part, size, INK)
-            y += step * len(wrap(line, width)) + round(36 * size / 29)
+            ax.add_patch(Circle((150, y + size * 0.72), size * 0.78, fc=self.colors[0]))
+            ax.text(150, y + size * 0.72, str(j + 1), ha="center", va="center",
+                    fontsize=pt(size * 0.75), color="white", weight="bold")
+            parts = wrap(line, width)
+            for k, part in enumerate(parts):
+                self._text(ax, 208, y + step * k, part, size, INK)
+            y += step * len(parts) + round(size * 1.15)
         if highlight:
-            parts = wrap(highlight, 90)
-            ax.add_patch(rounded(150, y + 4, self.W - 300, 40 * len(parts) + 40, 14,
+            parts = wrap(highlight, int(1580 / (size * 0.56)))
+            ax.add_patch(rounded(120, y + 4, self.W - 240, step * len(parts) + 44, 16,
                                  fc="#fff4e6", ec="#e8590c", lw=3))
             for k, part in enumerate(parts):
-                self._text(ax, 180, y + 24 + 40 * k, part, 29, "#b34700", "bold")
+                self._text(ax, 150, y + 26 + step * k, part, size, "#b34700", "bold")
         return self._rgb()
 
     def closing(self, title, lines) -> np.ndarray:
         """The last slide: a large centred title and a few lines."""
         ax = self._canvas()
-        self._panel(ax, 96, 96, self.W - 192, SLIDE_BOTTOM - 96)
-        ax.add_patch(Rectangle((96, 96), self.W - 192, 14, fc=self.colors[0], ec="none"))
-        ax.text(self.W / 2, 430, title, ha="center", va="center", fontsize=pt(92), color=INK,
+        self._page(ax)
+        ax.text(self.W / 2, 440, title, ha="center", va="center", fontsize=pt(104), color=INK,
                 weight="bold")
         for j, line in enumerate(lines):
-            ax.text(self.W / 2, 580 + 70 * j, line, ha="center", va="center", fontsize=pt(38),
+            ax.text(self.W / 2, 610 + 80 * j, line, ha="center", va="center", fontsize=pt(44),
                     color=MUTED if j else INK)
         return self._rgb()
 
     def card(self, title, lines, kicker) -> np.ndarray:
-        """A full-screen text card."""
+        """A full-screen text slide."""
         ax = self._canvas()
-        self._panel(ax, 96, 96, self.W - 192, SLIDE_BOTTOM - 96)
-        self._text(ax, 150, 170, kicker, 20, MUTED, "bold")
-        self._text(ax, 150, 220, title, 58, INK, "bold")
+        self._page(ax)
+        self._text(ax, 120, 150, kicker, 26, MUTED, "bold")
+        self._text(ax, 120, 200, title, 62, INK, "bold")
         for j, line in enumerate(lines):
-            self._text(ax, 150, 360 + 66 * j, line, 34)
+            self._text(ax, 120, 380 + 88 * j, line, 44)
         return self._rgb()
 
 
