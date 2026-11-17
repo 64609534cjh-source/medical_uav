@@ -1,6 +1,6 @@
 # Medical UAV Delivery: A PPO Learning Agent
 
-NUS ME5418, Group 17 (Jihang Cai, Yu Liu, Yufeng Zhang). **Milestone 3: the learning agent.**
+NUS ME5418, Group 17 (Jihang Cai, Yu Liu, Yufeng Zhang). **Final project.**
 
 One drone collects and delivers medical orders between a medical center and five hospitals in
 our Gymnasium environment. It must meet deadlines, avoid no-fly zones, respect cargo limits and
@@ -9,7 +9,9 @@ optimization (PPO), implemented in `medical_uav/agents/ppo.py`.
 
 The final agent was trained from scratch on 500 random maps (map seeds 1000–1499), with reward
 variant `v2_expiry05`, for 12 million decisions per run and five training seeds.
-Design and results are in the two-page report `ME5418_Group17_M3_Report.pdf`.
+Design and results are in our individual final reports; the group video
+(`ME5418_Group17_Video.mp4`) shows the agent on an example day next to a conventional rule.
+Both are submitted next to this code zip.
 
 ![A decision in the PPO replay](assets/demo.png)
 
@@ -68,6 +70,16 @@ Slack-aware is closest to its median over the 40 development days (PPO 78.8 %, S
 Drag the timeline to jump, or tick **Stop at each decision**.
 **How to read this screen** explains the display.
 Pauses at decisions allow time to read the choices; they are not computation time.
+
+## The group video
+
+```bash
+python -m scripts.compare_video --fps 12 --out outputs/video_12fps.mp4
+```
+
+Optional. This rebuilds the group video at 12 frames per second in about 15 min; the submitted
+video used `--fps 60` (about 1 h). It replays the day above for PPO and Slack-aware, and its
+final chart reads `evidence/final_test/` and `evidence/latency/`.
 
 ## A short training run
 
@@ -224,6 +236,7 @@ scripts/
   locked_test.py        run the frozen final-test entrants and check hashes
   locked_report.py      final-test statistics, CSVs and summary JSON
   latency.py            serial decision-time benchmark
+  compare_video.py      the group video
 checkpoints/            ppo_set.pt and ppo_set.json (shipped agent and provenance);
                         entrants/ (41 frozen PPO checkpoints and manifest.json);
                         bc_set.pt, bc_mlp.pt (Slack-aware imitation);
@@ -235,7 +248,6 @@ evidence/latency/       serial timing CSVs
 evidence/training/      evals.csv for all final-test PPO runs, with run logs
 evidence/registration/  2026-10-29-final-test-preregistration.md
 assets/                 offline replays and picture
-ME5418_Group17_M3_Report.pdf  the two-page report
 environment.yml         exact Conda environment
 pyproject.toml          package definition for editable installation
 ```

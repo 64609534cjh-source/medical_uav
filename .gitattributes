@@ -11,6 +11,5 @@ scripts/train_dagger.py export-ignore
 scripts/failure_analysis.py export-ignore
 scripts/map_stress.py export-ignore
 scripts/compare_variants.py export-ignore
-scripts/compare_video.py export-ignore
 scripts/analyze_behaviour.py export-ignore
 scripts/energy_contrasts.py export-ignore
