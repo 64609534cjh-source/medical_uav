@@ -21,7 +21,7 @@ from medical_uav.env.actions import decode
 from medical_uav.env.config import EPS
 from medical_uav.env.render import save_animation
 from medical_uav.env.replay import day_record, decision_record, short_text, state_at
-from medical_uav.env.video import (TYPE_LABELS, Captions, DuelFrames, ReplayFrames, clock,
+from medical_uav.env.video import (TYPE_LABELS, Band, Captions, DuelFrames, ReplayFrames, clock,
                                    day_times, flown, zoom)
 from scripts.demo import POLICY_NAMES, make_policy
 
@@ -42,7 +42,8 @@ OUTLINE = ["The delivery task", "How PPO chooses actions", "One full day: PPO vs
            "Ten methods on 30 new maps"]
 ANIM_S = 0.33  # seconds per step of the decision-card animation
 FADE, FADE_S = "fade", 0.4  # marker in a frame stream for a dissolve, and its length (s)
-FLASH_S, APPEAR_S = 0.8, 0.35  # a new caption flashes orange this long, and slides in
+FLASH_S, APPEAR_S = 0.8, 0.35  # a new caption brightens its band this long, and slides in
+PAUSE_LINE = "The replay stops while one part of the screen is explained."
 
 
 def record_day(name, load, seed):
@@ -442,7 +443,6 @@ def main():
     r = DuelFrames(ppo, rule)
     view = ReplayFrames(ppo, f"Example day: {args.load} demand on map 0, the map of our earlier "
                         "milestones; this map was not used in training", scale=1.5)
-    view.timeline = False  # its place at the bottom holds the captions
     # each pause: stages (caption title, line, box to zoom into, caption place, seconds held);
     # the view moves from stage to stage, then back out
     t1, title1, lines1 = ppo_failure(ppo, rule)
@@ -479,11 +479,13 @@ def main():
                   "on this example day: picking up, delivering, charging or waiting.", 7)]
     if args.translate:
         words = json.loads(args.translate.read_text(encoding="utf-8"))
-        captions = Captions(args.fonts[0], args.fonts[1], int(args.fonts[2]))
+        bold, regular, index = args.fonts[0], args.fonts[1], int(args.fonts[2])
     else:
-        words = {}
-        captions = Captions(*(font_manager.findfont(font_manager.FontProperties(
-            family="DejaVu Sans", weight=w)) for w in ("bold", "normal")))
+        words, index = {}, 0
+        bold, regular = (font_manager.findfont(font_manager.FontProperties(
+            family="DejaVu Sans", weight=w)) for w in ("bold", "normal"))
+    band = Band(bold, bold, index=index)  # the caption band above the frame
+    captions = Captions(bold, regular, index)  # the floating explanation in a zoomed pause
     paused_label = words.get("PAUSED", "PAUSED")
     tr = lambda text: words.get(text, text)
     cue, cues, count, dissolve, since = ["", "", False, "slide"], [], [0], [False], [0]
@@ -635,13 +637,16 @@ def main():
             dissolve[0] = False
             last = picture
             title, body, paused, place = cue
-            title = (f"{paused_label} · {tr(title[9:])}" if title.startswith("PAUSED · ") else
-                     tr(title))
             k = since[0]
             since[0] += 1
-            yield captions.draw(picture, title, tr(body), paused, place,
-                                min(1.0, k / (APPEAR_S * fps)),
-                                max(0.0, 1 - k / (FLASH_S * fps)) ** 2)
+            appear, flash = min(1.0, k / (APPEAR_S * fps)), max(0.0, 1 - k / (FLASH_S * fps)) ** 2
+            if place.startswith("zoom"):  # the explanation floats beside the zoomed part
+                picture = captions.draw(picture, tr(title[9:]), tr(body), True, place, appear,
+                                        flash)
+                head, line = paused_label, tr(PAUSE_LINE)
+            else:
+                head, line = tr(title), tr(body)
+            yield np.vstack([band.draw(head, line, paused, appear, flash), picture])
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     n = save_animation(with_captions(frames()), str(args.out), fps)

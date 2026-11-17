@@ -190,3 +190,13 @@ def test_zoom_moves_smoothly_from_the_whole_frame_into_the_box():
     assert np.abs(zoom(frame, (0, 0, 80, 45), 0.0).astype(int) - frame).mean() < 2
     inside = zoom(frame, (0, 0, 80, 45), 1.0)
     assert inside.shape == frame.shape and inside[5:-5, 5:-5].min() > 240
+
+
+def test_band_has_the_frame_width_and_slides_text_in():
+    from matplotlib import font_manager
+    from medical_uav.env.video import Band
+
+    bold = font_manager.findfont(font_manager.FontProperties(family="DejaVu Sans", weight="bold"))
+    band = Band(bold, bold)
+    start, done = band.draw("Title", "A line", appear=0.0, flash=1.0), band.draw("Title", "A line")
+    assert start.shape == done.shape == (Band.H, 1920, 3) and (start != done).any()

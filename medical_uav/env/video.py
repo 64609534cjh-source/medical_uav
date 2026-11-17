@@ -43,6 +43,39 @@ def rounded(x, y, w, h, radius, **style) -> FancyBboxPatch:
     return FancyBboxPatch((x, y), w, h, boxstyle=f"round,pad=0,rounding_size={radius}", **style)
 
 
+class Band:
+    """The caption band above each frame: a light apricot strip with an orange heading and a
+    dark, bold line. A new caption slides in from the left while the strip brightens."""
+
+    H = 200
+    BG, LIT = (255, 236, 214), (255, 214, 168)
+
+    def __init__(self, bold: str, regular_bold: str, width: int = 1920, index: int = 0):
+        from PIL import ImageFont
+        self.head = ImageFont.truetype(bold, 48, index=index)
+        self.line = ImageFont.truetype(regular_bold, 38, index=index)
+        self.width, self.cache = width, {}
+
+    def draw(self, title, body="", paused=False, appear=1.0, flash=0.0) -> np.ndarray:
+        e = appear * appear * (3 - 2 * appear)
+        key = (title, body, paused, round(e, 2), round(flash, 2))
+        if key not in self.cache:
+            from PIL import Image, ImageDraw
+            bg = tuple(round(a + (b - a) * flash) for a, b in zip(self.BG, self.LIT))
+            img = Image.new("RGB", (self.width, self.H), bg)
+            d = ImageDraw.Draw(img)
+            d.rectangle((0, 0, 16, self.H), fill=(232, 89, 12))
+            d.rectangle((0, self.H - 4, self.width, self.H), fill=(232, 89, 12))
+            shift = round((1 - e) * 60)
+            mix = lambda col: tuple(round(c + (b - c) * (1 - e)) for c, b in zip(col, bg))
+            d.text((52 - shift, 16), title, font=self.head,
+                   fill=mix((200, 60, 0) if paused else (190, 70, 0)))
+            for j, text in enumerate(Captions.wrap(body, self.line, self.width - 100)[:2]):
+                d.text((52 - shift, 88 + 52 * j), text, font=self.line, fill=mix((19, 33, 60)))
+            self.cache[key] = np.asarray(img)
+        return self.cache[key]
+
+
 class Captions:
     """Narration drawn into the frame: a dark box with a heading and up to two lines. PLACES
     gives, per scene, the box's x, width, heading and line sizes and whether it hangs from the
@@ -624,8 +657,11 @@ class DuelFrames:
     def draw(self, t: float, paused=False, phases=(None, None), speed=None) -> np.ndarray:
         """The frame at time t; phases: per side None or a step of a new decision, "Deciding"
         (the choices shown) then "Picked" (the top one taken)."""
-        ax = self._canvas()  # the top left (x < 1290, y < 126) is left free for captions
+        ax = self._canvas()
         meta = self.r["meta"]
+        self._text(ax, 32, 22, "Same orders, two dispatchers", 34, INK, "bold")
+        self._text(ax, 32, 72, f"{meta['load'].capitalize()} demand · same map and same order "
+                   "arrivals for both", 17, MUTED)
         self._text(ax, self.W - 32, 8, clock(t, meta["day_start_hour"]), 52, INK, "bold",
                    ha="right")
         peak = any(a <= t < b for a, b in meta["peaks"])
