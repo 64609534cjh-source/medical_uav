@@ -38,7 +38,8 @@ Main libraries (exact versions; no simulator or other external software is neede
 | imageio, imageio-ffmpeg | 2.38.1, 0.6.0 | writing MP4 videos (ffmpeg is bundled) |
 | pytest | 9.1.1 | not needed to run the code |
 
-The same list without Conda: `pip install -r requirements.txt`.
+Without Conda: in a Python 3.11 environment, run `python -m pip install -r requirements.txt`, then
+`python -m pip install -e .`.
 
 If `medical-uav-rl` already exists, add `-n medical-uav-m3` to the first command and activate
 `medical-uav-m3` instead. Run all commands below from this folder with the environment active.
@@ -67,8 +68,8 @@ The shipped agent is `checkpoints/ppo_set.pt`: training seed 11, checkpoint at 1
 decisions. `checkpoints/ppo_set.json` records its hash, training command and selection rule.
 The training seed was fixed before the final test.
 
-**Which model to use:** `checkpoints/ppo_set.pt`. Every command in this README uses it unless
-`--checkpoint` says otherwise. The other checkpoints are only for the comparisons in the report:
+**Which model to use:** `checkpoints/ppo_set.pt`. Every PPO command in this README uses it
+unless `--checkpoint` gives another file. The other checkpoints are only for the comparisons in the report:
 `checkpoints/entrants/` holds the 41 frozen PPO networks of the final test (one of them is a copy
 of `ppo_set.pt`), and `locked_test.py` checks them by hash, so keep their names and folder.
 Their names read as follows:
@@ -186,6 +187,8 @@ python scripts/select_checkpoints.py runs/f12_mm_e05_s11 --maps select --days 20
 Selection evaluates the first 20 selection days on each of maps 100–109. Eligible checkpoints
 must reach 97% on time at low load, with no order type more than 3 percentage points below
 Slack-aware at medium and high load. Among them, the highest medium/high mean wins.
+The selector prints the chosen checkpoint; run it with
+`python scripts/demo.py --policy ppo --checkpoint PATH`.
 
 To rerun the registered final test with the supplied frozen checkpoints:
 
@@ -212,14 +215,15 @@ rolling horizon takes most of it. The short sample is a timing check. The publis
 
 ```bash
 python scripts/demo_network.py
-python scripts/train_bc.py
-python scripts/train_bc.py --teacher rollout
+python scripts/train_bc.py --out outputs/bc
+python scripts/train_bc.py --teacher rollout --out outputs/bc
 ```
 
 The network demo takes a few seconds: parameter counts, forward and backward passes on real
 observations, then a day with each trained network and Slack-aware. It saves no files.
 Behaviour cloning (BC) trains `mlp`, `set` and `set_dest` (an unused variant) to imitate a teacher. The two training commands
-overwrite the corresponding `bc_*` or `bc_rollout_*` checkpoints and histories.
+save new `bc_*` and `bc_rollout_*` checkpoints and histories in `outputs/bc/` (about 6 and 11 min
+on 16 cores); the supplied ones in `checkpoints/` stay unchanged for the final test.
 
 ## Environment and networks
 
