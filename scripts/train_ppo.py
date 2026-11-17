@@ -101,6 +101,7 @@ def main():
     eval_log.writerow(["decisions", "seconds"] + [f"on_time_{load}" for load in EVAL_LOADS])
 
     def evaluate(decisions: int) -> dict:
+        """Greedy on-time rates on the selection days; logged to evals.csv."""
         result = evaluate_net(net, args.eval_days, many_maps=maps is not None, config=config)
         eval_log.writerow([decisions, round(time.time() - t0, 1)] + list(result.values()))
         evals.flush()

@@ -128,6 +128,7 @@ class Block:
 
 
 def reading(c) -> str:
+    """Plain-words reading of a difference (mean, low, high) in percentage points."""
     direction = "better" if c[1] > 0 else "worse" if c[2] < 0 else "no direction"
     return direction + (", practically equivalent" if -EQUIVALENCE < c[1] and c[2] < EQUIVALENCE
                         else "")
@@ -138,6 +139,7 @@ def fmt(c) -> str:
 
 
 def report_block(name: str, b: Block, loads: list, times: dict, out: dict) -> None:
+    """Print one block's rates and paired differences per load and store them in out."""
     methods = list(dict.fromkeys(r["method"] for r in b.rows))
     unit = "maps" if b.by_map else "days"
     for load in loads:

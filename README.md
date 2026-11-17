@@ -26,6 +26,20 @@ conda activate medical-uav-rl
 python -m pip install -e .
 ```
 
+Main libraries (exact versions; no simulator or other external software is needed):
+
+| Library | Version | Used for |
+|---|---|---|
+| Python | 3.11.17 | |
+| PyTorch (CPU) | 2.14.1 | networks, PPO and imitation training |
+| Gymnasium | 1.4.0 | environment interface |
+| NumPy | 2.4.6 | simulation and observations |
+| Matplotlib | 3.11.2 | pictures, learning curves, video frames |
+| imageio, imageio-ffmpeg | 2.38.1, 0.6.0 | writing MP4 videos (ffmpeg is bundled) |
+| pytest | 9.1.1 | not needed to run the code |
+
+The same list without Conda: `pip install -r requirements.txt`.
+
 If `medical-uav-rl` already exists, add `-n medical-uav-m3` to the first command and activate
 `medical-uav-m3` instead. Run all commands below from this folder with the environment active.
 Times are approximate, measured on a Linux CPU machine with 24 hardware threads.

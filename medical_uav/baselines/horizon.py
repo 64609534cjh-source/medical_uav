@@ -64,6 +64,7 @@ class RollingHorizon:
         return foresight_root(env, self.horizon) if self.foresight else planning_root(env)
 
     def scores(self, env) -> dict[int, float]:
+        """Value of each allowed action: the best plan found after taking it."""
         root = self.root(env)
         candidates = np.flatnonzero(env.action_masks())
         assert root.action_masks()[candidates].all(), "the planning copy disallows an action"

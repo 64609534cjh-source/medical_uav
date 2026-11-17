@@ -138,6 +138,7 @@ def backlog_gap(ppo, rule):
 
 
 def day_end(ppo, rule):
+    """The end-of-day pause: both outcome counts."""
     p, r = ppo["meta"]["summary"], rule["meta"]["summary"]
     t = max(ppo["meta"]["end"], rule["meta"]["end"])
     line = lambda m: (f"{m['on_time']} on time, {m['delivered'] - m['on_time']} late, "
@@ -413,6 +414,7 @@ def speedup(load="high"):
 
 
 def summary_lines(rows, ppo, rule):
+    """The three summary points, from the final-test rows."""
     p, h = rows[0], rows[1]
     slack = next(row for row in rows if row[0] == "Slack-aware")
     a, b = _lost(ppo, rule)
@@ -501,6 +503,7 @@ def main():
                                repeat(r.outline(OUTLINE, k), 4 * fps))[1]
 
     def frames():
+        """Every frame of the video in order, with the caption set by say()."""
         say("Learning to dispatch a medical delivery drone",
             "How a neural network trained with reinforcement learning runs one delivery drone, "
             "and how it compares with other methods.")

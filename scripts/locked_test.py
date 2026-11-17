@@ -213,6 +213,7 @@ def run_job(job) -> None:
 
 
 def run(args) -> None:
+    """Check every entrant's hash, then run each entrant on every test day once (resumable)."""
     if args.days == "test" and args.limit is not None:
         raise SystemExit("the final test runs every day")
     manifest = json.loads(MANIFEST.read_text())

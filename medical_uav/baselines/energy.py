@@ -33,6 +33,7 @@ class PrePeakTopUp:
         return a if a is not None else slack100_policy(env)
 
     def top_up(self, env) -> int | None:
+        """A charge action before a coming peak when the battery is low and nothing is on board."""
         sim, mask = env.sim, env.action_masks()
         if sim.battery >= PREPEAK_BELOW or sim.onboard:  # onboard includes expired boxes
             return None
