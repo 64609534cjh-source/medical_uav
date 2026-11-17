@@ -53,6 +53,22 @@ The shipped agent is `checkpoints/ppo_set.pt`: training seed 11, checkpoint at 1
 decisions. `checkpoints/ppo_set.json` records its hash, training command and selection rule.
 The training seed was fixed before the final test.
 
+**Which model to use:** `checkpoints/ppo_set.pt`. Every command in this README uses it unless
+`--checkpoint` says otherwise. The other checkpoints are only for the comparisons in the report:
+`checkpoints/entrants/` holds the 41 frozen PPO networks of the final test (one of them is a copy
+of `ppo_set.pt`), and `locked_test.py` checks them by hash, so keep their names and folder.
+Their names read as follows:
+
+| Part | Meaning |
+|---|---|
+| `f12`, `f24` | 12 or 24 million training decisions |
+| `mm`, `sm` | trained on 500 random maps, or on map 0 only |
+| `e05`, `v2`, `m1`, `ontime` | reward: expiry −0.5 (final), expiry −0.1, the M1 reward, on-time only |
+| `mlp`, `bc` | MLP instead of the set network; started from imitation of Slack-aware |
+| `s11` … `s55` | training seed |
+
+The final agent's five runs are `f12_mm_e05_s11` … `f12_mm_e05_s55`.
+
 ## Replays without installation
 
 Open an HTML file in `assets/` in a browser; it works offline.
