@@ -49,7 +49,7 @@ def can_deliver(sim: Simulator, node: int) -> bool:
     remaining = [o for o in sim.onboard if o not in expired]
     if not any(o.dest == node for o in remaining):
         return False
-    load_after = sum(o.weight for o in remaining if o.dest != node)
+    load_after = sum(o.weight for o in remaining if o.dest != node)  # boxes for node come off
     e = sim.energy(sim.location, node, sim.load_kg())
     return _battery_ok(sim, e, node, load_after)
 
@@ -79,5 +79,5 @@ def compute_action_mask(sim: Simulator, slots: list[Order]) -> np.ndarray:
     for i, (station, target) in enumerate(CHARGE_TABLE):
         mask[CHARGE0 + i] = can_charge(sim, station, target)
     mask[RETURN] = can_return(sim)
-    mask[WAIT] = True
+    mask[WAIT] = True  # waiting is always allowed, so at least one action is valid
     return mask

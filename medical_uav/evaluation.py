@@ -125,7 +125,7 @@ TYPE_TOLERANCE = 0.03  # and no order type more than 3 points below Slack-aware 
 
 
 def select_checkpoint(results: dict, slack: dict) -> tuple[str | None, list[dict]]:
-    """Choose one checkpoint of a run by the rule fixed before training (roadmap section 4).
+    """Choose one checkpoint of a run by the rule fixed before training (see the README).
 
     `results` maps each checkpoint path to {load: {"on_time_rate": ..., "on_time_<type>": pooled
     rate}} on the selection days, `slack` holds the same for Slack-aware. A checkpoint is eligible

@@ -1,10 +1,12 @@
-"""Choose one checkpoint per training run by the rule fixed before training (roadmap section 4).
+"""Choose one checkpoint per training run by the rule fixed before training (see the README).
 
-Every checkpoint of every run is evaluated greedily on the 100 selection days at all loads,
-Slack-aware once on the same days; the result and every checkpoint's eligibility are saved.
+Every checkpoint of every run is evaluated greedily on the selection days at all loads (the
+first --days of them, on map 0 or with --maps select on each selection map), Slack-aware once
+on the same days; the result and every checkpoint's eligibility are saved.
 
 Usage:
-    python scripts/select_checkpoints.py runs/m3_set_s11 runs/m3_set_s22 --out runs/selection.json
+    python scripts/select_checkpoints.py runs/f12_mm_e05_s11 --maps select --days 20 \
+        --out runs/selection.json
 """
 import argparse
 import json

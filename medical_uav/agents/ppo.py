@@ -65,6 +65,7 @@ def collect(envs, net, state: dict, n_steps: int, rng) -> RolloutBuffer:
         buf.obs[t], buf.mask[t] = state["obs"], state["mask"]
         with torch.no_grad():
             logits, value = net(torch.as_tensor(state["obs"]), torch.as_tensor(state["mask"]))
+            # masked actions get ~0 probability; training samples, the trained agent takes the top
             dist = torch.distributions.Categorical(logits=logits)
             action = dist.sample()
         buf.action[t], buf.log_prob[t] = action.numpy(), dist.log_prob(action).numpy()
@@ -76,7 +77,7 @@ def collect(envs, net, state: dict, n_steps: int, rng) -> RolloutBuffer:
             buf.reward[t, k], buf.done[t, k] = reward / REWARD_SCALE, done
             if done:
                 state["finished"].append(episode_metrics(env.sim))
-                obs, mask = _new_day(env, rng, state["maps"])
+                obs, mask = _new_day(env, rng, state["maps"])  # the next day starts at once
             else:
                 mask = info["action_mask"]
             state["obs"][k], state["mask"][k] = obs, mask
@@ -95,11 +96,11 @@ def compute_gae(rewards, values, dones, last_value, lam: float = 0.95):
     next_value = last_value
     for t in reversed(range(len(rewards))):
         not_done = 1.0 - dones[t]
-        delta = rewards[t] + next_value * not_done - values[t]
-        gae = delta + lam * not_done * gae
+        delta = rewards[t] + next_value * not_done - values[t]  # one-step TD error
+        gae = delta + lam * not_done * gae  # discounted sum of TD errors (lambda only, gamma = 1)
         adv[t] = gae
         next_value = values[t]
-    return adv, adv + values
+    return adv, adv + values  # value targets = advantage + old value
 
 
 def ppo_update(net, opt, buf: RolloutBuffer, adv, ret, clip: float = 0.2, epochs: int = 4,
@@ -118,15 +119,17 @@ def ppo_update(net, opt, buf: RolloutBuffer, adv, ret, clip: float = 0.2, epochs
             logits, value = net(obs[b], mask[b])
             dist = torch.distributions.Categorical(logits=logits)
             log_prob = dist.log_prob(action[b])
-            ratio = (log_prob - old_log_prob[b]).exp()
+            ratio = (log_prob - old_log_prob[b]).exp()  # new / old probability of the taken action
             a = (adv[b] - adv[b].mean()) / (adv[b].std() + 1e-8)  # normalised per minibatch
+            # clipped objective: no gain from moving the ratio beyond 1 ± clip
             policy_loss = -torch.min(ratio * a, ratio.clamp(1 - clip, 1 + clip) * a).mean()
             value_loss = 0.5 * ((value - ret[b]) ** 2).mean()
             entropy = dist.entropy().mean()
+            # value weight 0.5 (0.25 x squared error overall); the entropy bonus keeps exploring
             loss = policy_loss + 0.5 * value_loss - ent_coef * entropy
             opt.zero_grad()
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(net.parameters(), 0.5)
+            torch.nn.utils.clip_grad_norm_(net.parameters(), 0.5)  # limits single large steps
             opt.step()
             with torch.no_grad():
                 stats["policy_loss"].append(policy_loss.item())

@@ -158,19 +158,19 @@ def state_at(record: dict, t: float) -> dict:
     and of the waiting orders, the outcome counts so far, and the index of the current
     decision (-1 before the first)."""
     segs, nodes = record["segments"], record["map"]["nodes"]
-    i = bisect.bisect_right([s[1] for s in segs], t + EPS) - 1
+    i = bisect.bisect_right([s[1] for s in segs], t + EPS) - 1  # last activity started by t
     xy, battery = (nodes[M]["x"], nodes[M]["y"]), (segs[0][5] if segs else 100.0)
     active, f = None, 1.0
     if i >= 0:
         kind, t0, t1, a, b, b0, b1 = segs[i][:7]
-        f = min(1.0, max(0.0, (t - t0) / (t1 - t0))) if t1 > t0 else 1.0
+        f = min(1.0, max(0.0, (t - t0) / (t1 - t0))) if t1 > t0 else 1.0  # fraction done
         battery = b0 + f * (b1 - b0)
         xy = (_along(record["map"]["routes"][f"{a}-{b}"], f) if kind == "fly" and f < 1
               else (nodes[b]["x"], nodes[b]["y"]))
         active = i if f < 1 else None
     cargo, waiting, on_time, late, expired = [], [], 0, 0, 0
     for o in record["orders"]:
-        if o["release"] > t + EPS:
+        if o["release"] > t + EPS:  # not yet known at time t
             continue
         picked = o["pickup"] is not None and o["pickup"] <= t + EPS
         closed = o["end"] is not None and o["end"] <= t + EPS
@@ -182,7 +182,7 @@ def state_at(record: dict, t: float) -> dict:
             continue
         if o["status"] == "expired" and closed:
             expired += 1
-        if picked:
+        if picked:  # on board until delivered or, if expired, unloaded
             if not (o["disposed"] is not None and o["disposed"] <= t + EPS):
                 cargo.append(o["id"])
         elif not closed:
@@ -210,6 +210,7 @@ def opening_decision(record: dict) -> int:
 
 def write_html(record: dict, path) -> Path:
     """Write the player with the record inside; returns the path."""
+    # "</" escaped so text in the record cannot close the player's <script> tag
     data = json.dumps(record, separators=(",", ":")).replace("</", "<\\/")
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)

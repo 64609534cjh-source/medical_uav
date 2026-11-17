@@ -4,8 +4,8 @@ The planning copy holds what the optimizer knows (visible: what the agent observ
 also the hidden pending orders and the real orders of the next 60 minutes). Every sequence of
 `depth` allowed actions is simulated exactly and finished by Slack-aware until all known work
 is done; the first action of the best sequence is taken. Multistep lookahead with a base-policy
-completion (Bertsekas, rollout algorithms), re-solved at each decision. Pre-registered in
-docs/superpowers/specs/2026-10-27-rolling-horizon-preregistration.md.
+completion (Bertsekas, rollout algorithms), re-solved at each decision. Its settings were fixed
+before it was tested.
 """
 import copy
 

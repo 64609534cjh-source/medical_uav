@@ -9,7 +9,7 @@ mean total reward over the streams; ties go to Slack-aware's choice, then to the
 All actions are scored on the same streams (common random numbers).
 
 An adaptation of the rollout policy-improvement framework (Bertsekas) with sample-average action
-values; pre-registered in docs/superpowers/specs/2026-10-27-final-phase-preregistration.md.
+values. Its settings were fixed before it was tested.
 """
 import copy
 

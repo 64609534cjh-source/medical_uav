@@ -1,7 +1,7 @@
 """The final test: freeze the registered entrants, then run every day of them once.
 
-Registered in docs/superpowers/specs/2026-10-29-final-test-preregistration.md, which supersedes
-the 10/27 locked test (its manifest and results stay in git history). `freeze` copies the
+Registered before the test (evidence/registration/2026-10-29-final-test-preregistration.md;
+REGISTRATION below is its path in our repository). `freeze` copies the
 selected checkpoints to checkpoints/entrants/ and the shipped agent to checkpoints/ppo_set.pt,
 and writes the manifest (entrants, checkpoint hashes, days, versions). `run` checks the hashes
 and evaluates every (block, entrant, map, load, day), one JSON file per day written atomically

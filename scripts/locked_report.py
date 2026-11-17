@@ -35,7 +35,7 @@ from locked_test import CONTROLS, FINAL, LOADS, MANIFEST, PATH, RULES, expected,
 GROUPS = {"final": FINAL, "final3": FINAL[:3], **{g: [r for r in PATH + CONTROLS if r.rsplit("_s", 1)[0] == g]
                              for g in dict.fromkeys(r.rsplit("_s", 1)[0] for r in PATH + CONTROLS)}}
 SHIPPED = FINAL[0]
-# roadmap §1 targets: medium gain over Slack-aware and margins for the lower bound
+# targets fixed in the registration: medium gain over Slack-aware, margins for the lower bound
 MEDIUM_GAIN = 0.03
 SLACK_MARGIN = {"low": -0.01, "high": -0.02}
 PLANNER_MARGIN = -0.02
