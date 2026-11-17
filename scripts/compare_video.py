@@ -354,9 +354,9 @@ def stretch_frames(view, steps, until, fps, say):
         while t < stop - EPS:
             t = min(stop, t + ACT_RATE / fps)
             yield view.draw(t, None, SLOW)
-        if n < len(steps) - 1:  # a moment on the result, just before the next decision
-            yield from repeat(view.draw(t - 1e-3, None, SLOW), round(0.8 * fps))
-    yield from repeat(view.draw(until - 1e-3, None, SLOW), round(2.5 * fps))
+        if n < len(steps) - 1:  # a moment on the result, the card still on this decision
+            yield from repeat(view.draw(t, None, SLOW, None, i), round(0.8 * fps))
+    yield from repeat(view.draw(until, None, SLOW, None, steps[-1][0]), round(2.5 * fps))
 
 
 # ---------- final test ----------

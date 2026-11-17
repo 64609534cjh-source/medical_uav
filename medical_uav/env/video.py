@@ -246,10 +246,13 @@ class ReplayFrames:
 
     # ---------- frame ----------
     def draw(self, t: float, phase: str | None = None, speed: str = "",
-             spot=None) -> np.ndarray:
+             spot=None, decision: int | None = None) -> np.ndarray:
         """The frame at time t; `phase` overrides the decision card's phase line; spot =
-        (boxes, alpha) dims all but the boxes."""
+        (boxes, alpha) dims all but the boxes; `decision` keeps the card on that decision (at
+        the instant an action ends, the next decision has already begun)."""
         r, s = self.r, state_at(self.r, t)
+        if decision is not None:
+            s = {**s, "decision": decision}
         self.fig.clear()
         ax = self.fig.add_axes((0, 0, 1, 1))
         ax.set_xlim(0, W)
