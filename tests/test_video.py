@@ -50,7 +50,7 @@ def test_duel_frames_are_1080p_rgb(low_day, paused):
         frame = renderer.draw(t, paused)
         assert frame.shape == (1080, 1920, 3) and frame.dtype == np.uint8
     for step in range(len(renderer.GUIDE)):
-        assert renderer.guide(65.0, step).shape == (1080, 1920, 3)
+        assert renderer.guide(65.0, step, "a note\nsecond line").shape == (1080, 1920, 3)
 
 
 def test_captions_are_drawn_in_the_frame_and_wrap_english_and_chinese():
@@ -70,26 +70,28 @@ def test_captions_are_drawn_in_the_frame_and_wrap_english_and_chinese():
     assert len(Captions.wrap("中文没有空格也要折行" * 10, font, 400)) > 2
 
 
-def test_duel_frames_show_the_steps_of_a_decision(low_day):
+def test_duel_frames_light_up_a_new_decision(low_day):
     from medical_uav.env.video import DuelFrames
 
     renderer = DuelFrames(low_day, low_day)
     t = low_day["decisions"][5]["t"]
-    frames = [renderer.draw(t, None, (p, None)) for p in ("Deciding", "Picked", None)]
-    assert all(f.shape == (1080, 1920, 3) for f in frames)
-    assert (frames[0] != frames[1]).any() and (frames[1] != frames[2]).any()
+    frames = [renderer.draw(t, None, (p, None)) for p in ("Deciding", None)]
+    assert all(f.shape == (1080, 1920, 3) for f in frames) and (frames[0] != frames[1]).any()
 
 
 def test_duel_series_follow_the_replay_state(low_day):
     from medical_uav.env.replay import state_at
-    from medical_uav.env.video import DuelFrames
+    from medical_uav.env.video import DuelFrames, flown
 
     renderer = DuelFrames(low_day, low_day)
-    minutes, km, waiting = renderer.series[0]
+    minutes, (on_time, waiting, km) = renderer.minutes, renderer.series[0]
     for k in (0, len(minutes) // 2, len(minutes) - 1):
-        assert waiting[k] == len(state_at(low_day, minutes[k])["waiting"])
-    assert km[0] == 0 and np.all(np.diff(km) >= 0)
-    assert km[-1] == pytest.approx(low_day["meta"]["summary"]["km"])
+        state = state_at(low_day, min(minutes[k], low_day["meta"]["end"]))
+        assert waiting[k] == len(state["waiting"]) and on_time[k] == state["on_time"]
+    assert km[0] == 0 and np.all(np.diff(km) >= 0) and np.all(np.diff(on_time) >= 0)
+    end = low_day["meta"]["end"]
+    assert flown(low_day, end) == pytest.approx(low_day["meta"]["summary"]["km"])
+    assert km[-1] == pytest.approx(flown(low_day, end, True)) and 0 < km[-1] < flown(low_day, end)
 
 
 def test_day_times_follow_the_slower_side_and_cover_the_day(low_day):
@@ -107,10 +109,11 @@ def test_slides_are_1080p_rgb(low_day):
     from medical_uav.env.video import DuelFrames
 
     renderer = DuelFrames(low_day, low_day)
-    slides = [renderer.outline(["A", "B"]), renderer.outline(["A", "B"], 1, "note"),
-              renderer.method("Net", [("A", "a"), ("B", "b")], ["line"]),
-              renderer.bullets("Summary", ["one", "two"], "SUMMARY")]
-    slides += [renderer.task(k, 65.0) for k in range(len(renderer.TASK))]
+    ids = tuple((o["id"], str(j + 1)) for j, o in enumerate(low_day["orders"][:2]))
+    slides = [renderer.bullets("Summary", ["one", "two"], "SUMMARY"),
+              renderer.versus([("A", "a line", ""), ("B", "b line", "badge")], "foot"),
+              renderer.day_numbers(), renderer.ways([("A", "a"), ("B", "b")], 1),
+              renderer.close(65.0, 30.0, ((1,), (1,)), ids, "SLOW MOTION")]
     assert all(f.shape == (1080, 1920, 3) for f in slides)
 
 
@@ -139,27 +142,6 @@ def test_final_rows_read_unseen_map_rates(tmp_path):
     assert rows[0][2:4] == pytest.approx((92.7, 81.7))
 
 
-def toy(orders, segments, end=100):
-    return {"meta": {"end": end, "peaks": [[20, 60]]}, "orders": orders, "segments": segments,
-            "map": {"nodes": [{"name": n} for n in ("M", "H1", "H2")]}}
-
-
-def order(i, status, end, pickup=None, deadline=50, kind=0):
-    return {"id": i, "type": kind, "from": 0, "to": 1, "release": 0, "limit": deadline,
-            "deadline": deadline, "pickup": pickup, "end": end, "status": status}
-
-
-def test_moments_name_real_events_from_both_days():
-    from scripts import compare_video
-
-    ppo = toy([order(1, "delivered", 40), order(2, "expired", 70)],
-              [["charge", 10, 15, 0, 0, 60, 100, None], ["fly", 15, 100, 0, 1, 100, 50, None]])
-    rule = toy([order(1, "expired", 80, pickup=30), order(2, "delivered", 45, pickup=35)],
-               [["fly", 0, 30, 0, 1, 100, 20, None], ["charge", 30, 42, 1, 0, 16, 80, None]])
-    loss = compare_video.ppo_failure(ppo, rule)
-    assert loss[0] == 70 and "#2" in loss[1]
-
-
 def test_record_day_keeps_the_network_top_choices_for_ppo_only():
     from scripts import compare_video
 
@@ -169,17 +151,26 @@ def test_record_day_keeps_the_network_top_choices_for_ppo_only():
     assert not any(d["top"] for d in slack["decisions"])
 
 
-def test_stretches_follow_consecutive_decisions_on_the_shipped_day():
+def test_stretches_follow_each_other_and_their_boxes_are_picked_inside():
     from scripts import compare_video
 
-    day = compare_video.record_day("ppo", "high", 100007)
-    first, second = compare_video.stretches(day)
-    for title, intro, steps, focus, until, plan, trait in (first, second):
-        assert plan and trait.startswith("What it shows")
-        idx = [i for i, _, _ in steps]
-        assert idx == list(range(idx[0], idx[-1] + 1)) and until >= day["decisions"][idx[-1]]["t"]
-    assert "Box 3 of 3" in " ".join(line for _, _, line in first[2])
-    assert "is due at" in second[2][0][2] and "before their deadlines" in second[2][-1][2]
+    ppo, rule = (compare_video.record_day(n, "high", 100007) for n in ("ppo", "slack"))
+    first, second = compare_video.stretches(ppo, rule)
+    assert first["end"] == second["start"] and second["shown"] < second["start"]
+    assert len(first["ids"]) == 3 and len(second["ids"]) == 3
+    orders = {o["id"]: o for o in ppo["orders"]}
+    for w in (first, second):
+        assert all(w["start"] <= orders[k]["pickup"] < w["end"] for k, _ in w["ids"])
+    for w in (first, second):
+        times = [t for t, _ in w["moments"]]
+        assert times == sorted(times) and all(w["start"] <= t <= w["end"] for t in times)
+
+def test_morph_ends_on_each_frame():
+    from medical_uav.env.video import morph
+
+    a, b = np.zeros((90, 160, 3), np.uint8), np.full((90, 160, 3), 200, np.uint8)
+    boxes = ([(0, 0, 40, 40)], [(60, 20, 80, 60)])
+    assert (morph(a, b, *boxes, 0.0) == a).all() and (morph(a, b, *boxes, 1.0) == b).all()
 
 
 def test_zoom_moves_smoothly_from_the_whole_frame_into_the_box():
@@ -197,6 +188,6 @@ def test_band_has_the_frame_width_and_slides_text_in():
     from medical_uav.env.video import Band
 
     bold = font_manager.findfont(font_manager.FontProperties(family="DejaVu Sans", weight="bold"))
-    band = Band(bold, bold)
-    start, done = band.draw("Title", "A line", appear=0.0, flash=1.0), band.draw("Title", "A line")
+    band = Band(bold)
+    start, done = band.draw("Title", appear=0.0, flash=1.0), band.draw("Title")
     assert start.shape == done.shape == (Band.H, 1920, 3) and (start != done).any()

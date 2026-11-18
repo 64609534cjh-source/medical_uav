@@ -30,7 +30,7 @@ DECIDING, PROGRESS = ("#fff0c2", "#6f4600"), ("#dfe9fd", "#1c49b8")
 RATES = {"fly": 1.0, "load": 1.5, "unload": 1.5, "dispose": 1.5}
 LEAVE_S, DECIDE_S, PICK_S, MOVE_S = 0.35, 0.7, 0.4, 0.6
 # the whole-day comparison: simulated min/s by activity (the slower side sets the pace)
-DAY_RATES, DAY_GROUND = {"fly": 7.0, "load": 8.0, "unload": 8.0, "dispose": 8.0}, 18.0
+DAY_RATES, DAY_GROUND = {"fly": 5.6, "load": 6.4, "unload": 6.4, "dispose": 6.4}, 14.4
 
 
 def pt(px: float) -> float:
@@ -44,11 +44,11 @@ def rounded(x, y, w, h, radius, **style) -> FancyBboxPatch:
 
 
 class Band:
-    """The caption band above each frame: a dark navy strip (the colour of the video's text)
-    with a warm yellow heading and a white, bold line. A new caption slides in from the left
-    while the strip brightens."""
+    """The title band above each frame: a dark navy strip (the colour of the video's text)
+    with a warm yellow heading. A new title slides in from the left while the strip
+    brightens."""
 
-    H = 200
+    H = 100
     BG, END, LIT = (28, 40, 66), (70, 88, 118), (58, 80, 124)
     SHADE = 1 - 0.25 * np.linspace(1, 0, 28)[:, None, None] ** 2
 
@@ -59,15 +59,14 @@ class Band:
         out[:28] = (out[:28] * cls.SHADE).astype(np.uint8)
         return out
 
-    def __init__(self, bold: str, regular_bold: str, width: int = 1920, index: int = 0):
+    def __init__(self, bold: str, width: int = 1920, index: int = 0):
         from PIL import ImageFont
         self.head = ImageFont.truetype(bold, 48, index=index)
-        self.line = ImageFont.truetype(regular_bold, 38, index=index)
         self.width, self.cache = width, {}
 
-    def draw(self, title, body="", paused=False, appear=1.0, flash=0.0) -> np.ndarray:
+    def draw(self, title, appear=1.0, flash=0.0) -> np.ndarray:
         e = appear * appear * (3 - 2 * appear)
-        key = (title, body, paused, round(e, 2), round(flash, 2))
+        key = (title, round(e, 2), round(flash, 2))
         if key not in self.cache:
             from PIL import Image, ImageDraw
             lit = lambda c: np.array([a + (b - a) * flash for a, b in zip(c, self.LIT)])
@@ -81,9 +80,7 @@ class Band:
             mix = lambda col: tuple(round(c + (b - c) * (1 - e)) for c, b in zip(col, bg))
             d.text((52 - shift, 16), title, font=self.head, fill=mix((255, 196, 92)))
             if title:
-                d.rectangle((52 - shift, 72, 172 - shift, 76), fill=mix((255, 196, 92)))
-            for j, text in enumerate(Captions.wrap(body, self.line, self.width - 100)[:2]):
-                d.text((52 - shift, 90 + 50 * j), text, font=self.line, fill=mix((255, 255, 255)))
+                d.rectangle((52 - shift, 76, 172 - shift, 80), fill=mix((255, 196, 92)))
             self.cache[key] = np.asarray(img)
         return self.cache[key]
 
@@ -95,7 +92,7 @@ class Captions:
 
     PLACES = {"slide": (96, 1728, 34, 28, "bottom"), "replay": (36, 1848, 34, 28, "bottom"),
               "duel": (24, 1256, 30, 24, "top"), "zoom_top": (60, 1800, 40, 32, "top"),
-              "zoom_bottom": (60, 1800, 40, 32, "bottom")}
+              "zoom_bottom": (60, 1800, 40, 32, "bottom"), "card": (60, 1800, 44, 36, "bottom")}
     MARGIN = 10
 
     def __init__(self, bold: str, regular: str, index: int = 0):
@@ -183,6 +180,22 @@ def _view(box, W_, H_):
     return x, y, x + w, y + h
 
 
+def morph(a_frame, b_frame, a_boxes, b_boxes, p: float) -> np.ndarray:
+    """A p (0..1) smooth transition from a_frame to b_frame: the whole picture cross-fades
+    while each region a_boxes[k] of the first moves and grows into b_boxes[k] of the second."""
+    from PIL import Image
+    e = p * p * (3 - 2 * p)
+    out = Image.fromarray((a_frame * (1 - e) + b_frame * e).astype(np.uint8))
+    for (ax, ay, aw, ah), (bx, by, bw, bh) in zip(a_boxes, b_boxes):
+        x, y, w, h = (round(u + (v - u) * e) for u, v in
+                      zip((ax, ay, aw, ah), (bx, by, bw, bh)))
+        part = lambda f, X, Y, W_, H_: np.asarray(Image.fromarray(f[Y:Y + H_, X:X + W_])
+                                                  .resize((w, h), Image.LANCZOS), np.float32)
+        piece = part(a_frame, ax, ay, aw, ah) * (1 - e) + part(b_frame, bx, by, bw, bh) * e
+        out.paste(Image.fromarray(piece.astype(np.uint8)), (x, y))
+    return np.asarray(out)
+
+
 def zoom(frame: np.ndarray, box, a: float, badge=None, start=None) -> np.ndarray:
     """The view moved a (0..1) of the way, smoothly, from `start` (a box, or the whole frame)
     into box (x, y, w, h); with badge = (text, font) a pill at the bottom centre."""
@@ -208,11 +221,13 @@ PHASE_LABEL = {"Deciding": "SCORING ACTIONS · DECISION", "Picked": "ACTION CHOS
 WEIGHTS = {t.name: t.weight_range for t in ORDER_TYPES}  # kg per box, drawn at random
 
 
-def flown(r: dict, t: float) -> float:
-    """Kilometres the drone has flown by time t."""
+def flown(r: dict, t: float, empty: bool = False) -> float:
+    """Kilometres the drone has flown by time t; with empty, only those flown with no box on
+    board."""
     km = 0.0
     for s in r["segments"]:
-        if s[0] == "fly" and s[3] != s[4] and s[1] < t:
+        if s[0] == "fly" and s[3] != s[4] and s[1] < t and not (
+                empty and state_at(r, s[1] + EPS)["cargo"]):
             path = np.asarray(r["map"]["routes"][f"{s[3]}-{s[4]}"])
             km += np.linalg.norm(np.diff(path, axis=0), axis=1).sum() * min(
                 1.0, (t - s[1]) / max(s[2] - s[1], EPS))
@@ -626,8 +641,6 @@ class DuelFrames:
 
     W, H = 1920, 1080
     colors = ("#e8590c", "#7048e8")  # the report's PPO and Slack-aware colours
-    RULE = "Unload here first · take boxes going where cargo goes · charge if needed · " \
-           "else earliest deadline first, too-late orders last"
 
     def __init__(self, left, right, titles=("PPO agent", "Slack-aware rule")):
         self.views = (ReplayFrames(left), ReplayFrames(right))
@@ -636,11 +649,13 @@ class DuelFrames:
         self.canvas = FigureCanvasAgg(self.fig)
         self.end = max(v.r["meta"]["end"] for v in self.views)
         minutes = np.arange(0, self.end + 0.5, 0.5)
-        self.series = []  # per side: minutes, km flown so far, orders waiting
+        self.minutes = minutes
+        self.series = []  # per side: on time so far, orders waiting, empty km flown so far
         for v in self.views:
-            states = [state_at(v.r, m) for m in minutes]
-            self.series.append((minutes, np.array([flown(v.r, m) for m in minutes]),
-                                np.array([len(s["waiting"]) for s in states])))
+            states = [state_at(v.r, min(m, v.r["meta"]["end"])) for m in minutes]
+            self.series.append((np.array([s["on_time"] for s in states]),
+                                np.array([len(s["waiting"]) for s in states]),
+                                np.array([flown(v.r, m, True) for m in minutes])))
 
     # ---------- helpers ----------
     def _text(self, ax, x, y, s, size=16, color=INK, weight="normal", **kw):
@@ -671,19 +686,15 @@ class DuelFrames:
         return self.fig.add_axes((x / self.W, 1 - (y + h) / self.H, w / self.W, h / self.H))
 
     # ---------- frame ----------
-    def draw(self, t: float, paused=False, phases=(None, None), speed=None) -> np.ndarray:
+    def draw(self, t: float, paused=False, phases=(None, None)) -> np.ndarray:
         """The frame at time t; phases: per side None or a step of a new decision, "Deciding"
         (the choices shown) then "Picked" (the top one taken)."""
         ax = self._canvas()
         meta = self.r["meta"]
-        self._text(ax, 32, 22, "Same orders, two dispatchers", 34, INK, "bold")
-        self._text(ax, 32, 72, f"{meta['load'].capitalize()} demand · same map and same order "
-                   "arrivals for both", 17, MUTED)
+        self._text(ax, 32, 30, "Same orders, two dispatchers", 34, INK, "bold")
         self._text(ax, self.W - 32, 8, clock(t, meta["day_start_hour"]), 52, INK, "bold",
                    ha="right")
         peak = any(a <= t < b for a, b in meta["peaks"])
-        if speed:
-            self._text(ax, self.W - 32, 70, speed, 15, MUTED, ha="right")
         if peak:
             ax.add_patch(rounded(1300, 18, 190, 40, 20, fc="#fff0c2", ec="#e9bf55"))
             self._text(ax, 1395, 27, "DEMAND PEAK", 17, "#6f4600", "bold", ha="center")
@@ -698,7 +709,7 @@ class DuelFrames:
         return self._rgb()
 
     def _side(self, ax, view, s, t, k, phase=None):
-        """One dispatcher: name and score, map, decision, battery and cargo, all waiting orders."""
+        """One dispatcher: name and score, map, and beside it what it is doing."""
         x, color = 32 + 944 * k, self.colors[k]
         self._text(ax, x, 132, self.titles[k], 28, color, "bold")
         chips = (("on time", s["on_time"], ONTIME), ("late", s["late"], LATE),
@@ -710,112 +721,88 @@ class DuelFrames:
             self._text(ax, cx + 34, 137, str(n), 20, INK, "bold")
             self._text(ax, cx + 40 + 14 * len(str(n)), 141, label, 14, MUTED)
             cx += 146
-        frame = self._box(x, 188, 380, 380)
+        frame = self._box(*self.duel_map(k))
         size = view.r["map"]["size"]
         frame.set(xlim=(-0.15, size + 0.15), ylim=(size + 0.15, -0.15))
         frame.axis("off")
         view._draw_map(frame, s, t)
-        self._decision(ax, view, s, t, x + 392, color, phase)
-        self._onboard(ax, view, s, t, x + 392)
-        self._pool(ax, view, s, t, x)
+        for text in frame.texts:
+            text.set_fontsize(text.get_fontsize() * 1.2)
+        self._status(ax, view, s, t, x + 576, 188, 336, 560, {}, color, phase)
 
-    def _decision(self, ax, view, s, t, x, color, phase=None):
-        y, w, h = 182, 520, 306
-        self._panel(ax, x, y, w, h, **({"edgecolor": "#e9bf55", "lw": 3} if phase else {}))
-        r = view.r
-        i = s["decision"]
-        d = r["decisions"][i] if i >= 0 else None
-        if t >= r["meta"]["end"] - 1e-6:
-            self._text(ax, x + 18, y + 14, "DAY COMPLETE", 14, MUTED, "bold")
-            self._text(ax, x + 18, y + 36, "Every order delivered or expired", 23, INK, "bold")
-            return
-        if d is None:
-            self._text(ax, x + 18, y + 14, "START OF THE DAY", 14, MUTED, "bold")
-            return
-        head = f"{PHASE_LABEL.get(phase, 'DECISION')} {i + 1} OF {len(r['decisions'])} · " \
-               f"{view._clock(d['t'])}"
-        self._text(ax, x + 18, y + 14, head, 14, "#6f4600" if phase else MUTED, "bold")
-        lines = ["Scoring the allowed actions …"] if phase == "Deciding" else wrap(d["text"], 38)[:2]
-        for j, line in enumerate(lines):
-            self._text(ax, x + 18, y + 36 + 29 * j, line, 23,
-                       FAINT if phase == "Deciding" else INK, "bold")
-        fy = y + 78 + 29 * (len(lines) - 1)
-        for j, fact in enumerate(d["facts"][:3]):
-            ax.add_patch(Circle((x + 23, fy + 10 + 22 * j), 2.5, color=FAINT))
-            self._text(ax, x + 32, fy + 22 * j, fact, 15)
-        yy = fy + 74
-        if d["top"]:
-            self._text(ax, x + 18, yy, "THE NETWORK'S HIGHEST-PROBABILITY ACTIONS", 13, MUTED, "bold")
-            for j, (label, prob) in enumerate(d["top"]):
-                ry = yy + 20 + 24 * j
-                if j == 0 and phase == "Picked":
-                    ax.add_patch(Rectangle((x + 10, ry - 3), w - 20, 25, fc=DECIDING[0],
-                                           ec="none"))
-                self._text(ax, x + 18, ry, label, 15, INK, "bold" if j == 0 else "normal")
-                self._text(ax, x + w - 18, ry, pct(prob), 15, INK, ha="right")
-                ax.add_patch(Rectangle((x + 18, ry + 19), w - 36, 3, fc=WASH, ec="none"))
-                ax.add_patch(Rectangle((x + 18, ry + 19), (w - 36) * prob, 3,
-                                       fc=color if j == 0 else FAINT, ec="none"))
-            self._text(ax, x + 18, yy + 22 + 24 * len(d["top"]), more_text(d), 13, MUTED)
-        else:
-            self._text(ax, x + 18, yy, "SLACK-AWARE RULE", 13, MUTED, "bold")
-            for j, line in enumerate(wrap(self.RULE, 52)):
-                self._text(ax, x + 18, yy + 20 + 22 * j, line, 15, INK)
+    def _status(self, ax, view, s, t, x, y, w, h, tags, color, phase=None):
+        """What a dispatcher is doing, with few words: its action now (for PPO with the
+        network's probability for it), battery and the box slots, and the most urgent waiting
+        orders with the minutes left; the orders in tags are highlighted."""
+        r, nodes = view.r, view.r["map"]["nodes"]
 
-    def _onboard(self, ax, view, s, t, x):
-        y, w, h = 498, 520, 124
-        self._panel(ax, x, y, w, h)
-        r = view.r
+        def dot(cx, cy, o, size):
+            ax.add_patch(Rectangle((cx - size / 2, cy - size / 2), size, size,
+                                   fc=TYPE_COLORS[o["type"]],
+                                   ec=LATE if t > o["deadline"] else "none", lw=2))
+
+        d = r["decisions"][s["decision"]] if s["decision"] >= 0 else None
+        done = t >= r["meta"]["end"] - 1e-6
+        self._panel(ax, x, y, w, 122, **({"edgecolor": "#e9bf55", "lw": 3} if phase else {}))
+        self._text(ax, x + 16, y + 10, "NOW", 13, MUTED, "bold")
+        text = "Day complete" if done else d["text"] if d else "Start of the day"
+        for j, line in enumerate(wrap(text, int(w / 13))[:2]):
+            self._text(ax, x + 16, y + 30 + 28 * j, line, 21, INK, "bold")
+        if d and d["top"] and not done:  # the network's probability for the action taken
+            prob = d["top"][0][1]
+            ax.add_patch(rounded(x + 16, y + 98, w - 150, 8, 4, fc=WASH, ec="none"))
+            ax.add_patch(rounded(x + 16, y + 98, (w - 150) * prob, 8, 4, fc=color, ec="none"))
+            self._text(ax, x + w - 16, y + 91, f"network {pct(prob)}", 13, MUTED, ha="right")
+
+        y2 = y + 132
+        self._panel(ax, x, y2, w, 120)
         b = s["battery"]
-        self._text(ax, x + 18, y + 12, "BATTERY", 13, MUTED, "bold")
-        note = f"{b:.0f}%"
-        if s["active"] is not None and r["segments"][s["active"]][0] == "charge":
-            note = f"charging to {r['segments'][s['active']][6]:.0f}% · " + note
-        self._text(ax, x + w - 18, y + 8, note, 16, INK, "bold", ha="right")
-        bx, bw = x + 104, w - 104 - (240 if "charging" in note else 74)
-        ax.add_patch(rounded(bx, y + 15, bw, 10, 5, fc=WASH, ec="none"))
-        ax.add_patch(rounded(bx, y + 15, bw * b / 100, 10, 5,
+        self._text(ax, x + 16, y2 + 10, "BATTERY · BOXES", 13, MUTED, "bold")
+        self._text(ax, x + w - 16, y2 + 6, f"{b:.0f}%", 16, INK, "bold", ha="right")
+        ax.add_patch(rounded(x + 150, y2 + 14, w - 220, 10, 5, fc=WASH, ec="none"))
+        ax.add_patch(rounded(x + 150, y2 + 14, (w - 220) * b / 100, 10, 5,
                              fc=EXPIRED if b < r["meta"]["reserve"] + 10 else ONTIME, ec="none"))
         cargo = sorted((view.orders[o] for o in s["cargo"]), key=lambda o: o["pickup"])
-        self._text(ax, x + 18, y + 40, f"ON BOARD · {len(cargo)} OF {r['meta']['max_boxes']} BOXES · "
-                   f"{sum(o['kg'] for o in cargo):.2f}/{r['meta']['max_kg']:.2f} KG", 13, MUTED,
-                   "bold")
-        for j in range(r["meta"]["max_boxes"]):
-            yy = y + 60 + 21 * j
+        n = r["meta"]["max_boxes"]
+        sw = (w - 32 - 10 * (n - 1)) / n
+        for j in range(n):
+            bx = x + 16 + j * (sw + 10)
             if j < len(cargo):
-                self._order(ax, view, cargo[j], t, x + 18, yy, w - 36)
+                o = cargo[j]
+                hot = o["id"] in tags
+                ax.add_patch(rounded(bx, y2 + 44, sw, 64, 8, fc=TYPE_COLORS[o["type"]],
+                                     ec="#f2b705" if hot else "none", lw=5))
+                self._text(ax, bx + sw / 2, y2 + 48, TYPE_LABELS[o["type"]], 14, "white",
+                           ha="center")
+                self._text(ax, bx + sw / 2, y2 + 70, f"to {nodes[o['to']]['name']}", 20, "white",
+                           "bold", ha="center")
             else:
-                self._text(ax, x + 38, yy, "free space", 14, FAINT)
+                ax.add_patch(rounded(bx, y2 + 44, sw, 64, 8, fc=PANEL, ec=LINE, ls="--"))
+                self._text(ax, bx + sw / 2, y2 + 66, "empty", 14, FAINT, ha="center")
 
-    def _pool(self, ax, view, s, t, x):
-        """Every waiting order, most urgent first, in three columns."""
-        y, w, h, rows = 632, 912, 162, 6
-        self._panel(ax, x, y, w, h)
-        waiting = sorted((view.orders[o] for o in s["waiting"]),
-                         key=lambda o: (o["deadline"], o["id"]))
-        self._text(ax, x + 18, y + 10, f"ORDERS AWAITING PICKUP · {len(waiting)} · EARLIEST DEADLINE FIRST", 13,
+        y3 = y2 + 130
+        h3 = h - (y3 - y)
+        self._panel(ax, x, y3, w, h3)
+        waiting = sorted((view.orders[o] for o in s["waiting"]), key=lambda o: o["deadline"])
+        self._text(ax, x + 16, y3 + 10, f"WAITING ORDERS · {len(waiting)} · MOST URGENT FIRST", 13,
                    MUTED, "bold")
-        if not waiting:
-            self._text(ax, x + 18, y + 34, "None", 14, FAINT)
-        cw = (w - 36 - 32) / 3
-        shown = waiting if len(waiting) <= 3 * rows else waiting[:3 * rows - 1]
+        rows = int((h3 - 70) // 34)
+        shown = waiting if len(waiting) <= rows else waiting[:rows - 1]
         for j, o in enumerate(shown):
-            cx, ry = x + 18 + (j // rows) * (cw + 16), y + 32 + 21 * (j % rows)
-            ax.add_patch(rounded(cx - 6, ry - 2, cw + 12, 19, 4, fc=PAPER, ec="none"))
-            self._order(ax, view, o, t, cx, ry, cw, 13)
+            ry = y3 + 50 + 34 * j
+            if o["id"] in tags:
+                ax.add_patch(rounded(x + 8, ry - 13, w - 16, 31, 6, fc="#fff1c2", ec="#f2b705",
+                                     lw=2))
+            dot(x + 26, ry + 2, o, 18)
+            self._text(ax, x + 44, ry - 9, f"{TYPE_LABELS[o['type']]}  "
+                       f"{nodes[o['from']]['name']}→{nodes[o['to']]['name']}", 17,
+                       INK, "bold" if o["id"] in tags else "normal")
+            left = o["deadline"] - t
+            self._text(ax, x + w - 16, ry - 9, f"{left:.0f} min" if left >= 0 else "late", 17,
+                       LATE if left < 10 else MUTED, "bold" if left < 10 else "normal", ha="right")
         if len(shown) < len(waiting):
-            self._text(ax, x + 18 + 2 * (cw + 16), y + 32 + 21 * (rows - 1),
-                       f"+{len(waiting) - len(shown)} more", 13, MUTED, "bold")
-
-    def _order(self, ax, view, o, t, x, y, w, size=14):
-        nodes = view.r["map"]["nodes"]
-        ax.add_patch(Rectangle((x, y + 3), size - 3, size - 3, fc=TYPE_COLORS[o["type"]]))
-        self._text(ax, x + size + 4, y, f"#{o['id']} {TYPE_LABELS[o['type']]} "
-                   f"{nodes[o['from']]['name']}→{nodes[o['to']]['name']}", size)
-        left = o["deadline"] - t
-        due, shade = ((f"due in {left:.0f} min", LATE if left < 10 else MUTED) if left >= 0 else
-                      (f"{-left:.0f} min overdue", LATE))
-        self._text(ax, x + w, y, due, size, shade, ha="right")
+            self._text(ax, x + 44, y3 + 50 + 34 * len(shown) - 9, f"+{len(waiting) - len(shown)} more",
+                       15, MUTED)
 
     def _legend(self, ax, x, y):
         """Colour key of the order squares."""
@@ -827,91 +814,182 @@ class DuelFrames:
             x += 34 + 10 * len(label)
 
     def _charts(self, t):
-        y, h = 806, 262
-        peaks = self.r["meta"]["peaks"]
+        """Below the two sides: orders delivered on time so far and orders waiting."""
         ax = self.fig.axes[0]
-        boxes = [(32, 600), (656, 600), (1280, 608)]
-        titles = [("Distance flown so far (km)", "same orders: less is better"),
-                  ("Orders waiting (backlog)", "lower is better"),
-                  ("Outcomes so far", "same orders, both dispatchers")]
-        for (x, w), (title, sub) in zip(boxes, titles):
-            self._panel(ax, x, y, w, h)
-            self._text(ax, x + 18, y + 10, title, 16, INK, "bold")
-            self._text(ax, x + w - 18, y + 13, sub, 13, MUTED, ha="right")
-        hours = np.arange(0, self.end + 1, 120)
-        for (x, w), col in zip(boxes[:2], (1, 2)):
-            c = self._box(x + 50, y + 40, w - 74, h - 70)
-            top = max(max(s[col]) for s in self.series) * 1.12 + 1
-            for a, b in peaks:
-                c.axvspan(a, b, color=WASH, lw=0)
-            nows = [flown(v.r, t) if col == 1 else
-                    len(state_at(v.r, min(t, v.r["meta"]["end"]))["waiting"]) for v in self.views]
-            for k, (m, *vals) in enumerate(self.series):
-                now = nows[k]
-                xs, ys = np.r_[m[m < t], t], np.r_[vals[col - 1][m < t], now]  # ends at t exactly
-                c.plot(xs, ys, color=self.colors[k], lw=2.6, drawstyle="steps-post",
-                       label=self.titles[k])
-                c.plot(t, now, "o", color=self.colors[k], ms=7)
-                above = now > nows[1 - k] or (now == nows[1 - k] and k == 0)
-                c.annotate(f"{now:.0f}", (t, now), xytext=(8, 4 if above else -18),
-                           textcoords="offset points", fontsize=pt(16), color=self.colors[k],
-                           weight="bold")
-            c.axvline(t, color=INK, lw=1.2, alpha=0.5)
-            c.set(xlim=(0, self.end), ylim=(0, top))
-            c.set_xticks(hours, [clock(v) for v in hours])
-            c.tick_params(labelsize=pt(13), colors=MUTED, length=0)
-            for side in ("top", "right"):
-                c.spines[side].set_visible(False)
-            for side in ("left", "bottom"):
-                c.spines[side].set_color(LINE)
-            c.grid(axis="y", color=WASH, lw=1)
-            c.set_facecolor(PANEL)
-            c.legend(loc="upper left", frameon=False, fontsize=pt(14))
-        x, w = boxes[2]
-        b = self._box(x + 30, y + 40, w - 50, h - 70)
-        states = [state_at(v.r, min(t, v.r["meta"]["end"])) for v in self.views]
-        groups = ("on time", "late", "expired")
-        top = max(v.r["meta"]["summary"]["orders"] for v in self.views)
-        for k, s in enumerate(states):
-            vals = (s["on_time"], s["late"], s["expired"])
-            xs = np.arange(3) + (k - 0.5) * 0.38
-            b.bar(xs, vals, width=0.36, color=self.colors[k], label=self.titles[k])
-            for xx, v in zip(xs, vals):
-                b.text(xx, v + top * 0.02, str(v), ha="center", va="bottom", fontsize=pt(16),
-                       color=INK, weight="bold")
-        b.set_xticks(range(3), groups)
-        b.set(ylim=(0, top * 1.05))
-        b.set_yticks([])
-        b.tick_params(labelsize=pt(15), colors=INK, length=0)
-        for side in ("top", "right", "left"):
-            b.spines[side].set_visible(False)
-        b.spines["bottom"].set_color(LINE)
-        b.set_facecolor(PANEL)
-        b.legend(loc="upper right", frameon=False, fontsize=pt(15))
+        for col, (x, title) in enumerate(((32, "Orders delivered on time so far"),
+                                          (972, "Orders waiting now"))):
+            self._panel(ax, x, 806, 916, 262)
+            self._text(ax, x + 18, 816, title, 16, INK, "bold")
+            self._line(self._box(x + 50, 846, 842, 192), col, t, 0.0, self.end)
+
+    def _line(self, c, col, t, a, b, minus_start=False):
+        """Series col of both sides from a up to t on axes c spanning a..b; minus_start counts
+        from a."""
+        m = self.minutes
+        keep = (m >= a) & (m < t)
+        at = lambda vals, x: vals[max(0, np.searchsorted(m, x + EPS) - 1)]  # value at minute x
+        nows = []
+        for k, series in enumerate(self.series):
+            vals, r = series[col], self.views[k].r
+            exact = lambda x: flown(r, x, True) if col == 2 else at(vals, x)  # km: no grid error
+            base = exact(a) if minus_start else 0.0
+            now = exact(t) - base
+            c.plot(np.r_[m[keep], t], np.r_[vals[keep] - base, now], color=self.colors[k],
+                   lw=2.8, drawstyle="steps-post", label=self.titles[k])
+            c.plot(t, now, "o", color=self.colors[k], ms=7)
+            nows.append(now)
+        for k, now in enumerate(nows):
+            above = now > nows[1 - k] or (now == nows[1 - k] and k == 0)
+            c.annotate(f"{now:.0f}" if col < 2 else f"{now:.1f}", (t, now),
+                       xytext=(8, 4 if above else -18), textcoords="offset points",
+                       fontsize=pt(16), color=self.colors[k], weight="bold")
+        top = max((s_[col][(m >= a) & (m <= b)] - (at(s_[col], a) if minus_start else 0)).max()
+                  for s_ in self.series)
+        for p, q in self.r["meta"]["peaks"]:
+            c.axvspan(p, q, color=WASH, lw=0)
+        ticks = np.arange(np.ceil(a / 60) * 60, b + 1, 120 if b - a > 240 else 10)
+        c.set(xlim=(a, b + 0.06 * (b - a)), ylim=(0, top * 1.15 + 1))
+        c.set_xticks(ticks, [clock(v) for v in ticks])
+        c.tick_params(labelsize=pt(13), colors=MUTED, length=0)
+        for side in ("top", "right"):
+            c.spines[side].set_visible(False)
+        for side in ("left", "bottom"):
+            c.spines[side].set_color(LINE)
+        c.grid(axis="y", color=WASH, lw=1)
+        c.set_facecolor(PANEL)
+        c.legend(loc="upper left", frameon=False, fontsize=pt(14))
+
+    @staticmethod
+    def duel_map(k):
+        """Pixel box of side k's map in the side-by-side frame."""
+        return 32 + 944 * k, 188, 560, 560
+
+    @staticmethod
+    def close_map(k):
+        """Pixel box of side k's map in the close-up."""
+        return 40 + 940 * k, 158, 580, 580
+
+    def close(self, t: float, since: float, focus=((), ()), ids=(), badge="",
+              label="Close-up", until=None, spot=None, note="", at=None) -> np.ndarray:
+        """Both maps enlarged side by side, each with its drone's route since `since` (solid
+        with boxes on board, dashed empty) and, beside it, the current action, the cargo and
+        the waiting orders; focus = per side the places to ring; ids = (order id, label) pairs:
+        those orders are highlighted in the lists (the labels serve the report's figure, see
+        tags); badge: a label beside the clock. Below, the stretch since..until as two small
+        charts: orders on time and empty km flown since `since`. spot: pixel boxes to light up,
+        with a callout holding note at `at` (default: under the first box)."""
+        ax = self._canvas()
+        meta = self.r["meta"]
+        self._text(ax, 32, 22, f"{label} · same arrivals; each run continues from 08:00", 34,
+                   INK, "bold")
+        self._text(ax, self.W - 32, 8, clock(t, meta["day_start_hour"]), 52, INK, "bold",
+                   ha="right")
+        if badge:
+            ax.add_patch(rounded(1450, 18, 220, 40, 20, fc="#e8590c", ec="none"))
+            self._text(ax, 1560, 27, badge, 17, "white", "bold", ha="center")
+        tc = max(t, since)  # counts start at since; before it they stay at zero
+        for k, view in enumerate(self.views):
+            r, x = view.r, 40 + 940 * k
+            s, s0 = state_at(r, min(t, r["meta"]["end"])), state_at(r, since)
+            self._text(ax, x, 112, self.titles[k], 28, self.colors[k], "bold")
+            sc = state_at(r, min(tc, r["meta"]["end"]))
+            self._text(ax, x + 900, 118, f"since {clock(since)}: {sc['on_time'] - s0['on_time']} "
+                       f"on time · {flown(r, tc) - flown(r, since):.1f} km", 20, INK, "bold",
+                       ha="right")
+            frame = self._box(*self.close_map(k))
+            size = r["map"]["size"]
+            frame.set(xlim=(-0.15, size + 0.15), ylim=(size + 0.15, -0.15))
+            frame.axis("off")
+            view.focus = {"nodes": focus[k], "orders": ()}
+            view._draw_map(frame, s, t)
+            view.focus = {"nodes": (), "orders": ()}
+            for text in frame.texts:
+                text.set_fontsize(text.get_fontsize() * 1.4)
+            self.trail(frame, r, since, t, self.colors[k])
+            self._status(ax, view, s, t, x + 594, 158, 306, 580, dict(ids), self.colors[k])
+        if until is not None:
+            for col, (x, title) in ((0, (40, "Orders on time in this stretch")),
+                                    (2, (980, "Empty kilometres in this stretch"))):
+                self._panel(ax, x, 770, 900, 290)
+                self._text(ax, x + 18, 780, title, 16, INK, "bold")
+                self._line(self._box(x + 50, 812, 826, 218), col, tc, since, until, True)
+        if spot:
+            spotlight(self.fig, (self.W, self.H), spot, 1.0)
+            x, y, w, h = spot[0]
+            self._callout(spot, note, at or (x + w / 2, 905))
+        return self._rgb()
+
+    STRIP = ((32, 762, 916, 306), (972, 762, 916, 306))  # the close-up's two small charts
+
+    @staticmethod
+    def side_box(k):
+        """Pixel box of side k (map and panels) in the close-up."""
+        return 18 + 940 * k, 96, 922, 660
+
+    @staticmethod
+    def tags(frame, view, t, ids, color, size=17, lw=2.5):
+        """Each (order id, label) in ids drawn by its pickup place once released: hollow while
+        waiting, filled once picked up."""
+        nodes, at = view.r["map"]["nodes"], {}  # tags already drawn per place, to stack them
+        for oid, tag in ids:
+            o = view.orders[oid]
+            if o["release"] > t:
+                continue
+            n, got = nodes[o["from"]], o["pickup"] is not None and o["pickup"] <= t
+            m = at[o["from"]] = at.get(o["from"], -1) + 1
+            xy = (n["x"] - 0.32 - 0.24 * m, n["y"] - 0.3)
+            frame.add_patch(Circle(xy, 0.11, fc=color if got else PANEL, ec=color, lw=lw,
+                                   zorder=6))
+            frame.text(*xy, tag, ha="center", va="center", fontsize=pt(size),
+                       color="white" if got else color, weight="bold", zorder=7)
+
+    @staticmethod
+    def trail(frame, r, since, t, color, scale=1.0):
+        """The route flown between since and t: solid with boxes on board, dashed empty."""
+        for g in r["segments"]:
+            if g[0] != "fly" or g[3] == g[4] or g[2] <= since or g[1] >= t:
+                continue
+            path = np.asarray(r["map"]["routes"][f"{g[3]}-{g[4]}"], dtype=float)
+            cum = np.r_[0, np.cumsum(np.linalg.norm(np.diff(path, axis=0), axis=1))]
+            a, b = (np.clip((v - g[1]) / max(g[2] - g[1], EPS), 0, 1) * cum[-1] for v in (since, t))
+            xs = np.r_[a, cum[(cum > a) & (cum < b)], b]
+            pts = np.column_stack([np.interp(xs, cum, path[:, 0]), np.interp(xs, cum, path[:, 1])])
+            loaded = bool(state_at(r, g[1] + EPS)["cargo"])
+            frame.plot(pts[:, 0], pts[:, 1], color=color, lw=(5 if loaded else 3) * scale, alpha=0.6,
+                       ls="-" if loaded else (0, (2, 1.5)), solid_capstyle="round", zorder=1.5)
 
     # what each step of the screen guide lights up: pixel boxes, then its subtitle
-    GUIDE = [([(26, 182, 392, 392), (970, 182, 392, 392)], "The map",
-              ["M: medical center; H1–H5: hospitals; C1, C2: chargers; hatched: no-fly zones.",
-               "Coloured squares: orders awaiting pickup there. (Paused at 10:30; the day then "
-               "starts at 08:00.)"]),
-             ([(418, 176, 532, 452), (1362, 176, 532, 452)], "What each dispatcher does now",
-              ["The current action and the situation it was chosen in; PPO also shows its",
-               "network's most likely actions. Below: battery and the boxes on board."]),
-             ([(26, 626, 924, 174), (970, 626, 924, 174)], "Orders awaiting pickup",
-              ["Orders that have arrived but are not picked up yet, earliest deadline first,",
-               "with the minutes until each deadline."]),
-             ([(352, 126, 592, 50), (1296, 126, 592, 50)], "The score so far",
-              ["Orders delivered on time, delivered late, expired, and still waiting.", ""]),
-             ([(26, 800, 1868, 274)], "Running totals for both",
-              ["Left: distance flown. Middle: orders awaiting pickup (backlog).",
-               "Right: on-time, late and expired orders."])]
+    GUIDE = [([(26, 182, 572, 572), (970, 182, 572, 572)], "The map", (784, 900)),
+             ([(602, 182, 348, 572), (1546, 182, 348, 572)], "Each drone", (1258, 900)),
+             ([(26, 800, 1868, 274)], "Running totals", (960, 520))]
 
-    def guide(self, t: float, step: int = 0) -> np.ndarray:
-        """The frame at t, dimmed except the boxes of one guide step (GUIDE: boxes, title, text
-        for the subtitles)."""
+    def guide(self, t: float, step: int, note: str) -> np.ndarray:
+        """The frame at t, dimmed except the boxes of one guide step, with a callout holding
+        note (lines split at newlines) and an arrow to each lit box."""
         self.draw(t)
-        spotlight(self.fig, (self.W, self.H), self.GUIDE[step][0], 1.0)
+        boxes, _, centre = self.GUIDE[step]
+        spotlight(self.fig, (self.W, self.H), boxes, 1.0)
+        self._callout(boxes, note, centre)
         return self._rgb()
+
+    def _callout(self, boxes, note, centre):
+        """A white box holding note (lines split at newlines) at centre, with an arrow to each
+        of boxes."""
+        cx, cy = centre
+        over = self.fig.add_axes((0, 0, 1, 1), zorder=11)
+        over.set(xlim=(0, self.W), ylim=(self.H, 0))
+        over.axis("off")
+        lines = note.split("\n")
+        w, h = 22 * max(map(len, lines)) + 60, 52 * len(lines) + 40
+        for x, y, bw, bh in boxes:  # from the callout's edge to the nearest point of the box
+            tx, ty = min(max(cx, x + 20), x + bw - 20), min(max(cy, y + 20), y + bh - 20)
+            over.annotate("", (tx, ty), (cx, cy), zorder=11, arrowprops=dict(
+                arrowstyle="-|>", color="#e8590c", lw=4, mutation_scale=34, shrinkA=h / 2 * 0.9))
+        over.add_patch(rounded(cx - w / 2, cy - h / 2, w, h, 18, fc="white", ec="#e8590c", lw=4,
+                               zorder=12))
+        for j, line in enumerate(lines):
+            over.text(cx, cy - h / 2 + 24 + 52 * j, line, fontsize=pt(34), color=INK,
+                      weight="bold", ha="center", va="top", zorder=13)
 
     def results(self, title, rows, note, takeaway="") -> np.ndarray:
         """A bar chart slide; rows = (label, colour, medium %, high %, ms per decision[, line])."""
@@ -954,136 +1032,120 @@ class DuelFrames:
             self._text(ax, 120, 1000 + 38 * k, part, 28, INK, "bold")
         return self._rgb()
 
-    def outline(self, items, current=None, note="") -> np.ndarray:
-        """The outline slide, or a section slide with the current item lit."""
+    def ways(self, items, lit=None) -> np.ndarray:
+        """Why PPO is more efficient: it flies less empty, in the ways of items (name, line);
+        with lit, that way stands out and the others fade, as on an agenda."""
         ax = self._canvas()
         self._page(ax)
-        self._text(ax, 120, 110, "ME5418 GROUP 17 · MEDICAL DELIVERY DRONE", 22, MUTED, "bold")
-        self._text(ax, 120, 152, "Outline" if current is None else items[current], 62, INK,
-                   "bold")
-        if note:
-            self._text(ax, 120, 250, note, 30, MUTED)
-        for j, item in enumerate(items):
-            y, lit = 380 + 120 * j, current is None or j == current
-            ax.add_patch(Circle((156, y + 30), 32, fc=self.colors[0] if j == current else
-                                (INK if lit else WASH)))
-            ax.text(156, y + 30, str(j + 1), ha="center", va="center", fontsize=pt(30),
-                    color="white" if lit else MUTED, weight="bold")
-            self._text(ax, 222, y + 6, item, 42, INK if lit else FAINT,
-                       "bold" if j == current else "normal")
+        self._text(ax, self.W / 2, 150, "Why PPO is more efficient", 44, MUTED, "bold",
+                   ha="center")
+        self._text(ax, self.W / 2, 230, "It flies less empty than Slack-aware", 72, self.colors[0],
+                   "bold", ha="center")
+        for k, (name, line) in enumerate(items):
+            x, on = 216 + 780 * k, lit is None or k == lit
+            self._panel(ax, x, 470, 708, 300, edgecolor=self.colors[0] if on else LINE,
+                        lw=6 if lit == k else 4, facecolor="#fff4e6" if lit == k else PANEL)
+            self._text(ax, x + 354, 520, name, 44, INK if on else FAINT, "bold", ha="center")
+            for j, part in enumerate(wrap(line, 30)):
+                self._text(ax, x + 354, 620 + 54 * j, part, 36, INK if on else FAINT, ha="center")
         return self._rgb()
 
-    # the task, one element per step: the map's four elements, then orders, the drone, the decision
-    TASK = [("Medical center M", "Plasma and medicine are collected here; charger C1 too."),
-            ("Five hospitals H1–H5", "Receive plasma and medicine; send samples and supplies."),
-            ("A second charger C2", "Flying to a charger and charging both take time."),
-            ("Three no-fly zones", "The drone must fly around the hatched areas."),
-            ("Orders: one box each, with a time limit", ""),
-            ("One drone", ""),
-            ("The decision, again and again", "")]
-
-    map_note = ("Our code generates maps at random from fixed rules; this is map 0, the one used "
-                "in our earlier milestones.")
-
-    def task(self, step: int, t: float) -> np.ndarray:
-        """The task built up element by element; from step 4 the map shows the day's state at t."""
+    def versus(self, columns, foot) -> np.ndarray:
+        """Two dispatchers facing each other: per column (name, one line, badge or ""), a large
+        VS between."""
         ax = self._canvas()
         self._page(ax)
-        self._text(ax, 96, 84, "1  The task", 50, INK, "bold")
-        self._text(ax, 96, 148, self.map_note, 26, MUTED)
-        v = self.views[0]
-        size, nodes = v.r["map"]["size"], v.r["map"]["nodes"]
-        f = self._box(56, 200, 860, 860)
-        f.set(xlim=(-0.15, size + 0.15), ylim=(size + 0.15, -0.15))
-        f.axis("off")
-        if step >= 4:
-            s = state_at(v.r, t)
-            v._draw_map(f, s, t)
-            if step == 5:
-                f.add_patch(Circle(s["xy"], 0.34, fill=False, ec="#e8590c", lw=5, zorder=6))
-        else:
-            roles = {"center"} | ({"hospital"} if step >= 1 else set()) | (
-                {"charger"} if step >= 2 else set())
-            part = {**v.r, "segments": [], "orders": [],
-                    "map": {**v.r["map"], "nodes": [n for n in nodes if n["role"] in roles],
-                            "zones": v.r["map"]["zones"] if step >= 3 else []}}
-            ReplayFrames(part)._draw_map(f, {"active": None, "waiting": [], "cargo": [],
-                                             "xy": (-9, -9)}, -10)
-        for text in f.texts:  # the map is drawn larger than in the replay
-            text.set_fontsize(text.get_fontsize() * 1.6)
-        x, w = 950, 920
-        for j, (head, line) in enumerate(self.TASK[:min(step, 3) + 1]):  # the map's elements
-            y, now = 206 + 84 * j, j == step
-            self._text(ax, x, y, head, 34, INK if now else MUTED, "bold")
-            self._text(ax, x, y + 44, line, 27, INK if now else MUTED)
-
-        def card(y, h, now, accent=False):
-            self._panel(ax, x - 18, y, w, h, facecolor="#fff4e6" if accent else WASH,
-                        edgecolor="#e8590c" if now or accent else LINE, lw=3 if now else 1)
-        if step >= 4:  # orders and their deadlines, colour-coded like the squares on the map
-            card(548, 184, step == 4)
-            self._text(ax, x + 6, 558, self.TASK[4][0], 32, INK, "bold")
-            limits = {tp["name"]: tp["limit"] for tp in v.r["types"]}
-            for k, (label, shade) in enumerate(zip(TYPE_LABELS, TYPE_COLORS)):
-                cx = x + 6 + 226 * k
-                ax.add_patch(Rectangle((cx, 613), 26, 26, fc=shade))
-                self._text(ax, cx + 36, 608, label, 26, INK, "bold")
-                lo, hi = WEIGHTS[label.lower()]
-                self._text(ax, cx + 36, 644, f"{limits[label.lower()]:.0f} min · {lo:g}–{hi:g} kg",
-                           20, INK)
-            self._text(ax, x + 6, 686, "Late still counts, for less; expires at twice its limit.",
-                       25, INK)
-        if step >= 5:  # the drone's limits
-            card(744, 142, step == 5)
-            self._text(ax, x + 6, 754, self.TASK[5][0], 32, INK, "bold")
-            meta = v.r["meta"]
-            for k in range(meta["max_boxes"]):
-                ax.add_patch(rounded(x + 6 + 38 * k, 804, 30, 30, 4, fc=TYPE_COLORS[1], ec="none"))
-            self._text(ax, x + 136, 800, f"at most {meta['max_boxes']} boxes", 27, INK)
-            self._text(ax, x + 450, 800, f"at most {meta['max_kg']:g} kg", 27, INK)
-            ax.add_patch(rounded(x + 6, 850, 280, 18, 9, fc=LINE, ec="none"))
-            ax.add_patch(rounded(x + 6, 850, 280 * 0.62, 18, 9, fc=ONTIME, ec="none"))
-            rx = x + 6 + 280 * meta["reserve"] / 100
-            ax.plot([rx, rx], [844, 874], color=INK, lw=2)
-            self._text(ax, x + 306, 842, f"able to reach a charger with {meta['reserve']:g}% left",
-                       25, INK)
-        if step >= 6:  # what the dispatcher decides at every step
-            card(898, 168, True, accent=True)
-            self._text(ax, x + 6, 906, self.TASK[6][0], 32, "#b34700", "bold")
-            self._text(ax, x + 6, 948, "Which order to pick up or deliver next?", 26, INK)
-            self._text(ax, x + 6, 982, "When to charge, and to 60, 80 or 100%?", 26, INK)
-            self._text(ax, x + 6, 1020, "Goal: as many orders on time as possible.", 28, INK,
-                       "bold")
+        for k, (name, line, badge) in enumerate(columns):
+            x, color = 96 + 1000 * k, self.colors[k]
+            self._panel(ax, x, 280, 728, 420, edgecolor=color, lw=4)
+            self._text(ax, x + 364, 330, name, 52, color, "bold", ha="center")
+            parts = wrap(line, 34)
+            for j, part in enumerate(parts):
+                self._text(ax, x + 364, 430 + 54 * j, part, 36, INK, ha="center")
+            if badge:
+                bw, by = 19 * len(badge) + 48, 450 + 54 * len(parts)
+                ax.add_patch(rounded(x + 364 - bw / 2, by, bw, 52, 26, fc=color, ec="none"))
+                self._text(ax, x + 364, by + 8, badge, 28, "white", "bold", ha="center")
+        self._text(ax, self.W / 2, 420, "VS", 96, INK, "bold", ha="center")
+        if foot:
+            self._text(ax, self.W / 2, 760, foot, 34, MUTED, ha="center")
         return self._rgb()
 
-    def method(self, title, boxes, lines) -> np.ndarray:
-        """A left-to-right flow of boxes (heading, line) with arrows, and lines under it."""
+    def day_numbers(self) -> np.ndarray:
+        """The whole day for both: final outcomes, battery over the day, and loaded and empty
+        kilometres."""
         ax = self._canvas()
         self._page(ax)
-        self._text(ax, 96, 90, title, 56, INK, "bold")
-        n, gap = len(boxes), 76
-        w = (1728 - gap * (n - 1)) / n
-        for k, (head, line) in enumerate(boxes):
-            x = 96 + k * (w + gap)
-            last = k == n - 1
-            self._panel(ax, x, 210, w, 440, facecolor="#fff4e6" if last else WASH,
-                        edgecolor="#e8590c" if last else LINE, lw=3 if last else 1.5)
-            heads = wrap(head, int(w / 22))
-            for j, part in enumerate(heads):
-                self._text(ax, x + 26, 236 + 50 * j, part, 38, "#b34700" if last else INK, "bold")
-            for j, part in enumerate(wrap(line, int(w / 17.5))):
-                self._text(ax, x + 26, 262 + 50 * len(heads) + 46 * j, part, 32, INK)
-            if not last:
-                ax.annotate("", (x + w + gap - 8, 430), (x + w + 8, 430),
-                            arrowprops=dict(arrowstyle="-|>", color=INK, lw=3, mutation_scale=38))
-        y = 720
-        for line in lines:  # a line given as (text, True) is bold
-            text, bold = line if isinstance(line, tuple) else (line, False)
-            for part in wrap(text, 72 if bold else 76):
-                self._text(ax, 96, y, part, 38, "#b34700" if bold else INK,
-                           "bold" if bold else "normal")
-                y += 56
-            y += 30
+        self._text(ax, 96, 96, "This day in numbers", 52, INK, "bold")
+        peaks, hours = self.r["meta"]["peaks"], np.arange(0, self.end + 1, 120)
+        boxes = [(96, 230, 560, 640), (700, 230, 560, 640), (1304, 230, 520, 640)]
+        titles = ["Results", "Battery: PPO tops up often", "Distance flown (km)"]
+        for (x, y, w, h), title in zip(boxes, titles):
+            self._panel(ax, x, y, w, h)
+            self._text(ax, x + 24, y + 18, title, 24, INK, "bold")
+        style = lambda c: (c.set_xlim(0, self.end), c.set_xticks(hours, [clock(v) for v in hours]),
+                           c.tick_params(labelsize=pt(16), colors=MUTED, length=0),
+                           [c.spines[side].set_visible(False) for side in ("top", "right")],
+                           c.grid(axis="y", color=WASH, lw=1), c.set_facecolor(PANEL),
+                           [c.axvspan(a, b, color=WASH, lw=0) for a, b in peaks])
+        x, y, w, h = boxes[0]
+        c = self._box(x + 40, y + 80, w - 70, h - 150)
+        top = max(v.r["meta"]["summary"]["orders"] for v in self.views)
+        for k, v in enumerate(self.views):
+            sm = v.r["meta"]["summary"]
+            vals = (sm["on_time"], sm["delivered"] - sm["on_time"], sm["expired"])
+            xs = np.arange(3) + (k - 0.5) * 0.38
+            c.bar(xs, vals, width=0.36, color=self.colors[k], label=self.titles[k])
+            for xx, val in zip(xs, vals):
+                c.text(xx, val + top * 0.02, str(val), ha="center", va="bottom", fontsize=pt(18),
+                       color=INK, weight="bold")
+        c.set_xticks(range(3), ("on time", "late", "expired"))
+        c.set(ylim=(0, top * 0.95))
+        c.set_yticks([])
+        c.tick_params(labelsize=pt(18), colors=INK, length=0)
+        for side in ("top", "right", "left"):
+            c.spines[side].set_visible(False)
+        c.set_facecolor(PANEL)
+        c.legend(loc="upper right", frameon=False, fontsize=pt(17))
+        x, y, w, h = boxes[1]
+        for k, v in enumerate(self.views):  # one row per dispatcher
+            c = self._box(x + 70, y + 80 + 270 * k, w - 100, 210)
+            style(c)
+            g = v.r["segments"]
+            c.fill_between([u for s_ in g for u in (s_[1], s_[2])],
+                           [u for s_ in g for u in (s_[5], s_[6])], color=self.colors[k],
+                           alpha=0.25, lw=0)
+            c.plot([u for s_ in g for u in (s_[1], s_[2])], [u for s_ in g for u in (s_[5], s_[6])],
+                   color=self.colors[k], lw=2)
+            c.set_ylim(0, 105)
+            c.set_yticks([0, 50, 100])
+            c.set_title(self.titles[k], loc="left", fontsize=pt(17), color=self.colors[k],
+                        weight="bold")
+        x, y, w, h = boxes[2]
+        c = self._box(x + 40, y + 80, w - 70, h - 150)
+        for k, v in enumerate(self.views):
+            loaded = empty = 0.0
+            for g in v.r["segments"]:
+                if g[0] == "fly" and g[3] != g[4]:
+                    path = np.asarray(v.r["map"]["routes"][f"{g[3]}-{g[4]}"])
+                    km = np.linalg.norm(np.diff(path, axis=0), axis=1).sum()
+                    if state_at(v.r, g[1] + EPS)["cargo"]:
+                        loaded += km
+                    else:
+                        empty += km
+            c.bar(k, loaded, color=self.colors[k], width=0.6)
+            c.bar(k, empty, bottom=loaded, color=self.colors[k], alpha=0.35, width=0.6,
+                  hatch="//", ec="white")
+            c.text(k, loaded / 2, f"{loaded:.0f}\nwith boxes", ha="center", va="center",
+                   fontsize=pt(16), color="white", weight="bold")
+            c.text(k, loaded + empty / 2, f"{empty:.0f}\nempty", ha="center", va="center",
+                   fontsize=pt(16), color=INK, weight="bold")
+        c.set_xticks([0, 1], [t.split()[0] for t in self.titles])
+        c.tick_params(labelsize=pt(18), colors=INK, length=0)
+        c.set_yticks([])
+        for side in ("top", "right", "left"):
+            c.spines[side].set_visible(False)
+        c.set_facecolor(PANEL)
         return self._rgb()
 
     def bullets(self, title, lines, kicker, highlight="", size=36) -> np.ndarray:
@@ -1110,11 +1172,11 @@ class DuelFrames:
                 self._text(ax, 150, y + 26 + step * k, part, size, "#b34700", "bold")
         return self._rgb()
 
-    def closing(self, title, lines) -> np.ndarray:
-        """The last slide: a large centred title and a few lines."""
+    def closing(self, title, lines, size=104) -> np.ndarray:
+        """A centred title and a few lines: the first and the last slide."""
         ax = self._canvas()
         self._page(ax)
-        ax.text(self.W / 2, 440, title, ha="center", va="center", fontsize=pt(104), color=INK,
+        ax.text(self.W / 2, 440, title, ha="center", va="center", fontsize=pt(size), color=INK,
                 weight="bold")
         for j, line in enumerate(lines):
             ax.text(self.W / 2, 610 + 80 * j, line, ha="center", va="center", fontsize=pt(44),
