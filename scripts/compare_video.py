@@ -119,7 +119,7 @@ def stretches(ppo, rule):
     callout, PPO's), moments to pause at (time, PPO's callout), the result callout,
     the orders to highlight, the place to ring, start and end (what is counted) and the
     time playback starts (the second stretch from its first plasma's arrival, so the viewer
-    sees PPO finish other work first):
+    sees PPO finish other work first; the callouts wait for the start):
     1. combining jobs: PPO collects three boxes for one hospital at three places and delivers
        them in one visit; the rule only adds boxes waiting where it already is;
     2. using spare time: PPO lets the plasma with the earliest deadline wait for a short nearby
@@ -163,14 +163,14 @@ def stretches(ppo, rule):
     o0 = orders[_picked(ds[i])]  # the short job PPO does first
     out.append({"name": "Way 2 · Using spare time",
                 "line": "PPO does a nearby job before an urgent one",
-                "notes": (f"At {clock(t0)}, Slack-aware fetches the\ntwo urgent plasmas for "
-                          f"{name(u['to'])} at once",
-                          f"At {clock(t0)}, PPO ({u['deadline'] - t0:.0f} min left) first does\na "
-                          "nearby job, then takes both"),
-                "moments": [(o0["end"], f"First the nearby job:\n{TYPE_LABELS[o0['type']].lower()} "
-                             f"{name(o0['from'])} → {name(o0['to'])}"),
-                            (max(o["pickup"] for o in pair), "Both plasmas on board,\nstill in "
-                             "time")],
+                "notes": (f"{clock(t0)}: the plasmas still have {u['deadline'] - t0:.0f} min.\n"
+                          f"Slack-aware flies straight to {name(u['from'])} for them",
+                          f"PPO first takes a box from {name(o0['from'])} to {name(o0['to'])},\n"
+                          f"on its way back to {name(u['from'])}"),
+                "moments": [(o0["pickup"] + 1.0, f"On its way to {name(u['from'])} with a box:\n"
+                             "no empty trip"),
+                            (max(o["pickup"] for o in pair), "Both plasmas on board;\nboth arrive "
+                             "on time (" + ", ".join(clock(o["end"]) for o in pair) + ")")],
                 "result": result(t0, t1, *_window(ppo, rule, t0, t1)),
                 "ids": tuple((o["id"], str(j + 1)) for j, o in enumerate([o0, *pair])),
                 "place": u["to"], "start": t0, "end": t1,
@@ -212,7 +212,7 @@ DESCRIBE = {"PPO (ours)": "our learned neural network",
             "Scenario rollout": "tries 16 possible futures",
             "Rollout": "simulates each next action",
             "Insertion": "builds a route by inserting orders",
-            "Slack-aware": "EDF with three fixes",
+            "Slack-aware": "deadline first, plus extra rules",
             "Nearest-first": "shortest flight plus handling time",
             "EDF": "earliest deadline first",
             "FCFS": "first come, first served",
@@ -332,12 +332,13 @@ def main():
             yield from repeat(a, round(0.5 * fps))
             yield from (morph(a, b, boxes(r.duel_map), boxes(r.close_map), k / m)
                         for k in range(m + 1))
+            yield from (show(t) for t in np.arange(shown, start, CLOSE_RATE / fps))  # lead-in
             for side, note in ((1, w["notes"][0]), (0, w["notes"][1])):  # the rule, then PPO
                 say(w["name"])  # a dissolve into the lit side
-                yield from repeat(show(shown, "PAUSED", [r.side_box(side)], note), 6 * fps)
+                yield from repeat(show(start, "PAUSED", [r.side_box(side)], note), 6 * fps)
             say(w["name"])
             moments = list(w["moments"])
-            for t in np.arange(shown, until, CLOSE_RATE / fps):
+            for t in np.arange(start, until, CLOSE_RATE / fps):
                 if moments and t >= moments[0][0]:
                     say(w["name"])
                     yield from repeat(show(t, "PAUSED", [r.side_box(0)], moments.pop(0)[1]),
@@ -411,15 +412,17 @@ def main():
         say("This day in numbers")
         yield from repeat(r.day_numbers(), 9 * fps)
         say("Final test · 30 unseen maps × 10 days per demand level")
+        slack = next(row for row in rows if row[0] == "Slack-aware")
         yield from repeat(r.results("Final test: 30 new maps × 10 days = 300 days per demand "
                                     "level", [(*row, DESCRIBE[row[0]]) for row in rows],
                                     "",
-                                    f"PPO is about as punctual as the rolling horizon, at "
-                                    f"{rows[0][4]} instead of {rows[1][4]} per decision."),
-                          16 * fps)
+                                    f"PPO matches the rolling horizon at {rows[0][4]} instead of "
+                                    f"{rows[1][4]}, and is {rows[0][2] - slack[2]:.0f}–"
+                                    f"{rows[0][3] - slack[3]:.0f} points ahead of Slack-aware.",
+                                    ("PPO (ours)", "Rolling horizon", "Slack-aware")), 11 * fps)
         say("Summary")
         yield from repeat(r.bullets("Summary", summary_lines(rows), "ME5418 GROUP 17"),
-                          10 * fps)
+                          14 * fps)
         say("ME5418 Group 17")
         yield from repeat(r.closing("Thank you for watching", [
             "Learning to dispatch a medical delivery drone"]), 4 * fps)

@@ -991,10 +991,17 @@ class DuelFrames:
             over.text(cx, cy - h / 2 + 24 + 52 * j, line, fontsize=pt(34), color=INK,
                       weight="bold", ha="center", va="top", zorder=13)
 
-    def results(self, title, rows, note, takeaway="") -> np.ndarray:
-        """A bar chart slide; rows = (label, colour, medium %, high %, ms per decision[, line])."""
+    def results(self, title, rows, note, takeaway="", hot=()) -> np.ndarray:
+        """A bar chart slide; rows = (label, colour, medium %, high %, ms per decision[, line]);
+        the rows labelled in hot stand out (a band, their bars and times), the others fade."""
         ax = self._canvas()
         self._page(ax)
+        lit = [not hot or row[0] in hot for row in rows]
+        band = 700 / len(rows)  # row height in pixels, as below
+        for i, on in enumerate(lit):
+            if hot and on:
+                ax.add_patch(rounded(100, 280 + band * i + 4, 1720, band - 8, 12, fc="#fff4e6",
+                                     ec="#e8590c", lw=2))
         self._text(ax, 120, 90, title, 44, INK, "bold")
         for k, part in enumerate(wrap(note, 112)):
             self._text(ax, 120, 152 + 32 * k, part, 24, MUTED)
@@ -1003,10 +1010,11 @@ class DuelFrames:
             c = self._box(470 + 560 * j, top, 510, tall)
             vals = [row[2 + j] for row in rows]
             ys = np.arange(len(rows))[::-1]
-            c.barh(ys, vals, color=[row[1] for row in rows], height=0.64)
-            for yy, v in zip(ys, vals):
+            for yy, v, row, on in zip(ys, vals, rows, lit):
+                c.barh(yy, v, color=row[1], height=0.64, alpha=1.0 if on else 0.25)
                 c.text(v - 1, yy, f"{v:.1f}%", ha="right", va="center", fontsize=pt(21),
-                       color="white", weight="bold")
+                       color="white", weight="bold", alpha=1.0 if on else 0.6)
+            c.patch.set_alpha(0)
             c.set(xlim=(0, 100), ylim=(-0.6, len(rows) - 0.4))
             c.set_yticks([])
             c.set_xticks([0, 50, 100], ["0", "50", "100 %"])
@@ -1017,16 +1025,17 @@ class DuelFrames:
             c.set_title(f"{load} · on time", fontsize=pt(26), color=INK, weight="bold",
                         loc="left", pad=16)
         step = tall / len(rows)
-        for i, row in enumerate(rows):
+        for i, (row, on) in enumerate(zip(rows, lit)):
             yy = top + step * (i + 0.5) - 18
-            self._text(ax, 120, yy - 12, row[0], 26, INK, "bold" if i == 0 else "normal")
+            strong = on and (bool(hot) or i < 2)  # without hot: PPO and the horizon
+            self._text(ax, 120, yy - 12, row[0], 26, INK if on else FAINT,
+                       "bold" if strong else "normal")
             if len(row) > 5:
-                self._text(ax, 120, yy + 20, row[5], 19, MUTED)
-            hot = i < 2  # PPO and the rolling horizon: the comparison that matters
-            ax.add_patch(rounded(1600, yy - 10, 200, 52, 26, fc=row[1] if hot else WASH,
+                self._text(ax, 120, yy + 20, row[5], 19, MUTED if on else FAINT)
+            ax.add_patch(rounded(1600, yy - 10, 200, 52, 26, fc=row[1] if strong else WASH,
                                  ec="none"))
-            self._text(ax, 1700, yy - 2, row[4], 26, "white" if hot else INK,
-                       "bold" if hot else "normal", ha="center")
+            self._text(ax, 1700, yy - 2, row[4], 26, "white" if strong else FAINT,
+                       "bold" if strong else "normal", ha="center")
         self._text(ax, 1700, 244, "TIME PER DECISION", 20, INK, "bold", ha="center")
         for k, part in enumerate(wrap(takeaway, 90)):
             self._text(ax, 120, 1000 + 38 * k, part, 28, INK, "bold")
