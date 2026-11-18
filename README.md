@@ -109,8 +109,8 @@ python -m scripts.compare_video --fps 12 --out outputs/video_12fps.mp4
 ```
 
 Optional. This rebuilds the group video at 12 frames per second in about 15 min; the submitted
-video used `--fps 60` (about 1 h). It replays the day above for PPO and Slack-aware, and its
-final chart reads `evidence/final_test/` and `evidence/latency/`.
+video used `--fps 60` (about 1.5 h). It replays the day above for PPO and Slack-aware, and its
+closing pages read `evidence/final_test/` and `evidence/latency/`.
 
 ## A short training run
 
